@@ -468,13 +468,21 @@ void wavegen_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 	int d;
 	
 	static WgPreset presets[] = {
-		{"OPL2 0", {{ {WG_OSC_SINE, WG_OP_ADD, 1, 0, 50, 0, 0} }, 1}},
+		{"OPL2 0", {{ {WG_OSC_SINE, WG_OP_ADD, 1, 0, 50, 255, 0, 0} }, 1}},
+		{"OPL2 1", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS} }, 2}},
+		{"OPL2 2", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, 0} }, 2}},
+		{"OPL2 3", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_ABS}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, 0} }, 3}},
+		{"OPL3 4", {{ {WG_OSC_SINE, WG_OP_MUL, 2, 0, 50, 255, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS} }, 2}},
+		{"OPL3 5", {{ {WG_OSC_SINE, WG_OP_MUL, 2, 0, 50, 255, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 2, 0, 50, 255, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS} }, 3}},
+		{"OPL3 6", {{ {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, 0}}, 1}}, //TODO: add missing OPL3 waves by adding derived square wave generation
+		
+		/*{"OPL2 0", {{ {WG_OSC_SINE, WG_OP_ADD, 1, 0, 50, 0, 0} }, 1}},
 		{"OPL2 1", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 0, WG_OSC_FLAG_ABS} }, 2}},
 		{"OPL2 2", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 0, 0} }, 2}},
 		{"OPL2 3", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 2, 0, 50, 0, WG_OSC_FLAG_ABS}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 0, 0} }, 3}},
 		{"OPL3 4", {{ {WG_OSC_SINE, WG_OP_MUL, 2, 0, 50, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 0, WG_OSC_FLAG_ABS} }, 2}},
 		{"OPL3 5", {{ {WG_OSC_SINE, WG_OP_MUL, 2, 0, 50, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 2, 0, 50, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 0, WG_OSC_FLAG_ABS} }, 3}},
-		{"OPL3 6", {{ {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 0, 0}}, 1}},
+		{"OPL3 6", {{ {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 0, 0}}, 1}}, //TODO: add missing OPL3 waves by adding derived square wave generation */
 	};
 	
 	{
@@ -553,7 +561,7 @@ void wavegen_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 	
 	r.x += r.w + 4;
 	
-	if ((d = generic_field(event, &r, EDITWAVETABLE, W_OSCMUL, "MUL", "%d", MAKEPTR(osc->mult), 1)) != 0)
+	if ((d = generic_field(event, &r, EDITWAVETABLE, W_OSCMUL, "MUL", "%X", MAKEPTR(osc->mult), 1)) != 0)
 	{
 		wave_add_param(d);
 	}
@@ -561,7 +569,7 @@ void wavegen_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 	r.x = row_begin;
 	r.y += r.h;
 	
-	if ((d = generic_field(event, &r, EDITWAVETABLE, W_OSCSHIFT, "SHIFT", "%d", MAKEPTR(osc->shift), 1)) != 0)
+	if ((d = generic_field(event, &r, EDITWAVETABLE, W_OSCSHIFT, "SHIFT", "%X", MAKEPTR(osc->shift), 1)) != 0)
 	{
 		wave_add_param(d);
 	}
@@ -575,6 +583,16 @@ void wavegen_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 	
 	r.x = row_begin;
 	r.y += r.h;
+	r.w = frame.w; //was r.w = frame.w - 2;
+	
+	if ((d = generic_field(event, &r, EDITWAVETABLE, W_OSCVOL, "OSCILLATOR VOLUME", ((osc->vol < 16) ? ("0%1X") : "%2X"), MAKEPTR(osc->vol), 2)) != 0) //from there
+	{
+		clamp(osc->vol, d, 0, 255);
+	}
+	
+	r.x = row_begin;
+	r.w = frame.w / 2 - 2;
+	r.y += r.h; //up to there there wasn't this part
 	
 	generic_flags(event, &r, EDITWAVETABLE, W_OSCABS, "ABS", &osc->flags, WG_OSC_FLAG_ABS);
 	

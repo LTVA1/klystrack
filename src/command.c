@@ -54,16 +54,17 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_CUTOFF_DN, 0x7f00, "Filter cutoff down", "CutoffDn", -1, -1},
 	{MUS_FX_CUTOFF_SET, 0x7f00, "Set filter cutoff", "Cutoff", 0, 0xff},
 	{MUS_FX_CUTOFF_SET_COMBINED, 0x7f00, "Set combined cutoff", "CutoffAHX", 0, 0xff},
-	{MUS_FX_RESONANCE_SET, 0x7f00, "Set filter resonance", "Resonance", 0, 3},
-	{MUS_FX_FILTER_TYPE, 0x7f00, "Set filter type", "FltType", 0, 2},
-	{MUS_FX_PW_DN, 0x7f00, "PW down", "PWDn", -1, -1},
-	{MUS_FX_PW_UP, 0x7f00, "PW up", "PWUp", -1, -1},
-	{MUS_FX_PW_SET, 0x7f00, "Set PW", "PW", -1, -1},
+	{MUS_FX_RESONANCE_SET, 0x7f00, "Set filter resonance", "Resonance", 0, 15}, //was `0, 3},`
+	{MUS_FX_FILTER_TYPE, 0x7f00, "Set filter type", "FltType", 0, 7},
+	{MUS_FX_PW_DN, 0x7f00, "Pulse width down", "PWDn", -1, -1},
+	{MUS_FX_PW_UP, 0x7f00, "Pulse width up", "PWUp", -1, -1},
+	{MUS_FX_PW_SET, 0x7f00, "Set pulse width", "PW", -1, -1},
 	{MUS_FX_SET_VOLUME, 0x7f00, "Set volume", "Volume", 0, 0xff},
 	{MUS_FX_FADE_GLOBAL_VOLUME, 0x7f00, "Global volume fade", "GlobFade", -1, -1},
 	{MUS_FX_SET_GLOBAL_VOLUME, 0x7f00, "Set global volume", "GlobVol", 0, MAX_VOLUME},
 	{MUS_FX_SET_CHANNEL_VOLUME, 0x7f00, "Set channel volume", "ChnVol", 0, MAX_VOLUME},
 	{MUS_FX_SET_WAVEFORM, 0x7f00, "Set waveform", "Waveform", 0, 0xff},
+	{MUS_FX_OSC_MIX, 0x7ff0, "Set oscillators' mix mode", "OscMix", 0, 1}, //wasn't there
 	{MUS_FX_SET_WAVETABLE_ITEM, 0x7f00, "Set wavetable item", "Wavetable", 0, CYD_WAVE_MAX_ENTRIES - 1},
 	{MUS_FX_SET_FXBUS, 0x7f00, "Set FX bus", "SetFxBus", 0, CYD_MAX_FX_CHANNELS - 1},
 	{MUS_FX_SET_RINGSRC, 0x7f00, "Set ring modulation source (FF=off)", "SetRingSrc", 0, 0xff},
@@ -94,7 +95,7 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_BUZZ_SET_SEMI, 0x7f00, "Set buzz semitone", "BuzzSemi", -1, -1},
 	{MUS_FX_FM_SET_MODULATION, 0x7f00, "Set FM modulation", "FMMod", 0, 0x7f},
 	{MUS_FX_FM_SET_FEEDBACK, 0x7ff0, "Set FM feedback", "FMFB", 0, 7},
-	{MUS_FX_FM_SET_HARMONIC, 0x7f00, "Set FM multiplier", "Mult", 0, 255},
+	{MUS_FX_FM_SET_HARMONIC, 0x7f00, "Set FM multiplier", "FMMult", 0, 255},
 	{MUS_FX_FM_SET_WAVEFORM, 0x7f00, "Set FM waveform", "FMWave", 0, 255},
 	{0, 0, NULL}
 };
@@ -143,7 +144,7 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst)
 	}
 	else if ((fi & 0x7f00) == MUS_FX_FILTER_TYPE)
 	{
-		static const char *fn[FLT_TYPES] = {"LP", "HP", "BP"};
+		static const char *fn[FLT_TYPES] = {"LP", "HP", "BP", "LHP", "HBP", "LBP", "ALL"}; //was `{"LP", "HP", "BP"};`
 		snprintf(text, buffer_size, "%s (%s)\n", name, fn[(inst & 0xf) % FLT_TYPES]);
 	}
 	else if ((fi & 0x7f00) == MUS_FX_BUZZ_SHAPE)

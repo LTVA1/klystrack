@@ -571,6 +571,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Frequency multiplier",
 					"Phase shift",
 					"Phase exponent",
+					"Oscillator volume", //wasn't there
 					"Absolute",
 					"Negative",
 					"Wave length",
@@ -592,7 +593,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Base note",
 					"Finetune",
 					"Lock to base note",
-					"Drum",
+					"Drum (short burst of noise in the beginning)",
 					"Sync oscillator on keydown",
 					"Reverse vibrato bit",
 					"Set PW on keydown",
@@ -600,10 +601,10 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Slide speed",
 					"Pulse wave",
 					"Pulse width",
-					"Saw wave",
+					"Sawtooth wave",
 					"Triangle wave",
 					"Noise",
-					"Metallic noise",
+					"Metallic noise (shortens noise cycle)",
 					"LFSR enable",
 					"LFSR type",
 					"Quarter frequency",
@@ -611,6 +612,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Wavetable entry",
 					"Override volume envelope for wavetable",
 					"Lock wave to base note",
+					"Oscillators mix mode", //wasn't there
 					"Volume",
 					"Relative volume commands",
 					"Envelope attack",
@@ -691,8 +693,8 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"FX bus",
 					"FX bus name",
 					"Enable bitcrusher",
-					"Drop bits",
-					"Downsample",
+					"Drop bits (reduces bit depth)",
+					"Downsample (reduces sample rate)",
 					"Dither",
 					"Crush gain",
 					"Enable stereo chorus",
@@ -1002,6 +1004,7 @@ void inst_field(const SDL_Event *e, const SDL_Rect *area, int p, int length, cha
 		if (mused.editpos == i && c <= length)
 			console_write(mused.console, "�");
 	}
+	
 	else
 	{
 		char temp[1000];
@@ -1166,6 +1169,19 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 
 		r.w = tmp;
 	}
+	
+	my_separator(&frame, &r); //wasn't there
+	
+	
+	static const char *mixtypes[] = {"AND", "SUM"}; 
+
+	r.w = frame.w;
+
+	inst_text(event, &r, P_OSCMIXMODE, "OSC. MIX MODE", "%s", (char*)mixtypes[inst->mixmode], 3); //inst_text(event, &r, P_OSCMIXMODE, "OSC. MIX MODE", "%s", (char*)mixtypes[inst->flttype], 3);
+	update_rect(&frame, &r); 
+	
+	r.w = frame.w / 2 - 2; //wasn't there end    flags ^= mask
+	
 
 	my_separator(&frame, &r);
 	inst_text(event, &r, P_VOLUME, "VOL", "%02X", MAKEPTR(inst->volume), 2);
@@ -1209,12 +1225,12 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 	inst_text(event, &r, P_RINGMODSRC, "SRC", "%02X", MAKEPTR(inst->ring_mod), 2);
 	update_rect(&frame, &r);
 
-	static const char *flttype[] = { "LP", "HP", "BP" };
+	static const char *flttype[] = { "LP", "HP", "BP", "LHP", "HBP", "LBP", "ALL" }; //was `{ "LP", "HP", "BP" };`
 
 	my_separator(&frame, &r);
 	inst_flags(event, &r, P_FILTER, "FILTER", &inst->cydflags, CYD_CHN_ENABLE_FILTER);
 	update_rect(&frame, &r);
-	inst_text(event, &r, P_FLTTYPE, "TYPE", "%s", (char*)flttype[inst->flttype], 2);
+	inst_text(event, &r, P_FLTTYPE, "TYPE", "%s", (char*)flttype[inst->flttype], 3); //was `(char*)flttype[inst->flttype], 2);`
 	update_rect(&frame, &r);
 	inst_text(event, &r, P_CUTOFF, "CUT", "%03X", MAKEPTR(inst->cutoff), 3);
 	update_rect(&frame, &r);

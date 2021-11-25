@@ -304,6 +304,7 @@ void init(MusInstrument *instrument, MusPattern *pattern, MusSeqPattern sequence
 		mused.wgset.chain[i].shift = 0;
 		mused.wgset.chain[i].exp = 50;
 		mused.wgset.chain[i].flags = 0;
+		mused.wgset.chain[i].vol = 255; //wasn't there
 	}
 
 	mused.wgset.num_oscs = 1;

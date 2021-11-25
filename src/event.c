@@ -218,6 +218,12 @@ void instrument_add_param(int a)
 		flipbit(i->cydflags, CYD_CHN_ENABLE_METAL);
 
 		break;
+		
+		case P_OSCMIXMODE: //wasn't there
+		
+		clamp(i->mixmode, a, 0, 1);
+
+		break;
 
 		case P_RELVOL:
 
@@ -403,7 +409,7 @@ void instrument_add_param(int a)
 
 		case P_RESONANCE:
 
-		clamp(i->resonance, a, 0, 3);
+		clamp(i->resonance, a, 0, 15);  //was `0, 3)`
 
 		break;
 
@@ -2197,13 +2203,21 @@ void wave_add_param(int d)
 
 		case W_OSCMUL:
 		{
-			osc->mult = my_max(1, my_min(9, osc->mult + d));
+			osc->mult = my_max(1, my_min(15, osc->mult + d));
 		}
 		break;
 
 		case W_OSCSHIFT:
 		{
-			osc->shift = my_max(0, my_min(7, osc->shift + d));
+			osc->shift = my_max(0, my_min(15, osc->shift + d));
+		}
+		break;
+		
+		case W_OSCVOL: //wasn't there
+		{
+			//osc->vol = my_min(255, osc->vol + d); 
+			//based on `clamp(i->adsr.r, a, 0, 32 * ENVELOPE_SCALE - 1);`
+			clamp(osc->vol, d, 0, 255);
 		}
 		break;
 

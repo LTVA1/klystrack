@@ -7,12 +7,36 @@
 float wg_osc(WgOsc *osc, float _phase)
 {
 	double intpart = 0.0f;
-	double phase = pow(modf(_phase * osc->mult + (float)osc->shift / 8, &intpart), osc->exp_c); 
+	double phase = pow(modf(_phase * osc->mult + (float)osc->shift / 16, &intpart), osc->exp_c); 
 	float output = 0;
 	
 	switch (osc->osc)
 	{
 		default:
+			
+		case WG_OSC_SINE:
+			output = sin(phase * M_PI * 2.0f) * osc->vol / 255;
+			break;
+			
+		case WG_OSC_SQUARE:
+			output = phase >= 0.5f ? (-1.0f * (osc->vol) / 255) : (1.0f * (osc->vol) / 255);
+			break;
+			
+		case WG_OSC_TRIANGLE:
+			if (phase < 0.5f)
+				output = (phase * 4.0f - 1.0f) * (osc->vol) / 255;
+			else
+				output = (1.0f - (phase - 0.5f) * 4.0f) * (osc->vol) / 255;
+			break;
+			
+		case WG_OSC_SAW:
+			output = (phase * 2.0f - 1.0f) * (osc->vol) / 255;
+			break;
+			
+		case WG_OSC_NOISE:
+			output = (rndf() * 2.0f - 1.0f) * (osc->vol) / 255; //TODO: add derived square
+			
+			/*default:
 			
 		case WG_OSC_SINE:
 			output = sin(phase * M_PI * 2.0f);
@@ -34,7 +58,7 @@ float wg_osc(WgOsc *osc, float _phase)
 			break;
 			
 		case WG_OSC_NOISE:
-			output = rndf() * 2.0f - 1.0f;
+			output = rndf() * 2.0f - 1.0f; //TODO: add derived square */
 	}
 	
 	if (osc->flags & WG_OSC_FLAG_ABS)

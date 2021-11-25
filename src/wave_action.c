@@ -305,6 +305,8 @@ void wavegen_randomize(void *unused1, void *unused2, void *unused3)
 	bool do_inharmonic = !(rndu() & 1);
 	bool do_chop = !(rndu() & 3);
 	
+	bool do_vol = !(rndu() & 1); //wasn't there
+	
 	mused.wgset.num_oscs = rnd(1, WG_CHAIN_OSCS);
 	
 	for (int i = 0 ; i < mused.wgset.num_oscs ; ++i)
@@ -332,21 +334,30 @@ void wavegen_randomize(void *unused1, void *unused2, void *unused3)
 		}
 		
 		if (do_inharmonic)
-			mused.wgset.chain[i].mult = rnd(1, do_highfreg ? 9 : 5);
+			mused.wgset.chain[i].mult = rnd(1, do_highfreg ? 15 : 5);
 		else
 			mused.wgset.chain[i].mult = 1 << rnd(0, do_highfreg ? 3 : 2);
 		
 		mused.wgset.chain[i].op = rnd(0, WG_NUM_OPS - 1);
 		
 		if (do_shift)
-			mused.wgset.chain[i].shift = rnd(0, 7);
+			mused.wgset.chain[i].shift = rnd(0, 15);
 		else
 			mused.wgset.chain[i].shift = 0;
 		
 		if (do_exp)
 			mused.wgset.chain[i].exp = rnd(5,95);
 		else
+		{
 			mused.wgset.chain[i].exp = 50;
+		}
+		
+		if (do_vol) //wasn't there
+			mused.wgset.chain[i].vol = rnd(0,255);
+		else
+		{
+			mused.wgset.chain[i].vol = 255;
+		}
 	}
 }
 

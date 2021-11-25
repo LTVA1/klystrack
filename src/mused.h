@@ -206,7 +206,7 @@ extern GfxDomain *domain;
 extern Uint32 pattern_color[16];
 
 #define NUM_PATTERNS 4096
-#define NUM_INSTRUMENTS 128
+#define NUM_INSTRUMENTS 255
 #define NUM_SEQUENCES 2048
 
 void default_settings();

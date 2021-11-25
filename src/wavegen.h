@@ -2,7 +2,7 @@
 
 #include "SDL.h"
 
-#define WG_CHAIN_OSCS 4
+#define WG_CHAIN_OSCS 8 //was 4
 
 typedef enum
 {
@@ -27,6 +27,9 @@ typedef struct
 	WgOpType op;
 	int mult, shift;
 	int exp;
+	
+	Uint8 vol; //wasn't there
+	
 	float exp_c;
 	Uint32 flags;
 } WgOsc;

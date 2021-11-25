@@ -319,6 +319,8 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 	SDL_RWwrite(f, &inst->vib_delay, sizeof(inst->vib_delay), 1);
 	SDL_RWwrite(f, &inst->pwm_shape, sizeof(inst->pwm_shape), 1);
 	SDL_RWwrite(f, &inst->lfsr_type, sizeof(inst->lfsr_type), 1);
+	
+	SDL_RWwrite(f, &inst->mixmode, sizeof(inst->mixmode), 1); //wasn't there
 
 	if (write_wave)
 	{

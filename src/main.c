@@ -161,7 +161,7 @@ static const View fx_view_tab[] =
 	{{0, 0, 0, 0}, NULL}
 };
 
-#define SAMPLEVIEW 128
+#define SAMPLEVIEW 136 //was 128
 
 static const View wavetable_view_tab[] =
 {
@@ -171,8 +171,8 @@ static const View wavetable_view_tab[] =
 	{{0, 14, 204, -INFO-SAMPLEVIEW}, wavetable_view, NULL, -1},
 	{{204, 14, -SCROLLBAR, -INFO-SAMPLEVIEW}, wavetablelist_view, NULL, -1},
 	{{0 - SCROLLBAR, 14, SCROLLBAR, -INFO-SAMPLEVIEW }, slider, &mused.wavetable_list_slider_param, EDITWAVETABLE },
-	{{0, -INFO-SAMPLEVIEW, -148, SAMPLEVIEW}, wavetable_sample_area, NULL, -1},
-	{{-148, -INFO-SAMPLEVIEW, 148, SAMPLEVIEW}, wavetable_edit_area, NULL, -1},
+	{{0, -INFO-SAMPLEVIEW, -180, SAMPLEVIEW}, wavetable_sample_area, NULL, -1}, //was {{0, -INFO-SAMPLEVIEW, -148, SAMPLEVIEW}, wavetable_sample_area, NULL, -1},
+	{{-180, -INFO-SAMPLEVIEW, 180, SAMPLEVIEW}, wavetable_edit_area, NULL, -1}, //was {{-148, -INFO-SAMPLEVIEW, 148, SAMPLEVIEW}, wavetable_edit_area, NULL, -1},
 	{{0, 0 - INFO, 0, INFO }, info_line, NULL, -1},
 	{{0, 0, 0, 0}, NULL}
 };
@@ -216,16 +216,16 @@ int main(int argc, char **argv)
 
 	SDL_setenv("SDL_AUDIODRIVER", "directsound", 0);
 #endif
-
 	init_genrand(time(NULL));
 	init_resources_dir();
+	
 	debug("Starting %s", VERSION_STRING);
 
 	SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_NOPARACHUTE|SDL_INIT_TIMER);
 	atexit(SDL_Quit);
 
 	default_settings();
-	load_config(TOSTRING(CONFIG_PATH), false);
+	load_config("~/.klystrack", false); //was `load_config(TOSTRING(CONFIG_PATH), false);`
 
 	domain = gfx_create_domain(VERSION_STRING, SDL_WINDOW_RESIZABLE|SDL_WINDOW_OPENGL|((mused.flags & WINDOW_MAXIMIZED)?SDL_WINDOW_MAXIMIZED:0), mused.window_w, mused.window_h, mused.pixel_scale);
 	domain->fps = 30;
@@ -241,7 +241,7 @@ int main(int argc, char **argv)
 
 	init(instrument, pattern, sequence, channel);
 
-	load_config(TOSTRING(CONFIG_PATH), true);
+	load_config("~/.klystrack", true); //was `load_config(TOSTRING(CONFIG_PATH), true);`
 
 	post_config_load();
 
@@ -602,7 +602,9 @@ int main(int argc, char **argv)
 	debug("cyd_deinit");
 	cyd_deinit(&mused.cyd);
 
-	save_config(TOSTRING(CONFIG_PATH));
+	save_config("~/.klystrack"); //was `save_config(TOSTRING(CONFIG_PATH));`
+	
+	//debug("Saving config to " + TOSTRING(CONFIG_PATH)); //wasn't there
 
 	debug("deinit");
 	deinit();
