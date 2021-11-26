@@ -10,6 +10,7 @@ A fork of klystrack chiptune tracker.
 - Song info or song comment (separate window with arbitrary amount of text as in e.g. Impulse tracker)
 - Oscilloscope in instrument editing window which shows current waveform produced by instrument
 - Exponential wave in wavegen (mainly for OPL3)
+- DPCMator in wavegen (convert any sample into DPCM NES format (only 1 step up or down for each step, 6-bit resolution) and save as 8-bit PCM sample) 
 - Killing duplicate samples and relinking instruments to remaining 1 sample (useful for imported xms and its, combined with klystrack's sample compression it would give huge (or not) size reduction) 
 
 # klystrack
