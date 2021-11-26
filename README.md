@@ -2,6 +2,16 @@
 
 A fork of klystrack chiptune tracker.
 
+## Future plans
+
+- additive mode for current 2-op fm synth
+- 4-op fm synth with all 12 algorithms I've found. If algorithm is from OPL3 or Sega chip special tip emerges. Each op has its own macro, filter, envelope, etc. Filter of the first op which would be dited in main window filters overall output of the 4-op stack. 
+- commands for setting start and end points of the sample from instrument macro (the result is you can use less samples, e.g. use sine and make lower half sine and upper half sine from the same sample for different instruments) 
+- Song info or song comment (separate window with arbitrary amount of text as in e.g. Impulse tracker)
+- Oscilloscope in instrument editing window which shows current waveform produced by instrument
+- Exponential wave in wavegen (mainly for OPL3)
+- Killing duplicate samples and relinking instruments to remaining 1 sample (useful for imported xms and its, combined with klystrack's sample compression it would give huge (or not) size reduction) 
+
 # klystrack
 
 Klystrack is a chiptune tracker for making chiptune-like music on a modern computer.
