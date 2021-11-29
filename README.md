@@ -15,6 +15,8 @@ A fork of klystrack chiptune tracker.
 - ~~saving wavegen settings as sort of "synth patches"~~ done in v0.3
 - moving klystrack config file from C:/Users/%USERNAME% to app folder which would make app portable
 
+Below are links related to original klystrack. You will not find my releases there. Instead check releases of my fork. 
+
 # klystrack
 
 Klystrack is a chiptune tracker for making chiptune-like music on a modern computer.
