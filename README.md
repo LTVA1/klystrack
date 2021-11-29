@@ -13,7 +13,7 @@ A fork of klystrack chiptune tracker.
 - DPCMator in wavegen (convert any sample into DPCM NES format (only 1 step up or down for each step, 6-bit resolution) and save as 8-bit PCM sample) 
 - Killing duplicate samples and relinking instruments to remaining 1 sample (useful for imported xms and its, combined with klystrack's sample compression it would give huge (or not) size reduction)
 - ~~saving wavegen settings as sort of "synth patches"~~ done in v0.3
-- moving klystrack config file from C:/%USERNAME% to app folder which would make app portable
+- moving klystrack config file from C:/Users/%USERNAME% to app folder which would make app portable
 
 # klystrack
 
