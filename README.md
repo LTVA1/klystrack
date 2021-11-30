@@ -1,6 +1,6 @@
 # klystrack-plus
 
-A fork of klystrack chiptune tracker.
+A fork of klystrack chiptune tracker. A bit outdated but very good and comprehensive tutorial is [here](http://n00bstar.blogspot.com/2013/02/klystrack-tutorial-basics.html).
 
 ## Future plans
 
