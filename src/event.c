@@ -100,6 +100,14 @@ void instrument_add_param(int a)
 			default: a *= 16; break;
 		}
 	}
+	
+	if (SDL_GetModState() & KMOD_CTRL) //wasn't there
+	{
+		switch (mused.selected_param)
+		{
+			default: a *= 256; break;
+		}
+	}
 
 	switch (mused.selected_param)
 	{
@@ -221,7 +229,7 @@ void instrument_add_param(int a)
 		
 		case P_OSCMIXMODE: //wasn't there
 		
-		clamp(i->mixmode, a, 0, 1);
+		clamp(i->mixmode, a, 0, 4);
 
 		break;
 
@@ -295,7 +303,7 @@ void instrument_add_param(int a)
 
 		case P_PW:
 
-		clamp(i->pw, a*16, 0, 0x7ff);
+		clamp(i->pw, a, 0, 0x7ff); //was `clamp(i->pw, a*16, 0, 0x7ff);`
 
 		break;
 
@@ -403,7 +411,7 @@ void instrument_add_param(int a)
 
 		case P_CUTOFF:
 
-		clamp(i->cutoff, a*16, 0, 2047);
+		clamp(i->cutoff, a, 0, 2047); //was `clamp(i->cutoff, a*16, 0, 2047);`
 
 		break;
 
@@ -476,6 +484,12 @@ void instrument_add_param(int a)
 		case P_FM_WAVE:
 
 		flipbit(i->fm_flags, CYD_FM_ENABLE_WAVE);
+
+		break;
+		
+		case P_FM_ADDITIVE: //wasn't there
+
+		flipbit(i->fm_flags, CYD_FM_ENABLE_ADDITIVE);
 
 		break;
 
@@ -2123,6 +2137,22 @@ void wave_add_param(int d)
 			default: d *= 256; break;
 		}
 	}
+	
+	if (SDL_GetModState() & KMOD_CTRL) //wasn't there
+	{
+		switch (mused.wavetable_param)
+		{
+			default: d *= 4096; break;
+		}
+	}
+	
+	if (SDL_GetModState() & KMOD_ALT) //wasn't there
+	{
+		switch (mused.wavetable_param)
+		{
+			default: d *= 65536; break;
+		}
+	}
 
 	snapshot_cascade(S_T_WAVE_PARAM, mused.selected_wavetable, mused.wavetable_param);
 
@@ -2242,7 +2272,7 @@ void wave_add_param(int d)
 
 		case W_WAVELENGTH:
 		{
-			mused.wgset.length = my_max(16, my_min(65536, mused.wgset.length + d));
+			mused.wgset.length = my_max(2, my_min(2147483646, mused.wgset.length + d)); //was `mused.wgset.length = my_max(16, my_min(65536, mused.wgset.length + d));`
 		}
 		break;
 	}

@@ -3,6 +3,7 @@
 #include <math.h>
 #include "macros.h"
 
+#include "combWFgen.h" //wasn't there
 
 float wg_osc(WgOsc *osc, float _phase)
 {
@@ -33,8 +34,27 @@ float wg_osc(WgOsc *osc, float _phase)
 			output = (phase * 2.0f - 1.0f) * (osc->vol) / 255;
 			break;
 			
+		case WG_OSC_EXP: //wasn't there
+			if (phase < 0.5f)
+				output = -1.0 * pow(2.0, (-1.0 * phase * 64)) * (osc->vol) / 255;
+			else
+				output = pow(2.0, (-1.0 * (1 - phase) * 64)) * (osc->vol) / 255; //ouput range from -1.0 to 1.0
+			break;
+			
 		case WG_OSC_NOISE:
-			output = (rndf() * 2.0f - 1.0f) * (osc->vol) / 255; //TODO: add derived square
+			output = (rndf() * 2.0f - 1.0f) * (osc->vol) / 255;
+			
+			
+			// 8th: exponential
+        /*double x;
+        double xIncrement = 1 * 16d / 256d;
+        for(i=0, x=0; i<512; i++, x+=xIncrement) {
+            waveforms[7][i] = Math.pow(2,-x);
+            waveforms[7][1023-i] = -Math.pow(2,-(x + 1/16d));
+        }*/
+			
+			
+			
 			
 			/*default:
 			

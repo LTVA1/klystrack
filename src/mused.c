@@ -226,7 +226,7 @@ void init(MusInstrument *instrument, MusPattern *pattern, MusSeqPattern sequence
 
 	memset(&mused, 0, sizeof(mused));
 
-	set_info_message("Welcome to klystrack!");
+	set_info_message("Welcome to klystrack-plus!");
 
 	default_settings();
 

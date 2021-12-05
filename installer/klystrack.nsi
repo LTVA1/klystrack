@@ -1,7 +1,7 @@
 !include "MUI.nsh"
 !include "installer\FileAssociation.nsh"
 
-Name "klystrack ${VERSION}"
+Name "klystrack-plus ${VERSION}"
 OutFile "zip\klystrack-${VERSION}.exe"
 InstallDirRegKey HKCU "Software\klystrack" ""
 InstallDir $PROGRAMFILES32\klystrack

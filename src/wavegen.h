@@ -11,6 +11,7 @@ typedef enum
 	WG_OSC_SAW,
 	WG_OSC_TRIANGLE,
 	WG_OSC_NOISE,
+	WG_OSC_EXP,
 	WG_NUM_OSCS
 } WgOscType;
 

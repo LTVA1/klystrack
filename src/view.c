@@ -620,7 +620,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Envelope sustain",
 					"Envelope release",
 					"Buzz",
-					"Buzz semi",
+					"Buzz semitone",
 					"Buzz fine",
 					"Buzz shape",
 					"Sync channel",
@@ -642,7 +642,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Pulse width modulation shape",
 					"Program period",
 					"Don't restart program on keydown",
-					"Enable multi oscillator",
+					"Enable multi oscillator (play 2- or 3-note chords by adding 00XX command in pattern)",
 					"FM enable",
 					"FM modulation",
 					"FM feedback",
@@ -654,7 +654,8 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"FM release",
 					"FM env start",
 					"FM use wavetable",
-					"FM wavetable entry"
+					"FM wavetable entry",
+					"FM enable additive synth mode" //wasn't there
 				};
 
 				if (mused.selected_param == P_FXBUS)
@@ -1173,14 +1174,14 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 	my_separator(&frame, &r); //wasn't there
 	
 	
-	static const char *mixtypes[] = {"AND", "SUM"}; 
+	static const char *mixtypes[] = {"AND", "SUM", "bOR", "C64", "XOR"}; 
 
 	r.w = frame.w;
 
 	inst_text(event, &r, P_OSCMIXMODE, "OSC. MIX MODE", "%s", (char*)mixtypes[inst->mixmode], 3); //inst_text(event, &r, P_OSCMIXMODE, "OSC. MIX MODE", "%s", (char*)mixtypes[inst->flttype], 3);
 	update_rect(&frame, &r); 
 	
-	r.w = frame.w / 2 - 2; //wasn't there end    flags ^= mask
+	r.w = frame.w / 2 - 2; //wasn't there end
 	
 
 	my_separator(&frame, &r);
@@ -1225,7 +1226,7 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 	inst_text(event, &r, P_RINGMODSRC, "SRC", "%02X", MAKEPTR(inst->ring_mod), 2);
 	update_rect(&frame, &r);
 
-	static const char *flttype[] = { "LP", "HP", "BP", "LHP", "HBP", "LBP", "ALL" }; //was `{ "LP", "HP", "BP" };`
+	static const char *flttype[] = { "LPs", "HPs", "BPs", "LHP", "HBP", "LBP", "ALL" }; //was `{ "LP", "HP", "BP" };`
 
 	my_separator(&frame, &r);
 	inst_flags(event, &r, P_FILTER, "FILTER", &inst->cydflags, CYD_CHN_ENABLE_FILTER);
@@ -1307,6 +1308,13 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 	r.x += 44;
 	r.w = 32;
 	inst_text(event, &r, P_FM_WAVE_ENTRY, "", "%02X", MAKEPTR(inst->fm_wave), 2);
+	update_rect(&frame, &r);
+	
+	r.y += 12; //wasn't there
+	r.x -= frame.w / 2 + 82;
+	r.w = 70;
+	
+	inst_flags(event, &r, P_FM_ADDITIVE, "ADDITIVE", &inst->fm_flags, CYD_FM_ENABLE_ADDITIVE);
 	update_rect(&frame, &r);
 }
 

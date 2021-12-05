@@ -40,4 +40,6 @@ void optimize_patterns_action(void *unused1, void *unused2, void *unused3);
 void optimize_instruments_action(void *unused1, void *unused2, void *unused3);
 void optimize_wavetables_action(void *unused1, void *unused2, void *unused3);
 
+void duplicate_wavetables_action(void *unused1, void *unused2, void *unused3); //wasn't there
+
 #endif

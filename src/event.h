@@ -137,6 +137,7 @@ enum
 	P_FM_ENV_START,
 	P_FM_WAVE,
 	P_FM_WAVE_ENTRY,
+	P_FM_ADDITIVE, //wasn't there
 	/*----------*/
 	P_PARAMS
 };

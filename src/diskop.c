@@ -113,7 +113,7 @@ void init_recent_files_list()
 	int list_count = 0;
 
 	debug("Loading recent files list");
-	char *e = expand_tilde("~/.klystrackrecent");
+	char *e = expand_tilde(".klystrackrecent");
 
 	if (e)
 	{
@@ -153,7 +153,7 @@ void init_recent_files_list()
 void deinit_recent_files_list()
 {
 	debug("Saving recent files list");
-	char *e = expand_tilde("~/.klystrackrecent");
+	char *e = expand_tilde(".klystrackrecent"); //char *e = expand_tilde(".klystrackrecent");
 
 	if (e)
 	{
@@ -533,7 +533,6 @@ int open_song(FILE *f)
 	return 1;
 }
 
-
 int save_instrument(SDL_RWops *f)
 {
 	const Uint8 version = MUS_VERSION;
@@ -561,6 +560,47 @@ int save_fx(SDL_RWops *f)
 	return 1;
 }
 
+void save_wavepatch_inner(SDL_RWops *f, WgSettings *settings) //wasn't there
+{
+	SDL_RWwrite(f, &settings->num_oscs, sizeof(settings->num_oscs), 1);
+	SDL_RWwrite(f, &settings->length, sizeof(settings->length), 1);
+	
+	int num_osc_value = *(&settings->num_oscs);
+	
+	for(int i = 0; i < num_osc_value; i++)
+	{
+		SDL_RWwrite(f, &settings->chain[i].osc, sizeof(settings->chain[i].osc), 1);
+		SDL_RWwrite(f, &settings->chain[i].op, sizeof(settings->chain[i].op), 1);
+		SDL_RWwrite(f, &settings->chain[i].mult, sizeof(settings->chain[i].mult), 1);
+		SDL_RWwrite(f, &settings->chain[i].shift, sizeof(settings->chain[i].shift), 1);
+		SDL_RWwrite(f, &settings->chain[i].exp, sizeof(settings->chain[i].exp), 1);
+		SDL_RWwrite(f, &settings->chain[i].vol, sizeof(settings->chain[i].vol), 1);
+		SDL_RWwrite(f, &settings->chain[i].exp_c, sizeof(settings->chain[i].exp_c), 1);
+		SDL_RWwrite(f, &settings->chain[i].flags, sizeof(settings->chain[i].flags), 1);
+	}
+}
+
+int save_wavepatch(SDL_RWops *f) //wasn't there
+{
+	const Uint8 version = MUS_VERSION;
+	
+	SDL_RWwrite(f, MUS_WAVEGEN_PATCH_SIG, strlen(MUS_WAVEGEN_PATCH_SIG), sizeof(MUS_WAVEGEN_PATCH_SIG[0]));
+	
+	SDL_RWwrite(f, &version, 1, sizeof(version));
+	
+	save_wavepatch_inner(f, &mused.wgset);
+	
+	return 1;
+}
+
+int open_wavepatch(FILE *f) //wasn't there
+{
+	if (!mus_load_wavepatch(f, &mused.wgset)) return 0;
+
+	
+
+	return 1;
+}
 
 int save_song_inner(SDL_RWops *f, SongStats *stats)
 {
@@ -914,7 +954,8 @@ void open_data(void *type, void *action, void *_ret)
 		{ "wave", "wav", open_wavetable, NULL },
 		{ "raw signed", "", open_wavetable_raw, NULL },
 		{ "raw unsigned", "", open_wavetable_raw_u, NULL },
-		{ "FX bus", "kx", open_fx, save_fx }
+		{ "FX bus", "kx", open_fx, save_fx },
+		{ "wavegen patch", "kw", open_wavepatch, save_wavepatch }, //wasn't there
 	};
 
 	const char *mode[] = { "rb", "wb" };
@@ -953,6 +994,12 @@ void open_data(void *type, void *action, void *_ret)
 				{
 					strncpy(_def, mused.previous_song_filename, sizeof(_def));
 				}
+			}
+			break;
+			
+			case OD_T_WAVEGEN_PATCH: //wasn't there
+			{
+				snprintf(_def, sizeof(_def), "%s.kw", "Wavegen patch");
 			}
 			break;
 		}

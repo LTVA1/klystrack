@@ -295,7 +295,6 @@ void wavetable_draw(float x, float y, float width)
 	}
 }
 
-
 void wavegen_randomize(void *unused1, void *unused2, void *unused3)
 {
 	bool do_sines = !(rndu() & 3);
@@ -491,4 +490,14 @@ void wavetable_find_zero(void *unused1, void *unused2, void *unused3)
 		
 		invalidate_wavetable_view();
 	}
+}
+
+void wavegen_load(void *unused1, void *unused2, void *unused3) //weren't there
+{
+	open_data(MAKEPTR(OD_T_WAVEGEN_PATCH), MAKEPTR(OD_A_OPEN), 0);
+}
+
+void wavegen_save(void *unused1, void *unused2, void *unused3)
+{
+	open_data(MAKEPTR(OD_T_WAVEGEN_PATCH), MAKEPTR(OD_A_SAVE), 0);
 }

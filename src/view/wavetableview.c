@@ -469,12 +469,13 @@ void wavegen_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 	
 	static WgPreset presets[] = {
 		{"OPL2 0", {{ {WG_OSC_SINE, WG_OP_ADD, 1, 0, 50, 255, 0, 0} }, 1}},
-		{"OPL2 1", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS} }, 2}},
-		{"OPL2 2", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, 0} }, 2}},
-		{"OPL2 3", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_ABS}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, 0} }, 3}},
-		{"OPL3 4", {{ {WG_OSC_SINE, WG_OP_MUL, 2, 0, 50, 255, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS} }, 2}},
-		{"OPL3 5", {{ {WG_OSC_SINE, WG_OP_MUL, 2, 0, 50, 255, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 2, 0, 50, 255, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS} }, 3}},
-		{"OPL3 6", {{ {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, 0}}, 1}}, //TODO: add missing OPL3 waves by adding derived square wave generation
+		{"OPL2 1", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS} }, 2}},
+		{"OPL2 2", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, 0} }, 2}},
+		{"OPL2 3", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_ABS}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, 0} }, 3}},
+		{"OPL3 4", {{ {WG_OSC_SINE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS} }, 2}},
+		{"OPL3 5", {{ {WG_OSC_SINE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 2, 0, 50, 255, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS} }, 3}},
+		{"OPL3 6", {{ {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}}, 1}},
+		{"OPL3 7", {{ {WG_OSC_EXP, WG_OP_MUL, 1, 0, 50, 255, 0, 0}}, 1}},
 		
 		/*{"OPL2 0", {{ {WG_OSC_SINE, WG_OP_ADD, 1, 0, 50, 0, 0} }, 1}},
 		{"OPL2 1", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 0, WG_OSC_FLAG_ABS} }, 2}},
@@ -608,7 +609,7 @@ void wavegen_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 	r.w = frame.w - 2;
 	r.h = 10;
 	
-	if ((d = generic_field(event, &r, EDITWAVETABLE, W_WAVELENGTH, "LENGTH", "%5d", MAKEPTR(mused.wgset.length), 5)) != 0)
+	if ((d = generic_field(event, &r, EDITWAVETABLE, W_WAVELENGTH, "LENGTH", "%9d", MAKEPTR(mused.wgset.length), 9)) != 0)
 	{
 		wave_add_param(d);
 	}
@@ -630,6 +631,15 @@ void wavegen_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 	r.x += r.w;
 	
 	button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "TOOLBOX", flip_bit_action, &mused.flags, MAKEPTR(SHOW_WAVEGEN), NULL);
+	
+	r.y += r.h; //wasn't there
+	r.x -= r.w;
+	
+	button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "LOAD PATCH", wavegen_load, &mused.wgset, NULL, NULL);
+	
+	r.x += r.w;
+	
+	button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "SAVE PATCH", wavegen_save, &mused.wgset, NULL, NULL);
 }
 
 

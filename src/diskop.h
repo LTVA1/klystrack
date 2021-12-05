@@ -30,6 +30,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "SDL_rwops.h"
 #include "songstats.h"
 
+#include "wavegen.h" //wasn't there
+
 enum
 {
 	OD_T_SONG,
@@ -38,6 +40,7 @@ enum
 	OD_T_WAVETABLE_RAW_S,
 	OD_T_WAVETABLE_RAW_U,
 	OD_T_FX,
+	OD_T_WAVEGEN_PATCH, //wasn't there
 	/*------*/
 	OD_T_N_TYPES
 };
@@ -56,6 +59,10 @@ int open_instrument(FILE *f);
 int save_instrument(SDL_RWops *f);
 int open_fx(FILE *f);
 int save_fx(SDL_RWops *f);
+
+int open_wavepatch(FILE *f); //weren't there
+void save_wavepatch_inner(SDL_RWops *f, WgSettings *settings);
+int save_wavepatch(SDL_RWops *f);
 
 /* action */
 void open_data(void *type, void *action, void*c);
