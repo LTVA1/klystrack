@@ -330,7 +330,8 @@ void kill_duplicate_wavetables(MusSong *song, CydEngine *cyd) //wasn't there
 					cyd->wavetable_entries[i].loop_end == cyd->wavetable_entries[j].loop_end &&
 					cyd->wavetable_entries[i].base_note == cyd->wavetable_entries[j].base_note && 
 					cyd->wavetable_entries[i].sample_rate != 0 && 
-					cyd->wavetable_entries[i].samples != 0)
+					cyd->wavetable_entries[i].samples != 0 &&
+					strcmp(song->wavetable_names[j], song->wavetable_names[i]) == 0)
 				{
 					Uint8 flag = 0;
 					
@@ -377,6 +378,8 @@ void kill_duplicate_wavetables(MusSong *song, CydEngine *cyd) //wasn't there
 						strcpy(song->wavetable_names[i], song->wavetable_names[j]);
 						
 						cyd_wave_entry_init(&cyd->wavetable_entries[j], NULL, 0, 0, 0, 0, 0);
+
+						strcpy(mused.song.wavetable_names[j], "");
 			
 						removed++;
 					}
