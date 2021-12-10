@@ -1,6 +1,6 @@
-# klystrack-plus
+# Kurumi klystrack-plus
 
-A fork of klystrack chiptune tracker. A bit outdated but very good and comprehensive tutorial is [here](http://n00bstar.blogspot.com/2013/02/klystrack-tutorial-basics.html). To compile from github (not from source archive) you would need to download klystron and do some black magic I think, so better use source.zip.
+A fork of a fork of klystrack chiptune tracker. A bit outdated but very good and comprehensive tutorial is [here](http://n00bstar.blogspot.com/2013/02/klystrack-tutorial-basics.html). To compile from github (not from source archive) you would need to download klystron and do some black magic I think, so better use source.zip.
 
 ## Future plans
 
