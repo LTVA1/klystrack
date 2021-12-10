@@ -1481,9 +1481,9 @@ void fx_reverb_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 	int row_ms = (1000 / mused.song.song_rate) * mused.song.song_speed;
 	int row_ms2 = (1000 / mused.song.song_rate) * mused.song.song_speed2;
 
-	for (int ms = 0 ; ms < CYDRVB_SIZE ; c++)
+	for (int ms = 0 ; ms < CYDRVB_SIZE / 4; c++) //was for (int ms = 0 ; ms < CYDRVB_SIZE; c++)
 	{
-		SDL_Rect r = { area.x + ms * area.w / CYDRVB_SIZE, area.y, 1, area.h};
+		SDL_Rect r = { area.x + ms * area.w / (CYDRVB_SIZE / 4), area.y, 1, area.h}; //was SDL_Rect r = { area.x + ms * area.w / CYDRVB_SIZE, area.y, 1, area.h};
 
 		if (ms > 0)
 		{
@@ -1495,7 +1495,7 @@ void fx_reverb_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 		if (timesig(c, 1, 1, 0))
 		{
 			SDL_Rect text = { r.x + 2, r.y + r.h - mused.smallfont.h, 16, mused.smallfont.h};
-			font_write_args(&mused.smallfont, domain, &text, "%d", c);
+			font_write_args(&mused.smallfont, domain, &text, "%d", c * 4); //was font_write_args(&mused.smallfont, domain, &text, "%d", c);
 		}
 
 		if (c & 1)
