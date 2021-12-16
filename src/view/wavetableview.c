@@ -468,6 +468,7 @@ void wavegen_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 	int d;
 	
 	static WgPreset presets[] = {
+		/*
 		{"OPL2 0", {{ {WG_OSC_SINE, WG_OP_ADD, 1, 0, 50, 255, 0, 0} }, 1}},
 		{"OPL2 1", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS} }, 2}},
 		{"OPL2 2", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, 0} }, 2}},
@@ -476,14 +477,24 @@ void wavegen_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 		{"OPL3 5", {{ {WG_OSC_SINE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 2, 0, 50, 255, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS} }, 3}},
 		{"OPL3 6", {{ {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}}, 1}},
 		{"OPL3 7", {{ {WG_OSC_EXP, WG_OP_MUL, 1, 0, 50, 255, 0, 0}}, 1}},
+		*/
 		
-		/*{"OPL2 0", {{ {WG_OSC_SINE, WG_OP_ADD, 1, 0, 50, 0, 0} }, 1}},
-		{"OPL2 1", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 0, WG_OSC_FLAG_ABS} }, 2}},
-		{"OPL2 2", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 0, 0} }, 2}},
-		{"OPL2 3", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 2, 0, 50, 0, WG_OSC_FLAG_ABS}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 0, 0} }, 3}},
-		{"OPL3 4", {{ {WG_OSC_SINE, WG_OP_MUL, 2, 0, 50, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 0, WG_OSC_FLAG_ABS} }, 2}},
-		{"OPL3 5", {{ {WG_OSC_SINE, WG_OP_MUL, 2, 0, 50, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 2, 0, 50, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 0, WG_OSC_FLAG_ABS} }, 3}},
-		{"OPL3 6", {{ {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 0, 0}}, 1}}, //TODO: add missing OPL3 waves by adding derived square wave generation */
+		// OPLx waveforms
+		{"OPL2 0", {{ {WG_OSC_SINE, WG_OP_ADD, 1, 0, 50, 255, 0, 0} }, 1}},
+		{"OPL2 1", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS} }, 2}},
+		{"OPL2 2", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, 0} }, 2}},
+		{"OPL2 3", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_ABS}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, 0} }, 3}},
+		{"OPL3 4", {{ {WG_OSC_SINE, WG_OP_MUL, 2, 0, 50, 255, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS} }, 2}},
+		{"OPL3 5", {{ {WG_OSC_SINE, WG_OP_MUL, 2, 0, 50, 255, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 2, 0, 50, 255, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS} }, 3}},
+		{"OPL3 6", {{ {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, 0}}, 1}}, //TODO: add reverse saw, we can build a derived square with a saw + reverse saw
+		{"OPL3 7", {{ {WG_OSC_EXP, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}}, 1}},
+		
+		// Yamaha OPZ waveforms, you can find them in synths like DX-11
+		{"OPZ  2", {{ {WG_OSC_TRIANGLE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, 0}, {WG_OSC_TRIANGLE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}}, 3}},
+		{"OPZ  4", {{ {WG_OSC_TRIANGLE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_ABS}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}, {WG_OSC_TRIANGLE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}}, 3}},
+		{"OPZ  6", {{ {WG_OSC_TRIANGLE, WG_OP_MUL, 4, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 2, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_TRIANGLE, WG_OP_MUL, 4, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}}, 4}}, // This is the 495th line of code, Flandre Scarlet sure appreciate that...
+		{"OPZ  8", {{ {WG_OSC_TRIANGLE, WG_OP_MUL, 4, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS}, {WG_OSC_TRIANGLE, WG_OP_MUL, 4, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}}, 3}},
+		
 	};
 	
 	{
