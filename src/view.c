@@ -648,6 +648,8 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"FM feedback",
 					"FM carrier multiplier",
 					"FM modulator multiplier",
+					"FM modulator base note", //wasn't there
+					"FM modulator finetune", //wasn't there
 					"FM attack",
 					"FM decay",
 					"FM sustain",
@@ -1226,7 +1228,7 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 	inst_text(event, &r, P_RINGMODSRC, "SRC", "%02X", MAKEPTR(inst->ring_mod), 2);
 	update_rect(&frame, &r);
 
-	static const char *flttype[] = { "LPs", "HPs", "BPs", "LHP", "HBP", "LBP", "ALL" }; //was `{ "LP", "HP", "BP" };`
+	static const char *flttype[] = { "LPF", "HPF", "BPF", "LHP", "HBP", "LBP", "ALL" }; //was `{ "LP", "HP", "BP" };`
 
 	my_separator(&frame, &r);
 	inst_flags(event, &r, P_FILTER, "FILTER", &inst->cydflags, CYD_CHN_ENABLE_FILTER);
@@ -1291,7 +1293,26 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 
 	inst_text(event, &r, P_FM_HARMONIC_MODULATOR, "", "%01X", MAKEPTR(inst->fm_harmonic & 15), 1);
 	update_rect(&frame, &r);
+	//r.w = tmp;
+	
+	
+	
+	r.w = 148; //wasn't there
+
+	inst_text(event, &r, P_FM_BASENOTE, "MOD. BASE NOTE", "%s", notename(inst->fm_base_note), 3);
+	update_rect(&frame, &r);
+	
+	r.w = 46;
+	inst_text(event, &r, P_FM_FINETUNE, "", "%+4d", MAKEPTR(inst->fm_finetune), 4);
+	update_rect(&frame, &r);
+	
+	r.y += 10;
+	r.x -= 202;
+	
 	r.w = tmp;
+	
+	
+	
 	inst_text(event, &r, P_FM_ATTACK, "ATK", "%02X", MAKEPTR(inst->fm_adsr.a), 2);
 	update_rect(&frame, &r);
 	inst_text(event, &r, P_FM_DECAY, "DEC", "%02X", MAKEPTR(inst->fm_adsr.d), 2);

@@ -338,6 +338,9 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 	SDL_RWwrite(f, &inst->fm_harmonic, sizeof(inst->fm_harmonic), 1);
 	SDL_RWwrite(f, &inst->fm_adsr, sizeof(inst->fm_adsr), 1);
 	SDL_RWwrite(f, &inst->fm_attack_start, sizeof(inst->fm_attack_start), 1);
+	
+	SDL_RWwrite(f, &inst->fm_base_note, sizeof(inst->fm_base_note), 1); //weren't there
+	SDL_RWwrite(f, &inst->fm_finetune, sizeof(inst->fm_finetune), 1);
 
 	if (write_wave_fm)
 	{

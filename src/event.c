@@ -97,6 +97,9 @@ void instrument_add_param(int a)
 		{
 			case P_BASENOTE: a *= 12; break;
 			case P_BUZZ_SEMI: a *= 12; break;
+			
+			case P_FM_BASENOTE: a *= 12; break; //wasn't there
+			
 			default: a *= 16; break;
 		}
 	}
@@ -450,6 +453,23 @@ void instrument_add_param(int a)
 		clamp(i->fm_feedback, a, 0, 0x7);
 
 		break;
+		
+		
+		
+		case P_FM_BASENOTE: //weren't there
+
+		clamp(i->fm_base_note, a, 0, 95);
+
+		break;
+
+		case P_FM_FINETUNE:
+
+		clamp(i->fm_finetune, a, -128, 127);
+
+		break;
+		
+		
+		
 
 		case P_FM_ATTACK:
 
