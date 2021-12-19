@@ -476,6 +476,11 @@ void wavegen_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 		{"OPL3 5", {{ {WG_OSC_SINE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 2, 0, 50, 255, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS} }, 3}},
 		{"OPL3 6", {{ {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}}, 1}},
 		{"OPL3 7", {{ {WG_OSC_EXP, WG_OP_MUL, 1, 0, 50, 255, 0, 0}}, 1}},
+		// Yamaha OPZ waves, you can found them in synths like DX-11
+		{"OPZ  2", {{ {WG_OSC_TRIANGLE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, 0}, {WG_OSC_TRIANGLE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}}, 3}},
+		{"OPZ  4", {{ {WG_OSC_TRIANGLE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_ABS}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}, {WG_OSC_TRIANGLE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}}, 3}},
+		{"OPZ  6", {{ {WG_OSC_TRIANGLE, WG_OP_MUL, 4, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 4, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_TRIANGLE, WG_OP_MUL, 4, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}}, 4}},
+		{"OPZ  8", {{ {WG_OSC_TRIANGLE, WG_OP_MUL, 4, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS}, {WG_OSC_TRIANGLE, WG_OP_MUL, 4, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}}, 3}},
 		
 		/*{"OPL2 0", {{ {WG_OSC_SINE, WG_OP_ADD, 1, 0, 50, 0, 0} }, 1}},
 		{"OPL2 1", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 0, WG_OSC_FLAG_ABS} }, 2}},
@@ -483,7 +488,7 @@ void wavegen_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 		{"OPL2 3", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 2, 0, 50, 0, WG_OSC_FLAG_ABS}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 0, 0} }, 3}},
 		{"OPL3 4", {{ {WG_OSC_SINE, WG_OP_MUL, 2, 0, 50, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 0, WG_OSC_FLAG_ABS} }, 2}},
 		{"OPL3 5", {{ {WG_OSC_SINE, WG_OP_MUL, 2, 0, 50, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 2, 0, 50, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 0, WG_OSC_FLAG_ABS} }, 3}},
-		{"OPL3 6", {{ {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 0, 0}}, 1}}, //TODO: add missing OPL3 waves by adding derived square wave generation */
+		{"OPL3 6", {{ {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 0, 0}}, 1}}, */
 	};
 	
 	{
@@ -501,9 +506,17 @@ void wavegen_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 			mused.selected_wg_preset = 0;
 		else if (mused.selected_wg_preset >= sizeof(presets) / sizeof(presets[0]))
 			mused.selected_wg_preset = sizeof(presets) / sizeof(presets[0]) - 1;	
+		
+		wavegen_preset(&presets[mused.selected_wg_preset], &mused.wgset, NULL); //wasn't there
 	}
 	
 	r.y += r.h + 2;
+	
+	int tmp = frame.w;
+	
+	r.w = frame.w / 2;
+	
+	frame.w = tmp;
 		
 	if ((d = generic_field(event, &r, EDITWAVETABLE, W_NUMOSCS, "OSCS", "%d", MAKEPTR(mused.wgset.num_oscs), 3)) != 0)
 	{
