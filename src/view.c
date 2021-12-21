@@ -631,6 +631,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Filter type",
 					"Filter cutoff frequency",
 					"Filter resonance",
+					"Filter slope",
 					"Send signal to FX chain",
 					"FX bus",
 					"Vibrato speed",
@@ -640,6 +641,11 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Pulse width modulation speed",
 					"Pulse width modulation depth",
 					"Pulse width modulation shape",
+					"Pulse width modulation delay", //wasn't there
+					"Tremolo speed", //wasn't there
+					"Tremolo depth", //wasn't there
+					"Tremolo shape", //wasn't there
+					"Tremolo delay", //wasn't there
 					"Program period",
 					"Don't restart program on keydown",
 					"Enable multi oscillator (play 2- or 3-note chords by adding 00XX command in pattern)",
@@ -658,6 +664,26 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"FM use wavetable",
 					"FM wavetable entry",
 					"FM enable additive synth mode" //wasn't there
+				};
+				
+				static const char * mixmodes[] =
+				{
+					"bitwise AND",
+					"sum of oscillators' signals",
+					"bitwise OR",
+					"C64 8580 SID combined waves",
+					"exclusive OR"
+				};
+				
+				static const char * filter_types[] =
+				{
+					"lowpass filter",
+					"highpass filter",
+					"bandpass filter",
+					"lowpass + highpass",
+					"highpass + bypass",
+					"lowpass + bypass",
+					"lowpass + highpass + bypass"
 				};
 
 				if (mused.selected_param == P_FXBUS)
@@ -680,6 +706,14 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					snprintf(text, sizeof(text) - 1, "%s (%.1f ms)", param_desc[mused.selected_param], envelope_length(mused.song.instrument[mused.current_instrument].fm_adsr.d));
 				else if (mused.selected_param == P_FM_RELEASE)
 					snprintf(text, sizeof(text) - 1, "%s (%.1f ms)", param_desc[mused.selected_param], envelope_length(mused.song.instrument[mused.current_instrument].fm_adsr.r));
+				
+				else if (mused.selected_param == P_CUTOFF) //wasn't there
+					snprintf(text, sizeof(text) - 1, "%s (%d Hz)", param_desc[mused.selected_param], (mused.song.instrument[mused.current_instrument].cutoff * 20000) / 4096);
+				else if (mused.selected_param == P_FLTTYPE) //wasn't there
+					snprintf(text, sizeof(text) - 1, "%s (%s)", param_desc[mused.selected_param], filter_types[mused.song.instrument[mused.current_instrument].flttype]);
+				else if (mused.selected_param == P_OSCMIXMODE) //wasn't there
+					snprintf(text, sizeof(text) - 1, "%s (%s)", param_desc[mused.selected_param], mixmodes[mused.song.instrument[mused.current_instrument].mixmode]);
+				
 				else
 					strcpy(text, param_desc[mused.selected_param]);
 			}
@@ -1229,6 +1263,7 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 	update_rect(&frame, &r);
 
 	static const char *flttype[] = { "LPF", "HPF", "BPF", "LHP", "HBP", "LBP", "ALL" }; //was `{ "LP", "HP", "BP" };`
+	static const char *slope[] = { "12 dB/oct", "24 dB/oct", "48 dB/oct" };
 
 	my_separator(&frame, &r);
 	inst_flags(event, &r, P_FILTER, "FILTER", &inst->cydflags, CYD_CHN_ENABLE_FILTER);
@@ -1238,6 +1273,11 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 	inst_text(event, &r, P_CUTOFF, "CUT", "%03X", MAKEPTR(inst->cutoff), 3);
 	update_rect(&frame, &r);
 	inst_text(event, &r, P_RESONANCE, "RES", "%1X", MAKEPTR(inst->resonance), 1);
+	update_rect(&frame, &r);
+	
+	r.w = frame.w;
+	
+	inst_text(event, &r, P_SLOPE, "SLOPE", "%s", (char*)slope[inst->slope], 9);
 	update_rect(&frame, &r);
 }
 
@@ -1262,9 +1302,9 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 	update_rect(&frame, &r);
 	inst_text(event, &r, P_VIBDEPTH,   "VIB.D", "%02X", MAKEPTR(inst->vibrato_depth), 2);
 	update_rect(&frame, &r);
-	inst_text(event, &r, P_VIBSHAPE,   "VIB.SH", "%c", MAKEPTR(inst->vib_shape + 0xf4), 1);
+	inst_text(event, &r, P_VIBSHAPE,   "VIB.SH", "%c", MAKEPTR(inst->vibrato_shape + 0xf4), 1);
 	update_rect(&frame, &r);
-	inst_text(event, &r, P_VIBDELAY,   "V.DEL", "%02X", MAKEPTR(inst->vib_delay), 2);
+	inst_text(event, &r, P_VIBDELAY,   "V.DEL", "%02X", MAKEPTR(inst->vibrato_delay), 2);
 	update_rect(&frame, &r);
 	inst_text(event, &r, P_PWMSPEED,   "PWM.S", "%02X", MAKEPTR(inst->pwm_speed), 2);
 	update_rect(&frame, &r);
@@ -1272,6 +1312,18 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 	update_rect(&frame, &r);
 	inst_text(event, &r, P_PWMSHAPE,   "PWM.SH", "%c", MAKEPTR(inst->pwm_shape + 0xf4), 1);
 	update_rect(&frame, &r);
+	inst_text(event, &r, P_PWMDELAY,   "PWM.DEL", "%02X", MAKEPTR(inst->pwm_delay), 2); //wasn't there
+	update_rect(&frame, &r);
+	
+	inst_text(event, &r, P_TREMSPEED,   "TR.S", "%02X", MAKEPTR(inst->tremolo_speed), 2); //wasn't there
+	update_rect(&frame, &r);
+	inst_text(event, &r, P_TREMDEPTH,   "TR.D", "%02X", MAKEPTR(inst->tremolo_depth), 2);
+	update_rect(&frame, &r);
+	inst_text(event, &r, P_TREMSHAPE,   "TR.SH", "%c", MAKEPTR(inst->tremolo_shape + 0xf4), 1);
+	update_rect(&frame, &r);
+	inst_text(event, &r, P_TREMDELAY,   "TR.DEL", "%02X", MAKEPTR(inst->tremolo_delay), 2);
+	update_rect(&frame, &r);
+	
 	inst_text(event, &r, P_PROGPERIOD, "P.PRD", "%02X", MAKEPTR(inst->prog_period), 2);
 	update_rect(&frame, &r);
 	inst_flags(event, &r, P_NORESTART, "NO RESTART", &inst->flags, MUS_INST_NO_PROG_RESTART);
@@ -1331,7 +1383,7 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 	inst_text(event, &r, P_FM_WAVE_ENTRY, "", "%02X", MAKEPTR(inst->fm_wave), 2);
 	update_rect(&frame, &r);
 	
-	r.y += 12; //wasn't there
+	r.y += 10; //wasn't there
 	r.x -= frame.w / 2 + 82;
 	r.w = 70;
 	

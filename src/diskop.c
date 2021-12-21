@@ -299,6 +299,14 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 	SDL_RWwrite(f, &inst->vibrato_depth, sizeof(inst->vibrato_depth), 1);
 	SDL_RWwrite(f, &inst->pwm_speed, sizeof(inst->pwm_speed), 1);
 	SDL_RWwrite(f, &inst->pwm_depth, sizeof(inst->pwm_depth), 1);
+	
+	SDL_RWwrite(f, &inst->pwm_delay, sizeof(inst->pwm_delay), 1);
+	
+	SDL_RWwrite(f, &inst->tremolo_speed, sizeof(inst->tremolo_speed), 1);
+	SDL_RWwrite(f, &inst->tremolo_depth, sizeof(inst->tremolo_depth), 1);
+	SDL_RWwrite(f, &inst->tremolo_shape, sizeof(inst->tremolo_shape), 1);
+	SDL_RWwrite(f, &inst->tremolo_delay, sizeof(inst->tremolo_delay), 1);
+	
 	SDL_RWwrite(f, &inst->slide_speed, sizeof(inst->slide_speed), 1);
 	SDL_RWwrite(f, &inst->base_note, sizeof(inst->base_note), 1);
 	SDL_RWwrite(f, &inst->finetune, sizeof(inst->finetune), 1);
@@ -310,13 +318,16 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 	SDL_RWwrite(f, &temp16, sizeof(temp16), 1);
 	SDL_RWwrite(f, &inst->resonance, sizeof(inst->resonance), 1);
 	SDL_RWwrite(f, &inst->flttype, sizeof(inst->flttype), 1);
+	
+	SDL_RWwrite(f, &inst->slope, sizeof(inst->slope), 1);
+	
 	SDL_RWwrite(f, &inst->ym_env_shape, sizeof(inst->ym_env_shape), 1);
 	temp16 = inst->buzz_offset;
 	FIX_ENDIAN(temp16);
 	SDL_RWwrite(f, &temp16, sizeof(temp16), 1);
 	SDL_RWwrite(f, &inst->fx_bus, sizeof(inst->fx_bus), 1);
-	SDL_RWwrite(f, &inst->vib_shape, sizeof(inst->vib_shape), 1);
-	SDL_RWwrite(f, &inst->vib_delay, sizeof(inst->vib_delay), 1);
+	SDL_RWwrite(f, &inst->vibrato_shape, sizeof(inst->vibrato_shape), 1);
+	SDL_RWwrite(f, &inst->vibrato_delay, sizeof(inst->vibrato_delay), 1);
 	SDL_RWwrite(f, &inst->pwm_shape, sizeof(inst->pwm_shape), 1);
 	SDL_RWwrite(f, &inst->lfsr_type, sizeof(inst->lfsr_type), 1);
 	

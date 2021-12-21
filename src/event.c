@@ -306,7 +306,7 @@ void instrument_add_param(int a)
 
 		case P_PW:
 
-		clamp(i->pw, a, 0, 0x7ff); //was `clamp(i->pw, a*16, 0, 0x7ff);`
+		clamp(i->pw, a, 0, 0xfff); //was `clamp(i->pw, a*16, 0, 0x7ff);`
 
 		break;
 
@@ -340,13 +340,13 @@ void instrument_add_param(int a)
 
 		case P_VIBDELAY:
 
-		clamp(i->vib_delay, a, 0, 0xff);
+		clamp(i->vibrato_delay, a, 0, 0xff);
 
 		break;
 
 		case P_VIBSHAPE:
 
-		clamp(i->vib_shape, a, 0, MUS_NUM_SHAPES - 1);
+		clamp(i->vibrato_shape, a, 0, MUS_NUM_SHAPES - 1);
 
 		break;
 
@@ -373,6 +373,40 @@ void instrument_add_param(int a)
 		clamp(i->pwm_shape, a, 0, MUS_NUM_SHAPES - 1);
 
 		break;
+		
+		case P_PWMDELAY: //wasn't there
+
+		clamp(i->pwm_delay, a, 0, 0xff);
+
+		break;
+		
+		
+		
+		case P_TREMDEPTH:
+
+		clamp(i->tremolo_depth, a, 0, 0xff);
+
+		break;
+
+		case P_TREMSPEED:
+
+		clamp(i->tremolo_speed, a, 0, 0xff);
+
+		break;
+
+		case P_TREMSHAPE:
+
+		clamp(i->tremolo_shape, a, 0, MUS_NUM_SHAPES - 1);
+
+		break;
+		
+		case P_TREMDELAY: //wasn't there
+
+		clamp(i->tremolo_delay, a, 0, 0xff);
+
+		break;
+		
+		
 
 		case P_RINGMOD:
 
@@ -414,13 +448,19 @@ void instrument_add_param(int a)
 
 		case P_CUTOFF:
 
-		clamp(i->cutoff, a, 0, 2047); //was `clamp(i->cutoff, a*16, 0, 2047);`
+		clamp(i->cutoff, a, 0, 4095); //was `clamp(i->cutoff, a*16, 0, 2047);`
 
 		break;
 
 		case P_RESONANCE:
 
 		clamp(i->resonance, a, 0, 15);  //was `0, 3)`
+
+		break;
+		
+		case P_SLOPE: //wasn't there
+
+		clamp(i->slope, a, 0, 2);  //was `0, 3)`
 
 		break;
 
