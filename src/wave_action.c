@@ -267,7 +267,7 @@ void wavetable_create_one_cycle(void *_settings, void *unused2, void *unused3)
 	w->samples = new_length;
 	w->loop_begin = 0;
 	w->loop_end = new_length;
-	w->flags = CYD_WAVE_LOOP;
+	w->flags |= CYD_WAVE_LOOP;
 	w->base_note = (MIDDLE_C + 9 - 12) << 8;
 	
 	invalidate_wavetable_view();

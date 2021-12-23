@@ -562,6 +562,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Base note",
 					"Base note finetune",
 					"Interpolate",
+					"Interpolation type", //wasn't there
 					"Enable looping",
 					"Loop begin",
 					"Ping-pong looping",
@@ -680,10 +681,10 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"lowpass filter",
 					"highpass filter",
 					"bandpass filter",
-					"lowpass + highpass",
-					"highpass + bypass",
-					"lowpass + bypass",
-					"lowpass + highpass + bypass"
+					"lowpass + highpass (signal sum)",
+					"highpass + bypass (signal sum)",
+					"lowpass + bypass (signal sum)",
+					"lowpass + highpass + bypass (signal sum)"
 				};
 
 				if (mused.selected_param == P_FXBUS)
@@ -861,7 +862,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 	adjust_rect(&area, 2);
 	copy_rect(&clip, &area);
 	adjust_rect(&area, 1);
-	area.w = 1000;
+	area.w = 4000;
 	console_set_clip(mused.console, &area);
 
 	MusInstrument *inst = &mused.song.instrument[mused.current_instrument];
@@ -979,6 +980,21 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 		check_mouse_wheel_event(event, dest, &mused.program_slider_param);
 }
 
+void oscilloscope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param) //wasn't there
+{
+	/*SDL_Rect area, clip;
+	copy_rect(&area, dest);
+	//console_set_clip(mused.console, &area);
+	//console_clear(mused.console);
+	bevelex(domain,&area, mused.slider_bevel, BEV_THIN_FRAME, 0);
+	//adjust_rect(&area, 2);
+	copy_rect(&clip, &area);
+	//adjust_rect(&area, 1);
+	area.w = 128;
+	area.h = 128;
+	console_set_clip(mused.console, &area);*/
+
+}
 
 static void inst_flags(const SDL_Event *e, const SDL_Rect *_area, int p, const char *label, Uint32 *flags, Uint32 mask)
 {

@@ -80,6 +80,8 @@ extern const Menu mainmenu[];
 #define INFO 13
 #define INST_VIEW2 (38+10+10+10+106) //#define INST_VIEW2 (38+10+10+10+52)
 
+#define OSC_SIZE 128
+
 void change_pixel_scale(void *, void*, void*);
 
 static const View instrument_view_tab[] =
@@ -94,6 +96,11 @@ static const View instrument_view_tab[] =
 	{{0 - SCROLLBAR, 14 + INST_LIST + INST_VIEW2, SCROLLBAR, -INFO }, slider, &mused.program_slider_param, EDITPROG },
 	{{0 - SCROLLBAR, 14, SCROLLBAR, INST_LIST }, slider, &mused.instrument_list_slider_param, EDITINSTRUMENT },
 	{{0, 0 - INFO, 0, INFO }, info_line, NULL, -1 },
+	
+	
+	{{154 + 100, 14 + INST_LIST + INST_VIEW2 + 10, -OSC_SIZE, -OSC_SIZE }, oscilloscope_view, NULL, EDITINSTRUMENT }, //wasn't there
+	
+	
 	{{0, 0, 0, 0}, NULL}
 };
 
@@ -240,7 +247,7 @@ int main(int argc, char **argv)
 	load_config(".klystrack", false); //was `load_config(TOSTRING(CONFIG_PATH), false);`
 
 	domain = gfx_create_domain(VERSION_STRING, SDL_WINDOW_RESIZABLE|SDL_WINDOW_OPENGL|((mused.flags & WINDOW_MAXIMIZED)?SDL_WINDOW_MAXIMIZED:0), mused.window_w, mused.window_h, mused.pixel_scale);
-	domain->fps = 30;
+	domain->fps = 60;
 	domain->scale = mused.pixel_scale;
 	domain->window_min_w = 320;
 	domain->window_min_h = 240;

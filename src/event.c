@@ -2223,6 +2223,15 @@ void wave_add_param(int d)
 			flipbit(w->flags, CYD_WAVE_NO_INTERPOLATION);
 		}
 		break;
+		
+		case W_INTERPOLATION_TYPE:
+		{
+			if(((w->flags & (CYD_WAVE_INTERPOLATION_BIT_1|CYD_WAVE_INTERPOLATION_BIT_2|CYD_WAVE_INTERPOLATION_BIT_3)) >> 5) + d >= 0 && ((w->flags & (CYD_WAVE_INTERPOLATION_BIT_1|CYD_WAVE_INTERPOLATION_BIT_2|CYD_WAVE_INTERPOLATION_BIT_3)) >> 5) + d <= 1 && (w->flags & CYD_WAVE_NO_INTERPOLATION) == 0)
+			{
+				w->flags += d << 5;
+			}
+		}
+		break;
 
 		case W_WAVE:
 		{

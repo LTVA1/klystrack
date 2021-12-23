@@ -85,6 +85,20 @@ void wavetable_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 		generic_flags(event, &r, EDITWAVETABLE, W_INTERPOLATE, "NO INTERPOLATION", &w->flags, CYD_WAVE_NO_INTERPOLATION);
 		
 		update_rect(&frame, &r);
+		
+		
+		
+		
+		r.w = 138;
+		
+		static const char *interpolations[] = { "NO INT", "LINEAR", "COSINE", "CUBIC", "GAUSS" };
+		
+		if ((d = generic_field(event, &r, EDITWAVETABLE, W_INTERPOLATION_TYPE, "INT. TYPE", "%s", MAKEPTR(interpolations[w->flags & CYD_WAVE_NO_INTERPOLATION ? 0 : ((w->flags & (CYD_WAVE_INTERPOLATION_BIT_1|CYD_WAVE_INTERPOLATION_BIT_2|CYD_WAVE_INTERPOLATION_BIT_3)) >> 5) + 1]), 6)) != 0)
+		{
+			wave_add_param(d);
+		}
+		
+		update_rect(&frame, &r);
 	}
 	
 	my_separator(&frame, &r);

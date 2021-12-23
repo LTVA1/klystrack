@@ -68,6 +68,77 @@ static void deinit_lines()
 	data.n_lines = 0;
 }
 
+const char* comments[] = {
+	"",
+	"",
+	"                  ==== K L Y S T R A C K - P L U S ====",
+	"",
+	"",
+	"So, this is klystrack fork which adds a bunch of new stuff. But, will you ask,",
+	"why would you need something new in this tracker? It already is kinda good,",
+	"no?",
+	"",
+	"And I will answer that of course yes. I've used original klystrack for almost",
+	"a year, and despite my absolute inability in all connected with music, I",
+	"believe that klystrack (for a tracker) is very good program which is easy to",
+	"use and understand. But, to my surprise, it lacks some additional capabilities",
+	"such as combined SID waves and 4-op FM synth, which I, of course, can't use to",
+	"create something beautiful, but I want other people to have some kind of",
+	"universal tracker where they would be able to compose for almost any chip at",
+	"the same time. Of course, there is E-Famitracker as kind of \"one tracker to",
+	"rule them all\", but its channels have fixed capabilities and purpose. E.g.",
+	"NES square channel only has 16-step linear volume and only 4 fixed pulse",
+	"widths (btw that was the reason I started searching for different tracker",
+	"which ended with me discovering klystrack), and it does not have functions of",
+	"the noise or DPCM channel, and so on. On the other hand, in klystrack you",
+	"already have a lot of channels and every channel can do anything other channel",
+	"can do, which is cool. And there even was 2-op FM! And I started digging it,",
+	"and found that there are other beautiful chips like OPL3 and OPN family.",
+	"And sadly klystrack lacked their specific functions, so one day I remembered",
+	"that somewhen I studied a bit of programming and so I forked this tracker and",
+	"started to add new functions.",
+	"",
+	"Of course, now these are minor additions, but with each I better understand",
+	"how tracker works, and so I can add more complex stuff in the future. 4-op is",
+	"on the way and other stuff too!",
+	"",
+	"                                                                       -- LTVA",
+	"",
+	"",
+	"      ,-.  ,--,                       ___                                    ,-.",
+	"  ,--/ /|,--.'|                     ,--.'|_                              ,--/ /|",
+	",--. :/ ||  | :                     |  | :,'  __  ,-.                  ,--. :/ |",
+	":  : ' / :  : '            .--.--.  :  : ' :,' ,'/ /|                  :  : ' / ",
+	"|  '  /  |  ' |       .--,/  /    .;__,'  / '  | |' |,--.--.     ,---. |  '  /  ",
+	"'  |  :  '  | |     /_ ./|  :  /`.|  |   |  |  |   ,/       \\   /     \\'  |  :  ",
+	"|  |   \\ |  | :  , ' , ' |  :  ;_ :__,'| :  '  :  /.--.  .-. | /    / '|  |   \\ ",
+	"'  : |. \\'  : |_/___/ \\: |\\  \\    `.'  : |__|  | '  \\__\\/: . ..    ' / '  : |. \\ ",
+	"|  | ' \\ |  | '.'.  \\  ' | `----.   |  | '.';  : |  ,| .--.; |'   ; :__|  | ' \\ \\ ",
+	"'  : |--';  :    ;\\  ;   :/  /`--'  ;  :    |  , ; /  /  ,.  |'   | '.''  : |--' ", 
+	";  |,'   |  ,   /  \\  \\  '--'.     /|  ,   / ---' ;  :   .'   |   :    ;  |,'    ", 
+	"'--'      ---`-'    :  \\  \\`--'---'  ---`-'       |  ,     .-./\\   \\  /'--'      ", 
+	"                     \\  ' ;                        `--`---'     `----'            ",
+	"                      `--`                                                        ",
+	
+	
+	/*"      ,-.  ,--,                       ___                                    ,-.",
+	"  ,--/ /|,--.'|                     ,--.'|_                              ,--/ /|",
+	",--. :/ ||  | :                     |  | :,'  __  ,-.                  ,--. :/ |",
+	":  : ' / :  : '            .--.--.  :  : ' :,' ,'/ /|                  :  : ' / ",
+	"|  '  /  |  ' |       .--,/  /    .;__,'  / '  | |' |,--.--.     ,---. |  '  /  ",
+	"'  |  :  '  | |     /_ ./|  :  /`.|  |   |  |  |   ,/       \   /     \'  |  :  ",
+	"|  |   \ |  | :  , ' , ' |  :  ;_ :__,'| :  '  :  /.--.  .-. | /    / '|  |   \ ",
+	"'  : |. \'  : |_/___/ \: |\  \    `.'  : |__|  | '  \__\/: . ..    ' / '  : |. \ ",
+	"|  | ' \ |  | '.'.  \  ' | `----.   |  | '.';  : |  ,\" .--.; |'   ; :__|  | '\ \ ",
+	"'  : |--';  :    ;\  ;   :/  /`--'  ;  :    |  , ; /  /  ,.  |'   | '.''  : |--' ", 
+	";  |,'   |  ,   /  \  \  '--'.     /|  ,   / ---' ;  :   .'   |   :    ;  |,'    ", 
+	"'--'      ---`-'    :  \  \`--'---'  ---`-'       |  ,     .-./\   \  /'--'      ", 
+	"                    \  ' ;                        `--`---'     `----'            ",
+	"                     `--`                                                        ",
+	"",*/
+	NULL
+};
+
 static void init_lines(void * section, void * unused1, void * unused2)
 {
 	deinit_lines();
@@ -115,7 +186,7 @@ static void init_lines(void * section, void * unused1, void * unused2)
 		{
 			data.n_lines = 0;
 			
-			for (const KeyShortcut *s = shortcuts ; s->action ; ++s)
+			for (const KeyShortcut *s = shortcuts; s->action; ++s)
 				if (s->description) ++data.n_lines;
 				
 			data.lines = realloc(data.lines, sizeof(*data.lines) * data.n_lines);
@@ -138,6 +209,31 @@ static void init_lines(void * section, void * unused1, void * unused2)
 			}
 		}
 		break;
+		
+		case 2:
+		{
+			data.n_lines = 0;
+			
+			while(comments[data.n_lines] != NULL)
+				++data.n_lines;
+				
+			data.lines = realloc(data.lines, sizeof(*data.lines) * data.n_lines);
+		
+			for (int i = 0 ; i < data.n_lines ; ++i)
+			{
+				char buffer[500];
+				
+				snprintf(buffer, sizeof(buffer), "%s", comments[i]);
+					
+				if (strlen(buffer) > LIST_WIDTH / data.smallfont->w - 4)
+				{
+					strcpy(&buffer[LIST_WIDTH / data.smallfont->w - 4], "...");
+				}
+					
+				data.lines[i] = strdup(buffer);
+			}
+		}
+		break;
 	}
 }
 
@@ -155,6 +251,10 @@ static void buttons_view(GfxDomain *dest_surface, const SDL_Rect *area, const SD
 
 	button.w = strlen("Shortcuts") * data.smallfont->w + 12;
 	button_text_event(dest_surface, event, &button, data.gfx, data.smallfont, data.mode == 1 ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "Shortcuts", init_lines, MAKEPTR(1), 0, 0);
+	button.x += button.w + 1;
+	
+	button.w = strlen("Authors' comments") * data.smallfont->w + 12;
+	button_text_event(dest_surface, event, &button, data.gfx, data.smallfont, data.mode == 2 ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "Authors' comments", init_lines, MAKEPTR(2), 0, 0);
 	button.x += button.w + 1;
 }
 
