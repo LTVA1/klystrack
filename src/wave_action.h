@@ -10,6 +10,10 @@ void wavetable_chord(void *transpose, void *unused2, void *unused3);
 void wavetable_create_one_cycle(void *unused1, void *unused2, void *unused3);
 void wavetable_randomize_and_create_one_cycle(void *unused1, void *unused2, void *unused3);
 void wavegen_randomize(void *unused1, void *unused2, void *unused3);
+
+void wavegen_load(void *unused1, void *unused2, void *unused3); //weren't there
+void wavegen_save(void *unused1, void *unused2, void *unused3);
+
 void wavegen_preset(void *_preset, void *_settings, void *unused3);
 void wavetable_draw(float x, float y, float w);
 void wavetable_amp(void *amp, void *unused2, void *unused3);

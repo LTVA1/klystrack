@@ -49,6 +49,7 @@ const struct { bool margin; int w; int id; } pattern_params[] =
 	{true, 1, PED_LEGATO},
 	{false, 1, PED_SLIDE},
 	{false, 1, PED_VIB},
+	{false, 1, PED_TREM}, //wasn't there
 	{true, 1, PED_COMMAND1},
 	{false, 1, PED_COMMAND2},
 	{false, 1, PED_COMMAND3},
@@ -259,6 +260,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 					{COLOR_PATTERN_CTRL_BAR, COLOR_PATTERN_CTRL_BEAT, COLOR_PATTERN_CTRL},
 					{COLOR_PATTERN_CTRL_BAR, COLOR_PATTERN_CTRL_BEAT, COLOR_PATTERN_CTRL},
 					{COLOR_PATTERN_CTRL_BAR, COLOR_PATTERN_CTRL_BEAT, COLOR_PATTERN_CTRL},
+					{COLOR_PATTERN_CTRL_BAR, COLOR_PATTERN_CTRL_BEAT, COLOR_PATTERN_CTRL}, //wasn't there
 					{COLOR_PATTERN_COMMAND_BAR, COLOR_PATTERN_COMMAND_BEAT, COLOR_PATTERN_COMMAND},
 					{COLOR_PATTERN_COMMAND_BAR, COLOR_PATTERN_COMMAND_BEAT, COLOR_PATTERN_COMMAND},
 					{COLOR_PATTERN_COMMAND_BAR, COLOR_PATTERN_COMMAND_BEAT, COLOR_PATTERN_COMMAND},
@@ -383,11 +385,12 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 						case PED_LEGATO:
 						case PED_SLIDE:
 						case PED_VIB:
+						case PED_TREM:
 						
 							if (sp->position + step != mused.pattern_position)
-								console_set_color(mused.console, diszero((s->ctrl & (1 << (param - PED_LEGATO))), color));
+								console_set_color(mused.console, diszero((s->ctrl & (1 << (param - PED_LEGATO))), color)); //was console_set_color(mused.console, diszero((s->ctrl & (1 << (param - PED_LEGATO))), color));
 						
-							font_write_args(&mused.console->font, dest_surface, &pos, "%c", (s->ctrl & (1 << (param - PED_LEGATO))) ? "LSV"[param - PED_LEGATO] : '-');
+							font_write_args(&mused.console->font, dest_surface, &pos, "%c", (s->ctrl & (1 << (param - PED_LEGATO))) ? "LSVT"[param - PED_LEGATO] : '-'); //was font_write_args(&mused.console->font, dest_surface, &pos, "%c", (s->ctrl & (1 << (param - PED_LEGATO))) ? "LSV"[param - PED_LEGATO] : '-');
 							break;
 							
 						case PED_COMMAND1:

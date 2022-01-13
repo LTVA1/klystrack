@@ -58,6 +58,9 @@ void song_name_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 void instrument_name_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
 void instrument_disk_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
 void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
+
+void oscilloscope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param); //wasn't there
+
 void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
 void sequence_spectrum_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
 void pattern_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);

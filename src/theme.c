@@ -333,6 +333,8 @@ void load_theme(const char *name)
 		rw = load_img_if_exists(&res, "catometer");
 		if (rw)
 		{
+			debug("Loading catometer");
+			
 			if (mused.catometer) gfx_free_surface(mused.catometer);
 			mused.catometer = gfx_load_surface_RW(domain, rw, GFX_KEYED);
 		}

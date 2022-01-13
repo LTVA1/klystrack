@@ -1,5 +1,5 @@
 [Desktop Entry]
-Name=Klystrack
+Name=Klystrack-plus
 Comment=Chiptune Tracker
 Comment[fr]=Tracker 8-bits
 Exec=klystrack %f

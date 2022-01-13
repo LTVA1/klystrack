@@ -377,7 +377,7 @@ int import_ahx(FILE *f)
 		fread(&byte, 1, 1, f);
 
 		fread(&byte, 1, 1, f);
-		i->vib_delay = byte;
+		i->vibrato_delay = byte;
 		i->vibrato_depth = (byte & 0xf) * 8;
 
 		fread(&byte, 1, 1, f);

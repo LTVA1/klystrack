@@ -267,7 +267,7 @@ void wavetable_create_one_cycle(void *_settings, void *unused2, void *unused3)
 	w->samples = new_length;
 	w->loop_begin = 0;
 	w->loop_end = new_length;
-	w->flags = CYD_WAVE_LOOP;
+	w->flags |= CYD_WAVE_LOOP;
 	w->base_note = (MIDDLE_C + 9 - 12) << 8;
 	
 	invalidate_wavetable_view();
@@ -295,7 +295,6 @@ void wavetable_draw(float x, float y, float width)
 	}
 }
 
-
 void wavegen_randomize(void *unused1, void *unused2, void *unused3)
 {
 	bool do_sines = !(rndu() & 3);
@@ -304,6 +303,8 @@ void wavegen_randomize(void *unused1, void *unused2, void *unused3)
 	bool do_highfreg = !(rndu() & 1);
 	bool do_inharmonic = !(rndu() & 1);
 	bool do_chop = !(rndu() & 3);
+	
+	bool do_vol = !(rndu() & 1); //wasn't there
 	
 	mused.wgset.num_oscs = rnd(1, WG_CHAIN_OSCS);
 	
@@ -332,21 +333,30 @@ void wavegen_randomize(void *unused1, void *unused2, void *unused3)
 		}
 		
 		if (do_inharmonic)
-			mused.wgset.chain[i].mult = rnd(1, do_highfreg ? 9 : 5);
+			mused.wgset.chain[i].mult = rnd(1, do_highfreg ? 15 : 5);
 		else
 			mused.wgset.chain[i].mult = 1 << rnd(0, do_highfreg ? 3 : 2);
 		
 		mused.wgset.chain[i].op = rnd(0, WG_NUM_OPS - 1);
 		
 		if (do_shift)
-			mused.wgset.chain[i].shift = rnd(0, 7);
+			mused.wgset.chain[i].shift = rnd(0, 15);
 		else
 			mused.wgset.chain[i].shift = 0;
 		
 		if (do_exp)
 			mused.wgset.chain[i].exp = rnd(5,95);
 		else
+		{
 			mused.wgset.chain[i].exp = 50;
+		}
+		
+		if (do_vol) //wasn't there
+			mused.wgset.chain[i].vol = rnd(0,255);
+		else
+		{
+			mused.wgset.chain[i].vol = 255;
+		}
 	}
 }
 
@@ -480,4 +490,14 @@ void wavetable_find_zero(void *unused1, void *unused2, void *unused3)
 		
 		invalidate_wavetable_view();
 	}
+}
+
+void wavegen_load(void *unused1, void *unused2, void *unused3) //weren't there
+{
+	open_data(MAKEPTR(OD_T_WAVEGEN_PATCH), MAKEPTR(OD_A_OPEN), 0);
+}
+
+void wavegen_save(void *unused1, void *unused2, void *unused3)
+{
+	open_data(MAKEPTR(OD_T_WAVEGEN_PATCH), MAKEPTR(OD_A_SAVE), 0);
 }

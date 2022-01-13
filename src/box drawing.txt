@@ -1,0 +1,29 @@
+░   ▒   ▓   █   │   ┤   ╡   ╢   ╖   ╕   ╣   ║   ╗   ╝   ╜   ╛   ┐   └   ┴   ┬   ├   ─   ┼   ╞   ╟   ╚   ╔   ╩   ╦   ╠   ═   ╬   ╧   ╨   ╤   ╥   ╙   ╘   ╒   ╓   ╫   ╪   ┘   ┌
+
+╔════════════════════╗
+║\BASE \xaf\xb0\xb1\xb2\xb3\xaf\xb0\xb1\xb2\xb3 \xb4L  ║
+║\xb5\DRUM      \xb5KSYNC   ║
+║\xb4VIB       \xb5SET PW  ║
+║\xb5SET CUT   SLIDE\xaf\xb1\xb2\xb3║
+╟────────────────────╢
+║\xb4PUL \xaf\xb0\xb1\xb2\xb3 \xb4SAW     ║
+║\xb5TRI \xb4NOI  \xb4METAL   ║
+║\xb4POKEY \xae\xb2\xb3 \xb4 1/4TH  ║
+╟────────────────────╢
+║\xb4WAVE\xaf\xb1\xb2\xb3 \xb4OENV \xb4L  ║
+╟────────────────────╢
+║OSC. MIX MODE \xaf\xb0\xb1\xb2\xb3 ║
+╟────────────────────╢
+║VOL \xaf\xb1\xb2\xb3 \xb4RELATIVE  ║
+║\ATK \xaf\xb1\xb2\xb3 DEC \xaf\xb1\xb2\xb3   ║
+║SUS \xaf\xb1\xb2\xb3 REL \xaf\xb1\xb2\xb3   ║
+╟────────────────────╢
+║\xb4\BUZZ  DETUNE\xaf\xb1\xb2\xb3   ║
+║SHAPE\xae\xb2\xb3 FINE\xaf\xb0\xb1\xb2\xb3  ║
+╟────────────────────╢
+║\xb4SYNC     SRC \xaf\xb1\xb2\xb3  ║
+║\xb4RING MOD SRC \xaf\xb1\xb2\xb3  ║
+╟────────────────────╢
+║\xb4\FILTER  TYPE\xaf\xb0\xb1\xb2\xb3  ║
+║\CUT\xaf\xb0\xb1\xb2\xb3 RES   \xae\xb2\xb3  ║
+║SLOPE \xaf\xb0\xb0\xb0\xb0\xb0\xb0\xb0\xb0\xb1\xb2\xb3  ║

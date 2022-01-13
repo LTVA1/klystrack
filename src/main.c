@@ -53,6 +53,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "nostalgy.h"
 #include "theme.h"
 
+#include "combWFgen.h"
+
 #ifdef MIDI
 
 #include "midi.h"
@@ -76,7 +78,9 @@ extern const Menu mainmenu[];
 #define SCROLLBAR 10
 #define INST_LIST (6*8 + 3*2)
 #define INFO 13
-#define INST_VIEW2 (38+10+10+10+52)
+#define INST_VIEW2 (38+10+10+10+156) //#define INST_VIEW2 (38+10+10+10+52)
+
+#define OSC_SIZE 128
 
 void change_pixel_scale(void *, void*, void*);
 
@@ -92,6 +96,11 @@ static const View instrument_view_tab[] =
 	{{0 - SCROLLBAR, 14 + INST_LIST + INST_VIEW2, SCROLLBAR, -INFO }, slider, &mused.program_slider_param, EDITPROG },
 	{{0 - SCROLLBAR, 14, SCROLLBAR, INST_LIST }, slider, &mused.instrument_list_slider_param, EDITINSTRUMENT },
 	{{0, 0 - INFO, 0, INFO }, info_line, NULL, -1 },
+	
+	
+	{{154 + 100, 14 + INST_LIST + INST_VIEW2 + 10, -OSC_SIZE, -OSC_SIZE }, oscilloscope_view, NULL, EDITINSTRUMENT }, //wasn't there
+	
+	
 	{{0, 0, 0, 0}, NULL}
 };
 
@@ -161,7 +170,7 @@ static const View fx_view_tab[] =
 	{{0, 0, 0, 0}, NULL}
 };
 
-#define SAMPLEVIEW 128
+#define SAMPLEVIEW 148 //was 128, 8 pixels per string
 
 static const View wavetable_view_tab[] =
 {
@@ -171,8 +180,8 @@ static const View wavetable_view_tab[] =
 	{{0, 14, 204, -INFO-SAMPLEVIEW}, wavetable_view, NULL, -1},
 	{{204, 14, -SCROLLBAR, -INFO-SAMPLEVIEW}, wavetablelist_view, NULL, -1},
 	{{0 - SCROLLBAR, 14, SCROLLBAR, -INFO-SAMPLEVIEW }, slider, &mused.wavetable_list_slider_param, EDITWAVETABLE },
-	{{0, -INFO-SAMPLEVIEW, -148, SAMPLEVIEW}, wavetable_sample_area, NULL, -1},
-	{{-148, -INFO-SAMPLEVIEW, 148, SAMPLEVIEW}, wavetable_edit_area, NULL, -1},
+	{{0, -INFO-SAMPLEVIEW, -180, SAMPLEVIEW}, wavetable_sample_area, NULL, -1}, //was {{0, -INFO-SAMPLEVIEW, -148, SAMPLEVIEW}, wavetable_sample_area, NULL, -1},
+	{{-180, -INFO-SAMPLEVIEW, 180, SAMPLEVIEW}, wavetable_edit_area, NULL, -1}, //was {{-148, -INFO-SAMPLEVIEW, 148, SAMPLEVIEW}, wavetable_edit_area, NULL, -1},
 	{{0, 0 - INFO, 0, INFO }, info_line, NULL, -1},
 	{{0, 0, 0, 0}, NULL}
 };
@@ -207,6 +216,11 @@ void my_open_menu(const Menu *menu, const Menu *action)
 #undef main
 #endif
 
+int TriSaw_8580[4096]; //wasn't there
+int PulseSaw_8580[4096];
+int PulseTriSaw_8580[4096];
+int PulseTri_8580[8192];
+
 int main(int argc, char **argv)
 {
 #ifdef WIN32
@@ -216,19 +230,24 @@ int main(int argc, char **argv)
 
 	SDL_setenv("SDL_AUDIODRIVER", "directsound", 0);
 #endif
-
 	init_genrand(time(NULL));
 	init_resources_dir();
+	
 	debug("Starting %s", VERSION_STRING);
+	
+	createCombinedWF(PulseSaw_8580,1.4,1.9,0.68); //wasn't there
+	createCombinedWF(PulseTriSaw_8580,0.8,2.5,0.64); 
+	createCombinedWF(TriSaw_8580,0.8,2.4,0.64); 
+	createPulseTri(PulseTri_8580,1.4,1.9,0.68); //createPulseTri(PulseTri_8580,3.1,1.1,0.64);
 
 	SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_NOPARACHUTE|SDL_INIT_TIMER);
 	atexit(SDL_Quit);
 
 	default_settings();
-	load_config(TOSTRING(CONFIG_PATH), false);
+	load_config(".klystrack", false); //was `load_config(TOSTRING(CONFIG_PATH), false);`
 
 	domain = gfx_create_domain(VERSION_STRING, SDL_WINDOW_RESIZABLE|SDL_WINDOW_OPENGL|((mused.flags & WINDOW_MAXIMIZED)?SDL_WINDOW_MAXIMIZED:0), mused.window_w, mused.window_h, mused.pixel_scale);
-	domain->fps = 30;
+	domain->fps = 60;
 	domain->scale = mused.pixel_scale;
 	domain->window_min_w = 320;
 	domain->window_min_h = 240;
@@ -241,7 +260,7 @@ int main(int argc, char **argv)
 
 	init(instrument, pattern, sequence, channel);
 
-	load_config(TOSTRING(CONFIG_PATH), true);
+	load_config(".klystrack", true); //was `load_config(TOSTRING(CONFIG_PATH), true);`
 
 	post_config_load();
 
@@ -602,7 +621,9 @@ int main(int argc, char **argv)
 	debug("cyd_deinit");
 	cyd_deinit(&mused.cyd);
 
-	save_config(TOSTRING(CONFIG_PATH));
+	save_config(".klystrack"); //was `save_config(TOSTRING(CONFIG_PATH));`
+	
+	//debug("Saving config to " + TOSTRING(CONFIG_PATH)); //wasn't there
 
 	debug("deinit");
 	deinit();

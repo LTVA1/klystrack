@@ -294,9 +294,11 @@ void generic_action(void *func, void *unused1, void *unused2)
 
 void quit_action(void *unused1, void *unused2, void *unused3)
 {
-	mused.done = 1;
+	if (confirm(domain, mused.slider_bevel, &mused.largefont, "Do you really want to exit?"))
+	{
+		mused.done = 1;
+	}
 }
-
 
 void change_mode_action(void *mode, void *unused1, void *unused2)
 {

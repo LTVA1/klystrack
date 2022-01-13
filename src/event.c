@@ -51,7 +51,7 @@ void editparambox(int v)
 	if (mused.editpos != 0 || v < 0xf)
 	{
 		// Keeps the exec next command bit intact
-		*param = (*param & 0x8000) | (((*param & mask) | ((v&0xf) <<((3-mused.editpos)*4))) & 0x7fff);
+		*param = (*param & 0x8000) | (((*param & mask) | ((v&0xf) <<((3-mused.editpos)*4))) & 0xffff); //old command *param = (*param & 0x8000) | (((*param & mask) | ((v&0xf) <<((3-mused.editpos)*4))) & 0x7fff);
 	}
 	else
 	{
@@ -97,7 +97,18 @@ void instrument_add_param(int a)
 		{
 			case P_BASENOTE: a *= 12; break;
 			case P_BUZZ_SEMI: a *= 12; break;
+			
+			case P_FM_BASENOTE: a *= 12; break; //wasn't there
+			
 			default: a *= 16; break;
+		}
+	}
+	
+	if (SDL_GetModState() & KMOD_CTRL) //wasn't there
+	{
+		switch (mused.selected_param)
+		{
+			default: a *= 256; break;
 		}
 	}
 
@@ -218,6 +229,12 @@ void instrument_add_param(int a)
 		flipbit(i->cydflags, CYD_CHN_ENABLE_METAL);
 
 		break;
+		
+		case P_OSCMIXMODE: //wasn't there
+		
+		clamp(i->mixmode, a, 0, 4);
+
+		break;
 
 		case P_RELVOL:
 
@@ -260,6 +277,18 @@ void instrument_add_param(int a)
 		clamp(i->adsr.r, a, 0, 32 * ENVELOPE_SCALE - 1);
 
 		break;
+		
+		case P_KSL:
+		
+		flipbit(i->cydflags, CYD_CHN_ENABLE_KEY_SCALING);
+		
+		break;
+		
+		case P_KSL_LEVEL:
+		
+		clamp(i->ksl_level, a, 0, 255);
+		
+		break;
 
 		case P_BUZZ:
 
@@ -289,7 +318,7 @@ void instrument_add_param(int a)
 
 		case P_PW:
 
-		clamp(i->pw, a*16, 0, 0x7ff);
+		clamp(i->pw, a, 0, 0xfff); //was `clamp(i->pw, a*16, 0, 0x7ff);`
 
 		break;
 
@@ -314,6 +343,8 @@ void instrument_add_param(int a)
 		clamp(i->slide_speed, a, 0, 0xff);
 
 		break;
+		
+		
 
 		case P_VIBDEPTH:
 
@@ -323,13 +354,13 @@ void instrument_add_param(int a)
 
 		case P_VIBDELAY:
 
-		clamp(i->vib_delay, a, 0, 0xff);
+		clamp(i->vibrato_delay, a, 0, 0xff);
 
 		break;
 
 		case P_VIBSHAPE:
 
-		clamp(i->vib_shape, a, 0, MUS_NUM_SHAPES - 1);
+		clamp(i->vibrato_shape, a, 0, MUS_NUM_SHAPES - 1);
 
 		break;
 
@@ -338,6 +369,33 @@ void instrument_add_param(int a)
 		clamp(i->vibrato_speed, a, 0, 0xff);
 
 		break;
+		
+		
+		case P_FM_VIBDEPTH:
+
+		clamp(i->fm_vibrato_depth, a, 0, 0xff);
+
+		break;
+
+		case P_FM_VIBDELAY:
+
+		clamp(i->fm_vibrato_delay, a, 0, 0xff);
+
+		break;
+
+		case P_FM_VIBSHAPE:
+
+		clamp(i->fm_vibrato_shape, a, 0, MUS_NUM_SHAPES - 1);
+
+		break;
+
+		case P_FM_VIBSPEED:
+
+		clamp(i->fm_vibrato_speed, a, 0, 0xff);
+
+		break;
+		
+		
 
 		case P_PWMDEPTH:
 
@@ -356,6 +414,66 @@ void instrument_add_param(int a)
 		clamp(i->pwm_shape, a, 0, MUS_NUM_SHAPES - 1);
 
 		break;
+		
+		case P_PWMDELAY: //wasn't there
+
+		clamp(i->pwm_delay, a, 0, 0xff);
+
+		break;
+		
+		
+		
+		case P_TREMDEPTH:
+
+		clamp(i->tremolo_depth, a, 0, 0xff);
+
+		break;
+
+		case P_TREMSPEED:
+
+		clamp(i->tremolo_speed, a, 0, 0xff);
+
+		break;
+
+		case P_TREMSHAPE:
+
+		clamp(i->tremolo_shape, a, 0, MUS_NUM_SHAPES - 1);
+
+		break;
+		
+		case P_TREMDELAY: //wasn't there
+
+		clamp(i->tremolo_delay, a, 0, 0xff);
+
+		break;
+		
+		
+		
+		case P_FM_TREMDEPTH:
+
+		clamp(i->fm_tremolo_depth, a, 0, 0xff);
+
+		break;
+
+		case P_FM_TREMSPEED:
+
+		clamp(i->fm_tremolo_speed, a, 0, 0xff);
+
+		break;
+
+		case P_FM_TREMSHAPE:
+
+		clamp(i->fm_tremolo_shape, a, 0, MUS_NUM_SHAPES - 1);
+
+		break;
+		
+		case P_FM_TREMDELAY: //wasn't there
+
+		clamp(i->fm_tremolo_delay, a, 0, 0xff);
+
+		break;
+		
+		
 
 		case P_RINGMOD:
 
@@ -380,6 +498,12 @@ void instrument_add_param(int a)
 		flipbit(i->flags, MUS_INST_INVERT_VIBRATO_BIT);
 
 		break;
+		
+		case P_INVTREM:
+
+		flipbit(i->flags, MUS_INST_INVERT_TREMOLO_BIT);
+
+		break;
 
 		case P_FILTER:
 
@@ -397,13 +521,19 @@ void instrument_add_param(int a)
 
 		case P_CUTOFF:
 
-		clamp(i->cutoff, a*16, 0, 2047);
+		clamp(i->cutoff, a, 0, 4095); //was `clamp(i->cutoff, a*16, 0, 2047);`
 
 		break;
 
 		case P_RESONANCE:
 
-		clamp(i->resonance, a, 0, 3);
+		clamp(i->resonance, a, 0, 15);  //was `0, 3)`
+
+		break;
+		
+		case P_SLOPE: //wasn't there
+
+		clamp(i->slope, a, 0, 5);  //was `0, 3)`
 
 		break;
 
@@ -424,6 +554,12 @@ void instrument_add_param(int a)
 		flipbit(i->flags, MUS_INST_MULTIOSC);
 
 		break;
+		
+		case P_SAVE_LFO_SETTINGS:
+
+		flipbit(i->flags, MUS_INST_SAVE_LFO_SETTINGS);
+
+		break;
 
 		case P_FM_MODULATION:
 
@@ -436,6 +572,44 @@ void instrument_add_param(int a)
 		clamp(i->fm_feedback, a, 0, 0x7);
 
 		break;
+		
+		case P_FM_KSL_ENABLE:
+
+		flipbit(i->fm_flags, CYD_FM_ENABLE_KEY_SCALING);
+
+		break;
+		
+		case P_FM_KSL_LEVEL:
+
+		clamp(i->fm_ksl_level, a, 0, 0xff);
+
+		break;
+		
+		
+		
+		case P_FM_BASENOTE: //weren't there
+
+		clamp(i->fm_base_note, a, 0, 95);
+
+		break;
+
+		case P_FM_FINETUNE:
+
+		clamp(i->fm_finetune, a, -128, 127);
+
+		break;
+		
+		
+		
+		
+		case P_FM_FREQ_LUT:
+
+		clamp(i->fm_freq_LUT, a, 0, 1);
+
+		break;
+		
+		
+		
 
 		case P_FM_ATTACK:
 
@@ -470,6 +644,18 @@ void instrument_add_param(int a)
 		case P_FM_WAVE:
 
 		flipbit(i->fm_flags, CYD_FM_ENABLE_WAVE);
+
+		break;
+		
+		case P_FM_ADDITIVE: //wasn't there
+
+		flipbit(i->fm_flags, CYD_FM_ENABLE_ADDITIVE);
+
+		break;
+		
+		case P_FM_SAVE_LFO_SETTINGS: //wasn't there
+
+		flipbit(i->fm_flags, CYD_FM_SAVE_LFO_SETTINGS);
 
 		break;
 
@@ -606,6 +792,7 @@ static void wave_the_jams(int sym)
 		for (int i = 0 ; i < MUS_MAX_CHANNELS ; ++i)
 			cyd_enable_gate(mused.mus.cyd, &mused.mus.cyd->channel[i], 0);
 	}
+	
 	else
 	{
 		int note = find_note(sym, mused.octave);
@@ -1323,6 +1510,7 @@ void pattern_event(SDL_Event *e)
 								case PED_LEGATO:
 								case PED_SLIDE:
 								case PED_VIB:
+								case PED_TREM:
 									mused.song.pattern[current_pattern()].step[current_patternstep()].ctrl = 0;
 									break;
 
@@ -1623,11 +1811,12 @@ void pattern_event(SDL_Event *e)
 
 							snapshot(S_T_PATTERN);
 
-							mused.song.pattern[current_pattern()].step[current_patternstep()].command = validate_command(inst) & 0x7fff;
+							mused.song.pattern[current_pattern()].step[current_patternstep()].command = validate_command(inst) & 0xffff; //you need `0x7fff` there to return old command system
 
 							update_pattern_slider(mused.note_jump);
 						}
 					}
+					
 					else if (mused.current_patternx >= PED_CTRL && mused.current_patternx < PED_COMMAND1)
 					{
 						if (e->key.keysym.sym == SDLK_PERIOD || e->key.keysym.sym == SDLK_0)
@@ -1638,6 +1827,7 @@ void pattern_event(SDL_Event *e)
 
 							update_pattern_slider(mused.note_jump);
 						}
+						
 						if (e->key.keysym.sym == SDLK_1)
 						{
 							snapshot(S_T_PATTERN);
@@ -1686,7 +1876,8 @@ void edit_program_event(SDL_Event *e)
 				snapshot(S_T_INSTRUMENT);
 
 				if ((mused.song.instrument[mused.current_instrument].program[mused.current_program_step] & 0xf000) != 0xf000)
-					mused.song.instrument[mused.current_instrument].program[mused.current_program_step] ^= 0x8000;
+					//mused.song.instrument[mused.current_instrument].program[mused.current_program_step] ^= 0x8000; //old command mused.song.instrument[mused.current_instrument].program[mused.current_program_step] ^= 0x8000;
+					mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_program_step / 8] ^= (1 << (mused.current_program_step % 8));
 			}
 			break;
 
@@ -1739,8 +1930,22 @@ void edit_program_event(SDL_Event *e)
 			case SDLK_INSERT:
 			{
 				snapshot(S_T_INSTRUMENT);
-				for (int i = MUS_PROG_LEN-1; i > mused.current_program_step ; --i)
+				for (int i = MUS_PROG_LEN-1; i > mused.current_program_step; --i)
+				{
 					mused.song.instrument[mused.current_instrument].program[i] = mused.song.instrument[mused.current_instrument].program[i-1];
+					
+					bool b = (mused.song.instrument[mused.current_instrument].program_unite_bits[(i - 1) / 8] & (1 << ((i - 1) % 8)));
+					
+					if(b == false)
+					{
+						mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] &= ~(1 << (i % 8));
+					}
+					
+					else
+					{
+						mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] |= (1 << (i % 8));
+					}
+				}
 				mused.song.instrument[mused.current_instrument].program[mused.current_program_step] = MUS_FX_NOP;
 			}
 			break;
@@ -1757,13 +1962,31 @@ void edit_program_event(SDL_Event *e)
 
 				if (!(mused.flags & DELETE_EMPTIES) || e->key.keysym.sym == SDLK_BACKSPACE)
 				{
-					for (int i = mused.current_program_step  ; i < MUS_PROG_LEN-1 ; ++i)
+					for (int i = mused.current_program_step; i < MUS_PROG_LEN-1; ++i)
+					{
 						mused.song.instrument[mused.current_instrument].program[i] = mused.song.instrument[mused.current_instrument].program[i+1];
+						
+						bool b = (mused.song.instrument[mused.current_instrument].program_unite_bits[(i + 1) / 8] & (1 << ((i + 1) % 8)));
+						
+						if(b == false)
+						{
+							mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] &= ~(1 << (i % 8));
+						}
+						
+						else
+						{
+							mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] |= (1 << (i % 8));
+						}
+					}
 					mused.song.instrument[mused.current_instrument].program[MUS_PROG_LEN-1] = MUS_FX_NOP;
 				}
+				
 				else
 				{
 					mused.song.instrument[mused.current_instrument].program[mused.current_program_step] = MUS_FX_NOP;
+					
+					mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_program_step / 8] &= ~(1 << (mused.current_program_step % 8));
+					
 					++mused.current_program_step;
 					if (mused.current_program_step >= MUS_PROG_LEN)
 						mused.current_program_step = MUS_PROG_LEN - 1;
@@ -2114,7 +2337,23 @@ void wave_add_param(int d)
 		{
 			case W_BASE: d *= 12; break;
 			case W_BASEFINE: d *= 16; break;
-			default: d *= 256; break;
+			default: d *= 16; break;
+		}
+	}
+	
+	if (SDL_GetModState() & KMOD_CTRL) //wasn't there
+	{
+		switch (mused.wavetable_param)
+		{
+			default: d *= 4096; break;
+		}
+	}
+	
+	if (SDL_GetModState() & KMOD_ALT) //wasn't there
+	{
+		switch (mused.wavetable_param)
+		{
+			default: d *= 65536; break;
 		}
 	}
 
@@ -2125,6 +2364,15 @@ void wave_add_param(int d)
 		case W_INTERPOLATE:
 		{
 			flipbit(w->flags, CYD_WAVE_NO_INTERPOLATION);
+		}
+		break;
+		
+		case W_INTERPOLATION_TYPE:
+		{
+			if(((w->flags & (CYD_WAVE_INTERPOLATION_BIT_1|CYD_WAVE_INTERPOLATION_BIT_2|CYD_WAVE_INTERPOLATION_BIT_3)) >> 5) + d >= 0 && ((w->flags & (CYD_WAVE_INTERPOLATION_BIT_1|CYD_WAVE_INTERPOLATION_BIT_2|CYD_WAVE_INTERPOLATION_BIT_3)) >> 5) + d <= 1 && (w->flags & CYD_WAVE_NO_INTERPOLATION) == 0)
+			{
+				w->flags += d << 5;
+			}
 		}
 		break;
 
@@ -2197,13 +2445,21 @@ void wave_add_param(int d)
 
 		case W_OSCMUL:
 		{
-			osc->mult = my_max(1, my_min(9, osc->mult + d));
+			osc->mult = my_max(1, my_min(15, osc->mult + d));
 		}
 		break;
 
 		case W_OSCSHIFT:
 		{
-			osc->shift = my_max(0, my_min(7, osc->shift + d));
+			osc->shift = my_max(0, my_min(15, osc->shift + d));
+		}
+		break;
+		
+		case W_OSCVOL: //wasn't there
+		{
+			//osc->vol = my_min(255, osc->vol + d); 
+			//based on `clamp(i->adsr.r, a, 0, 32 * ENVELOPE_SCALE - 1);`
+			clamp(osc->vol, d, 0, 255);
 		}
 		break;
 
@@ -2228,7 +2484,7 @@ void wave_add_param(int d)
 
 		case W_WAVELENGTH:
 		{
-			mused.wgset.length = my_max(16, my_min(65536, mused.wgset.length + d));
+			mused.wgset.length = my_max(2, my_min(2147483646, mused.wgset.length + d)); //was `mused.wgset.length = my_max(16, my_min(65536, mused.wgset.length + d));`
 		}
 		break;
 	}
