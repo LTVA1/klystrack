@@ -3,6 +3,6 @@
 
 #include "version_number.h"
 #define REVISION "r$WCREV$"
-#define VERSION_STRING "klystrack " VERSION " " REVISION
+#define VERSION_STRING "klystrack-plus " VERSION " " REVISION
 
 #endif

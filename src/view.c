@@ -562,6 +562,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Base note",
 					"Base note finetune",
 					"Interpolate",
+					"Interpolation type", //wasn't there
 					"Enable looping",
 					"Loop begin",
 					"Ping-pong looping",
@@ -571,6 +572,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Frequency multiplier",
 					"Phase shift",
 					"Phase exponent",
+					"Oscillator volume", //wasn't there
 					"Absolute",
 					"Negative",
 					"Wave length",
@@ -579,6 +581,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Randomize",
 					"Toolbox"
 				};
+				
 				strcpy(text, param_desc[mused.wavetable_param]);
 			}
 			break;
@@ -592,18 +595,19 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Base note",
 					"Finetune",
 					"Lock to base note",
-					"Drum",
+					"Drum (short burst of noise in the beginning)",
 					"Sync oscillator on keydown",
 					"Reverse vibrato bit",
+					"Reverse tremolo bit",
 					"Set PW on keydown",
 					"Set cutoff on keydown",
 					"Slide speed",
 					"Pulse wave",
 					"Pulse width",
-					"Saw wave",
+					"Sawtooth wave",
 					"Triangle wave",
 					"Noise",
-					"Metallic noise",
+					"Metallic noise (shortens noise cycle)",
 					"LFSR enable",
 					"LFSR type",
 					"Quarter frequency",
@@ -611,14 +615,17 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Wavetable entry",
 					"Override volume envelope for wavetable",
 					"Lock wave to base note",
+					"Oscillators mix mode", //wasn't there
 					"Volume",
 					"Relative volume commands",
 					"Envelope attack",
 					"Envelope decay",
 					"Envelope sustain",
 					"Envelope release",
-					"Buzz",
-					"Buzz semi",
+					"Enable volume key scaling",
+					"Volume key scaling level",
+					"Buzz (AY/YM volume envelope)",
+					"Buzz semitone",
 					"Buzz fine",
 					"Buzz shape",
 					"Sync channel",
@@ -629,6 +636,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Filter type",
 					"Filter cutoff frequency",
 					"Filter resonance",
+					"Filter slope",
 					"Send signal to FX chain",
 					"FX bus",
 					"Vibrato speed",
@@ -638,21 +646,62 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Pulse width modulation speed",
 					"Pulse width modulation depth",
 					"Pulse width modulation shape",
+					"Pulse width modulation delay", //wasn't there
+					"Tremolo speed", //wasn't there
+					"Tremolo depth", //wasn't there
+					"Tremolo shape", //wasn't there
+					"Tremolo delay", //wasn't there
 					"Program period",
 					"Don't restart program on keydown",
-					"Enable multi oscillator",
+					"Enable multi oscillator (play 2- or 3-note chords by adding 00XX command in pattern)",
+					"Save vibrato, PWM and tremolo settings",
 					"FM enable",
 					"FM modulation",
+					"Enable FM modulator volume key scaling",
+					"FM modulator volume key scaling level",
 					"FM feedback",
 					"FM carrier multiplier",
 					"FM modulator multiplier",
+					"FM modulator base note", //wasn't there
+					"FM modulator finetune", //wasn't there
+					"FM frequency multiplier mapping", //wasn't there
 					"FM attack",
 					"FM decay",
 					"FM sustain",
 					"FM release",
 					"FM env start",
 					"FM use wavetable",
-					"FM wavetable entry"
+					"FM wavetable entry",
+					"FM modulator vibrato speed",
+					"FM modulator vibrato depth",
+					"FM modulator vibrato shape",
+					"FM modulator vibrato delay",
+					"FM modulator tremolo speed", //wasn't there
+					"FM modulator tremolo depth", //wasn't there
+					"FM modulator tremolo shape", //wasn't there
+					"FM modulator tremolo delay", //wasn't there
+					"FM enable additive synth mode", //wasn't there
+					"Save FM modulator vibrato and tremolo settings"
+				};
+				
+				static const char * mixmodes[] =
+				{
+					"bitwise AND",
+					"sum of oscillators' signals",
+					"bitwise OR",
+					"C64 8580 SID combined waves",
+					"exclusive OR"
+				};
+				
+				static const char * filter_types[] =
+				{
+					"lowpass filter",
+					"highpass filter",
+					"bandpass filter",
+					"lowpass + highpass (signal sum)",
+					"highpass + bypass (signal sum)",
+					"lowpass + bypass (signal sum)",
+					"lowpass + highpass + bypass (signal sum)"
 				};
 
 				if (mused.selected_param == P_FXBUS)
@@ -675,6 +724,14 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					snprintf(text, sizeof(text) - 1, "%s (%.1f ms)", param_desc[mused.selected_param], envelope_length(mused.song.instrument[mused.current_instrument].fm_adsr.d));
 				else if (mused.selected_param == P_FM_RELEASE)
 					snprintf(text, sizeof(text) - 1, "%s (%.1f ms)", param_desc[mused.selected_param], envelope_length(mused.song.instrument[mused.current_instrument].fm_adsr.r));
+				
+				else if (mused.selected_param == P_CUTOFF) //wasn't there
+					snprintf(text, sizeof(text) - 1, "%s (%d Hz)", param_desc[mused.selected_param], (mused.song.instrument[mused.current_instrument].cutoff * 20000) / 4096 + 5);
+				else if (mused.selected_param == P_FLTTYPE) //wasn't there
+					snprintf(text, sizeof(text) - 1, "%s (%s)", param_desc[mused.selected_param], filter_types[mused.song.instrument[mused.current_instrument].flttype]);
+				else if (mused.selected_param == P_OSCMIXMODE) //wasn't there
+					snprintf(text, sizeof(text) - 1, "%s (%s)", param_desc[mused.selected_param], mixmodes[mused.song.instrument[mused.current_instrument].mixmode]);
+				
 				else
 					strcpy(text, param_desc[mused.selected_param]);
 			}
@@ -691,8 +748,8 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"FX bus",
 					"FX bus name",
 					"Enable bitcrusher",
-					"Drop bits",
-					"Downsample",
+					"Drop bits (reduces bit depth)",
+					"Downsample (reduces sample rate)",
 					"Dither",
 					"Crush gain",
 					"Enable stereo chorus",
@@ -756,16 +813,18 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 									break;
 							}
 						}
+						
 						else if (vol == MUS_NOTE_NO_VOLUME)
 							strcpy(text, "Volume");
 						else
 							sprintf(text, "Volume (%+.1f dB)", percent_to_dB((float)vol / MAX_VOLUME));
 					}
+					
 					else
 					{
 						static const char *pattern_txt[] =
 						{
-							"Note", "Instrument", "Instrument", "", "", "Legato", "Slide", "Vibrato"
+							"Note", "Instrument", "Instrument", "", "", "Legato", "Slide", "Vibrato", "Tremolo"
 						};
 
 						strcpy(text, pattern_txt[mused.current_patternx]);
@@ -822,7 +881,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 	adjust_rect(&area, 2);
 	copy_rect(&clip, &area);
 	adjust_rect(&area, 1);
-	area.w = 1000;
+	area.w = 4000;
 	console_set_clip(mused.console, &area);
 
 	MusInstrument *inst = &mused.song.instrument[mused.current_instrument];
@@ -834,10 +893,10 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 	int pos = 0, prev_pos = -1;
 	int selection_begin = -1, selection_end = -1;
 
-	for (int i = 0 ; i < start ; ++i)
+	for (int i = 0; i < start; ++i)
 	{
 		prev_pos = pos;
-		if (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ++pos;
+		if (!(inst->program_unite_bits[i / 8] & (1 << (i % 8))) || (inst->program[i] & 0xf000) == 0xf000) ++pos; //old command if (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ++pos;
 	}
 
 	gfx_domain_set_clip(domain, &clip);
@@ -866,16 +925,17 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 
 		char box[6], cur = ' ';
 
-		for (int c = 0 ; c < CYD_MAX_CHANNELS ; ++c)
+		for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
 			if (mused.channel[c].instrument == inst && (mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE) && (mused.channel[c].flags & MUS_CHN_PROGRAM_RUNNING) && mused.channel[c].program_tick == i) cur = '½';
 
 		if (inst->program[i] == MUS_FX_NOP)
 		{
 			strcpy(box, "....");
 		}
+		
 		else
 		{
-			sprintf(box, "%04X", ((inst->program[i] & 0xf000) != 0xf000) ? (inst->program[i] & 0x7fff) : inst->program[i]);
+			sprintf(box, "%04X", ((inst->program[i] & 0xf000) != 0xf000) ? (inst->program[i] & 0xffff) : inst->program[i]); //old command sprintf(box, "%04X", ((inst->program[i] & 0xf000) != 0xf000) ? (inst->program[i] & 0x7fff) : inst->program[i]);
 		}
 
 		if (pos == prev_pos)
@@ -883,30 +943,43 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 			check_event(event, console_write_args(mused.console, "%02X%c   ", i, cur),
 				select_program_step, MAKEPTR(i), 0, 0);
 			write_command(event, box, i, mused.current_program_step);
-			check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
+			check_event(event, console_write_args(mused.console, "%c ", (!(inst->program_unite_bits[i / 8] & (1 << (i % 8))) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
 				select_program_step, MAKEPTR(i), 0, 0);
 		}
+		
 		else
 		{
 			check_event(event, console_write_args(mused.console, "%02X%c%02X ", i, cur, pos),
 				select_program_step, MAKEPTR(i), 0, 0);
 			write_command(event, box, i, mused.current_program_step);
-			check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
+			check_event(event, console_write_args(mused.console, "%c ", ((inst->program_unite_bits[i / 8] & (1 << (i % 8))) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
 				select_program_step, MAKEPTR(i), 0, 0);
 		}
 
 		if (!is_valid_command(inst->program[i]))
 			console_write_args(mused.console, "???");
-		else if ((inst->program[i] & 0x7f00) == MUS_FX_ARPEGGIO || (inst->program[i] & 0x7f00) == MUS_FX_ARPEGGIO_ABS)
+		else if ((inst->program[i] & 0xff00) == MUS_FX_ARPEGGIO || (inst->program[i] & 0xff00) == MUS_FX_ARPEGGIO_ABS)
+		{
+			if ((inst->program[i] & 0xff) != 0xf0 && (inst->program[i] & 0xff) != 0xf1)
+				console_write_args(mused.console, "%s", notename(((inst->program[i] & 0xff00) == MUS_FX_ARPEGGIO_ABS ? 0 : inst->base_note) + (inst->program[i] & 0xff)));
+			else
+				console_write_args(mused.console, "EXT%x", inst->program[i] & 0x0f);
+		}
+		
+		//old command
+		/*else if ((inst->program[i] & 0x7f00) == MUS_FX_ARPEGGIO || (inst->program[i] & 0x7f00) == MUS_FX_ARPEGGIO_ABS)
 		{
 			if ((inst->program[i] & 0xff) != 0xf0 && (inst->program[i] & 0xff) != 0xf1)
 				console_write_args(mused.console, "%s", notename(((inst->program[i] & 0x7f00) == MUS_FX_ARPEGGIO_ABS ? 0 : inst->base_note) + (inst->program[i] & 0xff)));
 			else
 				console_write_args(mused.console, "EXT%x", inst->program[i] & 0x0f);
-		}
+		}*/
+		
+		
 		else if (inst->program[i] != MUS_FX_NOP)
 		{
 			const InstructionDesc *d = get_instruction_desc(inst->program[i]);
+			
 			if (d)
 				console_write(mused.console, d->shortname ? d->shortname : d->name);
 		}
@@ -918,7 +991,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 
 		prev_pos = pos;
 
-		if (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ++pos;
+		if (!(inst->program_unite_bits[i / 8] & (1 << (i % 8))) || (inst->program[i] & 0xf000) == 0xf000) ++pos;
 	}
 
 	if (mused.focus == EDITPROG && mused.selection.start != mused.selection.end
@@ -940,6 +1013,21 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 		check_mouse_wheel_event(event, dest, &mused.program_slider_param);
 }
 
+void oscilloscope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param) //wasn't there
+{
+	/*SDL_Rect area, clip;
+	copy_rect(&area, dest);
+	//console_set_clip(mused.console, &area);
+	//console_clear(mused.console);
+	bevelex(domain,&area, mused.slider_bevel, BEV_THIN_FRAME, 0);
+	//adjust_rect(&area, 2);
+	copy_rect(&clip, &area);
+	//adjust_rect(&area, 1);
+	area.w = 128;
+	area.h = 128;
+	console_set_clip(mused.console, &area);*/
+
+}
 
 static void inst_flags(const SDL_Event *e, const SDL_Rect *_area, int p, const char *label, Uint32 *flags, Uint32 mask)
 {
@@ -1002,6 +1090,7 @@ void inst_field(const SDL_Event *e, const SDL_Rect *area, int p, int length, cha
 		if (mused.editpos == i && c <= length)
 			console_write(mused.console, "ï¿½");
 	}
+	
 	else
 	{
 		char temp[1000];
@@ -1106,6 +1195,10 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 		update_rect(&frame, &r);
 		inst_flags(event, &r, P_INVVIB, "VIB", &inst->flags, MUS_INST_INVERT_VIBRATO_BIT);
 		update_rect(&frame, &r);
+		
+		inst_flags(event, &r, P_INVTREM, "TREM", &inst->flags, MUS_INST_INVERT_TREMOLO_BIT);
+		update_rect(&frame, &r);
+		
 		inst_flags(event, &r, P_SETPW, "SET PW", &inst->flags, MUS_INST_SET_PW);
 		update_rect(&frame, &r);
 		inst_flags(event, &r, P_SETCUTOFF, "SET CUT", &inst->flags, MUS_INST_SET_CUTOFF);
@@ -1166,6 +1259,19 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 
 		r.w = tmp;
 	}
+	
+	my_separator(&frame, &r); //wasn't there
+	
+	
+	static const char *mixtypes[] = {"AND", "SUM", "bOR", "C64", "XOR"}; 
+
+	r.w = frame.w;
+
+	inst_text(event, &r, P_OSCMIXMODE, "OSC. MIX MODE", "%s", (char*)mixtypes[inst->mixmode], 3); //inst_text(event, &r, P_OSCMIXMODE, "OSC. MIX MODE", "%s", (char*)mixtypes[inst->flttype], 3);
+	update_rect(&frame, &r); 
+	
+	r.w = frame.w / 2 - 2; //wasn't there end
+	
 
 	my_separator(&frame, &r);
 	inst_text(event, &r, P_VOLUME, "VOL", "%02X", MAKEPTR(inst->volume), 2);
@@ -1179,6 +1285,11 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 	inst_text(event, &r, P_SUSTAIN, "SUS", "%02X", MAKEPTR(inst->adsr.s), 2);
 	update_rect(&frame, &r);
 	inst_text(event, &r, P_RELEASE, "REL", "%02X", MAKEPTR(inst->adsr.r), 2);
+	update_rect(&frame, &r);
+	
+	inst_flags(event, &r, P_KSL, "VOL.KSL", &inst->cydflags, CYD_CHN_ENABLE_KEY_SCALING);
+	update_rect(&frame, &r);
+	inst_text(event, &r, P_KSL_LEVEL, "LEVEL", "%02X", MAKEPTR(inst->ksl_level), 2);
 	update_rect(&frame, &r);
 
 	{
@@ -1209,16 +1320,22 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 	inst_text(event, &r, P_RINGMODSRC, "SRC", "%02X", MAKEPTR(inst->ring_mod), 2);
 	update_rect(&frame, &r);
 
-	static const char *flttype[] = { "LP", "HP", "BP" };
+	static const char *flttype[] = { "LPF", "HPF", "BPF", "LHP", "HBP", "LBP", "ALL" }; //was `{ "LP", "HP", "BP" };`
+	static const char *slope[] = { "12  dB/oct", "24  dB/oct", "48  dB/oct", "96  dB/oct", "192 dB/oct", "384 dB/oct" };
 
 	my_separator(&frame, &r);
 	inst_flags(event, &r, P_FILTER, "FILTER", &inst->cydflags, CYD_CHN_ENABLE_FILTER);
 	update_rect(&frame, &r);
-	inst_text(event, &r, P_FLTTYPE, "TYPE", "%s", (char*)flttype[inst->flttype], 2);
+	inst_text(event, &r, P_FLTTYPE, "TYPE", "%s", (char*)flttype[inst->flttype], 3); //was `(char*)flttype[inst->flttype], 2);`
 	update_rect(&frame, &r);
 	inst_text(event, &r, P_CUTOFF, "CUT", "%03X", MAKEPTR(inst->cutoff), 3);
 	update_rect(&frame, &r);
 	inst_text(event, &r, P_RESONANCE, "RES", "%1X", MAKEPTR(inst->resonance), 1);
+	update_rect(&frame, &r);
+	
+	r.w = frame.w;
+	
+	inst_text(event, &r, P_SLOPE, "SLOPE", "%s", (char*)slope[inst->slope], 10);
 	update_rect(&frame, &r);
 }
 
@@ -1232,6 +1349,9 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 	bevelex(domain,&frame, mused.slider_bevel, BEV_BACKGROUND, BEV_F_STRETCH_ALL);
 	adjust_rect(&frame, 4);
 	copy_rect(&r, &frame);
+	
+	int init_width = r.w;
+	
 	r.w = r.w / 2 - 2;
 	r.h = 10;
 
@@ -1243,9 +1363,9 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 	update_rect(&frame, &r);
 	inst_text(event, &r, P_VIBDEPTH,   "VIB.D", "%02X", MAKEPTR(inst->vibrato_depth), 2);
 	update_rect(&frame, &r);
-	inst_text(event, &r, P_VIBSHAPE,   "VIB.SH", "%c", MAKEPTR(inst->vib_shape + 0xf4), 1);
+	inst_text(event, &r, P_VIBSHAPE,   "VIB.SH", "%c", MAKEPTR(inst->vibrato_shape + 0xf4), 1);
 	update_rect(&frame, &r);
-	inst_text(event, &r, P_VIBDELAY,   "V.DEL", "%02X", MAKEPTR(inst->vib_delay), 2);
+	inst_text(event, &r, P_VIBDELAY,   "V.DEL", "%02X", MAKEPTR(inst->vibrato_delay), 2);
 	update_rect(&frame, &r);
 	inst_text(event, &r, P_PWMSPEED,   "PWM.S", "%02X", MAKEPTR(inst->pwm_speed), 2);
 	update_rect(&frame, &r);
@@ -1253,17 +1373,41 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 	update_rect(&frame, &r);
 	inst_text(event, &r, P_PWMSHAPE,   "PWM.SH", "%c", MAKEPTR(inst->pwm_shape + 0xf4), 1);
 	update_rect(&frame, &r);
+	inst_text(event, &r, P_PWMDELAY,   "PWM.DEL", "%02X", MAKEPTR(inst->pwm_delay), 2); //wasn't there
+	update_rect(&frame, &r);
+	
+	inst_text(event, &r, P_TREMSPEED,   "TR.S", "%02X", MAKEPTR(inst->tremolo_speed), 2); //wasn't there
+	update_rect(&frame, &r);
+	inst_text(event, &r, P_TREMDEPTH,   "TR.D", "%02X", MAKEPTR(inst->tremolo_depth), 2);
+	update_rect(&frame, &r);
+	inst_text(event, &r, P_TREMSHAPE,   "TR.SH", "%c", MAKEPTR(inst->tremolo_shape + 0xf4), 1);
+	update_rect(&frame, &r);
+	inst_text(event, &r, P_TREMDELAY,   "TR.DEL", "%02X", MAKEPTR(inst->tremolo_delay), 2);
+	update_rect(&frame, &r);
+	
 	inst_text(event, &r, P_PROGPERIOD, "P.PRD", "%02X", MAKEPTR(inst->prog_period), 2);
 	update_rect(&frame, &r);
 	inst_flags(event, &r, P_NORESTART, "NO RESTART", &inst->flags, MUS_INST_NO_PROG_RESTART);
 	update_rect(&frame, &r);
 	inst_flags(event, &r, P_MULTIOSC, "MULTIOSC", &inst->flags, MUS_INST_MULTIOSC);
 	update_rect(&frame, &r);
+	
+	
+	inst_flags(event, &r, P_SAVE_LFO_SETTINGS, "SAVE LFO SET.", &inst->flags, MUS_INST_SAVE_LFO_SETTINGS);
+	update_rect(&frame, &r);
+	
+	
 	my_separator(&frame, &r);
 	inst_flags(event, &r, P_FM_ENABLE, "FM", &inst->cydflags, CYD_CHN_ENABLE_FM);
 	update_rect(&frame, &r);
 	inst_text(event, &r, P_FM_MODULATION, "VOL", "%02X", MAKEPTR(inst->fm_modulation), 2);
 	update_rect(&frame, &r);
+	
+	inst_flags(event, &r, P_FM_KSL_ENABLE, "FM VOL.KSL", &inst->fm_flags, CYD_FM_ENABLE_KEY_SCALING);
+	update_rect(&frame, &r);
+	inst_text(event, &r, P_FM_KSL_LEVEL, "LEVEL", "%02X", MAKEPTR(inst->fm_ksl_level), 2);
+	update_rect(&frame, &r);
+	
 	inst_text(event, &r, P_FM_FEEDBACK, "FEEDBACK", "%01X", MAKEPTR(inst->fm_feedback), 1);
 	update_rect(&frame, &r);
 	int tmp = r.w;
@@ -1274,7 +1418,36 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 
 	inst_text(event, &r, P_FM_HARMONIC_MODULATOR, "", "%01X", MAKEPTR(inst->fm_harmonic & 15), 1);
 	update_rect(&frame, &r);
+	//r.w = tmp;
+	
+	
+	
+	r.w = 72; //wasn't there
+
+	inst_text(event, &r, P_FM_BASENOTE, "BASE", "%s", notename(inst->fm_base_note), 3);
+	update_rect(&frame, &r);
+	
+	r.w = 46;
+	inst_text(event, &r, P_FM_FINETUNE, "", "%+4d", MAKEPTR(inst->fm_finetune), 4);
+	update_rect(&frame, &r);
+	
+	
+	
+	r.w = init_width / 2 - 2;
+	
+	r.x = r.x - 124 + init_width / 2;
+	
+	
+	const char* freq_luts[] = { "OPL", "OPN" };
+	
+	inst_text(event, &r, P_FM_FREQ_LUT, "FREQ. TABLE", "%s", (char*)freq_luts[inst->fm_freq_LUT], 3);
+	update_rect(&frame, &r);
+	
+	//r.x -= init_width / 2;
+	
+	//r.y += 10;
 	r.w = tmp;
+	
 	inst_text(event, &r, P_FM_ATTACK, "ATK", "%02X", MAKEPTR(inst->fm_adsr.a), 2);
 	update_rect(&frame, &r);
 	inst_text(event, &r, P_FM_DECAY, "DEC", "%02X", MAKEPTR(inst->fm_adsr.d), 2);
@@ -1291,6 +1464,38 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 	r.x += 44;
 	r.w = 32;
 	inst_text(event, &r, P_FM_WAVE_ENTRY, "", "%02X", MAKEPTR(inst->fm_wave), 2);
+	update_rect(&frame, &r);
+	
+	r.w = tmp;
+	r.y += 10;
+	r.x -= 42+32+2+8+tmp;
+	
+	inst_text(event, &r, P_FM_VIBSPEED,   "FM VIB.S", "%02X", MAKEPTR(inst->fm_vibrato_speed), 2);
+	update_rect(&frame, &r);
+	inst_text(event, &r, P_FM_VIBDEPTH,   "FM VIB.D", "%02X", MAKEPTR(inst->fm_vibrato_depth), 2);
+	update_rect(&frame, &r);
+	inst_text(event, &r, P_FM_VIBSHAPE,   "FM VIB.SH", "%c", MAKEPTR(inst->fm_vibrato_shape + 0xf4), 1);
+	update_rect(&frame, &r);
+	inst_text(event, &r, P_FM_VIBDELAY,   "FM V.DEL", "%02X", MAKEPTR(inst->fm_vibrato_delay), 2);
+	update_rect(&frame, &r);
+	
+	inst_text(event, &r, P_FM_TREMSPEED,   "FM TR.S", "%02X", MAKEPTR(inst->fm_tremolo_speed), 2); //wasn't there
+	update_rect(&frame, &r);
+	inst_text(event, &r, P_FM_TREMDEPTH,   "FM TR.D", "%02X", MAKEPTR(inst->fm_tremolo_depth), 2);
+	update_rect(&frame, &r);
+	inst_text(event, &r, P_FM_TREMSHAPE,   "FM TR.SH", "%c", MAKEPTR(inst->fm_tremolo_shape + 0xf4), 1);
+	update_rect(&frame, &r);
+	inst_text(event, &r, P_FM_TREMDELAY,   "FM TR.DEL", "%02X", MAKEPTR(inst->fm_tremolo_delay), 2);
+	update_rect(&frame, &r);
+	
+	//r.y += 10; //wasn't there
+	//r.x -= frame.w / 2 + 82;
+	//r.w = 70;
+	
+	inst_flags(event, &r, P_FM_ADDITIVE, "ADDITIVE", &inst->fm_flags, CYD_FM_ENABLE_ADDITIVE);
+	update_rect(&frame, &r);
+	
+	inst_flags(event, &r, P_FM_SAVE_LFO_SETTINGS, "SAVE FM LFO SET.", &inst->fm_flags, CYD_FM_SAVE_LFO_SETTINGS);
 	update_rect(&frame, &r);
 }
 
@@ -1457,9 +1662,9 @@ void fx_reverb_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 	int row_ms = (1000 / mused.song.song_rate) * mused.song.song_speed;
 	int row_ms2 = (1000 / mused.song.song_rate) * mused.song.song_speed2;
 
-	for (int ms = 0 ; ms < CYDRVB_SIZE ; c++)
+	for (int ms = 0 ; ms < CYDRVB_SIZE / 4; c++) //was for (int ms = 0 ; ms < CYDRVB_SIZE; c++)
 	{
-		SDL_Rect r = { area.x + ms * area.w / CYDRVB_SIZE, area.y, 1, area.h};
+		SDL_Rect r = { area.x + ms * area.w / (CYDRVB_SIZE / 4), area.y, 1, area.h}; //was SDL_Rect r = { area.x + ms * area.w / CYDRVB_SIZE, area.y, 1, area.h};
 
 		if (ms > 0)
 		{
@@ -1471,7 +1676,7 @@ void fx_reverb_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 		if (timesig(c, 1, 1, 0))
 		{
 			SDL_Rect text = { r.x + 2, r.y + r.h - mused.smallfont.h, 16, mused.smallfont.h};
-			font_write_args(&mused.smallfont, domain, &text, "%d", c);
+			font_write_args(&mused.smallfont, domain, &text, "%d", c * 4); //was font_write_args(&mused.smallfont, domain, &text, "%d", c);
 		}
 
 		if (c & 1)
@@ -2004,8 +2209,9 @@ void toolbar_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 
 	button.x += button.w;
 
+	
 	button_event(domain, event, &button, mused.slider_bevel,
-		BEV_BUTTON, BEV_BUTTON_ACTIVE, DECAL_TOOLBAR_QUIT, quit_action, 0, 0, 0);
+	BEV_BUTTON, BEV_BUTTON_ACTIVE, DECAL_TOOLBAR_QUIT, quit_action, 0, 0, 0);
 
 	button.x += button.w;
 }

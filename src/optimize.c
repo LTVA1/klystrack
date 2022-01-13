@@ -179,7 +179,7 @@ static void remove_wavetable(MusSong *song, CydEngine *cyd, int wavetable)
 			song->instrument[i].fm_wave--;
 		
 		for (int p = 0 ; p < MUS_PROG_LEN ; ++p)
-			if ((song->instrument[i].program[p] & 0x7f00) == MUS_FX_SET_WAVETABLE_ITEM)
+			if ((song->instrument[i].program[p] & 0xff00) == MUS_FX_SET_WAVETABLE_ITEM)
 			{
 				Uint8 param = song->instrument[i].program[p] & 0xff;
 				
@@ -277,6 +277,43 @@ void optimize_duplicate_patterns(MusSong *song)
 }
 
 
+
+void kill_empty_patterns(MusSong *song)
+{
+	debug("Kill empty patterns");
+	
+	int orig_count = song->num_patterns;
+	
+	for(int q = 0; q < 40; q++)
+	{
+		for (int a = 0; a < song->num_patterns; a++)
+		{	
+			if(is_pattern_empty(&(song->pattern[a])))
+			{
+				remove_pattern(song, a);
+			}
+		}
+	}
+	
+	
+	/*for (int a = 0; a < song->num_patterns; )
+	{	
+		if (!is_pattern_used(song, a))
+		{
+			remove_pattern(song, a);
+		}
+		else 
+			++a;
+	}*/
+	
+	set_info_message("Reduced number of patterns from %d to %d by killing empty patterns", orig_count, song->num_patterns);
+	
+	//song->num_patterns = NUM_PATTERNS;
+}
+
+
+
+
 void optimize_unused_instruments(MusSong *song)
 {
 	int removed = 0;
@@ -310,13 +347,100 @@ void optimize_unused_wavetables(MusSong *song, CydEngine *cyd)
 	set_info_message("Removed %d unused wavetables", removed);
 }
 
+void kill_duplicate_wavetables(MusSong *song, CydEngine *cyd) //wasn't there
+{
+	int removed = 0;
+	
+	debug("Kill duplicate wavetables");
+	debug("Wavetables: %d", song->num_wavetables);
+	
+	for (int i = 0 ; i <= song->num_wavetables ; ++i)
+	{
+		for(int j = 0; j <= song->num_wavetables ; ++j)
+		{
+			if(i != j)
+			{
+				if(cyd->wavetable_entries[i].flags == cyd->wavetable_entries[j].flags &&
+					cyd->wavetable_entries[i].sample_rate == cyd->wavetable_entries[j].sample_rate &&
+					cyd->wavetable_entries[i].samples == cyd->wavetable_entries[j].samples &&
+					cyd->wavetable_entries[i].loop_begin == cyd->wavetable_entries[j].loop_begin &&
+					cyd->wavetable_entries[i].loop_end == cyd->wavetable_entries[j].loop_end &&
+					cyd->wavetable_entries[i].base_note == cyd->wavetable_entries[j].base_note && 
+					cyd->wavetable_entries[i].sample_rate != 0 && 
+					cyd->wavetable_entries[i].samples != 0 &&
+					strcmp(song->wavetable_names[j], song->wavetable_names[i]) == 0)
+				{
+					Uint8 flag = 0;
+					
+					for(int k = 0; k < cyd->wavetable_entries[j].samples; k++) //TODO: add support for 8-bit samples
+					{
+						if(*(cyd->wavetable_entries[i].data + k) != *(cyd->wavetable_entries[j].data + k))
+						{
+							flag++;
+						}
+					}
+					
+					if(flag == 0)
+					{
+						debug("Killing wavetable number %d", j);
+						
+						for (int h = 0; h < song->num_instruments; ++h)
+						{
+							if (song->instrument[h].wavetable_entry == j)
+								song->instrument[h].wavetable_entry = i;
+							
+							if (song->instrument[h].fm_wave == j)
+								song->instrument[h].fm_wave = i;
+							
+							for (int p = 0 ; p < MUS_PROG_LEN ; ++p)
+							{
+								if ((song->instrument[h].program[p] & 0x3B00) == 0x3B00 && (song->instrument[h].program[p] & 0x00FF) == j && (song->instrument[h].program[p] & 0xFF00) != 0xFF00)
+								{
+									song->instrument[h].program[p] = 0x3B00 + i;
+								}
+							}
+						}
+						
+						for (int p = 0 ; p < song->num_patterns ; ++p)
+						{
+							for (int w = 0 ; w < song->pattern[p].num_steps ; ++w)
+							{
+								if ((song->pattern[p].step[w].command & 0x3B00) == 0x3B00 && (song->pattern[p].step[w].command & 0x00FF) == j && (song->pattern[p].step[w].command & 0xFF00) != 0xFF00)
+								{
+									song->pattern[p].step[w].command = 0x3B00 + i;
+								}
+							}
+						}
+						
+						strcpy(song->wavetable_names[i], song->wavetable_names[j]);
+						
+						cyd_wave_entry_init(&cyd->wavetable_entries[j], NULL, 0, 0, 0, 0, 0);
+
+						strcpy(mused.song.wavetable_names[j], "");
+			
+						removed++;
+					}
+				}
+			}
+		}
+	}
+	
+	debug("Removed %d duplicate wavetables", removed);
+	set_info_message("Removed %d duplicate wavetables", removed);
+}
+
 
 void optimize_song(MusSong *song)
 {
 	debug("Optimizing song");
 	optimize_duplicate_patterns(song);
+	
+	//kill_empty_patterns(song); //wasn't there
+	
 	optimize_unused_instruments(&mused.song);
 	optimize_unused_wavetables(&mused.song, &mused.cyd);
+	
+	kill_duplicate_wavetables(&mused.song, &mused.cyd); //wasn't there
 	
 	set_info_message("Removed unused song data");
 }
@@ -327,6 +451,10 @@ void optimize_patterns_action(void *unused1, void *unused2, void *unused3)
 	optimize_duplicate_patterns(&mused.song);
 }
 
+void optimize_empty_patterns_action(void *unused1, void *unused2, void *unused3)
+{
+	kill_empty_patterns(&mused.song);
+}
 
 void optimize_instruments_action(void *unused1, void *unused2, void *unused3)
 {
@@ -337,4 +465,9 @@ void optimize_instruments_action(void *unused1, void *unused2, void *unused3)
 void optimize_wavetables_action(void *unused1, void *unused2, void *unused3)
 {
 	optimize_unused_wavetables(&mused.song, &mused.cyd);
+}
+
+void duplicate_wavetables_action(void *unused1, void *unused2, void *unused3) //wasn't there
+{
+	kill_duplicate_wavetables(&mused.song, &mused.cyd);
 }

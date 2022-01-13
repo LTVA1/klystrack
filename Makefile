@@ -140,22 +140,22 @@ build: Makefile src/version.h src/version_number.h
 	$(Q)$(MAKE) all CFG=$(CFG) EXTFLAGS="$(EXTFLAGS)"
 
 src/version.h: src/version
-	$(Q)echo '#ifndef VERSION_H' > ./src/version.h
-	$(Q)echo '#define VERSION_H' >> ./src/version.h
-	$(Q)echo '#include "version_number.h"' >> ./src/version.h
-	$(Q)echo '#define REVISION "' | tr -d '\n'  >> ./src/version.h
-	$(Q)date +"%Y%m%d" | tr -d '\n' >> ./src/version.h
-	$(Q)echo '"' >> ./src/version.h
-	$(Q)echo '#define VERSION_STRING "klystrack " VERSION " " REVISION' >> ./src/version.h
-	$(Q)echo '#endif' >> ./src/version.h
+#	$(Q)echo '#ifndef VERSION_H' > ./src/version.h
+#	$(Q)echo '#define VERSION_H' >> ./src/version.h
+#	$(Q)echo '#include "version_number.h"' >> ./src/version.h
+#	$(Q)echo '#define REVISION "' | tr -d '\n'  >> ./src/version.h
+#	$(Q)date +"%Y%m%d" | tr -d '\n' >> ./src/version.h
+#	$(Q)echo '"' >> ./src/version.h
+#	$(Q)echo '#define VERSION_STRING "klystrack " VERSION " " REVISION' >> ./src/version.h
+#	$(Q)echo '#endif' >> ./src/version.h
 
 src/version_number.h: src/version
-	$(Q)echo '#ifndef VERSION_NUMBER' > src/version_number.h
-	$(Q)echo '#define VERSION_NUMBER' >> src/version_number.h
-	$(Q)echo '#define VERSION "' | tr -d '\n' >> src/version_number.h
-	$(Q)cat src/version | tr -d '\r\n' | tr -d '\n' >> src/version_number.h
-	$(Q)echo '"' >> src/version_number.h
-	$(Q)echo '#endif' >> src/version_number.h
+#	$(Q)echo '#ifndef VERSION_NUMBER' > src/version_number.h
+#	$(Q)echo '#define VERSION_NUMBER' >> src/version_number.h
+#	$(Q)echo '#define VERSION "' | tr -d '\n' >> src/version_number.h
+#	$(Q)cat src/version | tr -d '\r\n' | tr -d '\n' >> src/version_number.h
+#	$(Q)echo '"' >> src/version_number.h
+#	$(Q)echo '#endif' >> src/version_number.h
 
 # root (i.e. src/*.c)
 $(eval $(call directory_defs,,))

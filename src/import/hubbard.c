@@ -471,7 +471,7 @@ int import_hubbard(FILE *f)
 		mused.song.instrument[i].pwm_depth = 0x30;
 		mused.song.instrument[i].pwm_speed = hub->instrument[i].pwm / 8;
 		mused.song.instrument[i].vibrato_speed = 0x20;
-		mused.song.instrument[i].vib_delay = 0;
+		mused.song.instrument[i].vibrato_delay = 0;
 		mused.song.instrument[i].vibrato_depth = hub->vib_type == 1 ? hub->instrument[i].vibrato_depth * 0x0c : hub->instrument[i].vibrato_depth;
 		
 		if (hub->instrument[i].fx & 1)

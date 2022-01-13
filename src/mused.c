@@ -226,7 +226,7 @@ void init(MusInstrument *instrument, MusPattern *pattern, MusSeqPattern sequence
 
 	memset(&mused, 0, sizeof(mused));
 
-	set_info_message("Welcome to klystrack!");
+	set_info_message("Welcome to klystrack-plus!");
 
 	default_settings();
 
@@ -304,6 +304,7 @@ void init(MusInstrument *instrument, MusPattern *pattern, MusSeqPattern sequence
 		mused.wgset.chain[i].shift = 0;
 		mused.wgset.chain[i].exp = 50;
 		mused.wgset.chain[i].flags = 0;
+		mused.wgset.chain[i].vol = 255; //wasn't there
 	}
 
 	mused.wgset.num_oscs = 1;
@@ -389,6 +390,7 @@ int viscol(int col)
 		VC_CTRL,
 		VC_CTRL,
 		VC_CTRL,
+		VC_CTRL, //wasn't there
 		VC_COMMAND,
 		VC_COMMAND,
 		VC_COMMAND,

@@ -97,6 +97,7 @@ enum
 	DISABLE_BACKUPS = 65536 << 12,
 	START_WITH_TEMPLATE = 65536 << 13,
 	USE_SYSTEM_CURSOR = 65536 << 14,
+	SHOW_OSCILLOSCOPE = 65536 << 15,
 };
 
 enum
@@ -116,7 +117,8 @@ enum
 
 typedef struct
 {
-	Uint32 flags, visible_columns;
+	Uint64 flags;
+	Uint32 visible_columns;
 	int done;
 	Console *console;
 	MusSong song;
@@ -206,7 +208,7 @@ extern GfxDomain *domain;
 extern Uint32 pattern_color[16];
 
 #define NUM_PATTERNS 4096
-#define NUM_INSTRUMENTS 128
+#define NUM_INSTRUMENTS 255
 #define NUM_SEQUENCES 2048
 
 void default_settings();
