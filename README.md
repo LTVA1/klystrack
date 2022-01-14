@@ -5,7 +5,7 @@ A fork of klystrack chiptune tracker. A bit outdated but very good and comprehen
 ## Future plans
 
 - ~~additive mode for current 2-op fm synth~~ done in v0.4
-- 4-op fm synth with all 12 algorithms I've found. If algorithm is from OPL3 or Sega chip special tip emerges. Each op has its own macro, filter, envelope, etc. Filter of the first op which would be edited in main window filters overall output of the 4-op stack. 
+- 4-op fm synth with all 12 algorithms I've found. If algorithm is from OPL3 or Sega chip special tip emerges. Each op has its own macro, filter, envelope, etc. Filter of the main instrument filters overall output of the 4-op stack AFTER individual ops' filters. 
 - commands for setting start and end points of the sample from instrument macro (the result is you can use less samples, e.g. use sine and make lower half sine and upper half sine from the same sample for different instruments) 
 - Song info or song comment (separate window with arbitrary amount of text as in e.g. Impulse tracker)
 - Oscilloscope in instrument editing window which shows current waveform produced by instrument
