@@ -250,7 +250,8 @@ void interpolate(void *unused1, void *unused2, void *unused3)
 	Uint16 mask = 0xff00;
 
 	if ((command & 0xf000) == MUS_FX_CUTOFF_FINE_SET
-		|| (command & 0xf000) == MUS_FX_WAVETABLE_OFFSET) mask = 0xf000;
+		|| (command & 0xf000) == MUS_FX_WAVETABLE_OFFSET
+		|| (command & 0xf000) == MUS_FX_PW_FINE_SET) mask = 0xf000;
 
 	command &= mask;
 
@@ -261,9 +262,9 @@ void interpolate(void *unused1, void *unused2, void *unused3)
 
 	snapshot(S_T_PATTERN);
 
-	for (int i = start_step, p = 0 ; p < mused.selection.end - mused.selection.start ; ++i, ++p)
+	for (int i = start_step, p = 0; p < mused.selection.end - mused.selection.start; ++i, ++p)
 	{
-		if ((pat->step[i].command & mask) == command)
+		if ((pat->step[i].command) == 0)
 		{
 			Uint16 val = begin + (end - begin) * p / l;
 			pat->step[i].command = command | val;

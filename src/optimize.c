@@ -142,8 +142,8 @@ bool is_wavetable_used(const MusSong *song, int wavetable)
 			return true;
 		}
 		
-		for (int p = 0 ; p < MUS_PROG_LEN ; ++p)
-			if ((song->instrument[i].program[p] & 0x7fff) == (MUS_FX_SET_WAVETABLE_ITEM | wavetable))
+		for (int p = 0; p < MUS_PROG_LEN; ++p)
+			if ((song->instrument[i].program[p] & 0xffff) == (MUS_FX_SET_WAVETABLE_ITEM | wavetable))
 			{
 				debug("Wavetable %x used by instrument %x program (step %d)", wavetable, i, p);
 				return true;

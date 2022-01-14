@@ -51,11 +51,12 @@ void editparambox(int v)
 	if (mused.editpos != 0 || v < 0xf)
 	{
 		// Keeps the exec next command bit intact
-		*param = (*param & 0x8000) | (((*param & mask) | ((v&0xf) <<((3-mused.editpos)*4))) & 0xffff); //old command *param = (*param & 0x8000) | (((*param & mask) | ((v&0xf) <<((3-mused.editpos)*4))) & 0x7fff);
+		*param = (((*param & mask) | ((v&0xf) << ((3-mused.editpos)*4))) & 0xffff); //old command *param = (*param & 0x8000) | (((*param & mask) | ((v&0xf) <<((3-mused.editpos)*4))) & 0x7fff);
+		//*param = (*param & 0x8000) | (((*param & mask) | ((v&0xf) << ((3-mused.editpos)*4))) & 0xffff);
 	}
 	else
 	{
-		*param = ((*param & mask) | ((v&0xf) <<((3-mused.editpos)*4)));
+		*param = ((*param & mask) | ((v&0xf) << ((3-mused.editpos)*4)));
 	}
 
 	if (++mused.editpos > 3)
@@ -1651,6 +1652,7 @@ void pattern_event(SDL_Event *e)
 
 							update_pattern_slider(mused.note_jump);
 						}
+						
 						else if (e->key.keysym.sym == SDLK_1)
 						{
 							mused.song.pattern[current_pattern()].step[current_patternstep()].note = MUS_NOTE_RELEASE;
@@ -1659,6 +1661,7 @@ void pattern_event(SDL_Event *e)
 
 							update_pattern_slider(mused.note_jump);
 						}
+						
 						else
 						{
 							int note = find_note(e->key.keysym.sym, mused.octave);
@@ -1669,6 +1672,7 @@ void pattern_event(SDL_Event *e)
 							}
 						}
 					}
+					
 					else if (mused.current_patternx == PED_INSTRUMENT1 || mused.current_patternx == PED_INSTRUMENT2)
 					{
 						if (e->key.keysym.sym == SDLK_PERIOD)
@@ -1708,6 +1712,7 @@ void pattern_event(SDL_Event *e)
 							update_pattern_slider(mused.note_jump);
 						}
 					}
+					
 					else if (mused.current_patternx == PED_VOLUME1 || mused.current_patternx == PED_VOLUME2)
 					{
 						switch (e->key.keysym.sym)
@@ -1784,6 +1789,7 @@ void pattern_event(SDL_Event *e)
 								break;
 						}
 					}
+					
 					else if (mused.current_patternx >= PED_COMMAND1 && mused.current_patternx <= PED_COMMAND4)
 					{
 						if (gethex(e->key.keysym.sym) != -1)

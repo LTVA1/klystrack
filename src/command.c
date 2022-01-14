@@ -58,7 +58,7 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_CUTOFF_SET_COMBINED, 0xff00, "Set combined cutoff", "CutoffAHX", 0, 0xff},
 	{MUS_FX_RESONANCE_SET, 0xff00, "Set filter resonance", "Resonance", 0, 0x0f}, //was `0, 3},`
 	{MUS_FX_FILTER_TYPE, 0xff00, "Set filter type", "FltType", 0, 0x07},
-	{MUS_FX_FILTER_SLOPE, 0xff00, "Set filter slope", "FltSlope", 0, 5}, //wasn't there
+	{MUS_FX_FILTER_SLOPE, 0xfff0, "Set filter slope", "FltSlope", 0, 5}, //wasn't there
 	{MUS_FX_PW_DN, 0xff00, "Pulse width down", "PWDn", -1, -1},
 	{MUS_FX_PW_UP, 0xff00, "Pulse width up", "PWUp", -1, -1},
 	{MUS_FX_PW_SET, 0xff00, "Set pulse width", "PW", -1, -1},
