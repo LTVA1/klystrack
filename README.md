@@ -14,6 +14,7 @@ A fork of klystrack chiptune tracker. A bit outdated but very good and comprehen
 - ~~Killing duplicate samples and relinking instruments to remaining 1 sample (useful for imported xms and its, combined with klystrack's sample compression it would give huge (or not) size reduction)~~ done in v0.5
 - ~~saving wavegen settings as sort of "synth patches"~~ done in v0.3
 - ~~moving klystrack config file from C:/Users/%USERNAME% to app folder which would make app portable~~ done in v0.4
+- .vgm file export (oh god it will be crazy)
 
 Below are links related to original klystrack. You will not find my releases there. Instead check releases of my fork. 
 

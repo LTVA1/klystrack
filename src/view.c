@@ -624,6 +624,8 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Envelope release",
 					"Enable volume key scaling",
 					"Volume key scaling level",
+					"Enable envelope key scaling",
+					"Envelope key scaling level",
 					"Buzz (AY/YM volume envelope)",
 					"Buzz semitone",
 					"Buzz fine",
@@ -659,6 +661,8 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"FM modulation",
 					"Enable FM modulator volume key scaling",
 					"FM modulator volume key scaling level",
+					"Enable FM modulator envelope key scaling",
+					"FM modulator envelope key scaling level",
 					"FM feedback",
 					"FM carrier multiplier",
 					"FM modulator multiplier",
@@ -1287,9 +1291,14 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 	inst_text(event, &r, P_RELEASE, "REL", "%02X", MAKEPTR(inst->adsr.r), 2);
 	update_rect(&frame, &r);
 	
-	inst_flags(event, &r, P_KSL, "VOL.KSL", &inst->cydflags, CYD_CHN_ENABLE_KEY_SCALING);
+	inst_flags(event, &r, P_VOL_KSL, "VOL.KSL", &inst->cydflags, CYD_CHN_ENABLE_VOLUME_KEY_SCALING);
 	update_rect(&frame, &r);
-	inst_text(event, &r, P_KSL_LEVEL, "LEVEL", "%02X", MAKEPTR(inst->ksl_level), 2);
+	inst_text(event, &r, P_VOL_KSL_LEVEL, "LEVEL", "%02X", MAKEPTR(inst->vol_ksl_level), 2);
+	update_rect(&frame, &r);
+	
+	inst_flags(event, &r, P_ENV_KSL, "ENV.KSL", &inst->cydflags, CYD_CHN_ENABLE_ENVELOPE_KEY_SCALING);
+	update_rect(&frame, &r);
+	inst_text(event, &r, P_ENV_KSL_LEVEL, "LEVEL", "%02X", MAKEPTR(inst->env_ksl_level), 2);
 	update_rect(&frame, &r);
 
 	{
@@ -1403,9 +1412,13 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 	inst_text(event, &r, P_FM_MODULATION, "VOL", "%02X", MAKEPTR(inst->fm_modulation), 2);
 	update_rect(&frame, &r);
 	
-	inst_flags(event, &r, P_FM_KSL_ENABLE, "FM VOL.KSL", &inst->fm_flags, CYD_FM_ENABLE_KEY_SCALING);
+	inst_flags(event, &r, P_FM_VOL_KSL_ENABLE, "FM VOL.KSL", &inst->fm_flags, CYD_FM_ENABLE_VOLUME_KEY_SCALING);
 	update_rect(&frame, &r);
-	inst_text(event, &r, P_FM_KSL_LEVEL, "LEVEL", "%02X", MAKEPTR(inst->fm_ksl_level), 2);
+	inst_text(event, &r, P_FM_VOL_KSL_LEVEL, "LEVEL", "%02X", MAKEPTR(inst->fm_vol_ksl_level), 2);
+	update_rect(&frame, &r);
+	inst_flags(event, &r, P_FM_ENV_KSL_ENABLE, "FM ENV.KSL", &inst->fm_flags, CYD_FM_ENABLE_ENVELOPE_KEY_SCALING);
+	update_rect(&frame, &r);
+	inst_text(event, &r, P_FM_ENV_KSL_LEVEL, "LEVEL", "%02X", MAKEPTR(inst->fm_env_ksl_level), 2);
 	update_rect(&frame, &r);
 	
 	inst_text(event, &r, P_FM_FEEDBACK, "FEEDBACK", "%01X", MAKEPTR(inst->fm_feedback), 1);

@@ -279,17 +279,33 @@ void instrument_add_param(int a)
 
 		break;
 		
-		case P_KSL:
 		
-		flipbit(i->cydflags, CYD_CHN_ENABLE_KEY_SCALING);
+		
+		case P_VOL_KSL:
+		
+		flipbit(i->cydflags, CYD_CHN_ENABLE_VOLUME_KEY_SCALING);
+		
+		break;
+		
+		case P_VOL_KSL_LEVEL:
+		
+		clamp(i->vol_ksl_level, a, 0, 255);
 		
 		break;
 		
-		case P_KSL_LEVEL:
+		case P_ENV_KSL:
 		
-		clamp(i->ksl_level, a, 0, 255);
+		flipbit(i->cydflags, CYD_CHN_ENABLE_ENVELOPE_KEY_SCALING);
 		
 		break;
+		
+		case P_ENV_KSL_LEVEL:
+		
+		clamp(i->env_ksl_level, a, 0, 255);
+		
+		break;
+		
+		
 
 		case P_BUZZ:
 
@@ -574,17 +590,34 @@ void instrument_add_param(int a)
 
 		break;
 		
-		case P_FM_KSL_ENABLE:
+		
+		
+		
+		case P_FM_VOL_KSL_ENABLE:
 
-		flipbit(i->fm_flags, CYD_FM_ENABLE_KEY_SCALING);
+		flipbit(i->fm_flags, CYD_FM_ENABLE_VOLUME_KEY_SCALING);
 
 		break;
 		
-		case P_FM_KSL_LEVEL:
+		case P_FM_VOL_KSL_LEVEL:
 
-		clamp(i->fm_ksl_level, a, 0, 0xff);
+		clamp(i->fm_vol_ksl_level, a, 0, 0xff);
 
 		break;
+		
+		case P_FM_ENV_KSL_ENABLE:
+
+		flipbit(i->fm_flags, CYD_FM_ENABLE_ENVELOPE_KEY_SCALING);
+
+		break;
+		
+		case P_FM_ENV_KSL_LEVEL:
+
+		clamp(i->fm_env_ksl_level, a, 0, 0xff);
+
+		break;
+		
+		
 		
 		
 		

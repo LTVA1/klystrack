@@ -46,10 +46,12 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_PORTA_UP_LOG, 0xff00, "Portamento up (curve)", "PortUpC", -1, -1},
 	{MUS_FX_PORTA_DN_LOG, 0xff00, "Portamento down (curve)", "PortDnC", -1, -1},
 	{MUS_FX_EXT_NOTE_DELAY, 0xfff0, "Note delay", "Delay", -1, -1},
-	{MUS_FX_VIBRATO, 0xff00, "Vibrato", NULL, -1, -1},
-	{MUS_FX_TREMOLO, 0xff00, "Tremolo", NULL, -1, -1},
+	{MUS_FX_VIBRATO, 0xff00, "Vibrato", "Vib", -1, -1},
+	{MUS_FX_TREMOLO, 0xff00, "Tremolo", "Trem", -1, -1}, //wasn't there
+	{MUS_FX_FM_VIBRATO, 0xff00, "FM modulator vibrato", "FM vib", -1, -1}, //wasn't there
+	{MUS_FX_FM_TREMOLO, 0xff00, "FM modulator tremolo", "FM trem", -1, -1}, //wasn't there
 	{MUS_FX_PWM, 0xff00, "Pulse width modification", "PWM", -1, -1}, //wasn't there
-	{MUS_FX_SLIDE, 0xff00, "Slide", NULL, -1, -1},
+	{MUS_FX_SLIDE, 0xff00, "Slide", "Slide", -1, -1},
 	{MUS_FX_PORTA_UP_SEMI, 0xff00, "Portamento up (semitones)", "PortUpST", -1, -1},
 	{MUS_FX_PORTA_DN_SEMI, 0xff00, "Portamento down (semitones)", "PortDnST", -1, -1},
 	{MUS_FX_CUTOFF_UP, 0xff00, "Filter cutoff up", "CutoffUp", -1, -1},
@@ -66,8 +68,10 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_FADE_GLOBAL_VOLUME, 0xff00, "Global volume fade", "GlobFade", -1, -1},
 	{MUS_FX_SET_GLOBAL_VOLUME, 0xff00, "Set global volume", "GlobVol", 0, MAX_VOLUME},
 	{MUS_FX_SET_CHANNEL_VOLUME, 0xff00, "Set channel volume", "ChnVol", 0, MAX_VOLUME},
-	{MUS_FX_SET_KSL_LEVEL, 0xff00, "Set key scaling level", "KslLev", 0, 0xff}, //wasn't there
-	{MUS_FX_SET_FM_KSL_LEVEL, 0xff00, "Set FM modulator key scaling level", "KslFMlev", 0, 0xff}, //wasn't there
+	{MUS_FX_SET_VOL_KSL_LEVEL, 0xff00, "Set volume key scaling level", "VolKslLev", 0, 0xff}, //wasn't there
+	{MUS_FX_SET_FM_VOL_KSL_LEVEL, 0xff00, "Set FM modulator volume key scaling level", "VolKslFMlev", 0, 0xff}, //wasn't there
+	{MUS_FX_SET_ENV_KSL_LEVEL, 0xff00, "Set envelope key scaling level", "EnvKslLev", 0, 0xff}, //wasn't there
+	{MUS_FX_SET_FM_ENV_KSL_LEVEL, 0xff00, "Set FM modulator envelope key scaling level", "EnvKslFMlev", 0, 0xff}, //wasn't there
 	{MUS_FX_SET_WAVEFORM, 0xff00, "Set waveform", "Waveform", 0, 0xff},
 	{MUS_FX_OSC_MIX, 0x7ff0, "Set oscillators' mix mode", "OscMix", 0, 4}, //wasn't there
 	{MUS_FX_SET_WAVETABLE_ITEM, 0xff00, "Set wavetable item", "Wavetable", 0, CYD_WAVE_MAX_ENTRIES - 1},
@@ -141,8 +145,8 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_FADE_GLOBAL_VOLUME, 0x7f00, "Global volume fade", "GlobFade", -1, -1},
 	{MUS_FX_SET_GLOBAL_VOLUME, 0x7f00, "Set global volume", "GlobVol", 0, MAX_VOLUME},
 	{MUS_FX_SET_CHANNEL_VOLUME, 0x7f00, "Set channel volume", "ChnVol", 0, MAX_VOLUME},
-	{MUS_FX_SET_KSL_LEVEL, 0x7f00, "Set key scaling level", "KslLev", 0, 0xff}, //wasn't there
-	{MUS_FX_SET_FM_KSL_LEVEL, 0x7f00, "Set FM modulator key scaling level", "KslFMlev", 0, 0xff}, //wasn't there
+	{MUS_FX_SET_VOL_KSL_LEVEL, 0x7f00, "Set key scaling level", "KslLev", 0, 0xff}, //wasn't there
+	{MUS_FX_SET_FM_VOL_KSL_LEVEL, 0x7f00, "Set FM modulator key scaling level", "KslFMlev", 0, 0xff}, //wasn't there
 	{MUS_FX_SET_WAVEFORM, 0x7f00, "Set waveform", "Waveform", 0, 0xff},
 	{MUS_FX_OSC_MIX, 0x7ff0, "Set oscillators' mix mode", "OscMix", 0, 4}, //wasn't there
 	{MUS_FX_SET_WAVETABLE_ITEM, 0x7f00, "Set wavetable item", "Wavetable", 0, CYD_WAVE_MAX_ENTRIES - 1},

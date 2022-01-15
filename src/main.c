@@ -78,7 +78,7 @@ extern const Menu mainmenu[];
 #define SCROLLBAR 10
 #define INST_LIST (6*8 + 3*2)
 #define INFO 13
-#define INST_VIEW2 (38+10+10+10+156) //#define INST_VIEW2 (38+10+10+10+52)
+#define INST_VIEW2 (38+10+10+10+166) //#define INST_VIEW2 (38+10+10+10+52)
 
 #define OSC_SIZE 128
 

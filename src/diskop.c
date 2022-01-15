@@ -278,9 +278,14 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 	SDL_RWwrite(f, &temp32, sizeof(temp32), 1);
 	SDL_RWwrite(f, &inst->adsr, sizeof(inst->adsr), 1);
 	
-	if(inst->cydflags & CYD_CHN_ENABLE_KEY_SCALING)
+	if(inst->cydflags & CYD_CHN_ENABLE_VOLUME_KEY_SCALING)
 	{
-		SDL_RWwrite(f, &inst->ksl_level, sizeof(inst->ksl_level), 1);
+		SDL_RWwrite(f, &inst->vol_ksl_level, sizeof(inst->vol_ksl_level), 1);
+	}
+	
+	if(inst->cydflags & CYD_CHN_ENABLE_ENVELOPE_KEY_SCALING)
+	{
+		SDL_RWwrite(f, &inst->env_ksl_level, sizeof(inst->env_ksl_level), 1);
 	}
 	
 	if(inst->cydflags & CYD_CHN_ENABLE_SYNC)
@@ -398,9 +403,14 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 		SDL_RWwrite(f, &inst->fm_flags, sizeof(inst->fm_flags), 1);
 		SDL_RWwrite(f, &inst->fm_modulation, sizeof(inst->fm_modulation), 1); //fm volume
 		
-		if(inst->fm_flags & CYD_FM_ENABLE_KEY_SCALING)
+		if(inst->fm_flags & CYD_FM_ENABLE_VOLUME_KEY_SCALING)
 		{
-			SDL_RWwrite(f, &inst->fm_ksl_level, sizeof(inst->fm_ksl_level), 1);
+			SDL_RWwrite(f, &inst->fm_vol_ksl_level, sizeof(inst->fm_vol_ksl_level), 1);
+		}
+		
+		if(inst->fm_flags & CYD_FM_ENABLE_ENVELOPE_KEY_SCALING)
+		{
+			SDL_RWwrite(f, &inst->fm_env_ksl_level, sizeof(inst->fm_env_ksl_level), 1);
 		}
 		
 		SDL_RWwrite(f, &inst->fm_feedback, sizeof(inst->fm_feedback), 1);
