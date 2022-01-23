@@ -125,7 +125,7 @@ int import_xm(FILE *f)
 
 	int pattern_length[256];
 	
-	for (int p = 0 ; p < header.num_patterns ; ++p)
+	for (int p = 0; p < header.num_patterns; ++p)
 	{
 		struct
 		{
@@ -152,7 +152,7 @@ int import_xm(FILE *f)
 		
 		fread(&data[0], 1, pattern_hdr.data_size, f);
 		
-		for (int c = 0 ; c < header.num_channels ; ++c)
+		for (int c = 0; c < header.num_channels; ++c)
 		{
 			int pat = p * header.num_channels + c;
 			resize_pattern(&mused.song.pattern[pat], pattern_hdr.num_rows);
@@ -160,9 +160,9 @@ int import_xm(FILE *f)
 		
 		Uint8 *ptr = &data[0];
 		
-		for (int r = 0 ; r < pattern_hdr.num_rows ; ++r)
+		for (int r = 0; r < pattern_hdr.num_rows; ++r)
 		{
-			for (int c = 0 ; c < header.num_channels ; ++c)
+			for (int c = 0; c < header.num_channels; ++c)
 			{
 				Uint8 note = *ptr++;
 				Uint8 instrument = 0, volume = 0, fx = 0, param = 0;
@@ -227,7 +227,7 @@ int import_xm(FILE *f)
 	
 	int wt_e = 0;
 	
-	for (int i = 0 ; i < header.num_instruments ; ++i)
+	for (int i = 0; i < header.num_instruments; ++i)
 	{
 		struct {
 			Uint32 size;
@@ -293,7 +293,7 @@ int import_xm(FILE *f)
 			Uint32 first_length = 0, total_length = 0, type = 0;
 			Sint32 fine = 0, loop_begin = 0, loop_len = 0;
 			
-			for (int s = 0 ; s < instrument_hdr.num_samples ; ++s)
+			for (int s = 0; s < instrument_hdr.num_samples; ++s)
 			{
 				struct 
 				{
@@ -351,7 +351,7 @@ int import_xm(FILE *f)
 					debug("16-bit sample");
 					
 					int x = 0;
-					for (int idx = 0 ; idx < first_length / 2 ; ++idx)
+					for (int idx = 0; idx < first_length / 2; ++idx)
 					{
 						x += ((Uint16*)smp)[idx];
 						((Uint16*)smp)[idx] = x;
@@ -364,7 +364,7 @@ int import_xm(FILE *f)
 					debug("8-bit sample");
 					
 					int x = 0;
-					for (int idx = 0 ; idx < first_length ; ++idx)
+					for (int idx = 0; idx < first_length; ++idx)
 					{
 						x += smp[idx];
 						smp[idx] = x;
@@ -413,12 +413,12 @@ int import_xm(FILE *f)
 	
 	int pos = 0;
 	
-	for (int s = 0 ; s < header.song_length ; ++s)
+	for (int s = 0; s < header.song_length; ++s)
 	{
 		if (s == header.restart_position)
 			mused.song.loop_point = pos;
 	
-		for (int c = 0 ; c < header.num_channels ; ++c)
+		for (int c = 0; c < header.num_channels; ++c)
 		{
 			add_sequence(c, pos, header.pattern_order[s] * header.num_channels + c, 0);
 		}

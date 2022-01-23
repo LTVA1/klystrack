@@ -62,7 +62,7 @@ void update_recent_files_list(const char *path)
 
 	int found;
 
-	for (found = 0 ; found < MAX_RECENT - 1 ; ++found)
+	for (found = 0; found < MAX_RECENT - 1; ++found)
 	{
 		if (recentmenu[found].p2 != NULL ||
 			(recentmenu[found].p1 != NULL && strcmp((char*)recentmenu[found].p1, path) == 0))
@@ -121,7 +121,7 @@ void init_recent_files_list()
 
 		if (f)
 		{
-			for (int i = 0 ; i < MAX_RECENT ; ++i)
+			for (int i = 0; i < MAX_RECENT; ++i)
 			{
 				char path[500], cleaned[500];
 
@@ -161,7 +161,7 @@ void deinit_recent_files_list()
 
 		if (f)
 		{
-			for (int i = 0 ; i < MAX_RECENT ; ++i)
+			for (int i = 0; i < MAX_RECENT; ++i)
 			{
 				if (recentmenu[i].p1 != NULL)
 					fprintf(f,"%s\n", (char*)recentmenu[i].p1);
@@ -177,7 +177,7 @@ void deinit_recent_files_list()
 		free(e);
 	}
 
-	for (int i = 0 ; i < MAX_RECENT ; ++i)
+	for (int i = 0; i < MAX_RECENT; ++i)
 		if (recentmenu[i].text != NULL)
 		{
 			free((void*)recentmenu[i].text);
@@ -314,9 +314,12 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 	
 	SDL_RWwrite(f, &progsteps, sizeof(progsteps), 1);
 	
-	for (int i = 0; i < progsteps / 8 + 1; ++i)
+	if(progsteps != 0)
 	{
-		SDL_RWwrite(f, &inst->program_unite_bits[i], sizeof(Uint8), 1);
+		for (int i = 0; i < progsteps / 8 + 1; ++i)
+		{
+			SDL_RWwrite(f, &inst->program_unite_bits[i], sizeof(Uint8), 1);
+		}
 	}
 	
 	for (int i = 0; i < progsteps; ++i)
@@ -467,7 +470,7 @@ static void save_fx_inner(SDL_RWops *f, CydFxSerialized *fx)
 	memcpy(&temp, fx, sizeof(temp));
 
 	FIX_ENDIAN(temp.flags);
-	for (int i = 0 ; i < CYDRVB_TAPS ; ++i)
+	for (int i = 0; i < CYDRVB_TAPS; ++i)
 	{
 		FIX_ENDIAN(temp.rvb.tap[i].gain);
 		FIX_ENDIAN(temp.rvb.tap[i].delay);
@@ -476,24 +479,43 @@ static void save_fx_inner(SDL_RWops *f, CydFxSerialized *fx)
 	write_string8(f, temp.name);
 
 	SDL_RWwrite(f, &temp.flags, sizeof(temp.flags), 1);
-	SDL_RWwrite(f, &temp.crush.bit_drop, sizeof(temp.crush.bit_drop), 1);
-	SDL_RWwrite(f, &temp.chr.rate, sizeof(temp.chr.rate), 1);
-	SDL_RWwrite(f, &temp.chr.min_delay, sizeof(temp.chr.min_delay), 1);
-	SDL_RWwrite(f, &temp.chr.max_delay, sizeof(temp.chr.max_delay), 1);
-	SDL_RWwrite(f, &temp.chr.sep, sizeof(temp.chr.sep), 1);
-
-	for (int i = 0 ; i < CYDRVB_TAPS ; ++i)
+	
+	if(temp.flags & CYDFX_ENABLE_CRUSH)
 	{
-		SDL_RWwrite(f, &temp.rvb.tap[i].delay, sizeof(temp.rvb.tap[i].delay), 1);
-		SDL_RWwrite(f, &temp.rvb.tap[i].gain, sizeof(temp.rvb.tap[i].gain), 1);
-		SDL_RWwrite(f, &temp.rvb.tap[i].panning, sizeof(temp.rvb.tap[i].panning), 1);
-		SDL_RWwrite(f, &temp.rvb.tap[i].flags, sizeof(temp.rvb.tap[i].flags), 1);
+		SDL_RWwrite(f, &temp.crush.bit_drop, sizeof(temp.crush.bit_drop), 1);
+	}
+	
+	if(temp.flags & CYDFX_ENABLE_CHORUS)
+	{
+		SDL_RWwrite(f, &temp.chr.rate, sizeof(temp.chr.rate), 1);
+		SDL_RWwrite(f, &temp.chr.min_delay, sizeof(temp.chr.min_delay), 1);
+		SDL_RWwrite(f, &temp.chr.max_delay, sizeof(temp.chr.max_delay), 1);
+		SDL_RWwrite(f, &temp.chr.sep, sizeof(temp.chr.sep), 1);
 	}
 
-	SDL_RWwrite(f, &temp.crushex.downsample, sizeof(temp.crushex.downsample), 1);
-	SDL_RWwrite(f, &temp.crushex.gain, sizeof(temp.crushex.gain), 1);
-}
+	if(temp.flags & CYDFX_ENABLE_REVERB)
+	{
+		SDL_RWwrite(f, &temp.rvb.taps_quant, sizeof(temp.chr.rate), 1);
+		
+		for (int i = 0; i < temp.rvb.taps_quant; ++i)
+		{
+			SDL_RWwrite(f, &temp.rvb.tap[i].delay, sizeof(temp.rvb.tap[i].delay), 1);
+			SDL_RWwrite(f, &temp.rvb.tap[i].gain, sizeof(temp.rvb.tap[i].gain), 1);
+			SDL_RWwrite(f, &temp.rvb.tap[i].panning, sizeof(temp.rvb.tap[i].panning), 1);
+			SDL_RWwrite(f, &temp.rvb.tap[i].flags, sizeof(temp.rvb.tap[i].flags), 1);
+		}
+	}
 
+	if(temp.flags & CYDFX_ENABLE_CRUSH)
+	{
+		SDL_RWwrite(f, &temp.crushex.downsample, sizeof(temp.crushex.downsample), 1);
+	}
+	
+	if(temp.flags & CYDFX_ENABLE_CRUSH_DITHER)
+	{
+		SDL_RWwrite(f, &temp.crushex.gain, sizeof(temp.crushex.gain), 1);
+	}
+}
 
 
 static void write_packed_pattern(SDL_RWops *f, const MusPattern *pattern, bool skip)
@@ -584,14 +606,14 @@ int open_song(FILE *f)
 	{
 		mused.sequenceview_steps = 1000;
 
-		for (int c = 0 ; c < MUS_MAX_CHANNELS ; ++c)
-			for (int s = 1 ; s < mused.song.num_sequences[c] && mused.song.sequence[c][s-1].position < mused.song.song_length ; ++s)
+		for (int c = 0; c < MUS_MAX_CHANNELS; ++c)
+			for (int s = 1; s < mused.song.num_sequences[c] && mused.song.sequence[c][s-1].position < mused.song.song_length; ++s)
 				if (mused.sequenceview_steps > mused.song.sequence[c][s].position - mused.song.sequence[c][s-1].position)
 				{
 					mused.sequenceview_steps = mused.song.sequence[c][s].position - mused.song.sequence[c][s-1].position;
 				}
 
-		for (int c = 0 ; c < MUS_MAX_CHANNELS ; ++c)
+		for (int c = 0; c < MUS_MAX_CHANNELS; ++c)
 			if (mused.song.num_sequences[c] > 0 && mused.song.sequence[c][mused.song.num_sequences[c]-1].position < mused.song.song_length)
 			{
 				if (mused.sequenceview_steps > mused.song.song_length - mused.song.sequence[c][mused.song.num_sequences[c]-1].position)
@@ -616,13 +638,13 @@ int open_song(FILE *f)
 
 	unmute_all_action(NULL, NULL, NULL);
 
-	for (int i = 0 ; i < mused.song.num_patterns ; ++i)
+	for (int i = 0; i < mused.song.num_patterns; ++i)
 		if(mused.song.pattern[i].num_steps == 0)
 			resize_pattern(&mused.song.pattern[i], mused.default_pattern_length);
 
 	mused.song.wavetable_names = realloc(mused.song.wavetable_names, sizeof(mused.song.wavetable_names[0]) * CYD_WAVE_MAX_ENTRIES);
 
-	for (int i = mused.song.num_wavetables ; i < CYD_WAVE_MAX_ENTRIES ; ++i)
+	for (int i = mused.song.num_wavetables; i < CYD_WAVE_MAX_ENTRIES; ++i)
 	{
 		mused.song.wavetable_names[i] = malloc(MUS_WAVETABLE_NAME_LEN + 1);
 		memset(mused.song.wavetable_names[i], 0, MUS_WAVETABLE_NAME_LEN + 1);
@@ -707,20 +729,23 @@ int save_song_inner(SDL_RWops *f, SongStats *stats)
 	bool kill_unused_things = false;
 
 	Uint8 n_inst = mused.song.num_instruments;
+	
 	if (!confirm(domain, mused.slider_bevel, &mused.largefont, "Save unused song elements?"))
 	{
+		//optimize_song(&mused.song); //wasn't there
+		
 		int maxpat = -1;
-		for (int c = 0 ; c < mused.song.num_channels ; ++c)
+		for (int c = 0; c < mused.song.num_channels; ++c)
 		{
-			for (int i = 0 ; i < mused.song.num_sequences[c] ; ++i)
+			for (int i = 0; i < mused.song.num_sequences[c]; ++i)
 				 if (maxpat < mused.song.sequence[c][i].pattern)
 					maxpat = mused.song.sequence[c][i].pattern;
 		}
 
 		n_inst = 0;
 
-		for (int i = 0 ; i <= maxpat ; ++i)
-			for (int s = 0 ; s < mused.song.pattern[i].num_steps ; ++s)
+		for (int i = 0; i <= maxpat; ++i)
+			for (int s = 0; s < mused.song.pattern[i].num_steps; ++s)
 				if (mused.song.pattern[i].step[s].instrument != MUS_NOTE_NO_INSTRUMENT)
 					n_inst = my_max(n_inst, mused.song.pattern[i].step[s].instrument + 1);
 
@@ -749,7 +774,7 @@ int save_song_inner(SDL_RWops *f, SongStats *stats)
 	temp16 = mused.song.num_patterns;
 	FIX_ENDIAN(temp16);
 	SDL_RWwrite(f, &temp16, 1, sizeof(mused.song.num_patterns));
-	for (int i = 0 ; i < mused.song.num_channels ; ++i)
+	for (int i = 0; i < mused.song.num_channels; ++i)
 	{
 		temp16 = mused.song.num_sequences[i];
 		FIX_ENDIAN(temp16);
@@ -765,9 +790,14 @@ int save_song_inner(SDL_RWops *f, SongStats *stats)
 	SDL_RWwrite(f, &mused.song.song_speed, 1, sizeof(mused.song.song_speed));
 	SDL_RWwrite(f, &mused.song.song_speed2, 1, sizeof(mused.song.song_speed2));
 	SDL_RWwrite(f, &mused.song.song_rate, 1, sizeof(mused.song.song_rate));
+	
 	Uint32 temp32 = mused.song.flags;
+	
+	temp32 |= MUS_8_BIT_PATTERN_INDEX | MUS_PATTERNS_NO_COMPRESSION | MUS_SEQ_NO_COMPRESSION;
+	
 	FIX_ENDIAN(temp32);
 	SDL_RWwrite(f, &temp32, 1, sizeof(mused.song.flags));
+	
 	SDL_RWwrite(f, &mused.song.multiplex_period, 1, sizeof(mused.song.multiplex_period));
 	SDL_RWwrite(f, &mused.song.pitch_inaccuracy, 1, sizeof(mused.song.pitch_inaccuracy));
 
@@ -790,7 +820,7 @@ int save_song_inner(SDL_RWops *f, SongStats *stats)
 	SDL_RWwrite(f, &n_fx, 1, sizeof(n_fx));
 
 	debug("Saving %d fx", n_fx);
-	for (int fx = 0 ; fx < n_fx ; ++fx)
+	for (int fx = 0; fx < n_fx; ++fx)
 	{
 		save_fx_inner(f, &mused.song.fx[fx]);
 	}
@@ -805,7 +835,7 @@ int save_song_inner(SDL_RWops *f, SongStats *stats)
 		stats->size[STATS_DEFVOLPAN] = SDL_RWtell(f);
 
 	debug("Saving %d instruments", n_inst);
-	for (int i = 0 ; i < n_inst ; ++i)
+	for (int i = 0; i < n_inst; ++i)
 	{
 		save_instrument_inner(f, &mused.song.instrument[i], NULL, NULL);
 	}
@@ -815,9 +845,9 @@ int save_song_inner(SDL_RWops *f, SongStats *stats)
 
 	bool *used_pattern = calloc(sizeof(bool), mused.song.num_patterns);
 
-	for (int i = 0 ; i < mused.song.num_channels; ++i)
+	for (int i = 0; i < mused.song.num_channels; ++i)
 	{
-		for (int s= 0 ; s < mused.song.num_sequences[i] ; ++s)
+		for (int s = 0; s < mused.song.num_sequences[i]; ++s)
 		{
 			temp16 = mused.song.sequence[i][s].position;
 			FIX_ENDIAN(temp16);
@@ -825,9 +855,13 @@ int save_song_inner(SDL_RWops *f, SongStats *stats)
 
 			used_pattern[mused.song.sequence[i][s].pattern] = true;
 
-			temp16 = mused.song.sequence[i][s].pattern;
+			/*temp16 = mused.song.sequence[i][s].pattern;
 			FIX_ENDIAN(temp16);
-			SDL_RWwrite(f, &temp16, 1, sizeof(temp16));
+			SDL_RWwrite(f, &temp16, 1, sizeof(temp16));*/
+			
+			Uint8 temp = (Uint8)(mused.song.sequence[i][s].pattern & 0xFF);
+			SDL_RWwrite(f, &temp, 1, sizeof(temp));
+			
 			SDL_RWwrite(f, &mused.song.sequence[i][s].note_offset, 1, sizeof(mused.song.sequence[i][s].note_offset));
 		}
 	}
@@ -847,7 +881,7 @@ int save_song_inner(SDL_RWops *f, SongStats *stats)
 
 	int max_wt = kill_unused_things ? 0 : CYD_WAVE_MAX_ENTRIES;
 
-	for (int i = 0 ; i < CYD_WAVE_MAX_ENTRIES ; ++i)
+	for (int i = 0; i < CYD_WAVE_MAX_ENTRIES; ++i)
 	{
 		if (mused.mus.cyd->wavetable_entries[i].samples)
 			max_wt = my_max(max_wt, i + 1);
@@ -859,7 +893,7 @@ int save_song_inner(SDL_RWops *f, SongStats *stats)
 
 	debug("Saving %d wavetable items", max_wt);
 
-	for (int i = 0 ; i < max_wt ; ++i)
+	for (int i = 0; i < max_wt; ++i)
 	{
 		write_wavetable_entry(f, &mused.mus.cyd->wavetable_entries[i], true);
 	}
@@ -867,7 +901,7 @@ int save_song_inner(SDL_RWops *f, SongStats *stats)
 	if (stats)
 		stats->size[STATS_WAVETABLE] = SDL_RWtell(f);
 
-	for (int i = 0 ; i < max_wt ; ++i)
+	for (int i = 0; i < max_wt; ++i)
 	{
 		write_string8(f, mused.song.wavetable_names[i]);
 	}
@@ -880,14 +914,14 @@ int save_song_inner(SDL_RWops *f, SongStats *stats)
 
 	if (stats)
 	{
-		for (int i = N_STATS - 1 ; i > 0 ; --i)
+		for (int i = N_STATS - 1; i > 0; --i)
 		{
 			stats->size[i] -= stats->size[i - 1];
 		}
 
 		stats->total_size = 0;
 
-		for (int i = 0 ; i < N_STATS ; ++i)
+		for (int i = 0; i < N_STATS; ++i)
 		{
 			stats->total_size += stats->size[i];
 		}

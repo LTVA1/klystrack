@@ -29,10 +29,10 @@ RequestExecutionLevel admin
 Section "klystrack files"
 SectionIn RO
 
-  ; Set output path to the installation directory.
+ ; Set output path to the installation directory.
   SetOutPath $INSTDIR
 
-  ; Put file there
+ ; Put file there
   File zip\data\LICENSE
   File zip\data\SDL2.dll
   File zip\data\SDL.txt
@@ -62,7 +62,7 @@ SectionIn RO
 
   File /r examples\*
 
-  ; For CreateShortCut
+ ; For CreateShortCut
 
   SetOutPath $INSTDIR
 
@@ -79,7 +79,7 @@ SectionIn RO
 
   WriteUninstaller "$INSTDIR\uninstall.exe"
 
-SectionEnd ; end the section
+SectionEnd; end the section
 
 Section "Register file types"
   ${registerExtension} "$INSTDIR\klystrack.exe" ".kt" "klystrack song"
@@ -113,7 +113,7 @@ Section Uninstall
   Delete DVORAK
   Delete n00bstar
 
-  ; remove all themes
+ ; remove all themes
 
   SetOutPath $INSTDIR\res
 
@@ -122,7 +122,7 @@ Section Uninstall
   !include ${deletetemp}
   !delfile ${deletetemp}
 
-  ; remove all examples
+ ; remove all examples
 
   SetOutPath $INSTDIR\examples
 

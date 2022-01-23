@@ -17,7 +17,7 @@
 #define TOP_LEFT 0
 #define TOP_RIGHT 0
 #define MARGIN 8
-#define SCREENMARGIN 32
+#define SCREENMARGIN 8 //#define SCREENMARGIN 32
 #define TITLE 14
 #define FIELD 14
 #define CLOSE_BUTTON 12
@@ -60,7 +60,7 @@ static const View filebox_view[] =
 
 static void deinit_lines()
 {
-	for (int i = 0 ; i < data.n_lines ; ++i)
+	for (int i = 0; i < data.n_lines; ++i)
 		if (data.lines[i]) free(data.lines[i]);
 		
 	free(data.lines);
@@ -207,13 +207,13 @@ const char* comments[] = {
 	":  : ' / :  : '            .--.--.  :  : ' :,' ,'/ /|                  :  : ' /",
 	"|  '  /  |  ' |       .--,/  /    .;__,'  / '  | |' |,--.--.     ,---. |  '  /",
 	"'  |  :  '  | |     /_ ./|  :  /`.|  |   |  |  |   ,/       \\   /     \\'  |  :  ",
-	"|  |   \\ |  | :  , ' , ' |  :  ;_ :__,'| :  '  :  /.--.  .-. | /    / '|  |   \\ ",
+	"|  |   \\ |  | :  , ' , ' |  : ;_ :__,'| :  '  :  /.--.  .-. | /    / '|  |   \\ ",
 	"'  : |. \\'  : |_/___/ \\: |\\  \\    `.'  : |__|  | '  \\__\\/: . ..    ' / '  : |. \\ ",
-	"|  | ' \\ |  | '.'.  \\  ' | `----.   |  | '.';  : |  ,| .--.; |'   ; :__|  | ' \\ \\ ",
-	"'  : |--';  :    ;\\  ;   :/  /`--'  ;  :    |  , ; /  /  ,.  |'   | '.''  : |--'", 
-	";  |,'   |  ,   /  \\  \\  '--'.     /|  ,   / ---' ;  :   .'   |   :    ;  |,'", 
+	"|  | ' \\ |  | '.'.  \\  ' | `----.   |  | '.';  : |  ,| .--.; |'  ; :__|  | ' \\ \\ ",
+	"'  : |--';  :   ;\\ ;   :/  /`--' ;  :    |  ,; /  /  ,.  |'   | '.''  : |--'", 
+	";  |,'   |  ,   /  \\  \\  '--'.     /|  ,   / ---';  :   .'   |   :   ;  |,'", 
 	"'--'      ---`-'    :  \\  \\`--'---'  ---`-'       |  ,     .-./\\   \\  /'--'", 
-	"                     \\  ' ;                        `--`---'     `----'",
+	"                     \\  ';                        `--`---'     `----'",
 	"                      `--`",
 	"",
 	
@@ -224,13 +224,13 @@ const char* comments[] = {
 	":  : ' / :  : '            .--.--.  :  : ' :,' ,'/ /|                  :  : ' / ",
 	"|  '  /  |  ' |       .--,/  /    .;__,'  / '  | |' |,--.--.     ,---. |  '  /  ",
 	"'  |  :  '  | |     /_ ./|  :  /`.|  |   |  |  |   ,/       \   /     \'  |  :  ",
-	"|  |   \ |  | :  , ' , ' |  :  ;_ :__,'| :  '  :  /.--.  .-. | /    / '|  |   \ ",
+	"|  |   \ |  | :  , ' , ' |  : ;_ :__,'| :  '  :  /.--.  .-. | /    / '|  |   \ ",
 	"'  : |. \'  : |_/___/ \: |\  \    `.'  : |__|  | '  \__\/: . ..    ' / '  : |. \ ",
-	"|  | ' \ |  | '.'.  \  ' | `----.   |  | '.';  : |  ,\" .--.; |'   ; :__|  | '\ \ ",
-	"'  : |--';  :    ;\  ;   :/  /`--'  ;  :    |  , ; /  /  ,.  |'   | '.''  : |--' ", 
-	";  |,'   |  ,   /  \  \  '--'.     /|  ,   / ---' ;  :   .'   |   :    ;  |,'    ", 
+	"|  | ' \ |  | '.'.  \  ' | `----.   |  | '.';  : |  ,\" .--.; |'  ; :__|  | '\ \ ",
+	"'  : |--';  :   ;\ ;   :/  /`--' ;  :    |  ,; /  /  ,.  |'   | '.''  : |--' ", 
+	";  |,'   |  ,   /  \  \  '--'.     /|  ,   / ---';  :   .'   |   :   ;  |,'    ", 
 	"'--'      ---`-'    :  \  \`--'---'  ---`-'       |  ,     .-./\   \  /'--'      ", 
-	"                    \  ' ;                        `--`---'     `----'            ",
+	"                    \  ';                        `--`---'     `----'            ",
 	"                     `--`                                                        ",
 	"",*/
 	NULL
@@ -250,12 +250,12 @@ static void init_lines(void * section, void * unused1, void * unused2)
 			
 			const InstructionDesc *commands = list_all_commands();
 			
-			for (const InstructionDesc *d = commands ; d->name ; ++d)
+			for (const InstructionDesc *d = commands; d->name; ++d)
 				++data.n_lines;
 				
 			data.lines = realloc(data.lines, sizeof(*data.lines) * data.n_lines);
 		
-			for (int i = 0 ; i < data.n_lines ; ++i)
+			for (int i = 0; i < data.n_lines; ++i)
 			{
 				int params = 0;
 				char paramstr[] = "xxxx";
@@ -288,7 +288,7 @@ static void init_lines(void * section, void * unused1, void * unused2)
 				
 			data.lines = realloc(data.lines, sizeof(*data.lines) * data.n_lines);
 		
-			for (int i = 0 ; i < data.n_lines ; ++i)
+			for (int i = 0; i < data.n_lines; ++i)
 			{
 				if (shortcuts[i].description)
 				{
@@ -316,7 +316,7 @@ static void init_lines(void * section, void * unused1, void * unused2)
 				
 			data.lines = realloc(data.lines, sizeof(*data.lines) * data.n_lines);
 		
-			for (int i = 0 ; i < data.n_lines ; ++i)
+			for (int i = 0; i < data.n_lines; ++i)
 			{
 				char buffer[50000];
 				
@@ -389,7 +389,7 @@ void help_list_view(GfxDomain *dest_surface, const SDL_Rect *area, const SDL_Eve
 	
 	gfx_domain_set_clip(dest_surface, &content);
 	
-	for (int i = data.list_position ; i < data.n_lines && pos.y < content.h + content.y ; ++i)
+	for (int i = data.list_position; i < data.n_lines && pos.y < content.h + content.y; ++i)
 	{
 		if (data.selected_line == i)
 		{
@@ -427,7 +427,7 @@ int helpbox(const char *title, GfxDomain *domain, GfxSurface *gfx, const Font *l
 	
 	slider_set_params(&data.scrollbar, 0, data.n_lines - 1, data.list_position, 0, &data.list_position, 1, SLIDER_VERTICAL, data.gfx);
 	
-	/*for (int i = 0 ; i < data.n_files ; ++i)
+	/*for (int i = 0; i < data.n_files; ++i)
 	{
 		if (strcmp(data.files[i].name, last_picked_file) == 0)
 		{

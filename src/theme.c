@@ -106,7 +106,7 @@ static void load_colors(const char *cfg)
 		if (sscanf(token, "%50[^ =]%*[ =]%x", name, &color) == 2)
 		{
 			int i;
-			for (i = 0 ; i < NUM_COLORS ; ++i)
+			for (i = 0; i < NUM_COLORS; ++i)
 			{
 				if (strcasecmp(names[i], name) == 0)
 				{
@@ -126,7 +126,7 @@ static void load_colors(const char *cfg)
 		{
 			int from_i, to_i;
 
-			for (from_i = 0 ; from_i < NUM_COLORS ; ++from_i)
+			for (from_i = 0; from_i < NUM_COLORS; ++from_i)
 			{
 				if (strcasecmp(names[from_i], from) == 0)
 				{
@@ -138,7 +138,7 @@ static void load_colors(const char *cfg)
 				warning("Unknown color name '%s'", name);
 			else
 			{
-				for (to_i = 0 ; to_i < NUM_COLORS ; ++to_i)
+				for (to_i = 0; to_i < NUM_COLORS; ++to_i)
 				{
 					if (strcasecmp(names[to_i], name) == 0)
 					{
@@ -186,7 +186,7 @@ static SDL_RWops *load_img_if_exists(Bundle *res, const char *base_name)
 	char name[100];
 	const char *ext[] = {"bmp", "png", NULL}, **e;
 
-	for (e = ext ; *e ; ++e)
+	for (e = ext; *e; ++e)
 	{
 		snprintf(name, sizeof(name), "%s.%s", base_name, *e);
 
@@ -525,7 +525,7 @@ void enum_themes()
 
 void update_theme_menu()
 {
-	for (int i = 0 ; thememenu[i].text ; ++i)
+	for (int i = 0; thememenu[i].text; ++i)
 	{
 		if (strcmp(mused.themename, (char*)thememenu[i].p1) == 0)
 		{
@@ -539,7 +539,7 @@ void update_theme_menu()
 
 void free_themes()
 {
-	for (int i = 0 ; i < MAX_THEMES ; ++i)
+	for (int i = 0; i < MAX_THEMES; ++i)
 	{
 		if (thememenu[i].text != NULL) free((void*)thememenu[i].text);
 	}

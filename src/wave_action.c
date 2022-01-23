@@ -24,7 +24,7 @@ void wavetable_drop_lowest_bit(void *unused1, void *unused2, void *unused3)
 	{
 		int d = 0;
 				
-		for (; d < w->samples ; ++d)
+		for (; d < w->samples; ++d)
 		{
 			w->data[d] &= mask;
 		}
@@ -43,7 +43,7 @@ void wavetable_halve_samplerate(void *unused1, void *unused2, void *unused3)
 	{
 		int s = 0, d = 0;
 				
-		for (; s < (w->samples & (~1)) ; s += 2, ++d)
+		for (; s < (w->samples & (~1)); s += 2, ++d)
 		{
 			w->data[d] = (w->data[s] + w->data[s + 1]) / 2;
 		}
@@ -68,7 +68,7 @@ void wavetable_normalize(void *vol, void *unused2, void *unused3)
 	{
 		int m = 0;
 				
-		for (int s = 0 ; s < w->samples ; ++s)
+		for (int s = 0; s < w->samples; ++s)
 		{
 			m = my_max(m, abs(w->data[s]));
 		}
@@ -77,7 +77,7 @@ void wavetable_normalize(void *vol, void *unused2, void *unused3)
 		
 		if (m != 0)
 		{
-			for (int s = 0 ; s < w->samples ; ++s)
+			for (int s = 0; s < w->samples; ++s)
 			{
 				w->data[s] = my_max(my_min((Sint32)w->data[s] * CASTPTR(int, vol) / m, 32767), -32768);
 			}
@@ -98,14 +98,14 @@ void wavetable_remove_dc(void *unused1, void *unused2, void *unused3)
 	{
 		double avg = 0;
 	
-		for (int s = 0 ; s < w->samples ; ++s)
+		for (int s = 0; s < w->samples; ++s)
 		{
 			avg += w->data[s];
 		}
 		
 		avg /= w->samples;
 		
-		for (int s = 0 ; s < w->samples ; ++s)
+		for (int s = 0; s < w->samples; ++s)
 		{
 			double new_val = w->data[s] - avg;
 			
@@ -130,7 +130,7 @@ void wavetable_cut_tail(void *unused1, void *unused2, void *unused3)
 	
 	if (w->samples > 0)
 	{
-		for (int s = w->samples - 1 ; s > 0 ; --s)
+		for (int s = w->samples - 1; s > 0; --s)
 		{
 			if (w->data[s] != 0)
 			{
@@ -156,7 +156,7 @@ void wavetable_cut_head(void *unused1, void *unused2, void *unused3)
 	
 	if (w->samples > 0)
 	{
-		for (int s = 0 ; s < 0 ; --s)
+		for (int s = 0; s < 0; --s)
 		{
 			if (w->data[s] != 0 && s != 0)
 			{
@@ -213,7 +213,7 @@ void wavetable_chord(void *transpose, void *unused2, void *unused3)
 			{
 				snapshot(S_T_WAVE_DATA);
 				
-				for (int s = 0 ; s < new_length ; ++s)
+				for (int s = 0; s < new_length; ++s)
 				{
 					new_data[s] = ((int)w->data[s % w->samples] + (int)w->data[(s * denom / nom) % w->samples]) / 2;
 				}
@@ -254,7 +254,7 @@ void wavetable_create_one_cycle(void *_settings, void *unused2, void *unused3)
 	
 	int lowest_mul = 999;
 	
-	for (int i = 0 ; i < settings->num_oscs ; ++i)
+	for (int i = 0; i < settings->num_oscs; ++i)
 	{
 		lowest_mul = my_min(lowest_mul, settings->chain[i].mult);
 	}
@@ -286,7 +286,7 @@ void wavetable_draw(float x, float y, float width)
 		int s = w->samples * x;
 		int e = my_max(w->samples * (x + width), s + 1);
 		
-		for ( ; s < e && s < w->samples ; ++s)
+		for (; s < e && s < w->samples; ++s)
 		{
 			w->data[s] = y * 65535 - 32768;
 		}
@@ -308,7 +308,7 @@ void wavegen_randomize(void *unused1, void *unused2, void *unused3)
 	
 	mused.wgset.num_oscs = rnd(1, WG_CHAIN_OSCS);
 	
-	for (int i = 0 ; i < mused.wgset.num_oscs ; ++i)
+	for (int i = 0; i < mused.wgset.num_oscs; ++i)
 	{
 		mused.wgset.chain[i].flags = rnd(0, 3);
 	
@@ -383,7 +383,7 @@ void wavetable_amp(void *_amp, void *unused2, void *unused3)
 		
 		debug("amp = %d", amp);
 	
-		for (int s = 0 ; s < w->samples ; ++s)
+		for (int s = 0; s < w->samples; ++s)
 		{
 			w->data[s] = my_max(my_min((Sint32)w->data[s] * amp / 32768, 32767), -32768);
 		}
@@ -401,7 +401,7 @@ void wavetable_distort(void *_amp, void *unused2, void *unused3)
 	
 	if (w->samples > 0)
 	{
-		for (int s = 0 ; s < w->samples ; ++s)
+		for (int s = 0; s < w->samples; ++s)
 		{
 			if (w->data[s] != 0)
 			{
@@ -437,7 +437,7 @@ void wavetable_filter(void *_filter_type, void *unused2, void *unused3)
 		Sint16 * temp = malloc(sizeof(Sint16) * w->samples);
 		memcpy(temp, w->data, sizeof(Sint16) * w->samples);
 		
-		for (int s = 0 ; s < w->samples ; ++s)
+		for (int s = 0; s < w->samples; ++s)
 		{
 			int filtered = ((int)temp[(s - 2 + w->samples) % w->samples] + (int)temp[(s - 1 + w->samples) % w->samples] * 2 + (int)temp[s % w->samples] * 4 + (int)temp[(s + 1) % w->samples] * 2 + (int)temp[(s + 2) % w->samples]) / 10;
 			
@@ -464,7 +464,7 @@ void wavetable_find_zero(void *unused1, void *unused2, void *unused3)
 	{
 		int zero_crossing = 0;
 		
-		for (int s = 1 ; s < w->samples ; ++s)
+		for (int s = 1; s < w->samples; ++s)
 		{
 			if ((w->data[s] >= 0 && w->data[s - 1] < 0) || (w->data[s] <= 0 && w->data[s - 1] > 0))
 			{
@@ -480,7 +480,7 @@ void wavetable_find_zero(void *unused1, void *unused2, void *unused3)
 			Sint16 * temp = malloc(sizeof(Sint16) * w->samples);
 			memcpy(temp, w->data, sizeof(Sint16) * w->samples);
 		
-			for (int s = 0 ; s < w->samples ; ++s)
+			for (int s = 0; s < w->samples; ++s)
 			{
 				w->data[s] = temp[(s + zero_crossing) % w->samples];
 			}

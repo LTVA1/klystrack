@@ -83,8 +83,21 @@ static const Menu showmenu[] =
 	{ 0, mainmenu, "Show analyzer", NULL, MENU_CHECK, &mused.flags, (void*)SHOW_ANALYZER, 0 },
 	{ 0, mainmenu, "Analyzer", analyzermenu, NULL },
 	{ 0, mainmenu, "Show logo", NULL, MENU_CHECK, &mused.flags, (void*)SHOW_LOGO, 0 },
+	{ 0, mainmenu, "Show oscilloscope", NULL, MENU_CHECK, &mused.flags, (void*)SHOW_OSCILLOSCOPE, 0 }, //wasn't there
+	//{ 0, mainmenu, "Editor", oscilloscopemenu, NULL }, //wasn't there
 	{ 0, NULL, NULL }
 };
+
+/*Menu oscilloscopemenu[] = //wasn't there
+{
+	{ 0, showmenu, "Instrument",  NULL, change_mode_action, (void*)EDITINSTRUMENT, 0, 0 },
+	{ 0, showmenu, "Pattern",  NULL, change_mode_action, (void*)EDITPATTERN, 0, 0 },
+	{ 0, showmenu, "Sequence",  NULL, change_mode_action, (void*)EDITSEQUENCE, 0, 0 },
+	{ 0, showmenu, "Classic",  NULL, change_mode_action, (void*)EDITCLASSIC, 0, 0 },
+	{ 0, showmenu, "Effects",  NULL, change_mode_action, (void*)EDITFX, 0, 0 },
+	{ 0, showmenu, "Wavetable",  NULL, change_mode_action, (void*)EDITWAVETABLE, 0, 0 },
+	{ 0, NULL, NULL }
+};*/
 
 
 const Menu prefsmenu[];
@@ -256,7 +269,8 @@ static const Menu zapmenu[] =
 static const Menu optimizemenu[] =
 {
 	{ 0, editmenu, "Kill duplicate patterns",  NULL, optimize_patterns_action, 0, 0, 0 },
-	//{ 0, editmenu, "Kill empty patterns",  NULL, optimize_empty_patterns_action, 0, 0, 0 }, //wasn't there
+	{ 0, editmenu, "Kill empty patterns",  NULL, optimize_empty_patterns_action, 0, 0, 0 }, //wasn't there
+	{ 0, editmenu, "Optimize patterns (brute)",  NULL, optimize_patterns_brute_action, 0, 0, 0 }, //wasn't there
 	{ 0, editmenu, "Kill unused instruments",  NULL, optimize_instruments_action, 0, 0, 0 },
 	{ 0, editmenu, "Kill unused wavetables",  NULL, optimize_wavetables_action, 0, 0, 0 },
 	{ 0, editmenu, "Kill duplicate wavetables",  NULL, duplicate_wavetables_action, 0, 0, 0 }, //wasn't there

@@ -35,19 +35,19 @@ extern GfxDomain *domain;
 
 static int find_unused_pattern()
 {
-	for (int empty = 0 ; empty < NUM_PATTERNS ; ++empty)
+	for (int empty = 0; empty < NUM_PATTERNS; ++empty)
 	{
 		int not_empty = 0;
-		for (int s = 0 ; s < mused.song.pattern[empty].num_steps && !not_empty ; ++s)
+		for (int s = 0; s < mused.song.pattern[empty].num_steps && !not_empty; ++s)
 			if ((empty == current_pattern() && mused.focus == EDITPATTERN) || (mused.song.pattern[empty].step[s].note != MUS_NOTE_NONE
 				|| mused.song.pattern[empty].step[s].ctrl != 0
 				|| mused.song.pattern[empty].step[s].instrument != MUS_NOTE_NO_INSTRUMENT
 				|| mused.song.pattern[empty].step[s].command != 0))
 				not_empty = 1;
 
-		for (int c = 0 ; c < mused.song.num_channels && !not_empty ; ++c)
+		for (int c = 0; c < mused.song.num_channels && !not_empty; ++c)
 		{
-			for (int i = 0 ; i < mused.song.num_sequences[c] && !not_empty ; ++i)
+			for (int i = 0; i < mused.song.num_sequences[c] && !not_empty; ++i)
 			{
 				if (mused.song.sequence[c][i].pattern == empty)
 					not_empty = 1;
@@ -72,7 +72,7 @@ static void set_pattern(int pattern)
 
 		snapshot(S_T_SEQUENCE);
 
-		for (int i = 0 ; i < mused.song.num_sequences[mused.current_sequencetrack] ; ++i)
+		for (int i = 0; i < mused.song.num_sequences[mused.current_sequencetrack]; ++i)
 		{
 			if (mused.song.sequence[mused.current_sequencetrack][i].position == mused.current_sequencepos
 				&& mused.song.sequence[mused.current_sequencetrack][i].pattern == current_pattern())
@@ -113,7 +113,7 @@ void clone_each_pattern(void *unused1, void *unused2, void *unused3)
 
 	int temp = mused.current_sequencetrack;
 
-	for (int i = 0 ; i < mused.song.num_channels ; ++i)
+	for (int i = 0; i < mused.song.num_channels; ++i)
 	{
 		mused.current_sequencetrack = i;
 		clone_pattern(NULL, NULL, NULL);
@@ -140,7 +140,7 @@ void get_unused_pattern(void *unused1, void *unused2, void *unused3)
 
 		bool found = false;
 
-		for (int i = 0 ; i < mused.song.num_sequences[mused.current_sequencetrack] ; ++i)
+		for (int i = 0; i < mused.song.num_sequences[mused.current_sequencetrack]; ++i)
 		{
 			if (mused.song.sequence[mused.current_sequencetrack][i].position == mused.current_sequencepos
 				&& mused.song.sequence[mused.current_sequencetrack][i].pattern == current_pattern())
@@ -159,7 +159,7 @@ void get_unused_pattern_all_tracks(void *unused1, void *unused2, void *unused3)
 {
 	int temp = mused.current_sequencetrack;
 
-	for (int i = 0 ; i < mused.song.num_channels ; ++i)
+	for (int i = 0; i < mused.song.num_channels; ++i)
 	{
 		mused.current_sequencetrack = i;
 		get_unused_pattern(0, 0, 0);
@@ -195,12 +195,12 @@ void expand_pattern(void *factor, void *unused2, void *unused3)
 
 	resize_pattern(pattern, pattern->num_steps * CASTPTR(int,factor));
 
-	for (int i = 0 ; i < pattern->num_steps ; ++i)
+	for (int i = 0; i < pattern->num_steps; ++i)
 	{
 		zero_step(&pattern->step[i]);
 	}
 
-	for (int i = 0, ti = 0 ; i < pattern->num_steps ; ++i)
+	for (int i = 0, ti = 0; i < pattern->num_steps; ++i)
 	{
 		if ((i % CASTPTR(int,factor)) == 0)
 		{
@@ -228,7 +228,7 @@ void shrink_pattern(void *factor, void *unused2, void *unused3)
 
 	resize_pattern(pattern, pattern->num_steps / CASTPTR(int,factor));
 
-	for (int i = 0, ti = 0 ; i < pattern->num_steps ; ++i, ti += CASTPTR(int,factor))
+	for (int i = 0, ti = 0; i < pattern->num_steps; ++i, ti += CASTPTR(int,factor))
 	{
 		memcpy(&pattern->step[i], &pattern->step[ti], sizeof(pattern->step[i]));
 	}
@@ -348,7 +348,7 @@ void transpose_note_data(void *semitones, void *unused1, void *unused2)
 
 	debug("Transposing pattern %d (%d-%d)", current_pattern(), mused.selection.start, mused.selection.end);
 
-	for (int i = get_patternstep(mused.selection.start, mused.current_sequencetrack), p = 0 ; p < mused.selection.end - mused.selection.start ; ++i, ++p)
+	for (int i = get_patternstep(mused.selection.start, mused.current_sequencetrack), p = 0; p < mused.selection.end - mused.selection.start; ++i, ++p)
 	{
 		if (pat->step[i].note != MUS_NOTE_NONE)
 		{

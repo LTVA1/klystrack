@@ -100,7 +100,7 @@ float wg_get_sample(WgOsc *chain, int num_oscs, float phase)
 	float sample = 0;
 	WgOpType op = WG_OP_ADD;
 	
-	for (int i = 0 ; i < num_oscs ; ++i)
+	for (int i = 0; i < num_oscs; ++i)
 	{
 		WgOsc *osc = &chain[i];
 		float output = wg_osc(osc, phase);
@@ -132,12 +132,12 @@ void wg_init_osc(WgOsc *osc)
 
 void wg_gen_waveform(WgOsc *chain, int num_oscs, Sint16 *data, int len)
 {
-	for (int i = 0 ; i < num_oscs ; ++i)
+	for (int i = 0; i < num_oscs; ++i)
 	{
 		wg_init_osc(&chain[i]);
 	}
 
-	for (int i = 0 ; i < len ; ++i)
+	for (int i = 0; i < len; ++i)
 	{
 		double s = wg_get_sample(chain, num_oscs, (float)i / len);
 		

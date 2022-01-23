@@ -79,6 +79,8 @@ void pattern_view_header(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 		void *action = enable_channel;
                 
         if (SDL_GetModState() & KMOD_SHIFT) action = solo_channel;
+		
+		//debug("Current chn from pattern.c %d", channel); //wasn't there
         
 		button_event(dest_surface, event, &mute, mused.slider_bevel, 
 				(mused.mus.channel[channel].flags & MUS_CHN_DISABLED) ? BEV_BUTTON : BEV_BUTTON_ACTIVE, 
@@ -174,7 +176,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 	int narrow_w = 2 * char_width + 4 + 4;
 	const int SPACER = 4;
 	
-	for (int param = PED_NOTE ; param < PED_PARAMS ; ++param)
+	for (int param = PED_NOTE; param < PED_PARAMS; ++param)
 	{
 		if (param == PED_NOTE || viscol(param))
 			w += pattern_params[param].w * char_width;
@@ -198,7 +200,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 	
 	int x = 0;
 	
-	for (int channel = mused.pattern_horiz_position ; channel < mused.song.num_channels && x < dest->w ; x += ((channel == mused.current_sequencetrack) ? w : narrow_w), ++channel)
+	for (int channel = mused.pattern_horiz_position; channel < mused.song.num_channels && x < dest->w; x += ((channel == mused.current_sequencetrack) ? w : narrow_w), ++channel)
 	{
 		const MusSeqPattern *sp = &mused.song.sequence[channel][0];
 		
@@ -221,7 +223,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 		
 		bevelex(dest_surface, &track, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL|BEV_F_DISABLE_CENTER);
 		adjust_rect(&track, 3);
-		for (int i = 0 ; i < mused.song.num_sequences[channel] ; ++i, ++sp)
+		for (int i = 0; i < mused.song.num_sequences[channel]; ++i, ++sp)
 		{
 			if (sp->position >= bottom) break;
 			
@@ -239,7 +241,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 			
 			gfx_domain_set_clip(dest_surface, &pat);
 			
-			for (int step = 0 ; step < len ; ++step, text.y += height)
+			for (int step = 0; step < len; ++step, text.y += height)
 			{
 				if (text.y < pat.y) continue;
 				if (sp->position + step >= bottom) break;
@@ -272,6 +274,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 					console_set_color(mused.console, colors[COLOR_PATTERN_SEQ_NUMBER]);
 					font_write_args(&mused.console->font, dest_surface, &pos, "%02X", sp->pattern);
 				}
+				
 				else
 				{
 					console_set_color(mused.console, timesig(step, colors[COLOR_PATTERN_BAR], colors[COLOR_PATTERN_BEAT], colors[COLOR_PATTERN_NORMAL]));
@@ -290,7 +293,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 				
 				pos.x += 2 * char_width + SPACER;
 				
-				for (int param = PED_NOTE ; param < PED_PARAMS ; ++param)
+				for (int param = PED_NOTE; param < PED_PARAMS; ++param)
 				{
 					if (param != PED_NOTE && !viscol(param)) continue;
 				
@@ -453,7 +456,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 	if (mused.focus == EDITPATTERN)
 	{
 		int x = 2 + 2 * char_width + SPACER;
-		for (int param = 0 ; param < mused.current_patternx ; ++param)
+		for (int param = 0; param < mused.current_patternx; ++param)
 		{
 			if (viscol(param)) 
 			{
@@ -566,27 +569,29 @@ static void pattern_view_stepcounter(GfxDomain *dest_surface, const SDL_Rect *de
 	int start = mused.pattern_position - dest->h / mused.console->font.h / 2;
 	
 	int y = 0;
-	for (int row = start ; y < content.h ; ++row, y += mused.console->font.h)
+	
+	for (int row = start; y < content.h; ++row, y += mused.console->font.h)
 	{
 		if (mused.pattern_position == row)
 		{
 			SDL_Rect row = { content.x - 2, content.y + y - 1, content.w + 4, mused.console->font.h + 1};
-			bevelex(dest_surface,&row, mused.slider_bevel, BEV_SELECTED_PATTERN_ROW, BEV_F_STRETCH_ALL);
+			bevelex(dest_surface, &row, mused.slider_bevel, BEV_SELECTED_PATTERN_ROW, BEV_F_STRETCH_ALL);
 		}
 		
 		if (row < 0 || row >= mused.song.song_length)
 		{
 			console_set_color(mused.console, colors[COLOR_PATTERN_DISABLED]);
 		}
+		
 		else
 		{
 			console_set_color(mused.console, ((row == mused.pattern_position) ? colors[COLOR_PATTERN_SELECTED] : timesig(row, colors[COLOR_PATTERN_BAR], colors[COLOR_PATTERN_BEAT], colors[COLOR_PATTERN_NORMAL])));
 		}
 		
 		if (SHOW_DECIMALS & mused.flags)
-			console_write_args(mused.console, "%03d\n", (row + 1000) % 1000); // so we don't get negative numbers
-		else
-			console_write_args(mused.console, "%03X\n", row & 0xfff);
+			console_write_args(mused.console, "%04d\n", (row + 10000) % 10000); // so we don't get negative numbers
+		else //console_write_args(mused.console, "%03d\n", (row + 1000) % 1000);
+			console_write_args(mused.console, "%04X\n", row & 0xffff); //console_write_args(mused.console, "%03X\n", row & 0xfff);
 	}
 	
 	bevelex(dest_surface, &frame, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL|BEV_F_DISABLE_CENTER);
@@ -601,10 +606,13 @@ void pattern_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Even
 	copy_rect(&pat, dest);
 	copy_rect(&pos, dest);
 		
-	pat.w -= 30;
-	pat.x += 30;
+	pat.w -= 38;
+	pat.x += 38;
 	
-	pos.w = 32;
+	/*pat.w -= 30;
+	pat.x += 30;*/
+	
+	pos.w = 40; //pos.w = 32;
 		
 	pattern_view_stepcounter(dest_surface, &pos, event);
 	pattern_view_inner(dest_surface, &pat, event);

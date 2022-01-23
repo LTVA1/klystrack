@@ -64,7 +64,7 @@ bool export_wav(MusSong *song, CydWavetableEntry * entry, FILE *f, int channel)
 	}
 	else
 	{
-		for (int i = 0 ; i < MUS_MAX_CHANNELS ; ++i)
+		for (int i = 0; i < MUS_MAX_CHANNELS; ++i)
 			mus.channel[i].flags &= ~MUS_CHN_DISABLED;
 	}
 	

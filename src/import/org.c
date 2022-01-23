@@ -87,7 +87,7 @@ int load_orgsamp(orgsamp_t *data)
 		
 		data->drum_rate = SDL_SwapBE16(temp16);
 		
-		for (int i = 0 ; i < data->n_drums ; ++i)
+		for (int i = 0; i < data->n_drums; ++i)
 		{
 			fread(&temp8, 1, 1, f);
 			temp32 = temp8 << 16;
@@ -112,7 +112,7 @@ int load_orgsamp(orgsamp_t *data)
 
 void unload_orgsamp(orgsamp_t *data)
 {
-	for (int i = 0 ; i < data->n_drums ; ++i)
+	for (int i = 0; i < data->n_drums; ++i)
 		free(data->drum[i].data);
 	
 	free(data->drum);
@@ -165,7 +165,7 @@ int import_org(FILE *f)
 		Uint16 n_notes;
 	} instrument[16];
 	
-	for (int i = 0 ; i < 16 ; ++i)
+	for (int i = 0; i < 16; ++i)
 	{
 		fread(&instrument[i].pitch, 1, sizeof(instrument[i].pitch), f);
 		fread(&instrument[i].instrument, 1, sizeof(instrument[i].instrument), f);
@@ -181,7 +181,7 @@ int import_org(FILE *f)
 	int orgsamp_loaded = load_orgsamp(&orgsamp);
 	int real_channels = 0;
 	
-	for (int i = 0 ; i < 16 ; ++i)
+	for (int i = 0; i < 16; ++i)
 	{
 		if (instrument[i].n_notes)
 		{
@@ -208,6 +208,7 @@ int import_org(FILE *f)
 					
 					sprintf(mused.song.instrument[real_channels].name, "Wave-%02d", instrument[i].instrument);
 				}
+				
 				else
 				{
 					cyd_wave_entry_init(&mused.mus.cyd->wavetable_entries[real_channels], orgsamp.drum[instrument[i].instrument].data, orgsamp.drum[instrument[i].instrument].length, CYD_WAVE_TYPE_SINT8, 1, 1, 1);
@@ -234,7 +235,7 @@ int import_org(FILE *f)
 			
 			Uint8 prev_vol = 0, prev_pan = CYD_PAN_CENTER;
 			
-			for (int n = 0 ; n < instrument[i].n_notes ; ++n)
+			for (int n = 0; n < instrument[i].n_notes; ++n)
 			{	
 				if (position[n] >= header.loop_end)
 					continue;

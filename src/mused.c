@@ -70,7 +70,7 @@ void change_mode(int newmode)
 
 	if (mused.mode < VIRTUAL_MODE)
 	{
-		for (int i = 0 ; editormenu[i].parent ; ++i)
+		for (int i = 0; editormenu[i].parent; ++i)
 			editormenu[i].flags = (editormenu[i].flags & ~MENU_BULLET) | (mused.mode == CASTPTR(int, editormenu[i].p1) ? MENU_BULLET : 0);
 		mused.prev_mode = mused.mode;
 
@@ -135,7 +135,7 @@ void clear_pattern(MusPattern *pat)
 
 void clear_pattern_range(MusPattern *pat, int first, int last)
 {
-	for (int i = my_max(0, first) ; i < my_min(pat->num_steps, last) ; ++i)
+	for (int i = my_max(0, first); i < my_min(pat->num_steps, last); ++i)
 	{
 		pat->step[i].note = MUS_NOTE_NONE;
 		pat->step[i].instrument = MUS_NOTE_NO_INSTRUMENT;
@@ -270,12 +270,12 @@ void init(MusInstrument *instrument, MusPattern *pattern, MusSeqPattern sequence
 	mused.song.pattern = pattern;
 	mused.channel = channel;
 
-	for (int i = 0 ; i < MUS_MAX_CHANNELS ; ++i)
+	for (int i = 0; i < MUS_MAX_CHANNELS; ++i)
 	{
 		mused.song.sequence[i] = sequence[i];
 	}
 
-	for (int i = 0 ; i < NUM_PATTERNS ; ++i)
+	for (int i = 0; i < NUM_PATTERNS; ++i)
 	{
 		mused.song.pattern[i].step = NULL;
 		mused.song.pattern[i].num_steps = 0;
@@ -296,7 +296,7 @@ void init(MusInstrument *instrument, MusPattern *pattern, MusSeqPattern sequence
 
 	debug("undo = %p redo = %p", mused.undo, mused.redo);
 
-	for (int i = 0 ; i < WG_CHAIN_OSCS ; ++i)
+	for (int i = 0; i < WG_CHAIN_OSCS; ++i)
 	{
 		mused.wgset.chain[i].osc = WG_OSC_SINE;
 		mused.wgset.chain[i].mult = 1;
@@ -370,7 +370,7 @@ void deinit()
 void mirror_flags()
 {
 	// We need to mirror the flags to the corresponding Cyd flags
-	for (int fx = 0 ; fx < CYD_MAX_FX_CHANNELS ; ++fx)
+	for (int fx = 0; fx < CYD_MAX_FX_CHANNELS; ++fx)
 	{
 		mused.cyd.fx[fx].flags = mused.song.fx[fx].flags;
 	}
@@ -431,7 +431,7 @@ int get_pattern(int abspos, int track)
 
 	const MusSeqPattern *sp = &mused.song.sequence[track][0];
 
-	for (int i = 0 ; i < mused.song.num_sequences[track] && sp->position <= abspos ; ++i, ++sp)
+	for (int i = 0; i < mused.song.num_sequences[track] && sp->position <= abspos; ++i, ++sp)
 	{
 		if (sp->position <= abspos && sp->position + mused.song.pattern[sp->pattern].num_steps > abspos) p = sp->pattern;
 	}
@@ -446,7 +446,7 @@ int get_patternstep(int abspos, int track)
 
 	const MusSeqPattern *sp = &mused.song.sequence[track][0];
 
-	for (int i = 0 ; i < mused.song.num_sequences[track] && sp->position <= abspos ; ++i, ++sp)
+	for (int i = 0; i < mused.song.num_sequences[track] && sp->position <= abspos; ++i, ++sp)
 	{
 		if (sp->position <= abspos && sp->position + mused.song.pattern[sp->pattern].num_steps > abspos) p = abspos - sp->position;
 	}
@@ -467,7 +467,7 @@ int current_pattern_for_channel(int channel)
 
 	const MusSeqPattern *sp = &mused.song.sequence[channel][0];
 
-	for (int i = 0 ; i < mused.song.num_sequences[channel] && sp->position <= mused.current_patternpos ; ++i, ++sp)
+	for (int i = 0; i < mused.song.num_sequences[channel] && sp->position <= mused.current_patternpos; ++i, ++sp)
 	{
 		if (sp->position <= mused.current_patternpos && sp->position + mused.song.pattern[sp->pattern].num_steps > mused.current_patternpos) p = sp->pattern;
 	}
@@ -482,7 +482,7 @@ int current_patternstep()
 
 	const MusSeqPattern *sp = &mused.song.sequence[mused.current_sequencetrack][0];
 
-	for (int i = 0 ; i < mused.song.num_sequences[mused.current_sequencetrack] && sp->position <= mused.current_patternpos ; ++i, ++sp)
+	for (int i = 0; i < mused.song.num_sequences[mused.current_sequencetrack] && sp->position <= mused.current_patternpos; ++i, ++sp)
 	{
 		if (sp->position <= mused.current_patternpos && sp->position + mused.song.pattern[sp->pattern].num_steps > mused.current_patternpos) p = mused.current_patternpos - sp->position;
 	}
@@ -517,7 +517,7 @@ void change_visualizer(int vis)
 {
 	mused.current_visualizer = vis;
 
-	for (int i = 0 ; analyzermenu[i].parent ; ++i)
+	for (int i = 0; analyzermenu[i].parent; ++i)
 		analyzermenu[i].flags = (analyzermenu[i].flags & ~MENU_BULLET) | (mused.current_visualizer == CASTPTR(int, analyzermenu[i].p1) ? MENU_BULLET : 0);
 }
 

@@ -66,7 +66,7 @@ void copy()
 		{
 			int first = -1, last = -1;
 			
-			for (int i = 0 ; i < mused.song.num_sequences[mused.current_sequencetrack] ; ++i)
+			for (int i = 0; i < mused.song.num_sequences[mused.current_sequencetrack]; ++i)
 			{
 				if (first == -1 && mused.song.sequence[mused.current_sequencetrack][i].position >= mused.selection.start && mused.song.sequence[mused.current_sequencetrack][i].position < mused.selection.end)
 					first = i;
@@ -136,7 +136,7 @@ void paste()
 			
 			del_sequence(mused.current_sequencepos, last-first+mused.current_sequencepos, mused.current_sequencetrack);
 			
-			for (int i = 0 ; i < items ; ++i)
+			for (int i = 0; i < items; ++i)
 			{
 				add_sequence(mused.current_sequencetrack, ((MusSeqPattern*)mused.cp.data)[i].position-mused.cp.position+mused.current_sequencepos, ((MusSeqPattern*)mused.cp.data)[i].pattern, ((MusSeqPattern*)mused.cp.data)[i].note_offset);
 			}
@@ -212,7 +212,7 @@ void join_paste()
 			
 			int first = ((MusSeqPattern*)mused.cp.data)[0].position;
 			
-			for (int i = 0 ; i < items ; ++i)
+			for (int i = 0; i < items; ++i)
 			{
 				add_sequence(mused.current_sequencetrack, ((MusSeqPattern*)mused.cp.data)[i].position-first+mused.current_sequencepos, ((MusSeqPattern*)mused.cp.data)[i].pattern, ((MusSeqPattern*)mused.cp.data)[i].note_offset);
 			}
@@ -236,7 +236,7 @@ void join_paste()
 				else
 					ofs = current_patternstep();
 				
-				for (int i = 0 ; i < items && i + ofs < mused.song.pattern[current_pattern()].num_steps ; ++i)
+				for (int i = 0; i < items && i + ofs < mused.song.pattern[current_pattern()].num_steps; ++i)
 				{
 					const MusStep *s = &((MusStep*)mused.cp.data)[i];
 					MusStep *d = &mused.song.pattern[current_pattern()].step[ofs + i];

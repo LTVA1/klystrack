@@ -262,7 +262,7 @@ void midi_set_device(void *dev, void *unused1, void *unused2)
 	{
 		midiInStart(hMidiIn);
 		
-		for (int i = 0, p = 0 ; p < MAX_MIDI_DEVICES && i < midiInGetNumDevs() ; ++i, ++p)
+		for (int i = 0, p = 0; p < MAX_MIDI_DEVICES && i < midiInGetNumDevs(); ++i, ++p)
 		{
 			if (i == mused.midi_device) 
 				midi_device_menu[p].flags |= MENU_BULLET;
@@ -277,7 +277,7 @@ void midi_set_channel(void *chn, void *unused1, void *unused2)
 {
 	mused.midi_channel = my_min(CASTPTR(int, chn), 15);
 	
-	for (int i = 0 ; i < 16 ; ++i)
+	for (int i = 0; i < 16; ++i)
 		if (i == mused.midi_channel) 
 			midi_channel_menu[i].flags |= MENU_BULLET;
 		else
@@ -300,7 +300,7 @@ void midi_init()
 		return;
 	}
 
-	for (int i = 0, p = 0 ; p < MAX_MIDI_DEVICES && i < midiInGetNumDevs() ; ++i)
+	for (int i = 0, p = 0; p < MAX_MIDI_DEVICES && i < midiInGetNumDevs(); ++i)
 	{
 		MIDIINCAPS caps;
 		
@@ -350,7 +350,7 @@ static inline int chk(int err, const char *operation)
 static int midi_thread(void *data)
 {
 	snd_seq_event_t *ev = NULL;
-	for ( ; ; )
+	for (;; )
 	{
 		snd_seq_event_input(seq_handle, &ev);
 
@@ -445,7 +445,7 @@ void midi_set_device(void *dev, void *client, void *port)
 
 	if (chk(err, "snd_seq_connect_from") == 0)
 	{
-		for (int p = 0 ; p < MAX_MIDI_DEVICES ; ++p)
+		for (int p = 0; p < MAX_MIDI_DEVICES; ++p)
 		{
 			if (midi_device_menu[p].parent == NULL)
 				break;
@@ -461,7 +461,7 @@ void midi_set_channel(void *chn, void *unused1, void *unused2)
 {
 	mused.midi_channel = my_min(CASTPTR(int, chn), 15);
 
-	for (int i = 0 ; i < 16 ; ++i)
+	for (int i = 0; i < 16; ++i)
 		if (i == mused.midi_channel)
 			midi_channel_menu[i].flags |= MENU_BULLET;
 		else

@@ -156,7 +156,7 @@ void wavetablelist_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 	
 	int start = mused.wavetable_list_position;
 	
-	for (int i = start ; i < CYD_WAVE_MAX_ENTRIES && y < area.h + area.y ; ++i, y += mused.console->font.h)
+	for (int i = start; i < CYD_WAVE_MAX_ENTRIES && y < area.h + area.y; ++i, y += mused.console->font.h)
 	{
 		SDL_Rect row = { area.x - 1, y - 1, area.w + 2, mused.console->font.h + 1};
 		if (i == mused.selected_wavetable)
@@ -213,12 +213,12 @@ static void update_sample_preview(GfxDomain *dest, const SDL_Rect* area)
 		const int gadd = my_max(res, (Uint32)area->w * res / w->samples);
 		int c = 0, d = 0;
 				
-		for (int x = 0 ; x < area->w * res ; )
+		for (int x = 0; x < area->w * res; )
 		{
 			int min = 32768;
 			int max = -32768;
 			
-			for (; d < w->samples && c < dadd ; c += res, ++d)
+			for (; d < w->samples && c < dadd; c += res, ++d)
 			{
 				min = my_min(min, w->data[d]);
 				max = my_max(max, w->data[d]);
@@ -288,7 +288,7 @@ void wavetable_sample_view(GfxDomain *dest_surface, const SDL_Rect *dest, const 
 		{
 			if (d > 0)
 			{
-				for (int x = mx, i = 0 ; i <= d ; x += dx, ++i)
+				for (int x = mx, i = 0; i <= d; x += dx, ++i)
 					wavetable_draw((float)(x - area.x) / area.w, (float)((my + (mused.prev_wavetable_y - my) * i / d) - area.y) / area.h, 1.0f / area.w);
 			}
 			else
@@ -461,7 +461,7 @@ void oscillator_view(GfxDomain *domain, const SDL_Rect *dest, const SDL_Event *e
 	
 	float py = wg_osc(osc, 0);
 	
-	for (int x = 1 ; x < frame.w ; ++x)
+	for (int x = 1; x < frame.w; ++x)
 	{
 		float y = wg_osc(osc, (float)x / frame.w);
 		gfx_line(domain, frame.x + x - 1, py * frame.h / 2 + frame.y + frame.h / 2, frame.x + x, y * frame.h / 2 + frame.y + frame.h / 2, colors[COLOR_WAVETABLE_SAMPLE]);
@@ -541,7 +541,7 @@ void wavegen_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 	
 	int active_oscs = mused.wgset.num_oscs;
 	
-	for (int i = 0 ; i < active_oscs ; ++i)
+	for (int i = 0; i < active_oscs; ++i)
 	{
 		WgOsc *osc = &mused.wgset.chain[i];
 		copy_rect(&r, &frame);
@@ -555,7 +555,7 @@ void wavegen_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 			mused.selected_wg_osc = i;
 	}
 	
-	for (int i = 0 ; i < active_oscs ; ++i)
+	for (int i = 0; i < active_oscs; ++i)
 	{
 		WgOsc *osc = &mused.wgset.chain[i];
 		SDL_Rect r;
@@ -693,7 +693,7 @@ void wavegen_preview(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 	else if (py < -1.0)
 		py = -1.0;
 	
-	for (int x = 1 ; x < area.w ; ++x)
+	for (int x = 1; x < area.w; ++x)
 	{
 		float y = wg_get_sample(mused.wgset.chain, mused.wgset.num_oscs, (float)x / area.w);
 		

@@ -28,6 +28,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 #include "gui/view.h"
 
+#include "view/oscilloscope.h" //wasn't there
+
 #define PLAYSTOP_INFO_W 78
 #define SCROLLBAR 10
 

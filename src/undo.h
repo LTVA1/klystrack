@@ -58,6 +58,7 @@ typedef union
 		char title[MUS_SONG_TITLE_LEN + 1];
 		Uint8 master_volume, default_volume[MUS_MAX_CHANNELS], default_panning[MUS_MAX_CHANNELS];
 	} songinfo;
+	
 	struct {
 		int idx;
 		Uint32 flags;
@@ -65,6 +66,7 @@ typedef union
 		Uint32 samples, loop_begin, loop_end;
 		Uint16 base_note;
 	} wave_param;
+	
 	struct {
 		int idx;
 		void *data;
@@ -74,6 +76,7 @@ typedef union
 		Uint32 samples, loop_begin, loop_end;
 		Uint16 base_note;
 	} wave_data;
+	
 	struct {
 		int idx;
 		char *name;

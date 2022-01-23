@@ -49,7 +49,7 @@ void translate_key_event(SDL_KeyboardEvent *e)
 {
 	const int allowed = KMOD_SHIFT|KMOD_CTRL|KMOD_ALT;
 
-	for (int i = 0 ; i < MAX_KEYTRANS && !(keytrans[i].from_key == 0 && keytrans[i].from_mod == 0 && keytrans[i].from_scancode == 0) ; ++i)
+	for (int i = 0; i < MAX_KEYTRANS && !(keytrans[i].from_key == 0 && keytrans[i].from_mod == 0 && keytrans[i].from_scancode == 0); ++i)
 	{
 		if ((keytrans[i].focus == mused.focus || keytrans[i].focus == -1) &&
 			((keytrans[i].type == KEYSYM && e->keysym.sym == keytrans[i].from_key) ||
@@ -122,7 +122,7 @@ void enum_keymaps()
 
 void update_keymap_menu()
 {
-	for (int i = 0 ; keymapmenu[i].text ; ++i)
+	for (int i = 0; keymapmenu[i].text; ++i)
 	{
 		if (strcmp(mused.keymapname, (char*)keymapmenu[i].p1) == 0)
 		{
@@ -151,7 +151,7 @@ int parse_key(const char *keys, int *key, int *mod, int *scancode)
 		if (!tok) break;
 		int found = 0;
 
-		for (int i = 0 ; keydefs[i].name ; ++i)
+		for (int i = 0; keydefs[i].name; ++i)
 		{
 			if (strcasecmp(tok, keydefs[i].name) == 0)
 			{
@@ -167,7 +167,7 @@ int parse_key(const char *keys, int *key, int *mod, int *scancode)
 			}
 		}
 
-		for (int i = 0 ; moddefs[i].name ; ++i)
+		for (int i = 0; moddefs[i].name; ++i)
 		{
 			if (strcasecmp(tok, moddefs[i].name) == 0)
 			{

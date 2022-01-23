@@ -54,6 +54,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "theme.h"
 
 #include "combWFgen.h"
+#include "view/oscilloscope.h"
 
 #ifdef MIDI
 
@@ -80,9 +81,17 @@ extern const Menu mainmenu[];
 #define INFO 13
 #define INST_VIEW2 (38+10+10+10+166) //#define INST_VIEW2 (38+10+10+10+52)
 
-#define OSC_SIZE 128
-
 void change_pixel_scale(void *, void*, void*);
+
+#define CLASSIC_PAT (0 / 2 + 20 - 2 - 7)
+#define CLASSIC_SONG_INFO (94)
+#define SONG_INFO1_H (24+10)
+#define SONG_INFO2_H (24+10)
+#define SONG_INFO3_H (15+10)
+#define TOOLBAR_H 12
+#define CLASSIC_SONG_INFO_H (SONG_INFO1_H+SONG_INFO2_H+SONG_INFO3_H+TOOLBAR_H)
+#define TIMER_W (5*7+4)
+#define SEQ_VIEW_INFO_H (24+10)
 
 static const View instrument_view_tab[] =
 {
@@ -98,7 +107,8 @@ static const View instrument_view_tab[] =
 	{{0, 0 - INFO, 0, INFO }, info_line, NULL, -1 },
 	
 	
-	{{154 + 100, 14 + INST_LIST + INST_VIEW2 + 10, -OSC_SIZE, -OSC_SIZE }, oscilloscope_view, NULL, EDITINSTRUMENT }, //wasn't there
+	{{ 2 * ( - OSC_SIZE - (SCROLLBAR / 2) - 2), 14 + INST_LIST + INST_VIEW2 + 4, 2 * OSC_SIZE, OSC_SIZE }, oscilloscope_view, NULL, EDITINSTRUMENT }, //wasn't there
+	//{{154 + 100, 14 + INST_LIST + INST_VIEW2 + 10, -OSC_SIZE, -OSC_SIZE }, oscilloscope_view, NULL, EDITINSTRUMENT }, //wasn't there
 	
 	
 	{{0, 0, 0, 0}, NULL}
@@ -113,16 +123,6 @@ static const View pattern_view_tab[] =
 	{{0, 0 - INFO, 0, INFO }, info_line, NULL, -1},
 	{{0, 0, 0, 0}, NULL}
 };
-
-#define CLASSIC_PAT (0 / 2 + 20 - 2 - 7)
-#define CLASSIC_SONG_INFO (94)
-#define SONG_INFO1_H (24+10)
-#define SONG_INFO2_H (24+10)
-#define SONG_INFO3_H (15+10)
-#define TOOLBAR_H 12
-#define CLASSIC_SONG_INFO_H (SONG_INFO1_H+SONG_INFO2_H+SONG_INFO3_H+TOOLBAR_H)
-#define TIMER_W (5*7+4)
-#define SEQ_VIEW_INFO_H (24+10)
 
 static const View classic_view_tab[] =
 {
@@ -239,6 +239,7 @@ int main(int argc, char **argv)
 	createCombinedWF(PulseTriSaw_8580,0.8,2.5,0.64); 
 	createCombinedWF(TriSaw_8580,0.8,2.4,0.64); 
 	createPulseTri(PulseTri_8580,1.4,1.9,0.68); //createPulseTri(PulseTri_8580,3.1,1.1,0.64);
+	mused.output_buffer_counter = 0;
 
 	SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_NOPARACHUTE|SDL_INIT_TIMER);
 	atexit(SDL_Quit);
@@ -247,7 +248,7 @@ int main(int argc, char **argv)
 	load_config(".klystrack", false); //was `load_config(TOSTRING(CONFIG_PATH), false);`
 
 	domain = gfx_create_domain(VERSION_STRING, SDL_WINDOW_RESIZABLE|SDL_WINDOW_OPENGL|((mused.flags & WINDOW_MAXIMIZED)?SDL_WINDOW_MAXIMIZED:0), mused.window_w, mused.window_h, mused.pixel_scale);
-	domain->fps = 60;
+	domain->fps = 30;
 	domain->scale = mused.pixel_scale;
 	domain->window_min_w = 320;
 	domain->window_min_h = 240;
@@ -272,7 +273,7 @@ int main(int argc, char **argv)
 
 	enable_callback(true);
 
-	for (int i = 0 ; i < CYD_MAX_FX_CHANNELS ; ++i)
+	for (int i = 0; i < CYD_MAX_FX_CHANNELS; ++i)
 		cydfx_set(&mused.cyd.fx[i], &mused.song.fx[i]);
 
 	cyd_register(&mused.cyd, mused.mix_buffer);
@@ -288,6 +289,7 @@ int main(int argc, char **argv)
 		}
 		cyd_lock(&mused.cyd, 0);
 	}
+	
 	else if (mused.flags & START_WITH_TEMPLATE)
 	{
 		cyd_lock(&mused.cyd, 1);
@@ -297,6 +299,7 @@ int main(int argc, char **argv)
 			open_song(f);
 			fclose(f);
 		}
+		
 		cyd_lock(&mused.cyd, 0);
 	}
 
@@ -324,6 +327,7 @@ int main(int argc, char **argv)
 	{
 		SDL_Event e = { 0 };
 		int got_event = 0, menu_closed = 0;
+		
 		while (SDL_PollEvent(&e))
 		{
 			if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP)
@@ -360,18 +364,18 @@ int main(int argc, char **argv)
 
 						case SDL_WINDOWEVENT_RESIZED:
 							{
-							debug("SDL_WINDOWEVENT_RESIZED %dx%d", e.window.data1, e.window.data2);
+								debug("SDL_WINDOWEVENT_RESIZED %dx%d", e.window.data1, e.window.data2);
 
-							domain->screen_w = my_max(320, e.window.data1 / domain->scale);
-							domain->screen_h = my_max(240, e.window.data2 / domain->scale);
+								domain->screen_w = my_max(320, e.window.data1 / domain->scale);
+								domain->screen_h = my_max(240, e.window.data2 / domain->scale);
 
-							if (!(mused.flags & FULLSCREEN))
-							{
-								mused.window_w = domain->screen_w * domain->scale;
-								mused.window_h = domain->screen_h * domain->scale;
-							}
+								if (!(mused.flags & FULLSCREEN))
+								{
+									mused.window_w = domain->screen_w * domain->scale;
+									mused.window_h = domain->screen_h * domain->scale;
+								}
 
-							gfx_domain_update(domain, false);
+								gfx_domain_update(domain, false);
 							}
 							break;
 					}
@@ -393,6 +397,7 @@ int main(int argc, char **argv)
 					{
 						my_open_menu(mainmenu, NULL);
 					}
+					
 					else if (e.button.button == SDL_BUTTON_LEFT && mused.mode == MENU)
 					{
 						menu_closed = 1;
@@ -529,7 +534,7 @@ int main(int argc, char **argv)
 				update_position_sliders();
 			}
 
-			for (int i = 0 ; i < MUS_MAX_CHANNELS ; ++i)
+			for (int i = 0; i < MUS_MAX_CHANNELS; ++i)
 			{
 				stat_pattern_number[i] = (stat_pattern[i] - &mused.song.pattern[0])/sizeof(mused.song.pattern[0]);
 			}
@@ -542,7 +547,6 @@ int main(int argc, char **argv)
 
 			if (m == EDITPROG)
 			{
-
 				m = EDITINSTRUMENT;
 			}
 
@@ -571,6 +575,7 @@ int main(int argc, char **argv)
 							my_open_menu(cm, cm_action);
 					}
 				}
+				
 				else
 				{
 					my_draw_view(tab[m], &e, domain);
@@ -589,8 +594,9 @@ int main(int argc, char **argv)
 #endif
 			gfx_domain_flip(domain);
 		}
+		
 		else
-			SDL_Delay(4);
+			SDL_Delay(4); //was SDL_Delay(4);
 
 		if (mused.done)
 		{

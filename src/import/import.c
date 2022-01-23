@@ -87,6 +87,7 @@ void import_module(void *type, void* unused1, void* unused2)
 			snprintf(buffer, sizeof(buffer), "Not %s song", mod_name[CASTPTR(int, type)]);
 			msgbox(domain, mused.slider_bevel, &mused.largefont, buffer, MB_OK);
 		}
+		
 		else
 		{
 			optimize_song(&mused.song);

@@ -41,9 +41,9 @@ static int match_byte(unsigned char haystack, unsigned short int byte)
 
 static int find_bytes(const unsigned char *haystack, int haystack_size, const unsigned short int *needle, int needle_size)
 {
-	for (int i = 0 ; i < haystack_size - needle_size ; ++i)
+	for (int i = 0; i < haystack_size - needle_size; ++i)
 	{
-		for (int si = 0 ; si < needle_size ; ++si) 
+		for (int si = 0; si < needle_size; ++si) 
 		{
 			if (!match_byte(haystack[i + si], needle[si]))
 				goto next_haystack;
@@ -185,21 +185,21 @@ void determine_version(hubbard_t *tune)
 
 void convert_hub(hubbard_t *tune, int subsong)
 {
-	for (int song = 0 ; song < tune->n_subsongs ; ++song)
-	for (int i = 0 ; i < tune->n_tracks ; ++i)
+	for (int song = 0; song < tune->n_subsongs; ++song)
+	for (int i = 0; i < tune->n_tracks; ++i)
 	{
 		tune->addr.songs[song][i] = tune->data[tune->addr.songtab + i + tune->n_tracks + tune->n_tracks * song * 2] << 8 | tune->data[tune->addr.songtab + i + tune->n_tracks * song * 2];
 	}
 	
 	determine_version(tune);
 	
-	for (int i = 0 ; i < tune->n_tracks ; ++i)
+	for (int i = 0; i < tune->n_tracks; ++i)
 		convert_track(tune, subsong, i);
 	
-	for (int i = 0 ; i < tune->n_patterns ; ++i)
+	for (int i = 0; i < tune->n_patterns; ++i)
 		convert_pattern(tune, i);
 	
-	for (int i = 0 ; i < tune->n_instruments ; ++i)
+	for (int i = 0; i < tune->n_instruments; ++i)
 		convert_instrument(tune, i);
 }
 
@@ -339,26 +339,26 @@ int import_hubbard(FILE *f)
 	
 	strncpy(mused.song.title, sid->title, 32);
 	
-	for (int i = 0 ; i < hub->n_patterns ; ++i)
+	for (int i = 0; i < hub->n_patterns; ++i)
 	{
 		if (!hub->pattern[i].length)
 			continue;
 		
 		int total_length = 0;
 		
-		for (int s = 0 ; s < hub->pattern[i].length ; ++s)
+		for (int s = 0; s < hub->pattern[i].length; ++s)
 			total_length += 1 + hub->pattern[i].note[s].length;
 		
 		resize_pattern(&mused.song.pattern[i], total_length);
 		
-		for (int s = 0 ; s < total_length ; ++s)
+		for (int s = 0; s < total_length; ++s)
 		{
 			zero_step(&mused.song.pattern[i].step[s]);
 		}
 		
 		int pos = 0;
 		
-		for (int s = 0 ; s < hub->pattern[i].length ; ++s)
+		for (int s = 0; s < hub->pattern[i].length; ++s)
 		{
 			mused.song.pattern[i].step[pos].note = hub->pattern[i].note[s].note;
 			
@@ -370,7 +370,7 @@ int import_hubbard(FILE *f)
 			
 			if (hub->pattern[i].note[s].portamento != 0)
 			{
-				for (int c = 0 ; c <= hub->pattern[i].note[s].length ; ++c)
+				for (int c = 0; c <= hub->pattern[i].note[s].length; ++c)
 				{
 					if (hub->pattern[i].note[s].portamento < 0)
 						mused.song.pattern[i].step[pos].command = MUS_FX_PORTA_DN_LOG | (((unsigned char)hub->pattern[i].note[s].portamento) & 0x7f);
@@ -387,14 +387,14 @@ int import_hubbard(FILE *f)
 	
 	int max_pos = 0;
 	
-	for (int track = 0 ; track < hub->n_tracks ; ++track)
+	for (int track = 0; track < hub->n_tracks; ++track)
 	{
 		int pos = 0;
 		
-		for (int i = 0 ; i < hub->track[track].length ; ++i)
+		for (int i = 0; i < hub->track[track].length; ++i)
 		{
 			int total_length = 0;
-			for (int s = 0 ; s < hub->pattern[hub->track[track].pattern[i]].length ; ++s)
+			for (int s = 0; s < hub->pattern[hub->track[track].pattern[i]].length; ++s)
 				total_length += 1 + hub->pattern[hub->track[track].pattern[i]].note[s].length;
 			
 			pos += total_length;
@@ -403,16 +403,16 @@ int import_hubbard(FILE *f)
 		max_pos = my_max(max_pos, pos);
 	}
 	
-	for (int track = 0 ; track < hub->n_tracks ; ++track)
+	for (int track = 0; track < hub->n_tracks; ++track)
 	{
 		int pos = 0;
 		
-		for ( ; pos < max_pos ; )
+		for (; pos < max_pos; )
 		{
-			for (int i = 0 ; i < hub->track[track].length ; ++i)
+			for (int i = 0; i < hub->track[track].length; ++i)
 			{
 				int total_length = 0;
-				for (int s = 0 ; s < hub->pattern[hub->track[track].pattern[i]].length ; ++s)
+				for (int s = 0; s < hub->pattern[hub->track[track].pattern[i]].length; ++s)
 					total_length += 1 + hub->pattern[hub->track[track].pattern[i]].note[s].length;
 			
 				add_sequence(track, pos, hub->track[track].pattern[i], 0);
@@ -427,7 +427,7 @@ int import_hubbard(FILE *f)
 	mused.song.song_speed2 = 2;
 	mused.song.song_length = max_pos;
 	
-	for (int i = 0 ; i < hub->n_instruments ; ++i)
+	for (int i = 0; i < hub->n_instruments; ++i)
 	{
 		int waveforms = 0;
 		mused.song.instrument[i].flags &= ~MUS_INST_DRUM;

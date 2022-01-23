@@ -39,7 +39,7 @@ void console_set_background(Console * c, int enabled)
 	
 	int l = strlen(c->font.charmap);
 			
-	for (int i = 0 ; i < l ; ++i)
+	for (int i = 0; i < l; ++i)
 		c->font.tiledescriptor[i].surface = c->font.surface;*/
 }
 

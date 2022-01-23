@@ -79,6 +79,7 @@ static const struct { int type; const char *name; void *param; int mask; } confi
 	{ C_BOOL, "use_system_cursor", &mused.flags, USE_SYSTEM_CURSOR },
 	{ C_BOOL, "show_logo", &mused.flags, SHOW_LOGO }, //wasn't there
 	{ C_BOOL, "show_analyzer", &mused.flags, SHOW_ANALYZER }, //wasn't there
+	{ C_BOOL, "show_oscilloscope", &mused.flags, SHOW_OSCILLOSCOPE }, //wasn't there
 	{ C_END }
 };
 
@@ -109,7 +110,7 @@ void load_config(const char *path, bool apply)
 			if (sscanf(line, "%400[^ =]", name) == 1)
 			{
 				int i;
-				for (i = 0; confitem[i].type != C_END ; ++i)
+				for (i = 0; confitem[i].type != C_END; ++i)
 				{
 					if (strcmp(confitem[i].name, name) == 0)
 					{
@@ -184,7 +185,7 @@ void save_config(const char *path)
 	if (e) free(e);
 	if (f)
 	{
-		for (int i = 0; confitem[i].type != C_END ; ++i)
+		for (int i = 0; confitem[i].type != C_END; ++i)
 		{
 			switch (confitem[i].type)
 			{

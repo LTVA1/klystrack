@@ -188,7 +188,7 @@ static const InstructionDesc instruction_desc[] =
 
 const InstructionDesc * get_instruction_desc(Uint16 command)
 {
-	for (int i = 0 ; instruction_desc[i].name != NULL ; ++i)
+	for (int i = 0; instruction_desc[i].name != NULL; ++i)
 	{
 		if (instruction_desc[i].opcode == (command & instruction_desc[i].mask))
 		{

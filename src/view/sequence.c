@@ -53,12 +53,12 @@ void sequence_view_inner(GfxDomain *dest_surface, const SDL_Rect *_dest, const S
 	textclip.y += 1;
 	textclip.h -= 1;
 		
-	for (int channel = mused.sequence_horiz_position ; channel < mused.song.num_channels && channel <= vischans ; ++channel)
+	for (int channel = mused.sequence_horiz_position; channel < mused.song.num_channels && channel <= vischans; ++channel)
 	{
 		const MusSeqPattern *sp = &mused.song.sequence[channel][0];
 		const int x = (channel - mused.sequence_horiz_position) * (w + 1);
 		
-		for (int i = 0 ; i < mused.song.num_sequences[channel] ; ++i, ++sp)
+		for (int i = 0; i < mused.song.num_sequences[channel]; ++i, ++sp)
 		{
 			if (sp->position >= bottom) break;
 			
@@ -96,7 +96,7 @@ void sequence_view_inner(GfxDomain *dest_surface, const SDL_Rect *_dest, const S
 		
 		int y = dest.y;
 		
-		for (int i = top ; i < bottom ; i += mused.sequenceview_steps, y+=height)
+		for (int i = top; i < bottom; i += mused.sequenceview_steps, y+=height)
 		{
 			SDL_Rect pos = { dest.x + x, y, w, height };
 			
@@ -212,7 +212,7 @@ static void sequence_view_stepcounter(GfxDomain *dest_surface, const SDL_Rect *_
 	}
 		
 	
-	for (int p = top ; pos.y < dest.y + dest.h ; p += mused.sequenceview_steps, pos.y += height)
+	for (int p = top; pos.y < dest.y + dest.h; p += mused.sequenceview_steps, pos.y += height)
 	{
 		
 		clip_rect(&pos, &dest);

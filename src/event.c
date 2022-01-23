@@ -76,7 +76,7 @@ int find_note(int sym, int oct)
 	SDLK_i, SDLK_9, SDLK_o, SDLK_0, SDLK_p, -1};
 
 	int n = 0;
-	for (const int *i = keys ; *i != -1 ; ++i, ++n)
+	for (const int *i = keys; *i != -1; ++i, ++n)
 	{
 		if (*i == sym)
 			return n + oct*12;
@@ -743,7 +743,7 @@ static int find_playing_note(int n)
 {
 	cyd_lock(&mused.cyd, 1);
 
-	for (int i = 0 ; i < MUS_MAX_CHANNELS && i < mused.cyd.n_channels ; ++i)
+	for (int i = 0; i < MUS_MAX_CHANNELS && i < mused.cyd.n_channels; ++i)
 	{
 		if (note_playing[i] == n && mused.mus.channel[i].instrument == &mused.song.instrument[mused.current_instrument])
 		{
@@ -785,7 +785,7 @@ static void play_the_jams(int sym, int chn, int state)
 {
 	if (sym == SDLK_SPACE && state == 0)
 	{
-		for (int i = 0 ; i < MUS_MAX_CHANNELS ; ++i)
+		for (int i = 0; i < MUS_MAX_CHANNELS; ++i)
 			cyd_enable_gate(mused.mus.cyd, &mused.mus.cyd->channel[i], 0);
 	}
 	else
@@ -823,7 +823,7 @@ static void wave_the_jams(int sym)
 {
 	if (sym == SDLK_SPACE)
 	{
-		for (int i = 0 ; i < MUS_MAX_CHANNELS ; ++i)
+		for (int i = 0; i < MUS_MAX_CHANNELS; ++i)
 			cyd_enable_gate(mused.mus.cyd, &mused.mus.cyd->channel[i], 0);
 	}
 	
@@ -958,7 +958,7 @@ static int getalphanum(const SDL_Keysym *keysym)
 }
 
 
-static int seqsort(const void *_a, const void *_b)
+int seqsort(const void *_a, const void *_b)
 {
 	const MusSeqPattern *a = _a;
 	const MusSeqPattern *b = _b;
@@ -974,7 +974,7 @@ void add_sequence(int channel, int position, int pattern, int offset)
 	if(mused.song.pattern[pattern].num_steps == 0)
 		resize_pattern(&mused.song.pattern[pattern], mused.sequenceview_steps);
 
-	for (int i = 0 ; i < mused.song.num_sequences[channel] ; ++i)
+	for (int i = 0; i < mused.song.num_sequences[channel]; ++i)
 		if (mused.song.sequence[channel][i].position == position)
 		{
 			mused.song.sequence[channel][i].pattern = pattern;
@@ -997,7 +997,7 @@ void add_sequence(int channel, int position, int pattern, int offset)
 
 Uint8 get_pattern_at(int channel, int position)
 {
-	for (int i = 0 ; i < mused.song.num_sequences[channel] ; ++i)
+	for (int i = 0; i < mused.song.num_sequences[channel]; ++i)
 		if (mused.song.sequence[channel][i].position == position)
 		{
 			return mused.song.sequence[channel][i].pattern;
@@ -1011,7 +1011,7 @@ void del_sequence(int first,int last,int track)
 {
 	if (mused.song.num_sequences[track] == 0) return;
 
-	for (int i = 0 ; i < mused.song.num_sequences[mused.current_sequencetrack] ; ++i)
+	for (int i = 0; i < mused.song.num_sequences[mused.current_sequencetrack]; ++i)
 		if (mused.song.sequence[track][i].position >= first && mused.song.sequence[track][i].position < last)
 		{
 			mused.song.sequence[track][i].position = 0xffff;
@@ -1026,7 +1026,7 @@ void del_sequence(int first,int last,int track)
 void add_note_offset(int a)
 {
 	{
-		for (int i = (int)mused.song.num_sequences[mused.current_sequencetrack] - 1 ; i >= 0 ; --i)
+		for (int i = (int)mused.song.num_sequences[mused.current_sequencetrack] - 1; i >= 0; --i)
 		{
 			if (mused.current_sequencepos >= mused.song.sequence[mused.current_sequencetrack][i].position &&
 				mused.song.sequence[mused.current_sequencetrack][i].position + mused.song.pattern[mused.song.sequence[mused.current_sequencetrack][i].pattern].num_steps > mused.current_sequencepos)
@@ -1197,7 +1197,7 @@ void sequence_event(SDL_Event *e)
 			{
 				snapshot(S_T_SEQUENCE);
 
-				for (int i = 0; i < mused.song.num_sequences[mused.current_sequencetrack] ; ++i)
+				for (int i = 0; i < mused.song.num_sequences[mused.current_sequencetrack]; ++i)
 				{
 					if (mused.song.sequence[mused.current_sequencetrack][i].position >= mused.current_sequencepos)
 						mused.song.sequence[mused.current_sequencetrack][i].position += mused.sequenceview_steps;
@@ -1223,7 +1223,7 @@ void sequence_event(SDL_Event *e)
 
 				if (!(mused.flags & DELETE_EMPTIES))
 				{
-					for (int i = 0; i < mused.song.num_sequences[mused.current_sequencetrack] ; ++i)
+					for (int i = 0; i < mused.song.num_sequences[mused.current_sequencetrack]; ++i)
 					{
 						if (mused.song.sequence[mused.current_sequencetrack][i].position >= mused.current_sequencepos)
 							mused.song.sequence[mused.current_sequencetrack][i].position -= mused.sequenceview_steps;
@@ -1474,7 +1474,7 @@ void pattern_event(SDL_Event *e)
 						break;
 					}
 
-					for (int i = mused.song.pattern[current_pattern()].num_steps-1; i >= current_patternstep() ; --i)
+					for (int i = mused.song.pattern[current_pattern()].num_steps-1; i >= current_patternstep(); --i)
 						memcpy(&mused.song.pattern[current_pattern()].step[i], &mused.song.pattern[current_pattern()].step[i-1], sizeof(mused.song.pattern[current_pattern()].step[0]));
 
 					zero_step(&mused.song.pattern[current_pattern()].step[current_patternstep()]);
@@ -1509,7 +1509,7 @@ void pattern_event(SDL_Event *e)
 
 					if (!(mused.flags & DELETE_EMPTIES) || e->key.keysym.sym == SDLK_BACKSPACE)
 					{
-						for (int i = current_patternstep()  ; i < mused.song.pattern[current_pattern()].num_steps ; ++i)
+						for (int i = current_patternstep() ; i < mused.song.pattern[current_pattern()].num_steps; ++i)
 							memcpy(&mused.song.pattern[current_pattern()].step[i], &mused.song.pattern[current_pattern()].step[i+1], sizeof(mused.song.pattern[current_pattern()].step[0]));
 
 						zero_step(&mused.song.pattern[current_pattern()].step[mused.song.pattern[current_pattern()].num_steps - 1]);
@@ -2101,7 +2101,7 @@ void set_room_size(int fx, int size, int vol, int dec)
 
 	int low = CYDRVB_LOW_LIMIT + 300; // +30 dB
 
-	for (int i = 0 ; i < CYDRVB_TAPS ;++i)
+	for (int i = 0; i < CYDRVB_TAPS;++i)
 	{
 		int p, g, e = 1;
 
@@ -2291,6 +2291,13 @@ void fx_add_param(int d)
 		case R_GAIN:
 		{
 			clamp(mused.song.fx[mused.fx_bus].rvb.tap[mused.fx_tap].gain, d * 1, CYDRVB_LOW_LIMIT, 0);
+			mus_set_fx(&mused.mus, &mused.song);
+		}
+		break;
+		
+		case R_NUM_TAPS: //wasn't there
+		{
+			clamp(mused.song.fx[mused.fx_bus].rvb.taps_quant, d * 1, 0, CYDRVB_TAPS);
 			mus_set_fx(&mused.mus, &mused.song);
 		}
 		break;

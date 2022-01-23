@@ -267,9 +267,9 @@ int import_ahx(FILE *f)
 
 		fread(&seq, 1, LEN * 2 * 4, f);
 
-		for (int i = 0 ; i < LEN ; ++i)
+		for (int i = 0; i < LEN; ++i)
 		{
-			for (int c = 0 ; c < 4 ; ++c)
+			for (int c = 0; c < 4; ++c)
 			{
 				/*if (!track0 && pat == 0)
 					continue;*/
@@ -281,11 +281,11 @@ int import_ahx(FILE *f)
 
 	mused.song.num_patterns = TRK + 1;
 
-	for (int pat = 0 ; pat < TRK + 1; ++pat)
+	for (int pat = 0; pat < TRK + 1; ++pat)
 	{
 		resize_pattern(&mused.song.pattern[pat], TRL);
 
-		for (int s = 0 ; s < TRL ; ++s)
+		for (int s = 0; s < TRL; ++s)
 			zero_step(&mused.song.pattern[pat].step[s]);
 
 		if (track0 && pat == 0) continue;
@@ -294,7 +294,7 @@ int import_ahx(FILE *f)
 
 		fread(steps, 3, TRL, f);
 
-		for (int s = 0 ; s < TRL ; ++s)
+		for (int s = 0; s < TRL; ++s)
 		{
 			Uint32 step = (((Uint32)steps[s * 3] << 16) | ((Uint32)steps[s * 3 + 1] << 8) | ((Uint32)steps[s * 3 + 2]));
 
@@ -311,7 +311,7 @@ int import_ahx(FILE *f)
 		}
 	}
 
-	for (int smp = 0 ; smp < SMP ; ++smp)
+	for (int smp = 0; smp < SMP; ++smp)
 	{
 		MusInstrument *i = &mused.song.instrument[smp];
 
@@ -417,7 +417,7 @@ int import_ahx(FILE *f)
 		Uint32 steps[256];
 		fread(&steps, sizeof(Uint32), PLEN, f);
 
-		for (int s = 0 ; s < PLEN ; ++s)
+		for (int s = 0; s < PLEN; ++s)
 		{
 			pos[s] = pidx; // map multiple klystrack program steps to the ahx program step
 
@@ -425,7 +425,7 @@ int import_ahx(FILE *f)
 			{
 				Uint32 step = SDL_SwapBE32(steps[s]);
 
-				Uint8 fx2 = (step & 0xe0000000) >> 29 ;
+				Uint8 fx2 = (step & 0xe0000000) >> 29;
 				Uint8 fx1 = (step & 0x1c000000) >> 26;
 				Uint8 wave = (step & 0x3800000) >> 23;
 				Uint8 fixed_note = (step >> 22) & 1;
@@ -517,12 +517,12 @@ int import_ahx(FILE *f)
 
 		if (!(has_4xx & 0x0f))
 		{
-			i->pwm_depth = 0 ; // no modulation set so disable
+			i->pwm_depth = 0; // no modulation set so disable
 		}
 
 		if (!(has_4xx & 0xf0))
 		{
-			i->cutoff = 2047 ; // no modulation set so disable
+			i->cutoff = 2047; // no modulation set so disable
 		}
 
 		i->program[pidx] = MUS_FX_END;
@@ -544,7 +544,7 @@ int import_ahx(FILE *f)
 
 	ptr += strlen(ptr) + 1;
 
-	for (int smp = 0 ; smp < SMP ; ++smp)
+	for (int smp = 0; smp < SMP; ++smp)
 	{
 		strncpy(mused.song.instrument[smp].name, ptr, sizeof(mused.song.instrument[smp].name));
 		ptr += strlen(ptr) + 1;

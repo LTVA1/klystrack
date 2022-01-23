@@ -44,7 +44,7 @@ void spectrum_analyzer_view(GfxDomain *dest_surface, const SDL_Rect *dest, const
 	
 	int spec[255] = { 0 };
 	
-	for (int i = 0 ; i < MUS_MAX_CHANNELS ; ++i)
+	for (int i = 0; i < MUS_MAX_CHANNELS; ++i)
 	{
 		Uint8 note = (mused.stat_note[i] & 0xff00) >> 8;
 		spec[note] = my_max(spec[note], mused.vis.cyd_env[i]);
@@ -52,7 +52,7 @@ void spectrum_analyzer_view(GfxDomain *dest_surface, const SDL_Rect *dest, const
 		if (note < 255) spec[note + 1] = my_max(spec[note] / 3, spec[note + 1]);
 	}
 	
-	for (int i = 0 ; i < 96 ; ++i)
+	for (int i = 0; i < 96; ++i)
 	{
 		if (spec[i] >= mused.vis.spec_peak[i])
 			mused.vis.spec_peak_decay[i] = 0;
@@ -64,7 +64,7 @@ void spectrum_analyzer_view(GfxDomain *dest_surface, const SDL_Rect *dest, const
 	SDL_Rect bar = {content.x, 0, w, 0};
 	SDL_Rect src = { 0, 0, w, content.h };
 	
-	for (int i = (MIDDLE_C - content.w / w / 2 + 12) ; i < FREQ_TAB_SIZE && bar.x < content.x + content.w ; ++i, bar.x += bar.w)
+	for (int i = (MIDDLE_C - content.w / w / 2 + 12); i < FREQ_TAB_SIZE && bar.x < content.x + content.w; ++i, bar.x += bar.w)
 	{
 		if (i >= 0)
 		{
@@ -123,7 +123,7 @@ void catometer_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 	
 	int v = 0;
 	
-	for (int i = 0 ; i < MUS_MAX_CHANNELS ; ++i)
+	for (int i = 0; i < MUS_MAX_CHANNELS; ++i)
 	{
 		v += mused.vis.cyd_env[i];
 	}
@@ -143,7 +143,7 @@ void catometer_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 	int eye1 = 31;
 	int eye2 = -30;
 	
-	for (int w = -3 ; w <= 3 ; ++w)
+	for (int w = -3; w <= 3; ++w)
 	{
 		gfx_line(dest_surface, dest->x + dest->w / 2 + eye1 + w, dest->y + dest->h / 2 + 6, dest->x + dest->w / 2 + ax + eye1, dest->y + dest->h / 2 + ay + 6, colors[COLOR_CATOMETER_EYES]);
 		gfx_line(dest_surface, dest->x + dest->w / 2 + eye2 + w, dest->y + dest->h / 2 + 6, dest->x + dest->w / 2 + ax + eye2, dest->y + dest->h / 2 + ay + 6, colors[COLOR_CATOMETER_EYES]);

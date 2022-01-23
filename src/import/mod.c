@@ -81,7 +81,7 @@ static Uint8 find_note(Uint16 period)
 	
 	if (period == 0) return MUS_NOTE_NONE;
 	
-	for (int i = 0 ; periods[i] ; ++i)
+	for (int i = 0; periods[i]; ++i)
 		if (periods[i] == period) return i + MIDDLE_C - 12;
 		
 	return MUS_NOTE_NONE;
@@ -109,7 +109,7 @@ int import_mod(FILE *f)
 		{ 0 }
 	};
 	
-	for (int i = 0 ; specs[i].chn ; ++i)
+	for (int i = 0; specs[i].chn; ++i)
 	{
 		if (strncmp(specs[i].sig, ver, 4) == 0)
 		{
@@ -133,7 +133,7 @@ int import_mod(FILE *f)
 	
 	int wt_e = 0;
 	
-	for (int i = 0 ; i < instruments ; ++i)
+	for (int i = 0; i < instruments; ++i)
 	{
 		mused.song.instrument[i].flags = 0;
 	
@@ -178,10 +178,10 @@ int import_mod(FILE *f)
 	int pat = 0;
 	int patterns = 0;
 	
-	for (int i = 0 ; i * 64 < mused.song.song_length ; ++i)
+	for (int i = 0; i * 64 < mused.song.song_length; ++i)
 	{
 		patterns = my_max(patterns, sequence[i]);
-		for (int c = 0 ; c < channels ; ++c)
+		for (int c = 0; c < channels; ++c)
 			add_sequence(c, i * 64, sequence[i] * channels + c, 0);
 	}
 	
@@ -191,20 +191,20 @@ int import_mod(FILE *f)
 	
 	assert(32 >= channels);
 	
-	for (Uint8 i = 0 ; i <= patterns ; ++i)
+	for (Uint8 i = 0; i <= patterns; ++i)
 	{
-		for (int c = 0 ; c < channels ; ++c)
+		for (int c = 0; c < channels; ++c)
 		{
 			pat = i * channels + c;
 			resize_pattern(&mused.song.pattern[pat], 64);
 			memset(mused.song.pattern[pat].step, 0, sizeof(mused.song.pattern[pat].step[0]) * 64);
 		}
 		
-		for (int s = 0 ; s < 64 ; ++s)
+		for (int s = 0; s < 64; ++s)
 		{
 			pat = i * channels;
 		
-			for (int c = 0 ; c < channels ; ++c)
+			for (int c = 0; c < channels; ++c)
 			{
 				Uint16 period;
 				fread(&period, 1, sizeof(period), f);
@@ -248,7 +248,7 @@ int import_mod(FILE *f)
 	
 	wt_e = 0;
 	
-	for (int i = 0 ; i < instruments ; ++i)
+	for (int i = 0; i < instruments; ++i)
 	{
 		if (sample_length[i] > 1)
 		{

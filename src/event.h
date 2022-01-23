@@ -49,6 +49,8 @@ void update_position_sliders();
 void update_horiz_sliders();
 void note_event(SDL_Event *e);
 
+int seqsort(const void *_a, const void *_b); //wasn't there
+
 enum
 {
 	PED_NOTE,
@@ -244,6 +246,9 @@ enum
 	R_TAP,
 	R_DELAY,
 	R_GAIN,
+	
+	R_NUM_TAPS, //wasn't there
+	
 	R_PANNING,
 	/* ---- */
 	R_N_PARAMS

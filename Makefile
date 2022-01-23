@@ -104,7 +104,7 @@ objs.$(CFG)/$(2)%.o: src/$(1)%$(EXT) src/version.h src/version_number.h
 deps/$(CFG)_$(2)%.d: src/$(1)%$(EXT) src/version.h src/version_number.h
 	$(Q)mkdir -p deps
 	$(MSG) "Generating dependencies for $$(notdir $$<)..."
-	$(Q)set -e ; $(CDEP) $(INCLUDEFLAGS) $$< > $$@.$$$$$$$$; \
+	$(Q)set -e; $(CDEP) $(INCLUDEFLAGS) $$< > $$@.$$$$$$$$; \
 	sed 's,\($$*\)\.o[ :]*,objs.$(CFG)\/$(2)\1.o $$@ : ,g' \
 		< $$@.$$$$$$$$ > $$@; \
 	rm -f $$@.$$$$$$$$
@@ -118,17 +118,17 @@ res/$(1): themes/$(1)/* #themes/$(1)/font/* themes/$(1)/font7x6/* themes/$(1)/ti
 	@$(ECHO) "Building theme $(1)..."
 	$(Q)mkdir -p res
 	$(Q)mkdir -p themetemp.$(1)
-	-$(Q)if test -e themes/$(1)/colors.txt; then cp -f themes/$(1)/colors.txt themetemp.$(1) ; fi
-	-$(Q)if test -e themes/$(1)/bevel.*; then cp -f themes/$(1)/bevel.* themetemp.$(1) ; fi
-	-$(Q)if test -e themes/$(1)/vu.*; then cp -f themes/$(1)/vu.* themetemp.$(1) ; fi
-	-$(Q)if test -e themes/$(1)/analyzor.*; then cp -f themes/$(1)/analyzor.* themetemp.$(1) ; fi
-	-$(Q)if test -e themes/$(1)/logo.*; then cp -f themes/$(1)/logo.* themetemp ; fi
-	-$(Q)if test -e themes/$(1)/catometer.*; then cp -f themes/$(1)/catometer.* themetemp.$(1) ; fi
-	-$(Q)if test -e themes/$(1)/cursor.*; then cp -f themes/$(1)/cursor.* themetemp.$(1) ; fi
-	-$(Q)if test -e themes/$(1)/icon.*; then cp -f themes/$(1)/icon.* themetemp.$(1) ; fi
-	-$(Q)if test -d themes/$(1)/font; then $(MAKEBUNDLE) themetemp.$(1)/8x8.fnt themes/$(1)/font ; fi
-	-$(Q)if test -d themes/$(1)/font7x6; then $(MAKEBUNDLE) themetemp.$(1)/7x6.fnt themes/$(1)/font7x6 ; fi
-	-$(Q)if test -d themes/$(1)/tiny; then $(MAKEBUNDLE) themetemp.$(1)/4x6.fnt themes/$(1)/tiny ; fi
+	-$(Q)if test -e themes/$(1)/colors.txt; then cp -f themes/$(1)/colors.txt themetemp.$(1); fi
+	-$(Q)if test -e themes/$(1)/bevel.*; then cp -f themes/$(1)/bevel.* themetemp.$(1); fi
+	-$(Q)if test -e themes/$(1)/vu.*; then cp -f themes/$(1)/vu.* themetemp.$(1); fi
+	-$(Q)if test -e themes/$(1)/analyzor.*; then cp -f themes/$(1)/analyzor.* themetemp.$(1); fi
+	-$(Q)if test -e themes/$(1)/logo.*; then cp -f themes/$(1)/logo.* themetemp; fi
+	-$(Q)if test -e themes/$(1)/catometer.*; then cp -f themes/$(1)/catometer.* themetemp.$(1); fi
+	-$(Q)if test -e themes/$(1)/cursor.*; then cp -f themes/$(1)/cursor.* themetemp.$(1); fi
+	-$(Q)if test -e themes/$(1)/icon.*; then cp -f themes/$(1)/icon.* themetemp.$(1); fi
+	-$(Q)if test -d themes/$(1)/font; then $(MAKEBUNDLE) themetemp.$(1)/8x8.fnt themes/$(1)/font; fi
+	-$(Q)if test -d themes/$(1)/font7x6; then $(MAKEBUNDLE) themetemp.$(1)/7x6.fnt themes/$(1)/font7x6; fi
+	-$(Q)if test -d themes/$(1)/tiny; then $(MAKEBUNDLE) themetemp.$(1)/4x6.fnt themes/$(1)/tiny; fi
 	$(Q)-$(MAKEBUNDLE) $$@ themetemp.$(1)
 	$(Q)rm -rf themetemp.$(1)
 
@@ -197,7 +197,7 @@ ifdef COMSPEC
 	$(Q)cp -f zip/klystrack.zip zip/klystrack-`cat src/version | tr -d '\r\n'`-win32.zip
 else
 	-$(Q)rm -f zip/data/Makefile
-	cd zip; cp -r data klystrack-`cat ../src/version | tr -d '\r\n'` ; rm -f $(ARCHIVE); $(ZIP) klystrack-`cat ../src/version`.tar.gz klystrack-`cat ../src/version` ; rm -rf klystrack-`cat ../src/version`
+	cd zip; cp -r data klystrack-`cat ../src/version | tr -d '\r\n'`; rm -f $(ARCHIVE); $(ZIP) klystrack-`cat ../src/version`.tar.gz klystrack-`cat ../src/version`; rm -rf klystrack-`cat ../src/version`
 endif
 
 installer: zip installer/klystrack.nsi
@@ -241,7 +241,7 @@ endif
 zip/data/SDL2_image.dll:
 	@$(ECHO) "Downloading "$@"..."
 	$(Q)mkdir -p temp
-	$(Q)cd temp ; $(CURL) -O http://www.libsdl.org/projects/SDL_image/release/SDL2_image-$(SDL_IMAGEVER)-win32-x86.zip ; $(ZIPEXT) SDL2_image-$(SDL_IMAGEVER)-win32-x86.zip SDL2_image.dll libpng16-16.dll zlib1.dll ; rm SDL2_image-$(SDL_IMAGEVER)-win32-x86.zip
+	$(Q)cd temp; $(CURL) -O http://www.libsdl.org/projects/SDL_image/release/SDL2_image-$(SDL_IMAGEVER)-win32-x86.zip; $(ZIPEXT) SDL2_image-$(SDL_IMAGEVER)-win32-x86.zip SDL2_image.dll libpng16-16.dll zlib1.dll; rm SDL2_image-$(SDL_IMAGEVER)-win32-x86.zip
 	$(Q)mkdir -p zip/data
 	$(Q)mv temp/SDL2_image.dll zip/data/SDL2_image.dll
 	$(Q)mv temp/libpng16-16.dll zip/data/libpng16-16.dll
@@ -250,7 +250,7 @@ zip/data/SDL2_image.dll:
 zip/data/SDL2.dll:
 	@$(ECHO) "Downloading "$@"..."
 	$(Q)mkdir -p temp
-	$(Q)cd temp ; $(CURL) -O https://www.libsdl.org/release/SDL2-$(SDL_VER)-win32-x86.zip ; $(ZIPEXT) SDL2-$(SDL_VER)-win32-x86.zip SDL2.dll ; rm SDL2-$(SDL_VER)-win32-x86.zip
+	$(Q)cd temp; $(CURL) -O https://www.libsdl.org/release/SDL2-$(SDL_VER)-win32-x86.zip; $(ZIPEXT) SDL2-$(SDL_VER)-win32-x86.zip SDL2.dll; rm SDL2-$(SDL_VER)-win32-x86.zip
 	$(Q)mkdir -p zip/data
 	$(Q)mv temp/SDL2.dll zip/data/SDL2.dll
 

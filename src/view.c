@@ -42,6 +42,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "command.h"
 #include <string.h>
 
+#include "view/oscilloscope.h" //wasn't there
+
 extern Mused mused;
 
 extern int event_hit;
@@ -101,7 +103,7 @@ void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain)
 
 	int orig_focus = mused.focus;
 
-	for (int i = 0 ; views[i].handler ; ++i)
+	for (int i = 0; views[i].handler; ++i)
 	{
 		const View *view = &views[i];
 		SDL_Rect area;
@@ -300,6 +302,7 @@ void generic_flags(const SDL_Event *e, const SDL_Rect *_area, int focus, int p, 
 	{
 
 	}
+	
 	else if (hit)
 	{
 		// so that the gap between the box and label works too
@@ -622,10 +625,10 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Envelope decay",
 					"Envelope sustain",
 					"Envelope release",
-					"Enable volume key scaling",
-					"Volume key scaling level",
-					"Enable envelope key scaling",
-					"Envelope key scaling level",
+					"Enable volume key scaling", //wasn't there
+					"Volume key scaling level", //wasn't there
+					"Enable envelope key scaling", //wasn't there
+					"Envelope key scaling level", //wasn't there
 					"Buzz (AY/YM volume envelope)",
 					"Buzz semitone",
 					"Buzz fine",
@@ -656,13 +659,13 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Program period",
 					"Don't restart program on keydown",
 					"Enable multi oscillator (play 2- or 3-note chords by adding 00XX command in pattern)",
-					"Save vibrato, PWM and tremolo settings",
+					"Save vibrato, PWM and tremolo settings", //wasn't there
 					"FM enable",
 					"FM modulation",
-					"Enable FM modulator volume key scaling",
-					"FM modulator volume key scaling level",
-					"Enable FM modulator envelope key scaling",
-					"FM modulator envelope key scaling level",
+					"Enable FM modulator volume key scaling", //wasn't there
+					"FM modulator volume key scaling level", //wasn't there
+					"Enable FM modulator envelope key scaling", //wasn't there
+					"FM modulator envelope key scaling level", //wasn't there
 					"FM feedback",
 					"FM carrier multiplier",
 					"FM modulator multiplier",
@@ -676,16 +679,16 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"FM env start",
 					"FM use wavetable",
 					"FM wavetable entry",
-					"FM modulator vibrato speed",
-					"FM modulator vibrato depth",
-					"FM modulator vibrato shape",
-					"FM modulator vibrato delay",
+					"FM modulator vibrato speed", //wasn't there
+					"FM modulator vibrato depth", //wasn't there
+					"FM modulator vibrato shape", //wasn't there
+					"FM modulator vibrato delay", //wasn't there
 					"FM modulator tremolo speed", //wasn't there
 					"FM modulator tremolo depth", //wasn't there
 					"FM modulator tremolo shape", //wasn't there
 					"FM modulator tremolo delay", //wasn't there
 					"FM enable additive synth mode", //wasn't there
-					"Save FM modulator vibrato and tremolo settings"
+					"Save FM modulator vibrato and tremolo settings" //wasn't there
 				};
 				
 				static const char * mixmodes[] =
@@ -842,7 +845,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 
 	SDL_Rect button = { dest->x + area.w + 6, dest->y, dest->h, dest->h };
 
-	for (int i = 0 ; i < N_VIEWS ; ++i)
+	for (int i = 0; i < N_VIEWS; ++i)
 	{
 		button_event(domain, event, &button, mused.slider_bevel,
 			(mused.mode != i) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
@@ -858,7 +861,7 @@ static void write_command(const SDL_Event *event, const char *text, int cmd_idx,
 {
 	int i = 0;
 
-	for (const char *c = text ; *c ; ++c, ++i)
+	for (const char *c = text; *c; ++c, ++i)
 	{
 		const SDL_Rect *r;
 		check_event(event, r = console_write_args(mused.console, "%c", *c),
@@ -905,7 +908,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 
 	gfx_domain_set_clip(domain, &clip);
 
-	for (int i = start, s = 0, y = 0 ; i < MUS_PROG_LEN && y < area.h; ++i, ++s, y += mused.console->font.h)
+	for (int i = start, s = 0, y = 0; i < MUS_PROG_LEN && y < area.h; ++i, ++s, y += mused.console->font.h)
 	{
 		SDL_Rect row = { area.x - 1, area.y + y - 1, area.w + 2, mused.console->font.h + 1};
 
@@ -1019,18 +1022,15 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 
 void oscilloscope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param) //wasn't there
 {
-	/*SDL_Rect area, clip;
-	copy_rect(&area, dest);
-	//console_set_clip(mused.console, &area);
-	//console_clear(mused.console);
-	bevelex(domain,&area, mused.slider_bevel, BEV_THIN_FRAME, 0);
-	//adjust_rect(&area, 2);
-	copy_rect(&clip, &area);
-	//adjust_rect(&area, 1);
-	area.w = 128;
-	area.h = 128;
-	console_set_clip(mused.console, &area);*/
-
+	if(mused.flags & SHOW_OSCILLOSCOPE)
+	{
+		SDL_Rect area;
+		copy_rect(&area, dest);
+		bevelex(domain, &area, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
+		adjust_rect(&area, 2);
+		
+		update_oscillscope_view(dest_surface, &area);
+	}
 }
 
 static void inst_flags(const SDL_Event *e, const SDL_Rect *_area, int p, const char *label, Uint32 *flags, Uint32 mask)
@@ -1081,7 +1081,7 @@ void inst_field(const SDL_Event *e, const SDL_Rect *area, int p, int length, cha
 	if (mused.edit_buffer == text && mused.focus == EDITBUFFER && mused.selected_param == p)
 	{
 		int i = my_max(0, mused.editpos - field.w / mused.console->font.w + 1), c = 0;
-		for ( ; text[i] && c < my_min(length, field.w / mused.console->font.w) ; ++i, ++c)
+		for (; text[i] && c < my_min(length, field.w / mused.console->font.w); ++i, ++c)
 		{
 			const SDL_Rect *r = console_write_args(mused.console, "%c", mused.editpos == i ? '½' : text[i]);
 			if (check_event(e, r, NULL, NULL, NULL, NULL))
@@ -1533,7 +1533,7 @@ void instrument_list(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 	/*if (start > NUM_INSTRUMENTS - rows ) start = NUM_INSTRUMENTS - rows;
 	if (start < 0 ) start = 0;*/
 
-	for (int i = start ; i < NUM_INSTRUMENTS && y < area.h + area.y ; ++i, y += mused.console->font.h)
+	for (int i = start; i < NUM_INSTRUMENTS && y < area.h + area.y; ++i, y += mused.console->font.h)
 	{
 		SDL_Rect row = { area.x - 1, y - 1, area.w + 2, mused.console->font.h + 1};
 
@@ -1675,7 +1675,7 @@ void fx_reverb_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 	int row_ms = (1000 / mused.song.song_rate) * mused.song.song_speed;
 	int row_ms2 = (1000 / mused.song.song_rate) * mused.song.song_speed2;
 
-	for (int ms = 0 ; ms < CYDRVB_SIZE / 4; c++) //was for (int ms = 0 ; ms < CYDRVB_SIZE; c++)
+	for (int ms = 0; ms < CYDRVB_SIZE / 4; c++) //was for (int ms = 0; ms < CYDRVB_SIZE; c++)
 	{
 		SDL_Rect r = { area.x + ms * area.w / (CYDRVB_SIZE / 4), area.y, 1, area.h}; //was SDL_Rect r = { area.x + ms * area.w / CYDRVB_SIZE, area.y, 1, area.h};
 
@@ -1702,7 +1702,7 @@ void fx_reverb_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 
 	if (mused.fx_axis == 0)
 	{
-		for (int db = 0 ; db < -CYDRVB_LOW_LIMIT ; db += 100, c++)
+		for (int db = 0; db < -CYDRVB_LOW_LIMIT; db += 100, c++)
 		{
 			Uint32 color = colors[COLOR_PATTERN_BAR];
 			if (c & 1)
@@ -1720,9 +1720,10 @@ void fx_reverb_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 				gfx_rect(dest_surface, &r, color);
 		}
 	}
+	
 	else
 	{
-		for (int pan = CYD_PAN_LEFT ; pan < CYD_PAN_RIGHT ; pan += CYD_PAN_CENTER / 2, c++)
+		for (int pan = CYD_PAN_LEFT; pan < CYD_PAN_RIGHT; pan += CYD_PAN_CENTER / 2, c++)
 		{
 			Uint32 color = colors[COLOR_PATTERN_BAR];
 			if (c & 1)
@@ -1738,13 +1739,14 @@ void fx_reverb_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 			SDL_Rect text = { area.x + area.w - 6, area.y + 4, 8, 8};
 			font_write(&mused.smallfont, domain, &text, "L");
 		}
+		
 		{
 			SDL_Rect text = { area.x + area.w - 6, area.y + area.h - 16, 8, 8};
 			font_write(&mused.smallfont, domain, &text, "R");
 		}
 	}
 
-	for (int i = 0 ; i < CYDRVB_TAPS ; ++i)
+	for (int i = 0; i < CYDRVB_TAPS; ++i)
 	{
 		int h;
 
@@ -2020,6 +2022,11 @@ void fx_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *eve
 		{
 			fx_add_param(d);
 		}
+		
+		if((mused.fx_tap > mused.song.fx[mused.fx_bus].rvb.taps_quant) && (mused.song.fx[mused.fx_bus].rvb.tap[mused.fx_tap].flags == 1))
+		{
+			mused.song.fx[mused.fx_bus].rvb.taps_quant = mused.fx_tap + 1;
+		}
 
 		update_rect(&area, &r);
 
@@ -2032,6 +2039,7 @@ void fx_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *eve
 			snprintf(tmp, sizeof(tmp), "%5.2f", ticks);
 			d = generic_field(event, &r, EDITFX, R_DELAY, "", "%s t", tmp, 7);
 		}
+		
 		else
 		{
 			d = generic_field(event, &r, EDITFX, R_DELAY, "", "%4d ms", MAKEPTR(mused.song.fx[mused.fx_bus].rvb.tap[mused.fx_tap].delay), 7);
@@ -2080,6 +2088,27 @@ void fx_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *eve
 		if (button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, mused.fx_axis == 0 ? "GAIN" : "PAN", NULL, NULL, NULL, NULL) & 1)
 		{
 			mused.fx_axis ^= 1;
+		}
+		
+		r.x += r.w + 4;
+		r.w = 65;
+		
+		if ((d = generic_field(event, &r, EDITFX, R_NUM_TAPS, "TAPS", "%02d", MAKEPTR(mused.song.fx[mused.fx_bus].rvb.taps_quant), 2))) //wasn't there
+		{
+			fx_add_param(d);
+			
+			for(int i = 0; i < CYDRVB_TAPS; i++)
+			{
+				if(i < mused.song.fx[mused.fx_bus].rvb.taps_quant)
+				{
+					mused.song.fx[mused.fx_bus].rvb.tap[i].flags = 1;
+				}
+				
+				else
+				{
+					mused.song.fx[mused.fx_bus].rvb.tap[i].flags = 0;
+				}
+			}
 		}
 
 		r.y += r.h + 4;

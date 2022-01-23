@@ -184,7 +184,9 @@ typedef struct
 	int last_snapshot_a, last_snapshot_b;
 	bool modified;
 	/*------------*/
+	
 	GfxSurface *wavetable_preview;
+	
 	Uint16 wavetable_bits;
 	int prev_wavetable_x, prev_wavetable_y;
 	
@@ -201,6 +203,9 @@ typedef struct
 	int selected_wg_osc, selected_wg_preset;
 	
 	int oversample;
+	
+	int output_buffer[8192];
+	int output_buffer_counter;
 } Mused;
 
 extern Mused mused;

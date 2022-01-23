@@ -12,7 +12,7 @@ void zap_instruments(void* no_confirm, void* b, void* c)
 	
 	debug("Zap instruments");
 	
-	for (int i = 0 ; i < NUM_INSTRUMENTS ; ++i)
+	for (int i = 0; i < NUM_INSTRUMENTS; ++i)
 	{
 		MusInstrument *inst = &mused.song.instrument[i];
 		kt_default_instrument(inst);
@@ -27,7 +27,7 @@ void zap_sequence(void* no_confirm, void* b, void* c)
 	
 	debug("Zap sequence");
 	
-	for (int i = 0 ; i < MUS_MAX_CHANNELS ; ++i)
+	for (int i = 0; i < MUS_MAX_CHANNELS; ++i)
 	{
 		memset(mused.song.sequence[i], 0, NUM_SEQUENCES * sizeof(MusSeqPattern));
 		mused.song.num_sequences[i] = 0;
@@ -35,7 +35,7 @@ void zap_sequence(void* no_confirm, void* b, void* c)
 		mused.song.default_panning[i] = 0;
 	}
 	
-	for (int i = 0 ; i < NUM_PATTERNS ; ++i)
+	for (int i = 0; i < NUM_PATTERNS; ++i)
 	{
 		clear_pattern_range(&mused.song.pattern[i], 0, mused.song.pattern[i].num_steps);
 		resize_pattern(&mused.song.pattern[i], mused.default_pattern_length);
@@ -53,7 +53,7 @@ void zap_sequence(void* no_confirm, void* b, void* c)
 }
 
 
-void zap_fx(void* no_confirm, void* b, void* c)
+void zap_fx(void* no_confirm, void* b, void* c) //get default fx
 {
 	if (!CASTPTR(int, no_confirm) && !confirm(domain, mused.slider_bevel, &mused.largefont, "Zap FX (no undo)?"))
 		return;
@@ -62,7 +62,7 @@ void zap_fx(void* no_confirm, void* b, void* c)
 	
 	mused.song.flags = 0;
 	
-	for (int fx = 0 ; fx < CYD_MAX_FX_CHANNELS ; ++fx)
+	for (int fx = 0; fx < CYD_MAX_FX_CHANNELS; ++fx)
 	{	
 		mused.song.fx[fx].flags = 0;
 		mused.song.fx[fx].crushex.downsample = 0;
@@ -72,12 +72,25 @@ void zap_fx(void* no_confirm, void* b, void* c)
 		mused.song.fx[fx].chr.rate = 40;
 		mused.song.fx[fx].chr.max_delay = 20;
 		strcpy(mused.song.fx[fx].name, "");
-		for (int i = 0 ; i < CYDRVB_TAPS ; ++i)
+		
+		mused.song.fx[fx].rvb.taps_quant = 16; //wasn't there
+		
+		for (int i = 0; i < CYDRVB_TAPS; ++i)
 		{
 			mused.song.fx[fx].rvb.tap[i].delay = i * 120 + 50; //here you rule taps
 			mused.song.fx[fx].rvb.tap[i].gain = (i + 1) * -10; //mused.song.fx[fx].rvb.tap[i].gain = (i + 1) * -30;
 			mused.song.fx[fx].rvb.tap[i].panning = CYD_PAN_CENTER;
 			mused.song.fx[fx].rvb.tap[i].flags = 1;
+		}
+		
+		for (int i = 0; i < mused.song.fx[fx].rvb.taps_quant; ++i)
+		{
+			mused.song.fx[fx].rvb.tap[i].flags = 1;
+		}
+		
+		for(int i = mused.song.fx[fx].rvb.taps_quant; i < CYDRVB_TAPS; ++i)
+		{
+			mused.song.fx[fx].rvb.tap[i].flags = 0;
 		}
 	}
 	
@@ -94,14 +107,14 @@ void zap_wavetable(void* no_confirm, void* b, void* c)
 	
 	if (mused.song.wavetable_names)
 	{
-		for (int i = 0 ; i < CYD_WAVE_MAX_ENTRIES ; ++i)
+		for (int i = 0; i < CYD_WAVE_MAX_ENTRIES; ++i)
 			free(mused.song.wavetable_names[i]);
 		free(mused.song.wavetable_names);
 	}
 	
 	mused.song.wavetable_names = malloc(CYD_WAVE_MAX_ENTRIES * sizeof(char*));
 	
-	for (int i = 0 ; i < CYD_WAVE_MAX_ENTRIES ; ++i)
+	for (int i = 0; i < CYD_WAVE_MAX_ENTRIES; ++i)
 	{
 		mused.song.wavetable_names[i] = malloc(MUS_WAVETABLE_NAME_LEN + 1);
 		strcpy(mused.song.wavetable_names[i], "");

@@ -23,9 +23,9 @@ void nos_decrunch(GfxDomain *domain)
 		0x959595 
 	};
 
-	for (int i = 0 ; i < 60 ; ++i)
+	for (int i = 0; i < 60; ++i)
 	{
-		for (int y = 0 ; y < domain->screen_h ; )
+		for (int y = 0; y < domain->screen_h; )
 		{
 			int h = rand() & 15;
 			{

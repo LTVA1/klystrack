@@ -29,5 +29,5 @@ extern int PulseTriSaw_8580[4096];
 extern int PulseTri_8580[8192];
 
 long map_Arduino(long x, long in_min, long in_max, long out_min, long out_max);
-void createCombinedWF(int wfarray[], float bitmul, float bitstrength,float treshold) ;
-void createPulseTri(int wfarray[], float bitmul, float bitstrength,float treshold) ;
+void createCombinedWF(int wfarray[], float bitmul, float bitstrength,float treshold);
+void createPulseTri(int wfarray[], float bitmul, float bitstrength,float treshold);

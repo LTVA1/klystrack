@@ -75,7 +75,7 @@ void createCombinedWF(int wfarray[], float bitmul, float bitstrength,float tresh
     
     for (int k=0; k<12; k++) 
     { 
-      bitlevel += ( bitmul/pow(bitstrength,abs(k-j)) ) * (((i>>k)&1)-0.5) ; 
+      bitlevel += ( bitmul/pow(bitstrength,abs(k-j)) ) * (((i>>k)&1)-0.5); 
      }
       
      wfarray[i] += (bitlevel>=treshold)? pow(2,j) : 0;  
