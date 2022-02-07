@@ -24,7 +24,7 @@ A fork of klystrack chiptune tracker. A bit outdated but very good and comprehen
 - `.dmf` import (probably steal algorithm from… [you know](https://github.com/tildearrow/furnace))
 - `.a2m` (Adlib Tracker II) file import
 - `.mptm` import (OpenMPT file)
-- [`.fur`](https://github.com/tildearrow/furnace) import. I love how this tracker also uses 16-bit commands (and will probably steal some alorithms from it). Deflemask killer (potentially).
+- [`.fur`](https://github.com/tildearrow/furnace) import. I love how this tracker also uses 16-bit commands (and will probably steal some algorithms from it). Deflemask killer (potentially).
 - Custom envelope for instruments and thus more precise `.xm` (and maybe other formats) import
 
 
