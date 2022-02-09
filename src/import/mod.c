@@ -236,7 +236,7 @@ int import_mod(FILE *f)
 				if (command != 0 && param != 0)
 					lp[c][command] = param;
 				
-				mused.song.pattern[pat].step[s].command = find_command_pt(lp[c][command] | ((Uint16)command << 8), sl[c]);
+				mused.song.pattern[pat].step[s].command[0] = find_command_pt(lp[c][command] | ((Uint16)command << 8), sl[c]);
 				++pat;
 			}
 		

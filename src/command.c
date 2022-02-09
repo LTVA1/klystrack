@@ -80,10 +80,15 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_SET_SYNCSRC, 0xff00, "Set sync source (FF=off)", "SetSyncSrc", 0, 0xff},
 	{MUS_FX_SET_DOWNSAMPLE, 0xff00, "Set downsample", "SetDnSmp", 0, 0xff},
 	{MUS_FX_SET_SPEED, 0xff00, "Set speed", "Speed", -1, -1},
-	{MUS_FX_SET_RATE, 0xff00, "Set rate", "Rate", -1, -1},
+	{MUS_FX_SET_SPEED1, 0xff00, "Set speed 1 (00-FF)", "Speed1Full", -1, -1}, //wasn't there
+	{MUS_FX_SET_SPEED2, 0xff00, "Set speed 2 (00-FF)", "Speed2Full", -1, -1}, //wasn't there
+	{MUS_FX_SET_RATE, 0xff00, "Set rate lower byte", "RateLowByte", -1, -1},
+	{MUS_FX_SET_RATE_HIGHER_BYTE, 0xff00, "Set rate higher byte", "RateHighByte", -1, -1}, //wasn't there
 	{MUS_FX_LOOP_PATTERN, 0xff00, "Loop pattern", "PatLoop", -1, -1},
 	{MUS_FX_SKIP_PATTERN, 0xff00, "Skip pattern", "PatSkip", -1, -1},
 	{MUS_FX_TRIGGER_RELEASE, 0xff00, "Trigger release", "Release", 0, 0xff},
+	{MUS_FX_TRIGGER_CARRIER_RELEASE, 0xff00, "Trigger FM carrier release", "FMcarRelease", 0, 0xff}, //wasn't there
+	{MUS_FX_TRIGGER_FM_RELEASE, 0xff00, "Trigger FM modulator release", "FMmodRelease", 0, 0xff}, //wasn't there
 	{MUS_FX_RESTART_PROGRAM, 0xff00, "Restart program", "Restart", 0, 0},
 	{MUS_FX_FADE_VOLUME, 0xff00, "Fade volume", "VolFade", -1, -1},
 	{MUS_FX_EXT_FADE_VOLUME_UP, 0xfff0, "Fine fade volume in", "VolUpFine", 0, 0xf},
@@ -256,7 +261,7 @@ Uint16 validate_command(Uint16 command)
 {
 	const InstructionDesc *i = get_instruction_desc(command);
 	
-	if (i)
+	/*if (i)
 	{
 		if (i->maxv != -1 && i->minv != -1)
 		{
@@ -267,7 +272,15 @@ Uint16 validate_command(Uint16 command)
 		}
 	}
 	
-	return command;
+	if(command >= 0xf000)
+	{
+		return command & 0x0fff;
+	}
+	
+	else
+	{*/
+		return command;
+	//}
 }
 
 

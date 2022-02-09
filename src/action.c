@@ -128,7 +128,7 @@ void select_wavetable(void *idx, void *unused1, void *unused2)
 void change_octave(void *delta, void *unused1, void *unused2)
 {
 	mused.octave += CASTPTR(int,delta);
-	if (mused.octave > 7) mused.octave = 7;
+	if (mused.octave > 9) mused.octave = 9;
 	else if (mused.octave < 0) mused.octave = 0;
 }
 
@@ -151,17 +151,18 @@ void change_oversample(void *oversample, void *unused1, void *unused2)
 
 void change_song_rate(void *delta, void *unused1, void *unused2)
 {
-	if (CASTPTR(int,delta) > 0)
+	if (CASTPTR(int, delta) > 0)
 	{
-		if ((int)mused.song.song_rate + CASTPTR(int,delta) <= 0xff)
-			mused.song.song_rate += CASTPTR(int,delta);
+		if ((int)mused.song.song_rate + CASTPTR(int, delta) <= 44100)
+			mused.song.song_rate += CASTPTR(int, delta);
 		else
-			mused.song.song_rate = 0xff;
+			mused.song.song_rate = 44100;
 	}
-	else if (CASTPTR(int,delta) < 0)
+	
+	else if (CASTPTR(int, delta) < 0)
 	{
-		if ((int)mused.song.song_rate + CASTPTR(int,delta) >= 0x1)
-			mused.song.song_rate += CASTPTR(int,delta);
+		if ((int)mused.song.song_rate + CASTPTR(int, delta) >= 0x1)
+			mused.song.song_rate += CASTPTR(int, delta);
 		else
 			mused.song.song_rate = 1;
 	}
@@ -239,12 +240,12 @@ void change_song_speed(void *speed, void *delta, void *unused)
 {
 	if (!speed)
 	{
-		if ((int)mused.song.song_speed + CASTPTR(int,delta) >= 1 && (int)mused.song.song_speed + CASTPTR(int,delta) <= 15)
+		if ((int)mused.song.song_speed + CASTPTR(int,delta) >= 1 && (int)mused.song.song_speed + CASTPTR(int,delta) <= 255)
 			mused.song.song_speed += CASTPTR(int,delta);
 	}
 	else
 	{
-		if ((int)mused.song.song_speed2 + CASTPTR(int,delta) >= 1 && (int)mused.song.song_speed2 + CASTPTR(int,delta) <= 15)
+		if ((int)mused.song.song_speed2 + CASTPTR(int,delta) >= 1 && (int)mused.song.song_speed2 + CASTPTR(int,delta) <= 255)
 		mused.song.song_speed2 += CASTPTR(int,delta);
 	}
 }
@@ -314,6 +315,22 @@ void enable_channel(void *channel, void *unused1, void *unused2)
 	set_info_message("%s channel %d", (mused.mus.channel[CASTPTR(int,channel)].flags & MUS_CHN_DISABLED) ? "Muted" : "Unmuted", CASTPTR(int,channel));
 }
 
+
+void expand_command(int channel, void *, void *) //wasn't there
+{
+	if(mused.song.pattern[current_pattern_for_channel(channel)].command_columns <= MUS_MAX_COMMANDS - 2)
+	{
+		mused.song.pattern[current_pattern_for_channel(channel)].command_columns++;
+	}
+}
+
+void hide_command(int channel, void *, void *) //wasn't there
+{
+	if(mused.song.pattern[current_pattern_for_channel(channel)].command_columns > 0)
+	{
+		mused.song.pattern[current_pattern_for_channel(channel)].command_columns--;
+	}
+}
 
 void solo_channel(void *_channel, void *unused1, void *unused2)
 {
@@ -672,11 +689,14 @@ void change_timesig(void *delta, void *b, void *c)
 void export_wav_action(void *a, void*b, void*c)
 {
 	char def[1000];
+	
+	mused.song.flags |= MUS_NO_REPEAT; //wasn't there
 
 	if (strlen(mused.previous_song_filename) == 0)
 	{
 		snprintf(def, sizeof(def), "%s.wav", mused.song.title);
 	}
+	
 	else
 	{
 		strncpy(def, mused.previous_export_filename, sizeof(mused.previous_export_filename) - 1);
@@ -695,13 +715,144 @@ void export_wav_action(void *a, void*b, void*c)
 			export_wav(&mused.song, mused.mus.cyd->wavetable_entries, f, -1);
 			// f is closed inside of export_wav (inside of ww_finish)
 		}
+		
+		mused.song.flags &= ~MUS_NO_REPEAT; //wasn't there
 	}
 }
+
+void export_hires_wav_action(void *a, void*b, void*c)
+{
+	char def[1000];
+	
+	mused.song.flags |= MUS_NO_REPEAT; //wasn't there
+
+	if (strlen(mused.previous_song_filename) == 0)
+	{
+		snprintf(def, sizeof(def), "%s.wav", mused.song.title);
+	}
+	
+	else
+	{
+		strncpy(def, mused.previous_export_filename, sizeof(mused.previous_export_filename) - 1);
+	}
+
+	char filename[5000];
+
+	if (open_dialog_fn("wb", "Export hires .WAV", "wav", domain, mused.slider_bevel, &mused.largefont, &mused.smallfont, def, filename, sizeof(filename)))
+	{
+		strncpy(mused.previous_export_filename, filename, sizeof(mused.previous_export_filename) - 1);
+
+		FILE *f = fopen(filename, "wb");
+
+		if (f)
+		{
+			export_wav_hires(&mused.song, mused.mus.cyd->wavetable_entries, f, -1);
+			// f is closed inside of export_wav (inside of ww_finish)
+		}
+		
+		mused.song.flags &= ~MUS_NO_REPEAT; //wasn't there
+	}
+}
+
+
+/*typedef struct 
+{
+	int channel;
+	MusSong *song;
+	const char filename[5000];
+} THREAD_PAYLOAD;
+
+static int TestThread(void *ptr)
+{
+    THREAD_PAYLOAD *payload = ptr;
+    //Cyd *cyd = cyd_init(44100, whatever);
+    //export_channel(cyd, payload->song, payload->channel, payload->filename);
+    //cyd_deinit(cyd)
+	//export_wav(&mused.song, mused.mus.cyd->wavetable_entries, payload, channel);
+
+	//snprintf(c_filename, sizeof(c_filename) - 1, "%s-%02d.wav", tmp, payload->channel);
+
+	debug("Exporting channel %d to \"%s\"", payload->channel, payload->filename);
+
+	FILE *f = fopen(payload->filename, "wb");
+
+	if (f)
+	{
+		debug("Calling export wav");
+		export_wav(payload->song, mused.mus.cyd->wavetable_entries, f, payload->channel);
+		// f is closed inside of export_wav (inside of ww_finish)
+	}
+	
+    return 0;
+}
+
+void export_channels_action(void *a, void*b, void*c)
+{
+	SDL_Thread *thread[8]; //wasn't there
+    THREAD_PAYLOAD payload[8] = {0}; //wasn't there
+	
+	mused.song.flags |= MUS_NO_REPEAT; //wasn't there
+	
+	char def[1000];
+
+	if (strlen(mused.previous_song_filename) == 0)
+	{
+		snprintf(def, sizeof(def), "%s.wav", mused.song.title);
+	}
+	else
+	{
+		strncpy(def, mused.previous_export_filename, sizeof(mused.previous_export_filename) - 1);
+	}
+
+	char filename[5000];
+
+	if (open_dialog_fn("wb", "Export .WAV", "wav", domain, mused.slider_bevel, &mused.largefont, &mused.smallfont, def, filename, sizeof(filename)))
+	{
+		strncpy(mused.previous_export_filename, filename, sizeof(mused.previous_export_filename) - 1);
+
+		for (int i = 0; i < mused.song.num_channels; ++i)
+		{
+			char c_filename[1500], tmp[1000];
+			strncpy(tmp, filename, sizeof(tmp) - 1);
+
+			for (int c = strlen(tmp) - 1; c >= 0; --c)
+			{
+				if (tmp[c] == '.')
+				{
+					tmp[c] = '\0';
+					break;
+				}
+			}
+
+			snprintf(payload[i].filename, sizeof(c_filename) - 1, "%s-%02d.wav", tmp, i);
+
+			//debug("Exporting ch. %d to %s", i, c_filename);
+
+			//snprintf(payload[i].filename, 50, "channel_%d.wav", i);
+			payload[i].channel = i;
+			payload[i].song = &mused.song;
+			thread[i] = SDL_CreateThread(TestThread, "TestThread", &payload[i]);
+			
+			//debug("Exporting ch. %d to %s", i, c_filename);
+		}
+		
+		for (int i = 0; i < mused.song.num_channels; ++i) 
+		{
+			int val;
+			SDL_WaitThread(thread[i], &val);
+			debug("Thread %d returned %d", i, val); 
+		}
+		
+		mused.song.flags &= ~MUS_NO_REPEAT; //wasn't there
+	}
+}*/
 
 
 void export_channels_action(void *a, void*b, void*c)
 {
 	char def[1000];
+	
+	mused.song.flags |= MUS_NO_REPEAT; //wasn't there
 
 	if (strlen(mused.previous_song_filename) == 0)
 	{
@@ -744,9 +895,10 @@ void export_channels_action(void *a, void*b, void*c)
 				// f is closed inside of export_wav (inside of ww_finish)
 			}
 		}
+		
+		mused.song.flags &= ~MUS_NO_REPEAT; //wasn't there
 	}
 }
-
 
 
 void do_undo(void *a, void*b, void*c)

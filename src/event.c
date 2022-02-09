@@ -123,7 +123,7 @@ void instrument_add_param(int a)
 
 		case P_BASENOTE:
 
-		clamp(i->base_note, a, 0, 95);
+		clamp(i->base_note, a, 0, FREQ_TAB_SIZE - 1);
 
 		break;
 
@@ -580,7 +580,7 @@ void instrument_add_param(int a)
 
 		case P_FM_MODULATION:
 
-		clamp(i->fm_modulation, a, 0, 0x7f);
+		clamp(i->fm_modulation, a, 0, 0xff);
 
 		break;
 
@@ -623,7 +623,7 @@ void instrument_add_param(int a)
 		
 		case P_FM_BASENOTE: //weren't there
 
-		clamp(i->fm_base_note, a, 0, 95);
+		clamp(i->fm_base_note, a, 0, FREQ_TAB_SIZE - 1);
 
 		break;
 
@@ -1552,7 +1552,56 @@ void pattern_event(SDL_Event *e)
 								case PED_COMMAND2:
 								case PED_COMMAND3:
 								case PED_COMMAND4:
-									mused.song.pattern[current_pattern()].step[current_patternstep()].command = 0;
+									mused.song.pattern[current_pattern()].step[current_patternstep()].command[0] = 0;
+									break;
+									
+								case PED_COMMAND21:
+								case PED_COMMAND22:
+								case PED_COMMAND23:
+								case PED_COMMAND24:
+									mused.song.pattern[current_pattern()].step[current_patternstep()].command[1] = 0;
+									break;
+									
+								case PED_COMMAND31:
+								case PED_COMMAND32:
+								case PED_COMMAND33:
+								case PED_COMMAND34:
+									mused.song.pattern[current_pattern()].step[current_patternstep()].command[2] = 0;
+									break;
+									
+								case PED_COMMAND41:
+								case PED_COMMAND42:
+								case PED_COMMAND43:
+								case PED_COMMAND44:
+									mused.song.pattern[current_pattern()].step[current_patternstep()].command[3] = 0;
+									break;
+									
+								case PED_COMMAND51:
+								case PED_COMMAND52:
+								case PED_COMMAND53:
+								case PED_COMMAND54:
+									mused.song.pattern[current_pattern()].step[current_patternstep()].command[4] = 0;
+									break;
+									
+								case PED_COMMAND61:
+								case PED_COMMAND62:
+								case PED_COMMAND63:
+								case PED_COMMAND64:
+									mused.song.pattern[current_pattern()].step[current_patternstep()].command[5] = 0;
+									break;
+									
+								case PED_COMMAND71:
+								case PED_COMMAND72:
+								case PED_COMMAND73:
+								case PED_COMMAND74:
+									mused.song.pattern[current_pattern()].step[current_patternstep()].command[6] = 0;
+									break;
+									
+								case PED_COMMAND81:
+								case PED_COMMAND82:
+								case PED_COMMAND83:
+								case PED_COMMAND84:
+									mused.song.pattern[current_pattern()].step[current_patternstep()].command[7] = 0;
 									break;
 							}
 						}
@@ -1574,6 +1623,7 @@ void pattern_event(SDL_Event *e)
 						if (e->key.keysym.mod & KMOD_SHIFT)
 							mused.current_patternx = x;
 				}
+				
 				else
 				{
 					++mused.current_patternx;
@@ -1590,11 +1640,14 @@ void pattern_event(SDL_Event *e)
 					if (!viscol(mused.current_patternx) && (mused.current_patternx >= PED_COMMAND1 && mused.current_patternx <= PED_COMMAND4))
 						mused.current_patternx = PED_PARAMS;
 
-					if (mused.current_patternx >= PED_PARAMS)
+					if (mused.current_patternx > PED_COMMAND4 + mused.song.pattern[current_pattern()].command_columns * 4) //if (mused.current_patternx >= PED_PARAMS)
 					{
 						mused.current_patternx = 0;
 						switch_track(+1);
 					}
+					
+					//mused.song.pattern[current_pattern()].step[current_patternstep()].command[(mused.current_patternx - PED_COMMAND1) / 4]
+					//mused.song.pattern[mused.song.sequence[channel][0]->pattern]
 				}
 			}
 			break;
@@ -1610,15 +1663,28 @@ void pattern_event(SDL_Event *e)
 					if (e->key.keysym.mod & KMOD_SHIFT)
 						mused.current_patternx = x;
 				}
+				
 				else
 				{
 					--mused.current_patternx;
 
 					if (mused.current_patternx < 0)
 					{
-							mused.current_patternx = PED_PARAMS - 1;
-
-							switch_track(-1);
+						//mused.current_patternx = PED_COMMAND4;
+						
+						if(mused.current_sequencetrack > 0)
+						{
+							mused.current_patternx = PED_COMMAND4 + mused.song.pattern[mused.song.sequence[mused.current_sequencetrack - 1][mused.sequence_position].pattern].command_columns * 4;
+							//debug("current pattern %d, current sequence track %d, current seq pos %d", mused.song.sequence[mused.current_sequencetrack - 1][mused.current_sequencepos].pattern, mused.current_sequencetrack, mused.current_sequencepos);
+						}
+							
+						else
+						{
+							mused.current_patternx = PED_COMMAND4 + mused.song.pattern[mused.song.sequence[mused.song.num_channels - 1][mused.sequence_position].pattern].command_columns * 4;
+							//debug("current pattern %d, current sequence track %d, current seq pos %d", mused.song.sequence[mused.song.num_channels - 1][mused.current_sequencepos].pattern, mused.current_sequencetrack, mused.current_sequencepos);
+						}
+						
+						switch_track(-1);
 					}
 
 					if (!viscol(mused.current_patternx) && (mused.current_patternx >= PED_COMMAND1 && mused.current_patternx <= PED_COMMAND4))
@@ -1639,9 +1705,22 @@ void pattern_event(SDL_Event *e)
 						{
 							mused.current_patternx = 0;
 						}
+						
 						else
 						{
-							mused.current_patternx = last_param;
+							if(mused.current_sequencetrack > 0)
+							{
+								mused.current_patternx = PED_COMMAND4 + mused.song.pattern[mused.song.sequence[mused.current_sequencetrack - 1][mused.sequence_position].pattern].command_columns * 4;
+								//debug("current pattern %d, current sequence track %d, current seq pos %d", mused.song.sequence[mused.current_sequencetrack - 1][mused.current_sequencepos].pattern, mused.current_sequencetrack, mused.current_sequencepos);
+							}
+							
+							else
+							{
+								mused.current_patternx = PED_COMMAND4 + mused.song.pattern[mused.song.sequence[mused.song.num_channels - 1][mused.sequence_position].pattern].command_columns * 4;
+								//debug("current pattern %d, current sequence track %d, current seq pos %d", mused.song.sequence[mused.song.num_channels - 1][mused.current_sequencepos].pattern, mused.current_sequencetrack, mused.current_sequencepos);
+							}
+							
+							//mused.current_patternx = PED_COMMAND4;
 							switch_track(-1);
 						}
 					}
@@ -1823,34 +1902,34 @@ void pattern_event(SDL_Event *e)
 						}
 					}
 					
-					else if (mused.current_patternx >= PED_COMMAND1 && mused.current_patternx <= PED_COMMAND4)
+					else if (mused.current_patternx >= PED_COMMAND1) //command input
 					{
 						if (gethex(e->key.keysym.sym) != -1)
 						{
-							Uint16 inst = mused.song.pattern[current_pattern()].step[current_patternstep()].command;
+							Uint16 inst = mused.song.pattern[current_pattern()].step[current_patternstep()].command[(mused.current_patternx - PED_COMMAND1) / 4];
 
-							switch (mused.current_patternx)
+							switch ((mused.current_patternx - PED_COMMAND1) % 4)
 							{
-								case PED_COMMAND1:
+								case 0:
 								inst = (inst & 0x0fff) | ((gethex(e->key.keysym.sym) << 12) & 0xf000);
 								break;
 
-								case PED_COMMAND2:
+								case 1:
 								inst = (inst & 0xf0ff) | ((gethex(e->key.keysym.sym) << 8) & 0x0f00);
 								break;
 
-								case PED_COMMAND3:
+								case 2:
 								inst = (inst & 0xff0f) | ((gethex(e->key.keysym.sym) << 4) & 0x00f0);
 								break;
 
-								case PED_COMMAND4:
+								case 3:
 								inst = (inst & 0xfff0) | gethex(e->key.keysym.sym);
 								break;
 							}
 
 							snapshot(S_T_PATTERN);
 
-							mused.song.pattern[current_pattern()].step[current_patternstep()].command = validate_command(inst) & 0xffff; //you need `0x7fff` there to return old command system
+							mused.song.pattern[current_pattern()].step[current_patternstep()].command[(mused.current_patternx - PED_COMMAND1) / 4] = validate_command(inst) & 0xffff; //you need `0x7fff` there to return old command system
 
 							update_pattern_slider(mused.note_jump);
 						}
@@ -2600,6 +2679,9 @@ void songinfo_add_param(int d)
 
 	if (SDL_GetModState() & KMOD_SHIFT)
 		d *= 16;
+	
+	if (SDL_GetModState() & KMOD_CTRL)
+		d *= 256;
 
 	if (d) snapshot_cascade(S_T_SONGINFO, mused.songinfo_param, -1);
 

@@ -62,6 +62,9 @@ enum
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
 
+#define NUM_PATTERNS 4096
+#define NUM_INSTRUMENTS 255
+#define NUM_SEQUENCES 2048
 
 enum
 {
@@ -204,17 +207,15 @@ typedef struct
 	
 	int oversample;
 	
-	int output_buffer[8192];
+	int output_buffer[9192]; //wasn't there
 	int output_buffer_counter;
+	
+	int widths[MUS_MAX_CHANNELS][2]; //[0] normal width, [1] narrow width
 } Mused;
 
 extern Mused mused;
 extern GfxDomain *domain;
 extern Uint32 pattern_color[16];
-
-#define NUM_PATTERNS 4096
-#define NUM_INSTRUMENTS 255
-#define NUM_SEQUENCES 2048
 
 void default_settings();
 void change_mode(int newmode);

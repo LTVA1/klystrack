@@ -30,7 +30,7 @@ void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area)
 			
 			for (int x = i - area->w; x < area->w + i; ++x)
 			{
-				if(x % 2 == 0)
+				if(!(x & 1))
 				{
 					last_sample = scaled_sample;
 					sample = mused.output_buffer[x];
@@ -56,7 +56,7 @@ void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area)
 					last_sample = -OSC_MAX_CLAMP;
 				}
 					
-				if(x % 2 == 0)
+				if(!(x & 1))
 				{
 					scaled_sample = (sample * OSC_SIZE) / 32768;
 					
@@ -70,6 +70,10 @@ void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area)
 			return;
 		}
 	}
+	
+	/* Below is a dirty hack. This debug would not actually do anything because mused.output_buffer_counter can be anything from 0 to 8191.
+	It is done because for some reason if I compile the code with -O2 or -O3 flags part of the function that is below would not execute
+	even if it is supposed to without this debug thing. Very strange, actually. */
 	
 	if(mused.output_buffer_counter == -1)
 	{

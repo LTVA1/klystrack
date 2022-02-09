@@ -47,6 +47,10 @@ void generic_action(void *func, void *, void *);
 void quit_action(void *, void *, void *);
 void change_mode_action(void *mode, void *, void *);
 void enable_channel(void *channel, void *, void *);
+
+void expand_command(int channel, void *, void *);
+void hide_command(int channel, void *, void *);
+
 void solo_channel(void *channel, void *, void *);
 void enable_reverb(void *unused1, void *unused2, void *unused3);
 void select_all(void *, void *, void*);
@@ -71,6 +75,7 @@ void load_theme_action(void *a, void*b, void*c);
 void load_keymap_action(void *a, void*b, void*c);
 void unmute_all_action(void*, void*, void*);
 void export_wav_action(void *a, void*b, void*c);
+void export_hires_wav_action(void *a, void*b, void*c);
 void export_channels_action(void *a, void*b, void*c);
 void open_data(void *type, void*b, void*c);
 void do_undo(void *stack, void*b, void*c);

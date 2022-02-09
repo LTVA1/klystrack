@@ -548,10 +548,14 @@ static void write_packed_pattern(SDL_RWops *f, const MusPattern *pattern, bool s
 		if (pattern->step[i].instrument != MUS_NOTE_NO_INSTRUMENT)
 			buffer |= MUS_PAK_BIT_INST;
 
-		if (pattern->step[i].ctrl != 0 || pattern->step[i].volume != MUS_NOTE_NO_VOLUME)
-			buffer |= MUS_PAK_BIT_CTRL;
+		if (pattern->step[i].ctrl != 0 || pattern->step[i].volume != MUS_NOTE_NO_VOLUME
+		|| pattern->step[i].command[1] != 0 || pattern->step[i].command[2] != 0
+		|| pattern->step[i].command[3] != 0 || pattern->step[i].command[4] != 0
+		|| pattern->step[i].command[5] != 0 || pattern->step[i].command[6] != 0
+		|| pattern->step[i].command[7] != 0)
+			buffer |= MUS_PAK_BIT_CTRL; //MUS_PAK_BIT_NEW_CMDS_1 to 3 go to ctrl. So ctrl if little-endian should be like this: V C C C T Vib S L, where V is volume, C bits for new commands (coding how many commands there would be besides command 1, so 1-7 additional commands), T tremolo, Vib vibrato, S slide and L legato
 
-		if (pattern->step[i].command != 0)
+		if (pattern->step[i].command[0] != 0)
 			buffer |= MUS_PAK_BIT_CMD;
 
 		if (i & 1 || i + 1 >= steps)
@@ -567,21 +571,55 @@ static void write_packed_pattern(SDL_RWops *f, const MusPattern *pattern, bool s
 
 		if (pattern->step[i].instrument != MUS_NOTE_NO_INSTRUMENT)
 			SDL_RWwrite(f, &pattern->step[i].instrument, 1, sizeof(pattern->step[i].instrument));
-
-		if (pattern->step[i].ctrl != 0 || pattern->step[i].volume != MUS_NOTE_NO_VOLUME)
+		
+		
+		Uint8 flag = 1;
+		Uint8 coding_bits = 0; // C C C bits from above
+		
+		for(int j = MUS_MAX_COMMANDS - 1; j > 0 && flag == 1; --j)
 		{
-			Uint8 ctrl = pattern->step[i].ctrl;
+			if(pattern->step[i].command[j] != 0)
+			{
+				flag = 0;
+				coding_bits = j;
+			}
+		}
+		
+		Uint8 ctrl = pattern->step[i].ctrl;
+		ctrl |= (coding_bits & 7) << 4;
+		
+		//debug("ctrl bit added val %d", (coding_bits & 7) << 4);
+		
+		//debug("coding bits %d", coding_bits);
+		
+
+		if (pattern->step[i].ctrl != 0 || pattern->step[i].volume != MUS_NOTE_NO_VOLUME || ctrl != 0)
+		{
+			//Uint8 ctrl = pattern->step[i].ctrl;
 			if (pattern->step[i].volume != MUS_NOTE_NO_VOLUME)
 				ctrl |= MUS_PAK_BIT_VOLUME;
 			SDL_RWwrite(f, &ctrl, 1, sizeof(pattern->step[i].ctrl));
+			
+			//debug("ctrl bit %d", ctrl);
 		}
-
-		if (pattern->step[i].command != 0)
+		
+		if (pattern->step[i].command[0] != 0)
 		{
-			Uint16 c = pattern->step[i].command;
+			Uint16 c = pattern->step[i].command[0];
 			FIX_ENDIAN(c);
-			SDL_RWwrite(f, &c, 1, sizeof(pattern->step[i].command));
+			SDL_RWwrite(f, &c, 1, sizeof(pattern->step[i].command[0]));
 		}
+		
+		
+		for(int j = 0; j < coding_bits; j++)
+		{
+			Uint16 c = pattern->step[i].command[j + 1];
+			FIX_ENDIAN(c);
+			SDL_RWwrite(f, &c, 1, sizeof(pattern->step[i].command[j + 1]));
+			
+			//debug("Writing command %d at column %d", pattern->step[i].command[j + 1], j + 2);
+		}
+		
 
 		if (pattern->step[i].volume != MUS_NOTE_NO_VOLUME)
 			SDL_RWwrite(f, &pattern->step[i].volume, 1, sizeof(pattern->step[i].volume));
@@ -789,14 +827,29 @@ int save_song_inner(SDL_RWops *f, SongStats *stats)
 	SDL_RWwrite(f, &mused.song.master_volume, 1, 1);
 	SDL_RWwrite(f, &mused.song.song_speed, 1, sizeof(mused.song.song_speed));
 	SDL_RWwrite(f, &mused.song.song_speed2, 1, sizeof(mused.song.song_speed2));
-	SDL_RWwrite(f, &mused.song.song_rate, 1, sizeof(mused.song.song_rate));
+	
+	Uint8 temp_rate = mused.song.song_rate & 0x00FF;
+	SDL_RWwrite(f, &temp_rate, 1, sizeof(temp_rate));
 	
 	Uint32 temp32 = mused.song.flags;
 	
 	temp32 |= MUS_8_BIT_PATTERN_INDEX | MUS_PATTERNS_NO_COMPRESSION | MUS_SEQ_NO_COMPRESSION;
+	temp32 &= ~MUS_NO_REPEAT; //just in case
+	
+	if(mused.song.song_rate > 255)
+	{
+		temp32 |= MUS_16_BIT_RATE;
+	}
 	
 	FIX_ENDIAN(temp32);
 	SDL_RWwrite(f, &temp32, 1, sizeof(mused.song.flags));
+	
+	if(mused.song.song_rate > 255)
+	{
+		temp16 = mused.song.song_rate;
+		FIX_ENDIAN(temp16);
+		SDL_RWwrite(f, &temp16, 1, sizeof(mused.song.song_rate));
+	}
 	
 	SDL_RWwrite(f, &mused.song.multiplex_period, 1, sizeof(mused.song.multiplex_period));
 	SDL_RWwrite(f, &mused.song.pitch_inaccuracy, 1, sizeof(mused.song.pitch_inaccuracy));

@@ -239,7 +239,7 @@ int main(int argc, char **argv)
 	createCombinedWF(PulseTriSaw_8580,0.8,2.5,0.64); 
 	createCombinedWF(TriSaw_8580,0.8,2.4,0.64); 
 	createPulseTri(PulseTri_8580,1.4,1.9,0.68); //createPulseTri(PulseTri_8580,3.1,1.1,0.64);
-	mused.output_buffer_counter = 0;
+	mused.output_buffer_counter = 0; //wasn't there
 
 	SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_NOPARACHUTE|SDL_INIT_TIMER);
 	atexit(SDL_Quit);
@@ -274,7 +274,7 @@ int main(int argc, char **argv)
 	enable_callback(true);
 
 	for (int i = 0; i < CYD_MAX_FX_CHANNELS; ++i)
-		cydfx_set(&mused.cyd.fx[i], &mused.song.fx[i]);
+		cydfx_set(&mused.cyd.fx[i], &mused.song.fx[i], mused.cyd.sample_rate);
 
 	cyd_register(&mused.cyd, mused.mix_buffer);
 

@@ -67,7 +67,7 @@ static const Menu columnsmenu[] =
 	{ 0, showmenu, "Instrument", NULL, MENU_CHECK, &mused.visible_columns, (void*)VC_INSTRUMENT, 0 },
 	{ 0, showmenu, "Volume", NULL, MENU_CHECK, &mused.visible_columns, (void*)VC_VOLUME, 0 },
 	{ 0, showmenu, "Control bits", NULL, MENU_CHECK, &mused.visible_columns, (void*)VC_CTRL, 0 },
-	{ 0, showmenu, "Command", NULL, MENU_CHECK, &mused.visible_columns, (void*)VC_COMMAND, 0 },
+	{ 0, showmenu, "Command(s)", NULL, MENU_CHECK, &mused.visible_columns, (void*)VC_COMMAND, 0 },
 	{ 0, NULL, NULL }
 };
 
@@ -207,6 +207,7 @@ const Menu filemenu[] =
 	{ 0, mainmenu, "Save song", NULL, open_data, MAKEPTR(OD_T_SONG), MAKEPTR(OD_A_SAVE) },
 	{ 0, mainmenu, "Open recent", recentmenu },
 	{ 0, mainmenu, "Export .WAV", NULL, export_wav_action },
+	{ 0, mainmenu, "Exp. hires .WAV (longer)", NULL, export_hires_wav_action },
 	{ 0, mainmenu, "Export tracks as .WAV", NULL, export_channels_action },
 	{ 0, mainmenu, "Import", importmenu },
 	{ 0, mainmenu, "", NULL, NULL },

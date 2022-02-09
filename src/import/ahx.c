@@ -306,7 +306,7 @@ int import_ahx(FILE *f)
 			mused.song.pattern[pat].step[s].note = note ? (note - 1) : MUS_NOTE_NONE;
 			mused.song.pattern[pat].step[s].instrument = instrument ? instrument - 1 : MUS_NOTE_NO_INSTRUMENT;
 			mused.song.pattern[pat].step[s].ctrl = 0;
-			mused.song.pattern[pat].step[s].command = find_command_ahx(command, data, &mused.song.pattern[pat].step[s].ctrl);
+			mused.song.pattern[pat].step[s].command[0] = find_command_ahx(command, data, &mused.song.pattern[pat].step[s].ctrl);
 			mused.song.pattern[pat].step[s].volume = MUS_NOTE_NO_VOLUME;
 		}
 	}

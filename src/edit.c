@@ -39,11 +39,16 @@ static int find_unused_pattern()
 	{
 		int not_empty = 0;
 		for (int s = 0; s < mused.song.pattern[empty].num_steps && !not_empty; ++s)
-			if ((empty == current_pattern() && mused.focus == EDITPATTERN) || (mused.song.pattern[empty].step[s].note != MUS_NOTE_NONE
-				|| mused.song.pattern[empty].step[s].ctrl != 0
-				|| mused.song.pattern[empty].step[s].instrument != MUS_NOTE_NO_INSTRUMENT
-				|| mused.song.pattern[empty].step[s].command != 0))
-				not_empty = 1;
+			for(int i = 0; i < MUS_MAX_COMMANDS; ++i)
+			{
+				if ((empty == current_pattern() && mused.focus == EDITPATTERN) || (mused.song.pattern[empty].step[s].note != MUS_NOTE_NONE
+					|| mused.song.pattern[empty].step[s].ctrl != 0
+					|| mused.song.pattern[empty].step[s].instrument != MUS_NOTE_NO_INSTRUMENT
+					|| mused.song.pattern[empty].step[s].command[i] != 0))
+						not_empty = 1;
+			}			
+						
+				//mused.song.pattern[empty].step[s].command != 0
 
 		for (int c = 0; c < mused.song.num_channels && !not_empty; ++c)
 		{
@@ -175,7 +180,11 @@ void zero_step(MusStep *step)
 	step->instrument = MUS_NOTE_NO_INSTRUMENT;
 	step->volume = MUS_NOTE_NO_VOLUME;
 	step->ctrl = 0;
-	step->command = 0;
+	
+	for(int i = 0; i < MUS_MAX_COMMANDS; ++i)
+	{
+		step->command[i] = 0;
+	}
 }
 
 
@@ -189,6 +198,7 @@ void expand_pattern(void *factor, void *unused2, void *unused3)
 		return;
 
 	MusStep *temp = malloc(pattern->num_steps * sizeof(pattern->step[0]));
+	
 	memcpy(temp, pattern->step, pattern->num_steps * sizeof(pattern->step[0]));
 
 	snapshot(S_T_PATTERN);
@@ -246,7 +256,7 @@ void interpolate(void *unused1, void *unused2, void *unused3)
 
 	int start_step = get_patternstep(mused.selection.start, mused.current_sequencetrack);
 
-	Uint16 command = pat->step[start_step].command;
+	Uint16 command = pat->step[start_step].command[(mused.current_patternx - PED_COMMAND1) / 4];
 	Uint16 mask = 0xff00;
 
 	if ((command & 0xf000) == MUS_FX_CUTOFF_FINE_SET
@@ -255,8 +265,8 @@ void interpolate(void *unused1, void *unused2, void *unused3)
 
 	command &= mask;
 
-	int begin = pat->step[start_step].command & ~mask;
-	int end = pat->step[start_step + mused.selection.end - 1 - mused.selection.start].command & ~mask;
+	int begin = pat->step[start_step].command[(mused.current_patternx - PED_COMMAND1) / 4] & ~mask;
+	int end = pat->step[start_step + mused.selection.end - 1 - mused.selection.start].command[(mused.current_patternx - PED_COMMAND1) / 4] & ~mask;
 
 	int l = mused.selection.end - mused.selection.start - 1;
 
@@ -264,10 +274,10 @@ void interpolate(void *unused1, void *unused2, void *unused3)
 
 	for (int i = start_step, p = 0; p < mused.selection.end - mused.selection.start; ++i, ++p)
 	{
-		if ((pat->step[i].command) == 0)
+		if ((pat->step[i].command[(mused.current_patternx - PED_COMMAND1) / 4]) == 0)
 		{
 			Uint16 val = begin + (end - begin) * p / l;
-			pat->step[i].command = command | val;
+			pat->step[i].command[(mused.current_patternx - PED_COMMAND1) / 4] = command | val;
 		}
 	}
 }

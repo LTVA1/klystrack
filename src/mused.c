@@ -140,7 +140,12 @@ void clear_pattern_range(MusPattern *pat, int first, int last)
 		pat->step[i].note = MUS_NOTE_NONE;
 		pat->step[i].instrument = MUS_NOTE_NO_INSTRUMENT;
 		pat->step[i].ctrl = 0;
-		pat->step[i].command = 0;
+		
+		for(int j = 0; j < MUS_MAX_COMMANDS; ++j)
+		{
+			pat->step[i].command[j] = 0;
+		}
+		
 		pat->step[i].volume = MUS_NOTE_NO_VOLUME;
 	}
 }
@@ -179,6 +184,11 @@ void new_song()
 	mused.modified = false;
 
 	set_channels(mused.song.num_channels);
+	
+	for(int i = 0; i < NUM_PATTERNS; i++)
+	{
+		mused.song.pattern[i].command_columns = 0;
+	}
 }
 
 
@@ -281,6 +291,14 @@ void init(MusInstrument *instrument, MusPattern *pattern, MusSeqPattern sequence
 		mused.song.pattern[i].num_steps = 0;
 		mused.song.pattern[i].color = 0;
 		resize_pattern(&mused.song.pattern[i], mused.default_pattern_length);
+		
+		for(int j = 0; j < mused.default_pattern_length; j++) //wasn't there
+		{
+			for(int k = 0; k < MUS_MAX_COMMANDS; ++k)
+			{
+				mused.song.pattern[i].step[j].command[k] = 0;
+			}
+		}
 	}
 
 	undo_init(&mused.undo);
@@ -394,7 +412,42 @@ int viscol(int col)
 		VC_COMMAND,
 		VC_COMMAND,
 		VC_COMMAND,
-		VC_COMMAND
+		VC_COMMAND,
+		
+		VC_COMMAND,
+		VC_COMMAND,
+		VC_COMMAND,
+		VC_COMMAND,
+		
+		VC_COMMAND,
+		VC_COMMAND,
+		VC_COMMAND,
+		VC_COMMAND,
+		
+		VC_COMMAND,
+		VC_COMMAND,
+		VC_COMMAND,
+		VC_COMMAND,
+		
+		VC_COMMAND,
+		VC_COMMAND,
+		VC_COMMAND,
+		VC_COMMAND,
+		
+		VC_COMMAND,
+		VC_COMMAND,
+		VC_COMMAND,
+		VC_COMMAND,
+		
+		VC_COMMAND,
+		VC_COMMAND,
+		VC_COMMAND,
+		VC_COMMAND,
+		
+		VC_COMMAND,
+		VC_COMMAND,
+		VC_COMMAND,
+		VC_COMMAND,
 	};
 	return !(mused.flags & COMPACT_VIEW) || (mused.visible_columns & tab[col]);
 }

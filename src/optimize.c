@@ -73,9 +73,19 @@ bool is_pattern_equal(const MusPattern *a, const MusPattern *b)
 		if (a->step[i].note != b->step[i].note 
 			|| a->step[i].instrument != b->step[i].instrument
 			|| a->step[i].volume != b->step[i].volume
-			|| a->step[i].ctrl != b->step[i].ctrl
-			|| a->step[i].command != b->step[i].command)
+			|| a->step[i].ctrl != b->step[i].ctrl)
 			return false;
+		
+		else
+		{
+			for(int i1 = 0; i1 < MUS_MAX_COMMANDS; ++i1)
+			{
+				if(a->step[i].command[i1] != b->step[i].command[i1])
+				{
+					return false;
+				}
+			}
+		}
 
 	return true;
 }
@@ -87,9 +97,19 @@ bool is_pattern_empty(const MusPattern *a)
 		if (a->step[i].note != MUS_NOTE_NONE
 			|| a->step[i].instrument != MUS_NOTE_NO_INSTRUMENT
 			|| a->step[i].volume != MUS_NOTE_NO_VOLUME
-			|| a->step[i].ctrl != 0
-			|| a->step[i].command != 0)
+			|| a->step[i].ctrl != 0)
 			return false;
+		
+		else
+		{
+			for(int i1 = 0; i1 < MUS_MAX_COMMANDS; ++i1)
+			{
+				if(a->step[i].command[i1] != 0)
+				{
+					return false;
+				}
+			}
+		}
 
 	return true;
 }
@@ -156,10 +176,13 @@ bool is_wavetable_used(const MusSong *song, int wavetable)
 	{
 		for (int i = 0; i < song->pattern[p].num_steps; ++i)
 		{
-			if ((song->pattern[p].step[i].command) == (MUS_FX_SET_WAVETABLE_ITEM | wavetable))
+			for(int i1 = 0; i1 < MUS_MAX_COMMANDS; ++i1)
 			{
-				debug("Wavetable %x used by pattern %x command (step %d)", wavetable, p, i);
-				return true;
+				if ((song->pattern[p].step[i].command[i1]) == (MUS_FX_SET_WAVETABLE_ITEM | wavetable))
+				{
+					debug("Wavetable %x used by pattern %x command %d (step %d)", wavetable, p, i1, i);
+					return true;
+				}
 			}
 		}
 	}
@@ -194,12 +217,15 @@ static void remove_wavetable(MusSong *song, CydEngine *cyd, int wavetable)
 	{
 		for (int i = 0; i < song->pattern[p].num_steps; ++i)
 		{
-			if ((song->pattern[p].step[i].command & 0xff00) == MUS_FX_SET_WAVETABLE_ITEM)
+			for(int i1 = 0; i1 < MUS_MAX_COMMANDS; ++i1)
 			{
-				Uint8 param = song->pattern[p].step[i].command & 0xff;
-				
-				if (param > wavetable)
-					song->pattern[p].step[i].command = MUS_FX_SET_WAVETABLE_ITEM | (param - 1);
+				if ((song->pattern[p].step[i].command[i1] & 0xff00) == MUS_FX_SET_WAVETABLE_ITEM)
+				{
+					Uint8 param = song->pattern[p].step[i].command[i1] & 0xff;
+					
+					if (param > wavetable)
+						song->pattern[p].step[i].command[i1] = MUS_FX_SET_WAVETABLE_ITEM | (param - 1);
+				}
 			}
 		}
 	}
@@ -331,7 +357,7 @@ void kill_empty_patterns(MusSong *song, void* no_confirm) //wasn't there
 }
 
 
-void optimize_patterns_brute(MusSong *song, void* no_confirm) //wasn't there
+void optimize_patterns_brute(MusSong *song) //wasn't there
 {
 	if (!confirm(domain, mused.slider_bevel, &mused.largefont, "Kill all patterns' redundant data (no undo)?"))
 		return;
@@ -396,9 +422,12 @@ void optimize_patterns_brute(MusSong *song, void* no_confirm) //wasn't there
 			
 			for(int j = 0; j < song->pattern[i].num_steps; j++)
 			{
-				if((song->pattern[i].step[j].command & 0xff00) == MUS_FX_SKIP_PATTERN)
+				for(int i1 = 0; i1 < MUS_MAX_COMMANDS; ++i1)
 				{
-					cut_flag = 1;
+					if((song->pattern[i].step[j].command[i1] & 0xff00) == MUS_FX_SKIP_PATTERN)
+					{
+						cut_flag = 1;
+					}
 				}
 			}
 			
@@ -408,23 +437,40 @@ void optimize_patterns_brute(MusSong *song, void* no_confirm) //wasn't there
 			{
 				for(int j = temp - 1; j >= 0; j--)
 				{
-					if (song->pattern[i].step[j].note == MUS_NOTE_NONE
-					&& song->pattern[i].step[j].instrument == MUS_NOTE_NO_INSTRUMENT
-					&& song->pattern[i].step[j].volume == MUS_NOTE_NO_VOLUME
-					&& song->pattern[i].step[j].ctrl == 0
-					&& song->pattern[i].step[j].command == 0x0000 && flag == 0)
-					{
-						song->pattern[i].num_steps--;
-					}
-					
-					if(song->pattern[i].step[j].note != MUS_NOTE_NONE
-					|| song->pattern[i].step[j].instrument != MUS_NOTE_NO_INSTRUMENT
-					|| song->pattern[i].step[j].volume != MUS_NOTE_NO_VOLUME
-					|| song->pattern[i].step[j].ctrl != 0
-					|| song->pattern[i].step[j].command != 0x0000)
-					{
-						flag = 1;
-					}
+					//for(int i1 = 0; i1 < MUS_MAX_COMMANDS; ++i1)
+					//{
+						if (song->pattern[i].step[j].note == MUS_NOTE_NONE
+						&& song->pattern[i].step[j].instrument == MUS_NOTE_NO_INSTRUMENT
+						&& song->pattern[i].step[j].volume == MUS_NOTE_NO_VOLUME
+						&& song->pattern[i].step[j].ctrl == 0
+						&& song->pattern[i].step[j].command[0] == 0x0000 
+						&& song->pattern[i].step[j].command[1] == 0x0000 
+						&& song->pattern[i].step[j].command[2] == 0x0000 
+						&& song->pattern[i].step[j].command[3] == 0x0000 
+						&& song->pattern[i].step[j].command[4] == 0x0000 
+						&& song->pattern[i].step[j].command[5] == 0x0000 
+						&& song->pattern[i].step[j].command[6] == 0x0000 
+						&& song->pattern[i].step[j].command[7] == 0x0000 && flag == 0)
+						{
+							song->pattern[i].num_steps--;
+						}
+						
+						if(song->pattern[i].step[j].note != MUS_NOTE_NONE
+						|| song->pattern[i].step[j].instrument != MUS_NOTE_NO_INSTRUMENT
+						|| song->pattern[i].step[j].volume != MUS_NOTE_NO_VOLUME
+						|| song->pattern[i].step[j].ctrl != 0
+						|| song->pattern[i].step[j].command[0] != 0x0000
+						|| song->pattern[i].step[j].command[1] != 0x0000
+						|| song->pattern[i].step[j].command[2] != 0x0000
+						|| song->pattern[i].step[j].command[3] != 0x0000
+						|| song->pattern[i].step[j].command[4] != 0x0000
+						|| song->pattern[i].step[j].command[5] != 0x0000
+						|| song->pattern[i].step[j].command[6] != 0x0000
+						|| song->pattern[i].step[j].command[7] != 0x0000)
+						{
+							flag = 1;
+						}
+					//}
 				}
 			}
 		}
@@ -493,7 +539,7 @@ void kill_duplicate_wavetables(MusSong *song, CydEngine *cyd) //wasn't there
 				{
 					Uint8 flag = 0;
 					
-					for(int k = 0; k < cyd->wavetable_entries[j].samples; k++) //TODO: add support for 8-bit samples
+					for(int k = 0; k < cyd->wavetable_entries[j].samples; k++)
 					{
 						if(*(cyd->wavetable_entries[i].data + k) != *(cyd->wavetable_entries[j].data + k))
 						{
@@ -526,9 +572,12 @@ void kill_duplicate_wavetables(MusSong *song, CydEngine *cyd) //wasn't there
 						{
 							for (int w = 0; w < song->pattern[p].num_steps; ++w)
 							{
-								if ((song->pattern[p].step[w].command & 0x3B00) == 0x3B00 && (song->pattern[p].step[w].command & 0x00FF) == j && (song->pattern[p].step[w].command & 0xFF00) != 0xFF00)
+								for(int i1 = 0; i1 < MUS_MAX_COMMANDS; ++i1)
 								{
-									song->pattern[p].step[w].command = 0x3B00 + i;
+									if ((song->pattern[p].step[w].command[i1] & 0x3B00) == 0x3B00 && (song->pattern[p].step[w].command[i1] & 0x00FF) == j && (song->pattern[p].step[w].command[i1] & 0xFF00) != 0xFF00)
+									{
+										song->pattern[p].step[w].command[i1] = 0x3B00 + i;
+									}
 								}
 							}
 						}
@@ -590,7 +639,7 @@ void duplicate_wavetables_action(void *unused1, void *unused2, void *unused3) //
 	kill_duplicate_wavetables(&mused.song, &mused.cyd);
 }
 
-void optimize_patterns_brute_action(void *no_confirm, void *unused2, void *unused3)  //wasn't there
+void optimize_patterns_brute_action(void *unused1, void *unused2, void *unused3)  //wasn't there
 {
-	optimize_patterns_brute(&mused.song, no_confirm);
+	optimize_patterns_brute(&mused.song);
 }

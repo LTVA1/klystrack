@@ -265,7 +265,7 @@ int import_org(FILE *f)
 				}
 				
 				if (pan != CYD_PAN_CENTER)
-					step->command = MUS_FX_SET_PANNING | pan;
+					step->command[0] = MUS_FX_SET_PANNING | pan;
 				
 				if (note[n] != 255 && length[n] && !instrument[i].pi && length[n] + position[n] < header.loop_end)
 				{

@@ -373,9 +373,9 @@ int import_hubbard(FILE *f)
 				for (int c = 0; c <= hub->pattern[i].note[s].length; ++c)
 				{
 					if (hub->pattern[i].note[s].portamento < 0)
-						mused.song.pattern[i].step[pos].command = MUS_FX_PORTA_DN_LOG | (((unsigned char)hub->pattern[i].note[s].portamento) & 0x7f);
+						mused.song.pattern[i].step[pos].command[0] = MUS_FX_PORTA_DN_LOG | (((unsigned char)hub->pattern[i].note[s].portamento) & 0x7f);
 					else
-						mused.song.pattern[i].step[pos].command = MUS_FX_PORTA_UP_LOG | hub->pattern[i].note[s].portamento;
+						mused.song.pattern[i].step[pos].command[0] = MUS_FX_PORTA_UP_LOG | hub->pattern[i].note[s].portamento;
 					
 					pos++;
 				}

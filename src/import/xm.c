@@ -220,7 +220,7 @@ int import_xm(FILE *f)
 				else if (volume >= 0xb0 && volume <= 0xbf)
 					step->ctrl = MUS_CTRL_VIB;
 					
-				step->command = find_command_xm((fx << 8) | param);
+				step->command[0] = find_command_xm((fx << 8) | param);
 			}
 		}
 	}

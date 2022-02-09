@@ -272,7 +272,7 @@ int generic_field(const SDL_Event *e, const SDL_Rect *area, int focus, int param
 
 	font_write_args(&mused.largefont, domain, &field, format, value);
 
-	int r =  spinner(domain, e, &spinner_area, mused.slider_bevel, (Uint32)area->x << 16 | area->y);
+	int r = spinner(domain, e, &spinner_area, mused.slider_bevel, (Uint32)area->x << 16 | area->y);
 
 	check_mouse_hit(e, area, focus, param);
 
@@ -421,21 +421,21 @@ void songinfo2_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 
 	int d, tmp = r.w;
 
-	r.w -= 26;
+	r.w -= 34; //26
 
-	d = generic_field(event, &r, EDITSONGINFO, SI_SPEED1, "SPD","%01X", MAKEPTR(mused.song.song_speed), 1);
+	d = generic_field(event, &r, EDITSONGINFO, SI_SPEED1, "SPD","%02X", MAKEPTR(mused.song.song_speed), 2);
 	songinfo_add_param(d);
 
 	r.x += r.w;
-	r.w = 26;
+	r.w = 34; //26
 
-	d = generic_field(event, &r, EDITSONGINFO, SI_SPEED2, "","%01X", MAKEPTR(mused.song.song_speed2), 1);
+	d = generic_field(event, &r, EDITSONGINFO, SI_SPEED2, "","%02X", MAKEPTR(mused.song.song_speed2), 2);
 	songinfo_add_param(d);
 	update_rect(&area, &r);
 
 	r.w = tmp;
 
-	d = generic_field(event, &r, EDITSONGINFO, SI_RATE, "RATE","%4d", MAKEPTR(mused.song.song_rate), 4);
+	d = generic_field(event, &r, EDITSONGINFO, SI_RATE, "RATE", "%5d", MAKEPTR(mused.song.song_rate), 5);
 	songinfo_add_param(d);
 	update_rect(&area, &r);
 
@@ -784,13 +784,19 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 				{
 					if (mused.current_patternx >= PED_COMMAND1)
 					{
-						Uint16 inst = mused.song.pattern[current_pattern()].step[current_patternstep()].command;
+						Uint16 inst = mused.song.pattern[current_pattern()].step[current_patternstep()].command[(mused.current_patternx - PED_COMMAND1) / 4];
 
 						if (inst != 0)
 							get_command_desc(text, sizeof(text), inst);
 						else
-							strcpy(text, "Command");
+						{
+							char buf[4];
+							strcpy(text, "Command "); //was strcpy(text, "Command");
+							
+							strcat(text, itoa((mused.current_patternx - PED_COMMAND1) / 4 + 1, buf, 10));
+						}
 					}
+					
 					else if (mused.current_patternx == PED_VOLUME1 || mused.current_patternx == PED_VOLUME2)
 					{
 						Uint16 vol = mused.song.pattern[current_pattern()].step[current_patternstep()].volume;

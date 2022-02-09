@@ -249,8 +249,11 @@ void join_paste()
 					if (s->instrument != MUS_NOTE_NO_INSTRUMENT)
 						d->instrument = s->instrument;
 						
-					if (s->command != 0)
-						d->command = s->command;
+					for(int i = 0; i < MUS_MAX_COMMANDS; ++i)
+					{
+						if (s->command[i] != 0)
+							d->command[i] = s->command[i];
+					}
 						
 					if (s->ctrl != 0)
 						d->ctrl = s->ctrl;

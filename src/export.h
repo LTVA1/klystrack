@@ -29,5 +29,6 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "snd/music.h"
 
 bool export_wav(MusSong *song, CydWavetableEntry * entry, FILE *f, int channel);
+bool export_wav_hires(MusSong *song, CydWavetableEntry * entry, FILE *f, int channel);
 
 #endif
