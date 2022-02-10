@@ -322,7 +322,9 @@ int main(int argc, char **argv)
 #ifdef DEBUG
 	Uint32 start_ticks = SDL_GetTicks();
 #endif
-
+	
+	//debug("%d", mused.song.song_info[0]);
+	
 	while (1)
 	{
 		SDL_Event e = { 0 };

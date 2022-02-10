@@ -939,7 +939,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 		char box[6], cur = ' ';
 
 		for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
-			if (mused.channel[c].instrument == inst && (mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE) && (mused.channel[c].flags & MUS_CHN_PROGRAM_RUNNING) && mused.channel[c].program_tick == i) cur = '½';
+			if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE) || ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_FM) && (mused.cyd.channel[c].fm.adsr.envelope != 0) && !(mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE))) && (mused.channel[c].flags & MUS_CHN_PROGRAM_RUNNING) && mused.channel[c].program_tick == i) cur = '½'; //where arrow pointing at current instrument program step is drawn
 
 		if (inst->program[i] == MUS_FX_NOP)
 		{
