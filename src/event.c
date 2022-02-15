@@ -280,6 +280,30 @@ void instrument_add_param(int a)
 		break;
 		
 		
+		case P_EXP_VOL:
+		
+		flipbit(i->cydflags, CYD_CHN_ENABLE_EXPONENTIAL_VOLUME);
+		
+		break;
+		
+		case P_EXP_ATTACK:
+		
+		flipbit(i->cydflags, CYD_CHN_ENABLE_EXPONENTIAL_ATTACK);
+		
+		break;
+		
+		case P_EXP_DECAY:
+		
+		flipbit(i->cydflags, CYD_CHN_ENABLE_EXPONENTIAL_DECAY);
+		
+		break;
+		
+		case P_EXP_RELEASE:
+		
+		flipbit(i->cydflags, CYD_CHN_ENABLE_EXPONENTIAL_RELEASE);
+		
+		break;
+		
 		
 		case P_VOL_KSL:
 		
@@ -317,6 +341,12 @@ void instrument_add_param(int a)
 
 		clamp(i->ym_env_shape, a, 0, 3);
 
+		break;
+		
+		case P_BUZZ_ENABLE_AY8930:
+		
+		flipbit(i->cydflags, CYD_CHN_ENABLE_AY8930_BUZZ_MODE);
+		
 		break;
 
 		case P_BUZZ_FINE:
@@ -668,6 +698,32 @@ void instrument_add_param(int a)
 		clamp(i->fm_adsr.r, a, 0, 32 * ENVELOPE_SCALE - 1);
 
 		break;
+		
+		
+		case P_FM_EXP_VOL: //wasn't there
+
+		flipbit(i->fm_flags, CYD_FM_ENABLE_EXPONENTIAL_VOLUME);
+
+		break;
+		
+		case P_FM_EXP_ATTACK: //wasn't there
+
+		flipbit(i->fm_flags, CYD_FM_ENABLE_EXPONENTIAL_ATTACK);
+
+		break;
+		
+		case P_FM_EXP_DECAY: //wasn't there
+
+		flipbit(i->fm_flags, CYD_FM_ENABLE_EXPONENTIAL_DECAY);
+
+		break;
+		
+		case P_FM_EXP_RELEASE: //wasn't there
+
+		flipbit(i->fm_flags, CYD_FM_ENABLE_EXPONENTIAL_RELEASE);
+
+		break;
+		
 
 		case P_FM_ENV_START:
 
@@ -1621,7 +1677,7 @@ void pattern_event(SDL_Event *e)
 						switch_track(+1);
 
 						if (e->key.keysym.mod & KMOD_SHIFT)
-							mused.current_patternx = x;
+							mused.current_patternx = my_max(x, x);
 				}
 				
 				else
@@ -1674,14 +1730,34 @@ void pattern_event(SDL_Event *e)
 						
 						if(mused.current_sequencetrack > 0)
 						{
-							mused.current_patternx = PED_COMMAND4 + mused.song.pattern[mused.song.sequence[mused.current_sequencetrack - 1][mused.sequence_position].pattern].command_columns * 4;
-							//debug("current pattern %d, current sequence track %d, current seq pos %d", mused.song.sequence[mused.current_sequencetrack - 1][mused.current_sequencepos].pattern, mused.current_sequencetrack, mused.current_sequencepos);
+							//mused.current_patternx = PED_COMMAND4 + mused.song.pattern[mused.song.sequence[mused.current_sequencetrack - 1][mused.sequence_position].pattern].command_columns * 4;
+							debug("current pattern %d, current sequence track %d, current seq pos %d", mused.song.sequence[mused.current_sequencetrack - 1][mused.current_sequencepos].pattern, mused.current_sequencetrack, mused.current_sequencepos);
+							
+							for(int i = 0; i < NUM_SEQUENCES; ++i)
+							{
+								const MusSeqPattern *sp = &mused.song.sequence[mused.current_sequencetrack - 1][i];
+								
+								if(sp->position + mused.song.pattern[sp->pattern].num_steps >= mused.current_sequencepos && sp->position <= mused.current_sequencepos)
+								{
+									mused.current_patternx = PED_COMMAND4 + mused.song.pattern[sp->pattern].command_columns * 4;
+								}
+							}
 						}
 							
 						else
 						{
-							mused.current_patternx = PED_COMMAND4 + mused.song.pattern[mused.song.sequence[mused.song.num_channels - 1][mused.sequence_position].pattern].command_columns * 4;
-							//debug("current pattern %d, current sequence track %d, current seq pos %d", mused.song.sequence[mused.song.num_channels - 1][mused.current_sequencepos].pattern, mused.current_sequencetrack, mused.current_sequencepos);
+							//mused.current_patternx = PED_COMMAND4 + mused.song.pattern[mused.song.sequence[mused.song.num_channels - 1][mused.sequence_position].pattern].command_columns * 4;
+							debug("current pattern %d, current sequence track %d, current seq pos %d", mused.song.sequence[mused.song.num_channels - 1][mused.current_sequencepos].pattern, mused.current_sequencetrack, mused.current_sequencepos);
+							
+							for(int i = 0; i < NUM_SEQUENCES; ++i)
+							{
+								const MusSeqPattern *sp = &mused.song.sequence[mused.song.num_channels - 1][i];
+								
+								if(sp->position + mused.song.pattern[sp->pattern].num_steps >= mused.current_sequencepos && sp->position <= mused.current_sequencepos)
+								{
+									mused.current_patternx = PED_COMMAND4 + mused.song.pattern[sp->pattern].command_columns * 4;
+								}
+							}
 						}
 						
 						switch_track(-1);
@@ -1711,13 +1787,33 @@ void pattern_event(SDL_Event *e)
 							if(mused.current_sequencetrack > 0)
 							{
 								mused.current_patternx = PED_COMMAND4 + mused.song.pattern[mused.song.sequence[mused.current_sequencetrack - 1][mused.sequence_position].pattern].command_columns * 4;
-								//debug("current pattern %d, current sequence track %d, current seq pos %d", mused.song.sequence[mused.current_sequencetrack - 1][mused.current_sequencepos].pattern, mused.current_sequencetrack, mused.current_sequencepos);
+								debug("current pattern %d, current sequence track %d, current seq pos %d", mused.song.sequence[mused.current_sequencetrack - 1][mused.current_sequencepos].pattern, mused.current_sequencetrack, mused.current_sequencepos);
+								
+								for(int i = 0; i < NUM_SEQUENCES; ++i)
+								{
+									const MusSeqPattern *sp = &mused.song.sequence[mused.current_sequencetrack - 1][i];
+									
+									if(sp->position + mused.song.pattern[sp->pattern].num_steps >= mused.current_sequencepos && sp->position <= mused.current_sequencepos)
+									{
+										mused.current_patternx = PED_COMMAND4 + mused.song.pattern[sp->pattern].command_columns * 4;
+									}
+								}
 							}
 							
 							else
 							{
-								mused.current_patternx = PED_COMMAND4 + mused.song.pattern[mused.song.sequence[mused.song.num_channels - 1][mused.sequence_position].pattern].command_columns * 4;
-								//debug("current pattern %d, current sequence track %d, current seq pos %d", mused.song.sequence[mused.song.num_channels - 1][mused.current_sequencepos].pattern, mused.current_sequencetrack, mused.current_sequencepos);
+								//mused.current_patternx = PED_COMMAND4 + mused.song.pattern[mused.song.sequence[mused.song.num_channels - 1][mused.sequence_position].pattern].command_columns * 4;
+								debug("current pattern %d, current sequence track %d, current seq pos %d", mused.song.sequence[mused.song.num_channels - 1][mused.current_sequencepos].pattern, mused.current_sequencetrack, mused.current_sequencepos);
+								
+								for(int i = 0; i < NUM_SEQUENCES; ++i)
+								{
+									const MusSeqPattern *sp = &mused.song.sequence[mused.song.num_channels - 1][i];
+									
+									if(sp->position + mused.song.pattern[sp->pattern].num_steps >= mused.current_sequencepos && sp->position <= mused.current_sequencepos)
+									{
+										mused.current_patternx = PED_COMMAND4 + mused.song.pattern[sp->pattern].command_columns * 4;
+									}
+								}
 							}
 							
 							//mused.current_patternx = PED_COMMAND4;

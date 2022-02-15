@@ -525,6 +525,16 @@ void playstop_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Even
 	update_rect(&area, &r);
 }
 
+char* my_itoa(int num, char *str)
+{
+    if(str == NULL)
+    {
+		return NULL;
+    }
+    sprintf(str, "%d", num);
+    return str;
+}
+
 
 void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
@@ -625,6 +635,10 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Envelope decay",
 					"Envelope sustain",
 					"Envelope release",
+					"Enable exponential volume", //wasn't there
+					"Enable exponential attack", //wasn't there
+					"Enable exponential decay", //wasn't there
+					"Enable exponential release", //wasn't there
 					"Enable volume key scaling", //wasn't there
 					"Volume key scaling level", //wasn't there
 					"Enable envelope key scaling", //wasn't there
@@ -633,6 +647,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Buzz semitone",
 					"Buzz fine",
 					"Buzz shape",
+					"Buzz toggle AY8930 mode", //wasn't there
 					"Sync channel",
 					"Sync master channel",
 					"Ring modulation",
@@ -676,6 +691,10 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"FM decay",
 					"FM sustain",
 					"FM release",
+					"Enable FM modulator exponential volume", //wasn't there
+					"Enable FM modulator exponential attack", //wasn't there
+					"Enable FM modulator exponential decay", //wasn't there
+					"Enable FM modulator exponential release", //wasn't there
 					"FM env start",
 					"FM use wavetable",
 					"FM wavetable entry",
@@ -773,6 +792,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Selected tap",
 					"Tap delay",
 					"Tap gain",
+					"Amount of taps",
 					"Tap panning",
 				};
 
@@ -793,7 +813,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 							char buf[4];
 							strcpy(text, "Command "); //was strcpy(text, "Command");
 							
-							strcat(text, itoa((mused.current_patternx - PED_COMMAND1) / 4 + 1, buf, 10));
+							strcat(text, my_itoa((mused.current_patternx - PED_COMMAND1) / 4 + 1, buf));
 						}
 					}
 					
@@ -1028,14 +1048,17 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 
 void oscilloscope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param) //wasn't there
 {
-	if(mused.flags & SHOW_OSCILLOSCOPE)
+	if(mused.flags & SHOW_OSCILLOSCOPE_INST_EDITOR)
 	{
 		SDL_Rect area;
 		copy_rect(&area, dest);
 		bevelex(domain, &area, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
 		adjust_rect(&area, 2);
 		
-		update_oscillscope_view(dest_surface, &area);
+		int *pointer = &mused.output_buffer_counter;
+		
+		update_oscillscope_view(dest_surface, &area, mused.output_buffer, OSC_SIZE, pointer, true, (bool)(mused.flags & SHOW_OSCILLOSCOPE_MIDLINES));
+		//void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area, int* sound_buffer, int size, int* buffer_counter, bool is_translucent, bool show_midlines);
 	}
 }
 
@@ -1297,6 +1320,20 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 	inst_text(event, &r, P_RELEASE, "REL", "%02X", MAKEPTR(inst->adsr.r), 2);
 	update_rect(&frame, &r);
 	
+	int temp = r.w;
+	r.w = frame.w / 4 - 2;
+	
+	inst_flags(event, &r, P_EXP_VOL, "E.V", &inst->cydflags, CYD_CHN_ENABLE_EXPONENTIAL_VOLUME);
+	update_rect(&frame, &r);
+	inst_flags(event, &r, P_EXP_ATTACK, "ATK", &inst->cydflags, CYD_CHN_ENABLE_EXPONENTIAL_ATTACK);
+	update_rect(&frame, &r);
+	inst_flags(event, &r, P_EXP_DECAY, "DEC", &inst->cydflags, CYD_CHN_ENABLE_EXPONENTIAL_DECAY);
+	update_rect(&frame, &r);
+	inst_flags(event, &r, P_EXP_RELEASE, "REL", &inst->cydflags, CYD_CHN_ENABLE_EXPONENTIAL_RELEASE);
+	update_rect(&frame, &r);
+	
+	r.w = temp;
+	
 	inst_flags(event, &r, P_VOL_KSL, "VOL.KSL", &inst->cydflags, CYD_CHN_ENABLE_VOLUME_KEY_SCALING);
 	update_rect(&frame, &r);
 	inst_text(event, &r, P_VOL_KSL_LEVEL, "LEVEL", "%02X", MAKEPTR(inst->vol_ksl_level), 2);
@@ -1316,11 +1353,16 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 		r.w = frame.w - r.x + 4;
 		inst_text(event, &r, P_BUZZ_SEMI, "DETUNE", "%+3d", MAKEPTR((inst->buzz_offset + 0x80) >> 8), 3);
 		update_rect(&frame, &r);
-		r.w = frame.w / 2 - 8;
-		inst_text(event, &r, P_BUZZ_SHAPE, "SHAPE", "%c", MAKEPTR(inst->ym_env_shape + 0xf0), 1);
-		r.x += r.w + 2;
-		r.w = frame.w - r.x + 4;
-		inst_text(event, &r, P_BUZZ_FINE, "FINE", "%+4d", MAKEPTR((Sint8)(inst->buzz_offset & 0xff)), 4);
+		r.w = frame.w / 3 - 7; //r.w = frame.w / 3 - 8;
+		inst_text(event, &r, P_BUZZ_SHAPE, "SH", "%c", MAKEPTR(inst->ym_env_shape + 0xf0), 1);
+		r.x += r.w + 1;
+		//r.w = frame.w - r.x + 4;
+		inst_flags(event, &r, P_BUZZ_ENABLE_AY8930, "8930", &inst->cydflags, CYD_CHN_ENABLE_AY8930_BUZZ_MODE);
+		update_rect(&frame, &r);
+		
+		r.w = frame.w / 3 + 11;
+		
+		inst_text(event, &r, P_BUZZ_FINE, "F", "%+4d", MAKEPTR((Sint8)(inst->buzz_offset & 0xff)), 4);
 		update_rect(&frame, &r);
 		r.w = tmp;
 	}
@@ -1475,6 +1517,38 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 	update_rect(&frame, &r);
 	inst_text(event, &r, P_FM_RELEASE, "REL", "%02X", MAKEPTR(inst->fm_adsr.r), 2);
 	update_rect(&frame, &r);
+	
+	
+	
+	
+	int temp = r.w;
+	r.w = 82;
+	
+	inst_flags(event, &r, P_FM_EXP_VOL, "FM EXP.VOL", &inst->fm_flags, CYD_FM_ENABLE_EXPONENTIAL_VOLUME);
+	update_rect(&frame, &r);
+	
+	r.w = 35;
+	
+	inst_flags(event, &r, P_FM_EXP_ATTACK, "ATK", &inst->fm_flags, CYD_FM_ENABLE_EXPONENTIAL_ATTACK);
+	update_rect(&frame, &r);
+	
+	//r.w = init_width / 2 - 2;
+	
+	r.x = r.x - 123 + init_width / 2;
+	
+	inst_flags(event, &r, P_FM_EXP_DECAY, "DEC", &inst->fm_flags, CYD_FM_ENABLE_EXPONENTIAL_DECAY);
+	update_rect(&frame, &r);
+	
+	r.w = init_width / 2 - 39;
+	
+	inst_flags(event, &r, P_FM_EXP_RELEASE, "REL", &inst->fm_flags, CYD_FM_ENABLE_EXPONENTIAL_RELEASE);
+	update_rect(&frame, &r);
+	
+	r.w = temp;
+	
+	
+	
+	
 	inst_text(event, &r, P_FM_ENV_START, "E.START", "%02X", MAKEPTR(inst->fm_attack_start), 2);
 	update_rect(&frame, &r);
 	tmp = r.w;

@@ -13,7 +13,8 @@
 #include "../wave_action.h"
 
 #define OSC_SIZE 150
-#define OSC_MAX_CLAMP ((8192 + 4096 + 2048 - 128) * OSC_SIZE / 128 - OSC_SIZE * 4)
-#define TRIGGER_LEVEL 200
+//#define 
+//#define SCALE_MULT 150
+#define TRIGGER_LEVEL 400
 
-void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area);
+void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area, int* sound_buffer, int size, int* buffer_counter, bool is_translucent, bool show_midlines);

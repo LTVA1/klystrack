@@ -414,6 +414,8 @@ void load_theme(const char *name)
 		{
 			if (mused.console) console_destroy(mused.console);
 			mused.console = console_create(&res);
+			
+			mused.info_console = unicode_console_create(&res); //temporary
 
 			font_destroy(&mused.largefont);
 			font_load_and_set_color(&mused.largefont, &res, "8x8.fnt", colors[COLOR_MAIN_TEXT]);

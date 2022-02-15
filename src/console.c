@@ -43,6 +43,17 @@ void console_set_background(Console * c, int enabled)
 		c->font.tiledescriptor[i].surface = c->font.surface;*/
 }
 
+void unicode_console_set_background(Unicode_console * uc, int enabled)
+{
+	uc->background = enabled;
+	/*c->font.surface->surface = c->fontsurface[enabled];
+	
+	int l = strlen(c->font.charmap);
+			
+	for (int i = 0; i < l; ++i)
+		c->font.tiledescriptor[i].surface = c->font.surface;*/
+}
+
 
 void console_set_color(Console* console, Uint32 color)
 {
@@ -98,6 +109,26 @@ Console * console_create(Bundle *b)
 	c->clip.h = domain->screen_h;
 	
 	return c;
+}
+
+Unicode_console * unicode_console_create(Bundle *b)
+{
+	Unicode_console * uc = calloc(1, sizeof(*uc));
+	
+	debug("Unnecessary huge console takes %d bytes from RAM", sizeof(*uc));
+	
+	uc->cursor = 0;
+		
+	unicode_font_load(domain, &uc->u_font, b, "8x8.fnt");
+	
+	unicode_console_set_background(uc, 0);
+	
+	uc->clip.x = 0;
+	uc->clip.y = 0;
+	uc->clip.w = domain->screen_w;
+	uc->clip.h = domain->screen_h;
+	
+	return uc;
 }
 
 

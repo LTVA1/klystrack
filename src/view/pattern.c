@@ -130,7 +130,7 @@ void pattern_view_header(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 					button_event(dest_surface, event, &expand, mused.slider_bevel,
 						BEV_BUTTON, 
 						BEV_BUTTON_ACTIVE, 
-						DECAL_EXPAND, action, channel, 0, 0);
+						DECAL_EXPAND, action, MAKEPTR(channel), 0, 0);
 				} //plus = button_event(dest, event, &area, gfx, BEV_BUTTON, BEV_BUTTON_ACTIVE, DECAL_PLUS, NULL, MAKEPTR(0x81000000 | ((Uint32)area.x << 16 | area.y)), 0, NULL) & 1;
 				
 				if(mused.song.pattern[current_pattern_for_channel(channel)].command_columns > 0)
@@ -140,7 +140,7 @@ void pattern_view_header(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 					button_event(dest_surface, event, &collapse, mused.slider_bevel,
 						BEV_BUTTON, 
 						BEV_BUTTON_ACTIVE, 
-						DECAL_COLLAPSE, action, channel, 0, 0);
+						DECAL_COLLAPSE, action, MAKEPTR(channel), 0, 0);
 				}
 			//}
 			//debug("%d", mused.song.pattern[current_pattern_for_channel(channel)].command_columns);
@@ -576,7 +576,8 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 									}
 									
 									font_write_args(&mused.console->font, dest_surface, &pos, "%c", c);
-								}									
+								}
+								
 								else
 								{
 									font_write_args(&mused.console->font, dest_surface, &pos, "%X", (s->volume >> (4 - (param - PED_VOLUME1) * 4)) & 0xf);
@@ -752,6 +753,27 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 			SDL_Rect r = { track.x + track.w / 2 - w / 2 , row.y - h, w, h };
 			SDL_Rect sr = { 0, mused.vu_meter->surface->h - h, mused.vu_meter->surface->w, h };
 			gfx_blit(mused.vu_meter, &sr, dest_surface, &r);
+		}
+		
+		//oscilloscope per track
+		if(mused.flags & SHOW_OSCILLOSCOPES_PATTERN_EDITOR)
+		{
+			gfx_domain_set_clip(dest_surface, &track);
+			
+			SDL_Rect area;
+			copy_rect(&area, &track);
+			
+			//area.y += 15;
+			area.h = my_min(track.w * 2 / 3, 104);
+			area.w = my_min(track.w, 104 * 3 / 2);
+			
+			bevelex(domain, &area, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
+			adjust_rect(&area, 2);
+
+			int *pointer = &mused.channels_output_buffer_counters[channel];
+			
+			update_oscillscope_view(dest_surface, &area, mused.channels_output_buffers[channel], my_min(((channel == mused.current_sequencetrack) ? mused.widths[channel][0] : mused.widths[channel][1]) / 8, 104), pointer, false, (bool)(mused.flags & SHOW_OSCILLOSCOPE_MIDLINES));
+			//void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area, int* sound_buffer, int size, int* buffer_counter, bool is_translucent, bool show_midlines);
 		}
 	}
 	

@@ -66,6 +66,8 @@ enum
 #define NUM_INSTRUMENTS 255
 #define NUM_SEQUENCES 2048
 
+#define GAME_MAX_BULLETS 4096
+
 enum
 {
 	COMPACT_VIEW = 1,
@@ -100,8 +102,12 @@ enum
 	DISABLE_BACKUPS = 65536 << 12,
 	START_WITH_TEMPLATE = 65536 << 13,
 	USE_SYSTEM_CURSOR = 65536 << 14,
-	SHOW_OSCILLOSCOPE = 65536 << 15,
+	SHOW_OSCILLOSCOPE_INST_EDITOR = ((Uint64)65536 << 15),
+	SHOW_OSCILLOSCOPES_PATTERN_EDITOR = ((Uint64)65536 << 16),
+	SHOW_OSCILLOSCOPE_MIDLINES = ((Uint64)65536 << 17),
 };
+
+//const Uint64 SHOW_OSCILLOSCOPES_PATTERN_EDITOR = ((Uint64)65536 << 16);
 
 enum
 {
@@ -124,6 +130,9 @@ typedef struct
 	Uint32 visible_columns;
 	int done;
 	Console *console;
+	
+	Unicode_console *info_console;
+	
 	MusSong song;
 	CydEngine cyd;
 	MusEngine mus;
@@ -138,6 +147,11 @@ typedef struct
 	Uint16 time_signature;
 	Clipboard cp;
 	char * edit_buffer;
+	
+	Uint8 unite_bits_buffer[MUS_PROG_LEN]; //wasn't there
+	Uint8 unite_bits_to_paste;
+	Uint8 paste_pointer;
+	
 	int edit_buffer_size;
 	SliderParam sequence_slider_param, pattern_slider_param, program_slider_param, instrument_list_slider_param, 
 		pattern_horiz_slider_param, sequence_horiz_slider_param, wavetable_list_slider_param;
@@ -207,10 +221,36 @@ typedef struct
 	
 	int oversample;
 	
+	/* Oscilloscope stuff */
+	
 	int output_buffer[9192]; //wasn't there
 	int output_buffer_counter;
 	
+	int channels_output_buffers[MUS_MAX_CHANNELS][9192]; //wasn't there
+	int channels_output_buffer_counters[MUS_MAX_CHANNELS];
+	
+	/* For expand-collapse of additional command columns */
+	
 	int widths[MUS_MAX_CHANNELS][2]; //[0] normal width, [1] narrow width
+	
+	struct 
+	{
+		struct
+		{
+			Sint16 x, y;
+			Uint8 speed_x, speed_y, tile_index;
+			bool is_attracted;
+			Uint8 attraction_level;
+		} bullets[GAME_MAX_BULLETS];
+		
+		Sint16 player_x, player_y, enemy_x, enemy_y;
+		Uint8 player_state, enemy_state;
+		bool is_player_dead, is_enemy_dead;
+		
+		GfxSurface *game, *game_menu;
+		
+		Uint32 current_score, high_scores[20];
+	} game;
 } Mused;
 
 extern Mused mused;

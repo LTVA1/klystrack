@@ -412,7 +412,7 @@ void optimize_patterns_brute(MusSong *song) //wasn't there
 		}
 	}
 		
-	if (confirm(domain, mused.slider_bevel, &mused.largefont, "Shrink patterns without SKIP_PATTERN command (no undo)?"))
+	if (confirm(domain, mused.slider_bevel, &mused.largefont, "Cut patterns without SKIP_PATTERN command to the last non-empty row (no undo)?"))
 	{
 		for(int i = 0; i < song->num_patterns; i++)
 		{

@@ -495,7 +495,7 @@ static void save_fx_inner(SDL_RWops *f, CydFxSerialized *fx)
 
 	if(temp.flags & CYDFX_ENABLE_REVERB)
 	{
-		SDL_RWwrite(f, &temp.rvb.taps_quant, sizeof(temp.chr.rate), 1);
+		SDL_RWwrite(f, &temp.rvb.taps_quant, sizeof(temp.rvb.taps_quant), 1);
 		
 		for (int i = 0; i < temp.rvb.taps_quant; ++i)
 		{
@@ -511,7 +511,7 @@ static void save_fx_inner(SDL_RWops *f, CydFxSerialized *fx)
 		SDL_RWwrite(f, &temp.crushex.downsample, sizeof(temp.crushex.downsample), 1);
 	}
 	
-	if(temp.flags & CYDFX_ENABLE_CRUSH_DITHER)
+	if(temp.flags & CYDFX_ENABLE_CRUSH)
 	{
 		SDL_RWwrite(f, &temp.crushex.gain, sizeof(temp.crushex.gain), 1);
 	}

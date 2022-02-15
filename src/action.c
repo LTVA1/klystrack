@@ -514,13 +514,16 @@ void show_about_box(void *unused1, void *unused2, void *unused3)
 
 void change_channels(void *delta, void *unused1, void *unused2)
 {
-	if (CASTPTR(int,delta) < 0 && mused.song.num_channels > 1)
+	if (CASTPTR(int, delta) < 0 && mused.song.num_channels > 1)
 	{
 		set_channels(mused.song.num_channels - 1);
+		mused.cyd.n_channels = mused.song.num_channels;
 	}
+	
 	else if (CASTPTR(int,delta) > 0 && mused.song.num_channels < MUS_MAX_CHANNELS)
 	{
 		set_channels(mused.song.num_channels + 1);
+		mused.cyd.n_channels = mused.song.num_channels;
 	}
 }
 

@@ -83,21 +83,11 @@ static const Menu showmenu[] =
 	{ 0, mainmenu, "Show analyzer", NULL, MENU_CHECK, &mused.flags, (void*)SHOW_ANALYZER, 0 },
 	{ 0, mainmenu, "Analyzer", analyzermenu, NULL },
 	{ 0, mainmenu, "Show logo", NULL, MENU_CHECK, &mused.flags, (void*)SHOW_LOGO, 0 },
-	{ 0, mainmenu, "Show oscilloscope", NULL, MENU_CHECK, &mused.flags, (void*)SHOW_OSCILLOSCOPE, 0 }, //wasn't there
-	//{ 0, mainmenu, "Editor", oscilloscopemenu, NULL }, //wasn't there
+	{ 0, mainmenu, "Oscilloscope (inst. editor)", NULL, MENU_CHECK, &mused.flags, (void*)SHOW_OSCILLOSCOPE_INST_EDITOR, 0 }, //wasn't there
+	{ 0, mainmenu, "Oscilloscopes (pat. editor)", NULL, MENU_CHECK, &mused.flags, (void*)SHOW_OSCILLOSCOPES_PATTERN_EDITOR, 0 }, //wasn't there
+	{ 0, mainmenu, "Show oscilloscope midlines", NULL, MENU_CHECK, &mused.flags, (void*)SHOW_OSCILLOSCOPE_MIDLINES, 0 }, //wasn't there
 	{ 0, NULL, NULL }
 };
-
-/*Menu oscilloscopemenu[] = //wasn't there
-{
-	{ 0, showmenu, "Instrument",  NULL, change_mode_action, (void*)EDITINSTRUMENT, 0, 0 },
-	{ 0, showmenu, "Pattern",  NULL, change_mode_action, (void*)EDITPATTERN, 0, 0 },
-	{ 0, showmenu, "Sequence",  NULL, change_mode_action, (void*)EDITSEQUENCE, 0, 0 },
-	{ 0, showmenu, "Classic",  NULL, change_mode_action, (void*)EDITCLASSIC, 0, 0 },
-	{ 0, showmenu, "Effects",  NULL, change_mode_action, (void*)EDITFX, 0, 0 },
-	{ 0, showmenu, "Wavetable",  NULL, change_mode_action, (void*)EDITWAVETABLE, 0, 0 },
-	{ 0, NULL, NULL }
-};*/
 
 
 const Menu prefsmenu[];

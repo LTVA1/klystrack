@@ -38,11 +38,27 @@ typedef struct
 	int background;
 } Console;
 
+typedef struct
+{
+	Uint32 current_color;
+	Uint32 cursor;
+	
+	Unicode_font u_font;
+	
+	SDL_Rect clip;
+	int background;
+} Unicode_console;
+
 void console_set_background(Console * c, int enabled);
+
+void unicode_console_set_background(Unicode_console * uc, int enabled);
+
 void console_reset_cursor(Console * c);
 void console_set_clip(Console * c, const SDL_Rect *rect);
 void console_clear(Console *console);
 Console * console_create(Bundle *b);
+Unicode_console * unicode_console_create(Bundle *b);
+
 void console_set_color(Console* console, Uint32 color);
 const SDL_Rect * console_write(Console* console, const char *string);
 const SDL_Rect * console_write_args(Console* console, const char *string, ...)  __attribute__ ((format (printf, 2, 3)));

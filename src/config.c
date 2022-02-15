@@ -37,7 +37,7 @@ extern GfxDomain *domain;
 
 enum { C_END, C_BOOL, C_STR, C_INT };
 
-static const struct { int type; const char *name; void *param; int mask; } confitem[] =
+static const struct { int type; const char *name; void *param; Uint64 mask; } confitem[] =
 {
 	{ C_BOOL, "fullscreen", &mused.flags, FULLSCREEN },
 	{ C_INT, "pixel_size", &mused.pixel_scale },
@@ -79,7 +79,9 @@ static const struct { int type; const char *name; void *param; int mask; } confi
 	{ C_BOOL, "use_system_cursor", &mused.flags, USE_SYSTEM_CURSOR },
 	{ C_BOOL, "show_logo", &mused.flags, SHOW_LOGO }, //wasn't there
 	{ C_BOOL, "show_analyzer", &mused.flags, SHOW_ANALYZER }, //wasn't there
-	{ C_BOOL, "show_oscilloscope", &mused.flags, SHOW_OSCILLOSCOPE }, //wasn't there
+	{ C_BOOL, "show_oscilloscope_inst_editor", &mused.flags, SHOW_OSCILLOSCOPE_INST_EDITOR }, //wasn't there
+	{ C_BOOL, "show_oscilloscopes_pattern_editor", &mused.flags, SHOW_OSCILLOSCOPES_PATTERN_EDITOR }, //wasn't there
+	{ C_BOOL, "show_oscilloscope_midlines", &mused.flags, SHOW_OSCILLOSCOPE_MIDLINES }, //wasn't there
 	{ C_END }
 };
 
@@ -123,11 +125,11 @@ void load_config(const char *path, bool apply)
 								{
 									if (strcmp(value, "yes") == 0)
 									{
-										*(int*)confitem[i].param |= confitem[i].mask;
+										*(Uint64*)confitem[i].param |= confitem[i].mask;
 									}
 									else
 									{
-										*(int*)confitem[i].param &= ~confitem[i].mask;
+										*(Uint64*)confitem[i].param &= ~confitem[i].mask;
 									}
 								}
 							}
@@ -190,7 +192,7 @@ void save_config(const char *path)
 			switch (confitem[i].type)
 			{
 				case C_BOOL:
-					fprintf(f, "%s = %s\n", confitem[i].name, *(int*)confitem[i].param & confitem[i].mask ? "yes" : "no");
+					fprintf(f, "%s = %s\n", confitem[i].name, *(Uint64*)confitem[i].param & confitem[i].mask ? "yes" : "no");
 				break;
 
 				case C_STR:

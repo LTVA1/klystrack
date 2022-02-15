@@ -3,23 +3,34 @@
 
 extern Mused mused;
 
-void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area)
+void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area, int* sound_buffer, int size, int* buffer_counter, bool is_translucent, bool show_midlines)
 {
-	if(mused.output_buffer_counter >= OSC_SIZE * 8)
+	if(*buffer_counter >= (size == OSC_SIZE ? size * 8 : size * 25))
 	{
-		mused.output_buffer_counter = 0;
+		*buffer_counter = 0;
 	}
 	
-	for(int x = 0; x < area->h * 0.5; x++) //drawing black lines every two pixels so bevel is partially hidden when it is under oscilloscope
+	if(is_translucent)
 	{
-		gfx_line(domain, area->x, area->y + 2 * x, area->x + area->w - 1, area->y + 2 * x, colors[COLOR_WAVETABLE_BACKGROUND]);
+		for(int x = 0; x < area->h / 2; x++) //drawing black lines every two pixels so bevel is partially hidden when it is under oscilloscope
+		{
+			gfx_line(domain, area->x, area->y + 2 * x, area->x + area->w - 1, area->y + 2 * x, colors[COLOR_WAVETABLE_BACKGROUND]);
+		}
 	}
 	
+	else
+	{
+		for(int x = 0; x < area->h; x++) //drawing black lines every pixel so oscilloscope is fully opaque
+		{
+			gfx_line(domain, area->x, area->y + x, area->x + area->w - 1, area->y + x, colors[COLOR_WAVETABLE_BACKGROUND]);
+		}
+	}
+
 	Sint32 sample, last_sample, scaled_sample;
 	
-	for(int i = OSC_SIZE * 2 + 10; i < OSC_SIZE * 4; i++)
+	for(int i = (size == OSC_SIZE ? size * 2 : size * 16) + 10; i < (size == OSC_SIZE ? size * 8 : size * 25); i++)
 	{
-		if((mused.output_buffer[i + 1] > TRIGGER_LEVEL) && (mused.output_buffer[i] >= TRIGGER_LEVEL) && (mused.output_buffer[i - 1] <= TRIGGER_LEVEL) && (mused.output_buffer[i - 2] < TRIGGER_LEVEL)) //&& (abs(mused.output_buffer[i] - mused.output_buffer[i - 1]) < 1000))
+		if((sound_buffer[i + 1] > TRIGGER_LEVEL) && (sound_buffer[i] >= TRIGGER_LEVEL) && (sound_buffer[i - 1] <= TRIGGER_LEVEL) && (sound_buffer[i - 2] < TRIGGER_LEVEL)) //&& (abs(mused.output_buffer[i] - mused.output_buffer[i - 1]) < 1000))
 		{
 			//here comes the part with triggering
 			
@@ -28,15 +39,17 @@ void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area)
 				//debug("Trigger values: [i-2]: %d, [i-1]: %d, [i]: %d, [i+1]: %d, [i+2]: %d, [i+3]: %d, [i+4]: %d, i: %d", mused.output_buffer[i - 2], mused.output_buffer[i - 1], mused.output_buffer[i], mused.output_buffer[i + 1], mused.output_buffer[i + 2], mused.output_buffer[i + 3], mused.output_buffer[i + 4], i);
 			//}
 			
-			for (int x = i - area->w; x < area->w + i; ++x)
+			//int OSC_MAX_CLAMP = (512) * 150;
+			
+			for (int x = i - (size == OSC_SIZE ? area->w : 2 * area->w); x < (size == OSC_SIZE ? area->w : 2 * area->w) + i; ++x)
 			{
-				if(!(x & 1))
+				if(!(x & (size == OSC_SIZE ? 1 : 3)))
 				{
 					last_sample = scaled_sample;
-					sample = mused.output_buffer[x];
+					sample = sound_buffer[x];
 				}
 					
-				if(sample > OSC_MAX_CLAMP)
+				/*if(sample > OSC_MAX_CLAMP)
 				{
 					sample = OSC_MAX_CLAMP;
 				}
@@ -54,16 +67,29 @@ void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area)
 				if(last_sample < -OSC_MAX_CLAMP)
 				{
 					last_sample = -OSC_MAX_CLAMP;
-				}
+				}*/
 					
-				if(!(x & 1))
+				if(!(x & (size == OSC_SIZE ? 1 : 3))) //(size == OSC_SIZE ? 2 : 4) (size == OSC_SIZE ? area->w : 2 * area->w) (size == OSC_SIZE ? 1 : 3)
 				{
-					scaled_sample = (sample * OSC_SIZE) / 32768;
+					scaled_sample = sample * size / (OSC_SIZE * 150);
 					
-					if(x != i - area->w && x != i - area->w + 1)
+					if(x != i - (size == OSC_SIZE ? area->w : 2 * area->w) && x != i - (size == OSC_SIZE ? area->w : 2 * area->w) + 1 && (size == OSC_SIZE ? 1 : (x != i - 2 * area->w + 2)) && (size == OSC_SIZE ? 1 : (x != i - 2 * area->w + 3)))
 					{
-						gfx_line(domain, area->x + (x - i + area->w) / 2 - 1, area->h / 2 + area->y + last_sample, area->x + (x - i + area->w) / 2, area->h / 2 + area->y + scaled_sample, colors[COLOR_WAVETABLE_SAMPLE]);
+						gfx_line(domain, area->x + (x - i + (size == OSC_SIZE ? 1 : 2) * area->w) / (size == OSC_SIZE ? 2 : 4) - 1, area->h / 2 + area->y + my_min(my_max(last_sample, area->h / (-2)), area->h / 2), area->x + (x - i + (size == OSC_SIZE ? 1 : 2) * area->w) / (size == OSC_SIZE ? 2 : 4), area->h / 2 + area->y + my_min(my_max(scaled_sample, area->h / (-2)), area->h / 2), colors[COLOR_WAVETABLE_SAMPLE]);
 					}
+				}
+			}
+			
+			if(show_midlines)
+			{
+				for(int y = 0; y < area->h / 2; ++y) //vertical midline
+				{
+					gfx_line(domain, area->x + area->w / 2, area->y + 2 * y, area->x + area->w / 2, area->y + 2 * y, colors[COLOR_PATTERN_CTRL]);
+				}
+			
+				for(int x = 0; x < area->w / 2; ++x) //horizontal midline
+				{
+					gfx_line(domain, area->x + 2 * x, area->y + area->h / 2, area->x + 2 * x, area->y + area->h / 2, colors[COLOR_PATTERN_CTRL]);
 				}
 			}
 				
@@ -75,17 +101,19 @@ void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area)
 	It is done because for some reason if I compile the code with -O2 or -O3 flags part of the function that is below would not execute
 	even if it is supposed to without this debug thing. Very strange, actually. */
 	
-	if(mused.output_buffer_counter == -1)
+	if(*buffer_counter == -1)
 	{
 		debug("Trigger values:");
 	}
 	
+	//int OSC_MAX_CLAMP = (1) * size;
+	
 	for (int x = 0; x < area->w; ++x)
 	{
 		last_sample = scaled_sample;
-		sample = (mused.output_buffer[2 * x] + mused.output_buffer[2 * x + 1]) / 2;
+		sample = (sound_buffer[2 * x] + sound_buffer[2 * x + 1]) / 2;
 		
-		if(sample > OSC_MAX_CLAMP)
+		/*if(sample > OSC_MAX_CLAMP)
 		{
 			sample = OSC_MAX_CLAMP;
 		}
@@ -103,13 +131,29 @@ void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area)
 		if(last_sample < -OSC_MAX_CLAMP)
 		{
 			last_sample = -OSC_MAX_CLAMP;
-		}
+		}*/
 			
-		scaled_sample = (sample * OSC_SIZE) / 32768;
+		//scaled_sample = (sample * size) / 32768;
+		
+		scaled_sample = sample * size / (OSC_SIZE * 150);
 		
 		if(x != 0)
 		{
-			gfx_line(domain, area->x + x - 1, area->h / 2 + area->y + last_sample, area->x + x, area->h / 2 + area->y + scaled_sample, colors[COLOR_WAVETABLE_SAMPLE]);
+			gfx_line(domain, area->x + x - 1, area->h / 2 + area->y + my_min(my_max(last_sample, area->h / (-2)), area->h / 2), area->x + x, area->h / 2 + area->y + my_min(my_max(scaled_sample, area->h / (-2)), area->h / 2), colors[COLOR_WAVETABLE_SAMPLE]);
+			//gfx_line(domain, area->x + (x - i + area->w) / 2 - 1, area->h / 2 + area->y + my_min(my_max(last_sample, area->h / (-2)), area->h / 2), area->x + (x - i + area->w) / 2, area->h / 2 + area->y + my_min(my_max(scaled_sample, area->h / (-2)), area->h / 2), colors[COLOR_WAVETABLE_SAMPLE]);
+		}
+	}
+	
+	if(show_midlines)
+	{
+		for(int y = 0; y < area->h / 2; ++y) //vertical midline
+		{
+			gfx_line(domain, area->x + area->w / 2, area->y + 2 * y, area->x + area->w / 2, area->y + 2 * y, colors[COLOR_PATTERN_CTRL]);
+		}
+	
+		for(int x = 0; x < area->w / 2; ++x) //horizontal midline
+		{
+			gfx_line(domain, area->x + 2 * x, area->y + area->h / 2, area->x + 2 * x, area->y + area->h / 2, colors[COLOR_PATTERN_CTRL]);
 		}
 	}
 }

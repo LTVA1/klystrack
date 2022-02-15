@@ -42,7 +42,7 @@ bool export_wav(MusSong *song, CydWavetableEntry * entry, FILE *f, int channel)
 	MusEngine mus;
 	CydEngine cyd;
 	
-	cyd_init(&cyd, 44100, MUS_MAX_CHANNELS); //cyd_init(&cyd, 100000, MUS_MAX_CHANNELS);
+	cyd_init(&cyd, 44100, song->num_channels); //cyd_init(&cyd, 100000, MUS_MAX_CHANNELS);
 	cyd.flags |= CYD_SINGLE_THREAD;
 	mus_init_engine(&mus, &cyd);
 	mus.volume = song->master_volume;
@@ -88,6 +88,16 @@ bool export_wav(MusSong *song, CydWavetableEntry * entry, FILE *f, int channel)
 		//debug("Successful memset");
 		
 		cyd_output_buffer_stereo(&cyd, (Uint8*)buffer, sizeof(buffer));
+		
+		for(int i = 0; i < cyd.samples_output * ww->channels; ++i)
+		{
+			if(buffer[i] == -32768)
+			{
+				buffer[i]++;
+			}
+			
+			buffer[i] *= -1;
+		}
 		
 		//debug("Successful cyd_output_buffer_stereo"); //wasn't there
 		
@@ -168,7 +178,7 @@ bool export_wav_hires(MusSong *song, CydWavetableEntry * entry, FILE *f, int cha
 	MusEngine mus;
 	CydEngine cyd;
 	
-	cyd_init(&cyd, 384000, MUS_MAX_CHANNELS); //cyd_init(&cyd, 100000, MUS_MAX_CHANNELS);
+	cyd_init(&cyd, 384000, song->num_channels); //cyd_init(&cyd, 100000, MUS_MAX_CHANNELS);
 	cyd.flags |= CYD_SINGLE_THREAD;
 	mus_init_engine(&mus, &cyd);
 	mus.volume = song->master_volume;
@@ -214,6 +224,16 @@ bool export_wav_hires(MusSong *song, CydWavetableEntry * entry, FILE *f, int cha
 		//debug("Successful memset");
 		
 		cyd_output_buffer_stereo(&cyd, (Uint8*)buffer, sizeof(buffer));
+		
+		for(int i = 0; i < cyd.samples_output * ww->channels; ++i)
+		{
+			if(buffer[i] == -32768)
+			{
+				buffer[i]++;
+			}
+			
+			buffer[i] *= -1;
+		}
 		
 		//debug("Successful cyd_output_buffer_stereo"); //wasn't there
 		

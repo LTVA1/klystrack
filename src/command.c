@@ -259,7 +259,7 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst)
 
 Uint16 validate_command(Uint16 command)
 {
-	const InstructionDesc *i = get_instruction_desc(command);
+	//const InstructionDesc *i = get_instruction_desc(command);
 	
 	/*if (i)
 	{

@@ -57,8 +57,29 @@ void copy()
 		
 		case EDITPROG:
 		{
-			cp_copy_items(&mused.cp, CP_PROGRAM, &mused.song.instrument[mused.current_instrument].program[mused.selection.start], mused.selection.end-mused.selection.start, 
+			cp_copy_items(&mused.cp, CP_PROGRAM, &mused.song.instrument[mused.current_instrument].program[mused.selection.start], mused.selection.end - mused.selection.start, 
 				sizeof(mused.song.instrument[mused.current_instrument].program[0]), mused.selection.start);
+			
+			/*for(int i = 0; i < MUS_PROG_LEN; ++i)
+			{
+				mused.unite_bits_buffer[i] = 0;
+			}*/
+			
+			for(int i = mused.selection.start; i <= mused.selection.end; ++i)
+			{
+				mused.unite_bits_buffer[i] = (mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8]) & (1 << (i % 8));
+				
+				if(mused.unite_bits_buffer[i] > 0)
+				{
+					mused.unite_bits_buffer[i] = 1;
+				}
+			}
+			
+			mused.unite_bits_to_paste = mused.selection.end - mused.selection.start;
+			mused.paste_pointer = mused.selection.start;
+			//unite_bits_buffer
+			
+			//cp_copy_items(&mused.cp, CP_PROGRAM, &mused.song.instrument[mused.current_instrument].program_unite_bits[mused.selection.start / 8], (mused.selection.end - mused.selection.start) / 8 + 1, sizeof(mused.song.instrument[mused.current_instrument].program_unite_bits[0]), mused.selection.start);
 		}
 		break;
 		
@@ -189,6 +210,24 @@ void paste()
 				snapshot(S_T_INSTRUMENT);
 				cp_paste_items(&mused.cp, CP_PROGRAM, &mused.song.instrument[mused.current_instrument].program[mused.current_program_step], MUS_PROG_LEN - mused.current_program_step, 
 					sizeof(mused.song.instrument[mused.current_instrument].program[0]));
+				
+				int y = 0;
+				
+				for(int i = mused.current_program_step; i <= my_max(MUS_PROG_LEN - 1, mused.current_program_step + mused.unite_bits_to_paste); ++i, ++y)
+				{
+					//mused.unite_bits_buffer[i] = (mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8]) & (1 << (i % 8));
+					if(mused.unite_bits_buffer[mused.paste_pointer + y] == 0)
+					{
+						mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] &= ~(1 << (i % 8));
+					}
+					
+					else
+					{
+						mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] |= (1 << (i % 8));
+					}
+				}
+				
+				//cp_paste_items(&mused.cp, CP_PROGRAM, &mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_program_step / 8], (MUS_PROG_LEN - mused.current_program_step) / 8 + 1, sizeof(mused.song.instrument[mused.current_instrument].program_unite_bits[0]));
 			}
 		}
 		break;

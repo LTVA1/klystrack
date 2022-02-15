@@ -140,6 +140,11 @@ enum
 	P_SUSTAIN,
 	P_RELEASE,
 	
+	P_EXP_VOL, //wasn't there
+	P_EXP_ATTACK, //wasn't there
+	P_EXP_DECAY, //wasn't there
+	P_EXP_RELEASE, //wasn't there
+	
 	P_VOL_KSL,
 	P_VOL_KSL_LEVEL,
 	P_ENV_KSL,
@@ -149,6 +154,7 @@ enum
 	P_BUZZ_SEMI,
 	P_BUZZ_FINE,
 	P_BUZZ_SHAPE,
+	P_BUZZ_ENABLE_AY8930, //wasn't there
 	P_SYNC,
 	P_SYNCSRC,
 	P_RINGMOD,
@@ -201,6 +207,12 @@ enum
 	P_FM_DECAY,
 	P_FM_SUSTAIN,
 	P_FM_RELEASE,
+	
+	P_FM_EXP_VOL, //wasn't there
+	P_FM_EXP_ATTACK, //wasn't there
+	P_FM_EXP_DECAY, //wasn't there
+	P_FM_EXP_RELEASE, //wasn't there
+	
 	P_FM_ENV_START,
 	P_FM_WAVE,
 	P_FM_WAVE_ENTRY,
