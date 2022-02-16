@@ -20,7 +20,7 @@ A fork of klystrack chiptune tracker. A bit outdated but very good and comprehen
 - ~~More command columns (up to 8, absolutely not related to [Furnace](https://github.com/tildearrow/furnace))~~ done in v0.8
 - `.vgm` file export (oh god it will be crazy). Before export unnecessary complex algorithm checks where user fucked up (used FM instrument or sawtooth wave in case of exporting for 2A03, used anything except noise of 10th channel for Genesis etc.) and tells where exactly.
 - `.sid` export, possibly steal algorithm from goattracker or smth. 1-8 SIDs, user would specify each SID address (e.g. `$6A0F`). Sample support (4-bit and 8-bit).
-- FamiTracker files import (`.ftm`, `.0cc`, `.eft` and others, one song at a time)
+- FamiTracker files import (`.ftm`, `.0cc`, `.dnm`, `.eft` and others, one song at a time)
 - `.dmf` import (probably steal algorithm from… [you know](https://github.com/tildearrow/furnace))
 - `.a2m` (Adlib Tracker II) file import
 - `.mptm` import (OpenMPT file)
