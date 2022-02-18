@@ -554,10 +554,10 @@ int import_ahx(FILE *f)
 
 	// Amiga panning
 	// not completely panned to left and right
-	mused.song.default_panning[0] = -48;
-	mused.song.default_panning[1] = 48;
-	mused.song.default_panning[2] = 48;
-	mused.song.default_panning[3] = -48;
+	mused.song.default_panning[0] = -96; //was -48 or 48
+	mused.song.default_panning[1] = 96;
+	mused.song.default_panning[2] = 96;
+	mused.song.default_panning[3] = -96;
 
 	return 1;
 }

@@ -91,8 +91,11 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_TRIGGER_FM_RELEASE, 0xff00, "Trigger FM modulator release", "FMmodRelease", 0, 0xff}, //wasn't there
 	{MUS_FX_RESTART_PROGRAM, 0xff00, "Restart program", "Restart", 0, 0},
 	{MUS_FX_FADE_VOLUME, 0xff00, "Fade volume", "VolFade", -1, -1},
+	{MUS_FX_FM_FADE_VOLUME, 0xff00, "Fade FM modulator volume", "FMvolFade", -1, -1}, //wasn't there
 	{MUS_FX_EXT_FADE_VOLUME_UP, 0xfff0, "Fine fade volume in", "VolUpFine", 0, 0xf},
 	{MUS_FX_EXT_FADE_VOLUME_DN, 0xfff0, "Fine fade volume out", "VolDnFine", 0, 0xf},
+	{MUS_FX_FM_EXT_FADE_VOLUME_UP, 0xfff0, "Fine fade FM modulator volume in", "FMvolUpFine", 0, 0xf}, //wasn't there
+	{MUS_FX_FM_EXT_FADE_VOLUME_DN, 0xfff0, "Fine fade FM modulator volume out", "FMvolDnFine", 0, 0xf}, //wasn't there
 	{MUS_FX_EXT_PORTA_UP, 0xfff0, "Fine portamento up", "PortUpFine", 0, 0xf},
 	{MUS_FX_EXT_PORTA_DN, 0xfff0, "Fine portamento down", "PortDnFine", 0, 0xf},
 	{MUS_FX_EXT_NOTE_CUT, 0xfff0, "Note cut", "NoteCut", 0, 0xf},
@@ -112,6 +115,9 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_FM_SET_FEEDBACK, 0xfff0, "Set FM feedback", "FMFB", 0, 7},
 	{MUS_FX_FM_SET_HARMONIC, 0xff00, "Set FM multiplier", "FMMult", 0, 255},
 	{MUS_FX_FM_SET_WAVEFORM, 0xff00, "Set FM waveform", "FMWave", 0, 255},
+	
+	{MUS_FX_SET_EXPONENTIALS, 0xfff0, "Set exponential settings", "SetExpSett", 0, 0xf}, //wasn't there
+	{MUS_FX_FM_SET_EXPONENTIALS, 0xfff0, "Set FM modulator exponential settings", "SetFMexpSett", 0, 0xf}, //wasn't there
 	{0, 0, NULL}
 };
 

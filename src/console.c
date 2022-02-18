@@ -113,22 +113,22 @@ Console * console_create(Bundle *b)
 
 Unicode_console * unicode_console_create(Bundle *b)
 {
-	Unicode_console * uc = calloc(1, sizeof(*uc));
+	//Unicode_console * uc = calloc(1, sizeof(*uc));
 	
-	debug("Unnecessary huge console takes %d bytes from RAM", sizeof(*uc));
+	//debug("Unnecessary huge console takes %d bytes from RAM", sizeof(*uc));
 	
-	uc->cursor = 0;
+	//uc->cursor = 0;
 		
-	unicode_font_load(domain, &uc->u_font, b, "8x8.fnt");
+	//unicode_font_load(domain, &uc->u_font, b, "8x8.fnt");
 	
-	unicode_console_set_background(uc, 0);
+	//unicode_console_set_background(uc, 0);
 	
-	uc->clip.x = 0;
-	uc->clip.y = 0;
-	uc->clip.w = domain->screen_w;
-	uc->clip.h = domain->screen_h;
+	//uc->clip.x = 0;
+	//uc->clip.y = 0;
+	//uc->clip.w = domain->screen_w;
+	//uc->clip.h = domain->screen_h;
 	
-	return uc;
+	//return uc;
 }
 
 

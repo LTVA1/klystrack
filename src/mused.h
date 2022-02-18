@@ -223,17 +223,17 @@ typedef struct
 	
 	/* Oscilloscope stuff */
 	
-	int output_buffer[9192]; //wasn't there
-	int output_buffer_counter;
+	int output_buffer[8193]; //wasn't there
+	Uint16 output_buffer_counter;
 	
-	int channels_output_buffers[MUS_MAX_CHANNELS][9192]; //wasn't there
+	int channels_output_buffers[MUS_MAX_CHANNELS][8193]; //wasn't there
 	int channels_output_buffer_counters[MUS_MAX_CHANNELS];
 	
 	/* For expand-collapse of additional command columns */
 	
 	int widths[MUS_MAX_CHANNELS][2]; //[0] normal width, [1] narrow width
 	
-	struct 
+	/*struct 
 	{
 		struct
 		{
@@ -250,7 +250,7 @@ typedef struct
 		GfxSurface *game, *game_menu;
 		
 		Uint32 current_score, high_scores[20];
-	} game;
+	} game;*/
 } Mused;
 
 extern Mused mused;

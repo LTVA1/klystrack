@@ -203,18 +203,20 @@ void pattern_view_header(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 		
 		char tmp[4]="\xfa\xf9";
 		
-		bool is_max_pan = mused.song.default_panning[channel] == 63;
+		bool is_max_pan = mused.song.default_panning[channel] == 127;
 		if (mused.song.default_panning[channel])
-			snprintf(tmp, sizeof(tmp), "%c%X", mused.song.default_panning[channel] < 0 ? '\xf9' : '\xfa', is_max_pan ? 8 : ((abs((int)mused.song.default_panning[channel]) >> 3) & 0xf));
+			snprintf(tmp, sizeof(tmp), "%c%X", mused.song.default_panning[channel] < 0 ? '\xf9' : '\xfa', is_max_pan ? 0xf : (mused.song.default_panning[channel] == -128 ? 0xf : ((abs((int)mused.song.default_panning[channel]) >> 3) & 0xf)));
 		
 		if ((d = generic_field(event, &vol, 97, channel, "P", "%s", tmp, 2)))
 		{
 			snapshot_cascade(S_T_SONGINFO, 97, channel);
-			mused.song.default_panning[channel] = my_max(-64, my_min(63, (int)mused.song.default_panning[channel] + d * (is_max_pan ? 7 : 8)));
+			mused.song.default_panning[channel] = my_max(-128, my_min(127, (int)mused.song.default_panning[channel] + d * (is_max_pan ? 7 : 8)));
 			if (abs(mused.song.default_panning[channel]) < 8)
 				mused.song.default_panning[channel] = 0;
 		}
-				
+		
+		//debug("%d", mused.song.default_panning[channel]);
+		
 		vol.x += vol.w + 1;
 		
 		if ((d = generic_field(event, &vol, 98, channel, "V", "%02X", MAKEPTR(mused.song.default_volume[channel]), 2)))
@@ -772,7 +774,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 
 			int *pointer = &mused.channels_output_buffer_counters[channel];
 			
-			update_oscillscope_view(dest_surface, &area, mused.channels_output_buffers[channel], my_min(((channel == mused.current_sequencetrack) ? mused.widths[channel][0] : mused.widths[channel][1]) / 8, 104), pointer, false, (bool)(mused.flags & SHOW_OSCILLOSCOPE_MIDLINES));
+			update_oscillscope_view(dest_surface, &area, mused.channels_output_buffers[channel], area.w / 8, pointer, false, (bool)(mused.flags & SHOW_OSCILLOSCOPE_MIDLINES));
 			//void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area, int* sound_buffer, int size, int* buffer_counter, bool is_translucent, bool show_midlines);
 		}
 	}

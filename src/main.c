@@ -240,6 +240,8 @@ int main(int argc, char **argv)
 	createCombinedWF(TriSaw_8580,0.8,2.4,0.64); 
 	//createPulseTri(PulseTri_8580,1.4,1.9,0.68); //createPulseTri(PulseTri_8580,3.1,1.1,0.64);
 	
+	debug("%d", sizeof(mused));
+	
 	mused.output_buffer_counter = 0; //wasn't there
 
 	SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_NOPARACHUTE|SDL_INIT_TIMER);

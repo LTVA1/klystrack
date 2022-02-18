@@ -354,10 +354,10 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 	
 	if(inst->cydflags & CYD_CHN_ENABLE_FILTER)
 	{
-		temp16 = inst->cutoff;
+		temp16 = inst->cutoff | (inst->resonance << 12);
 		FIX_ENDIAN(temp16);
 		SDL_RWwrite(f, &temp16, sizeof(temp16), 1);
-		SDL_RWwrite(f, &inst->resonance, sizeof(inst->resonance), 1);
+		//SDL_RWwrite(f, &inst->resonance, sizeof(inst->resonance), 1);
 		SDL_RWwrite(f, &inst->flttype, sizeof(inst->flttype), 1);
 		SDL_RWwrite(f, &inst->slope, sizeof(inst->slope), 1);
 	}

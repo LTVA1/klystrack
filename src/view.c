@@ -2152,7 +2152,7 @@ void fx_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *eve
 		char tmp[10];
 
 		if (panning != 0)
-			snprintf(tmp, sizeof(tmp), "%c%X", panning < 0 ? '\xf9' : '\xfa', panning == 63 ? 8 : ((abs((int)panning) >> 3) & 0xf));
+			snprintf(tmp, sizeof(tmp), "%c%X", panning < 0 ? '\xf9' : '\xfa', panning == 127 ? 8 : ((abs((int)panning) >> 3) & 0xf));
 		else
 			strcpy(tmp, "\xfa\xf9");
 
