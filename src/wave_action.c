@@ -352,7 +352,7 @@ void wavegen_randomize(void *unused1, void *unused2, void *unused3)
 		}
 		
 		if (do_vol) //wasn't there
-			mused.wgset.chain[i].vol = rnd(0,255);
+			mused.wgset.chain[i].vol = rnd(0, 512);
 		else
 		{
 			mused.wgset.chain[i].vol = 255;

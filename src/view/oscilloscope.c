@@ -75,7 +75,7 @@ void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area, int* sound_b
 					
 					if(x != i - (size == OSC_SIZE ? area->w : 2 * area->w) && x != i - (size == OSC_SIZE ? area->w : 2 * area->w) + 1 && (size == OSC_SIZE ? 1 : (x != i - 2 * area->w + 2)) && (size == OSC_SIZE ? 1 : (x != i - 2 * area->w + 3)))
 					{
-						gfx_line(domain, area->x + (x - i + (size == OSC_SIZE ? 1 : 2) * area->w) / (size == OSC_SIZE ? 2 : 4) - 1, area->h / 2 + area->y + my_min(my_max(last_sample, area->h / (-2)), area->h / 2), area->x + (x - i + (size == OSC_SIZE ? 1 : 2) * area->w) / (size == OSC_SIZE ? 2 : 4), area->h / 2 + area->y + my_min(my_max(scaled_sample, area->h / (-2)), area->h / 2), colors[COLOR_WAVETABLE_SAMPLE]);
+						gfx_line(domain, area->x + (x - i + (size == OSC_SIZE ? 1 : 2) * area->w) / (size == OSC_SIZE ? 2 : 4) - 1, area->h / 2 + area->y - my_min(my_max(last_sample, area->h / (-2)), area->h / 2), area->x + (x - i + (size == OSC_SIZE ? 1 : 2) * area->w) / (size == OSC_SIZE ? 2 : 4), area->h / 2 + area->y - my_min(my_max(scaled_sample, area->h / (-2)), area->h / 2), colors[COLOR_WAVETABLE_SAMPLE]);
 					}
 				}
 			}

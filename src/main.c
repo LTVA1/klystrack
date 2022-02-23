@@ -235,17 +235,22 @@ int main(int argc, char **argv)
 	
 	debug("Starting %s", VERSION_STRING);
 	
+	//SDL_Delay(3000);
+	
 	createCombinedWF(PulseSaw_8580,1.4,1.9,0.68); //wasn't there
 	createCombinedWF(PulseTriSaw_8580,0.8,2.5,0.64); 
 	createCombinedWF(TriSaw_8580,0.8,2.4,0.64); 
 	//createPulseTri(PulseTri_8580,1.4,1.9,0.68); //createPulseTri(PulseTri_8580,3.1,1.1,0.64);
 	
-	debug("%d", sizeof(mused));
+	debug("%d", sizeof(CydFmOp));
 	
 	mused.output_buffer_counter = 0; //wasn't there
 
 	SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_NOPARACHUTE|SDL_INIT_TIMER);
 	atexit(SDL_Quit);
+	
+	//SDL_Delay(3000);
+	//debug("SDL inited");
 
 	default_settings();
 	load_config(".klystrack", false); //was `load_config(TOSTRING(CONFIG_PATH), false);`
@@ -263,15 +268,29 @@ int main(int argc, char **argv)
 	MusChannel channel[CYD_MAX_CHANNELS];
 
 	init(instrument, pattern, sequence, channel);
-
+	
+	//SDL_Delay(3000);
+	//debug("Ins pat seq channels inited");
+	
 	load_config(".klystrack", true); //was `load_config(TOSTRING(CONFIG_PATH), true);`
 
 	post_config_load();
 
 	init_scrollbars();
+	
+	//debug("before cyd inited");
+	//SDL_Delay(3000);
 
 	cyd_init(&mused.cyd, mused.mix_rate, MUS_MAX_CHANNELS);
+	
+	//SDL_Delay(5000);
+	//debug("Cyd inited");
+	
 	mus_init_engine(&mused.mus, &mused.cyd);
+	
+	//SDL_Delay(3000);
+	//debug("MusEngine inited");
+	
 	new_song();
 
 	enable_callback(true);
@@ -280,6 +299,9 @@ int main(int argc, char **argv)
 		cydfx_set(&mused.cyd.fx[i], &mused.song.fx[i], mused.cyd.sample_rate);
 
 	cyd_register(&mused.cyd, mused.mix_buffer);
+	
+	//SDL_Delay(3000);
+	//debug("Cyd registered");
 
 	if (argc > 1)
 	{

@@ -29,7 +29,7 @@ typedef struct
 	int mult, shift;
 	int exp;
 	
-	Uint8 vol; //wasn't there
+	Uint16 vol; //wasn't there
 	
 	float exp_c;
 	Uint32 flags;

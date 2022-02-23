@@ -89,16 +89,6 @@ bool export_wav(MusSong *song, CydWavetableEntry * entry, FILE *f, int channel)
 		
 		cyd_output_buffer_stereo(&cyd, (Uint8*)buffer, sizeof(buffer));
 		
-		for(int i = 0; i < cyd.samples_output * ww->channels; ++i)
-		{
-			if(buffer[i] == -32768)
-			{
-				buffer[i]++;
-			}
-			
-			buffer[i] *= -1;
-		}
-		
 		//debug("Successful cyd_output_buffer_stereo"); //wasn't there
 		
 		if (cyd.samples_output > 0)
@@ -224,16 +214,6 @@ bool export_wav_hires(MusSong *song, CydWavetableEntry * entry, FILE *f, int cha
 		//debug("Successful memset");
 		
 		cyd_output_buffer_stereo(&cyd, (Uint8*)buffer, sizeof(buffer));
-		
-		for(int i = 0; i < cyd.samples_output * ww->channels; ++i)
-		{
-			if(buffer[i] == -32768)
-			{
-				buffer[i]++;
-			}
-			
-			buffer[i] *= -1;
-		}
 		
 		//debug("Successful cyd_output_buffer_stereo"); //wasn't there
 		

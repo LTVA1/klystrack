@@ -129,6 +129,7 @@ void sequence_view_inner(GfxDomain *dest_surface, const SDL_Rect *_dest, const S
 				
 				set_cursor(&pat);
 			}
+			
 			else
 			{
 				SDL_Rect pat = { (mused.current_sequencetrack - mused.sequence_horiz_position) * (w + 1) + dest.x, (mused.current_sequencepos - top) * height / mused.sequenceview_steps + dest.y, w, height };
@@ -141,6 +142,7 @@ void sequence_view_inner(GfxDomain *dest_surface, const SDL_Rect *_dest, const S
 				set_cursor(&pat);
 			}
 		}
+		
 		else
 		{
 			set_cursor(NULL);

@@ -624,6 +624,9 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"LFSR enable",
 					"LFSR type",
 					"Quarter frequency",
+					"Lock noise pitch", //wasn't there
+					"Constant noise note", //wasn't there
+					"Enable 1-bit noise (as on NES/Gameboy)", //wasn't there
 					"Wavetable",
 					"Wavetable entry",
 					"Override volume envelope for wavetable",
@@ -929,7 +932,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 	for (int i = 0; i < start; ++i)
 	{
 		prev_pos = pos;
-		if (!(inst->program_unite_bits[i / 8] & (1 << (i % 8))) || (inst->program[i] & 0xf000) == 0xf000) ++pos; //old command if (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ++pos;
+		if (!(inst->program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->program[i] & 0xf000) == 0xf000) ++pos; //old command if (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ++pos;
 	}
 
 	gfx_domain_set_clip(domain, &clip);
@@ -976,7 +979,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 			check_event(event, console_write_args(mused.console, "%02X%c   ", i, cur),
 				select_program_step, MAKEPTR(i), 0, 0);
 			write_command(event, box, i, mused.current_program_step);
-			check_event(event, console_write_args(mused.console, "%c ", (!(inst->program_unite_bits[i / 8] & (1 << (i % 8))) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
+			check_event(event, console_write_args(mused.console, "%c ", (!(inst->program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
 				select_program_step, MAKEPTR(i), 0, 0);
 		}
 		
@@ -985,7 +988,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 			check_event(event, console_write_args(mused.console, "%02X%c%02X ", i, cur, pos),
 				select_program_step, MAKEPTR(i), 0, 0);
 			write_command(event, box, i, mused.current_program_step);
-			check_event(event, console_write_args(mused.console, "%c ", ((inst->program_unite_bits[i / 8] & (1 << (i % 8))) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
+			check_event(event, console_write_args(mused.console, "%c ", ((inst->program_unite_bits[i / 8] & (1 << (i & 7))) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
 				select_program_step, MAKEPTR(i), 0, 0);
 		}
 
@@ -997,6 +1000,11 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 				console_write_args(mused.console, "%s", notename(((inst->program[i] & 0xff00) == MUS_FX_ARPEGGIO_ABS ? 0 : inst->base_note) + (inst->program[i] & 0xff)));
 			else
 				console_write_args(mused.console, "EXT%x", inst->program[i] & 0x0f);
+		}
+		
+		else if ((inst->program[i] & 0xff00) == MUS_FX_SET_NOISE_CONSTANT_PITCH)
+		{
+			console_write_args(mused.console, "%s", notename(inst->program[i] & 0xff));
 		}
 		
 		//old command
@@ -1024,7 +1032,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 
 		prev_pos = pos;
 
-		if (!(inst->program_unite_bits[i / 8] & (1 << (i % 8))) || (inst->program[i] & 0xf000) == 0xf000) ++pos;
+		if (!(inst->program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->program[i] & 0xf000) == 0xf000) ++pos;
 	}
 
 	if (mused.focus == EDITPROG && mused.selection.start != mused.selection.end
@@ -1078,7 +1086,7 @@ static void inst_text(const SDL_Event *e, const SDL_Rect *area, int p, const cha
 		if (p >= 0) mused.selected_param = p;
 		if (p != P_INSTRUMENT) snapshot_cascade(S_T_INSTRUMENT, mused.current_instrument, p);
 		if (d < 0) instrument_add_param(-1);
-		else if (d >0) instrument_add_param(1);
+		else if (d > 0) instrument_add_param(1);
 	}
 
 	/*if (p == mused.selected_param && mused.focus == EDITINSTRUMENT)
@@ -1209,8 +1217,6 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 		SDL_Rect note;
 		copy_rect(&note, &frame);
 
-
-
 		note.w = frame.w / 2 + 2;
 		note.h = 10;
 
@@ -1270,6 +1276,28 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 		inst_flags(event, &r, P_1_4TH, "1/4TH", &inst->flags, MUS_INST_QUARTER_FREQ);
 		update_rect(&frame, &r);
 
+
+		r.w = frame.w / 2 + 26;
+		
+		inst_flags(event, &r, P_FIX_NOISE_PITCH, "LOCK NOI PIT", &inst->cydflags, CYD_CHN_ENABLE_FIXED_NOISE_PITCH);
+		update_rect(&frame, &r);
+		
+		SDL_Rect npitch;
+		copy_rect(&npitch, &frame);
+		
+		npitch.w = frame.w / 3 - 6;
+		npitch.h = 10;
+		npitch.x += frame.w / 2 + 28;
+		npitch.y += 87;
+		
+		inst_text(event, &npitch, P_FIXED_NOISE_BASE_NOTE, "", "%s", notename(inst->noise_note), 3);
+		//update_rect(&npitch, &r);
+		
+		r.w = frame.w;
+		
+		inst_flags(event, &r, P_1_BIT_NOISE, "ENABLE 1-BIT NOISE", &inst->cydflags, CYD_CHN_ENABLE_1_BIT_NOISE);
+		update_rect(&frame, &r);
+		
 		r.w = tmp;
 	}
 

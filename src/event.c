@@ -97,6 +97,7 @@ void instrument_add_param(int a)
 		switch (mused.selected_param)
 		{
 			case P_BASENOTE: a *= 12; break;
+			case P_FIXED_NOISE_BASE_NOTE: a *= 12; break;
 			case P_BUZZ_SEMI: a *= 12; break;
 			
 			case P_FM_BASENOTE: a *= 12; break; //wasn't there
@@ -124,6 +125,18 @@ void instrument_add_param(int a)
 		case P_BASENOTE:
 
 		clamp(i->base_note, a, 0, FREQ_TAB_SIZE - 1);
+
+		break;
+		
+		case P_FIXED_NOISE_BASE_NOTE:
+
+		clamp(i->noise_note, a, 0, FREQ_TAB_SIZE - 1);
+
+		break;
+		
+		case P_1_BIT_NOISE:
+
+		flipbit(i->cydflags, P_1_BIT_NOISE);
 
 		break;
 
@@ -370,7 +383,15 @@ void instrument_add_param(int a)
 		break;
 
 		case P_1_4TH:
+		
 		flipbit(i->flags, MUS_INST_QUARTER_FREQ);
+		
+		break;
+		
+		case P_FIX_NOISE_PITCH:
+		
+		flipbit(i->cydflags, CYD_CHN_ENABLE_FIXED_NOISE_PITCH);
+		
 		break;
 
 		case P_VOLUME:
@@ -844,6 +865,7 @@ static void play_the_jams(int sym, int chn, int state)
 		for (int i = 0; i < MUS_MAX_CHANNELS; ++i)
 			cyd_enable_gate(mused.mus.cyd, &mused.mus.cyd->channel[i], 0);
 	}
+	
 	else
 	{
 		int note = find_note(sym, mused.octave);
@@ -1740,6 +1762,10 @@ void pattern_event(SDL_Event *e)
 								if(sp->position + mused.song.pattern[sp->pattern].num_steps >= mused.current_sequencepos && sp->position <= mused.current_sequencepos)
 								{
 									mused.current_patternx = PED_COMMAND4 + mused.song.pattern[sp->pattern].command_columns * 4;
+									
+									debug("track %d pattern %d pos %d", mused.current_sequencetrack, sp->pattern, mused.current_patternx);
+									
+									break;
 								}
 							}
 						}
@@ -1756,6 +1782,10 @@ void pattern_event(SDL_Event *e)
 								if(sp->position + mused.song.pattern[sp->pattern].num_steps >= mused.current_sequencepos && sp->position <= mused.current_sequencepos)
 								{
 									mused.current_patternx = PED_COMMAND4 + mused.song.pattern[sp->pattern].command_columns * 4;
+									
+									debug("track %d pattern %d pos %d", mused.current_sequencetrack, sp->pattern, mused.current_patternx);
+									
+									break;
 								}
 							}
 						}
@@ -1795,7 +1825,30 @@ void pattern_event(SDL_Event *e)
 									
 									if(sp->position + mused.song.pattern[sp->pattern].num_steps >= mused.current_sequencepos && sp->position <= mused.current_sequencepos)
 									{
-										mused.current_patternx = PED_COMMAND4 + mused.song.pattern[sp->pattern].command_columns * 4;
+										{
+											mused.current_patternx = PED_COMMAND4 + mused.song.pattern[sp->pattern].command_columns * 4;
+											
+											debug("track %d pattern %d pos %d", mused.current_sequencetrack, sp->pattern, mused.current_patternx);
+											
+											break;
+										}
+										/*if((sp + 1)->position + mused.song.pattern[(sp + 1)->pattern].num_steps >= mused.current_sequencepos && (sp + 1)->position <= mused.current_sequencepos)
+										{
+											mused.current_patternx = PED_COMMAND4 + mused.song.pattern[(sp + 1)->pattern].command_columns * 4;
+										
+											debug("track %d pattern %d pos %d", mused.current_sequencetrack, sp->pattern, mused.current_patternx);
+											
+											break;
+										}
+										
+										else if((sp)->position + mused.song.pattern[(sp)->pattern].num_steps >= mused.current_sequencepos && (sp)->position <= mused.current_sequencepos)
+										{
+											mused.current_patternx = PED_COMMAND4 + mused.song.pattern[sp->pattern].command_columns * 4;
+											
+											debug("track %d pattern %d pos %d", mused.current_sequencetrack, sp->pattern, mused.current_patternx);
+											
+											break;
+										}*/
 									}
 								}
 							}
@@ -1812,6 +1865,10 @@ void pattern_event(SDL_Event *e)
 									if(sp->position + mused.song.pattern[sp->pattern].num_steps >= mused.current_sequencepos && sp->position <= mused.current_sequencepos)
 									{
 										mused.current_patternx = PED_COMMAND4 + mused.song.pattern[sp->pattern].command_columns * 4;
+										
+										debug("track %d pattern %d pos %d", mused.current_sequencetrack, sp->pattern, mused.current_patternx);
+										
+										break;
 									}
 								}
 							}
@@ -2091,7 +2148,7 @@ void edit_program_event(SDL_Event *e)
 
 				if ((mused.song.instrument[mused.current_instrument].program[mused.current_program_step] & 0xf000) != 0xf000)
 					//mused.song.instrument[mused.current_instrument].program[mused.current_program_step] ^= 0x8000; //old command mused.song.instrument[mused.current_instrument].program[mused.current_program_step] ^= 0x8000;
-					mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_program_step / 8] ^= (1 << (mused.current_program_step % 8));
+					mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_program_step / 8] ^= (1 << (mused.current_program_step & 7));
 			}
 			break;
 
@@ -2148,16 +2205,16 @@ void edit_program_event(SDL_Event *e)
 				{
 					mused.song.instrument[mused.current_instrument].program[i] = mused.song.instrument[mused.current_instrument].program[i-1];
 					
-					bool b = (mused.song.instrument[mused.current_instrument].program_unite_bits[(i - 1) / 8] & (1 << ((i - 1) % 8)));
+					bool b = (mused.song.instrument[mused.current_instrument].program_unite_bits[(i - 1) / 8] & (1 << ((i - 1) & 7)));
 					
 					if(b == false)
 					{
-						mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] &= ~(1 << (i % 8));
+						mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] &= ~(1 << (i & 7));
 					}
 					
 					else
 					{
-						mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] |= (1 << (i % 8));
+						mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] |= (1 << (i & 7));
 					}
 				}
 				mused.song.instrument[mused.current_instrument].program[mused.current_program_step] = MUS_FX_NOP;
@@ -2180,16 +2237,16 @@ void edit_program_event(SDL_Event *e)
 					{
 						mused.song.instrument[mused.current_instrument].program[i] = mused.song.instrument[mused.current_instrument].program[i+1];
 						
-						bool b = (mused.song.instrument[mused.current_instrument].program_unite_bits[(i + 1) / 8] & (1 << ((i + 1) % 8)));
+						bool b = (mused.song.instrument[mused.current_instrument].program_unite_bits[(i + 1) / 8] & (1 << ((i + 1) & 7)));
 						
 						if(b == false)
 						{
-							mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] &= ~(1 << (i % 8));
+							mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] &= ~(1 << (i & 7));
 						}
 						
 						else
 						{
-							mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] |= (1 << (i % 8));
+							mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] |= (1 << (i & 7));
 						}
 					}
 					mused.song.instrument[mused.current_instrument].program[MUS_PROG_LEN-1] = MUS_FX_NOP;
@@ -2199,7 +2256,7 @@ void edit_program_event(SDL_Event *e)
 				{
 					mused.song.instrument[mused.current_instrument].program[mused.current_program_step] = MUS_FX_NOP;
 					
-					mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_program_step / 8] &= ~(1 << (mused.current_program_step % 8));
+					mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_program_step / 8] &= ~(1 << (mused.current_program_step & 7));
 					
 					++mused.current_program_step;
 					if (mused.current_program_step >= MUS_PROG_LEN)
@@ -2566,6 +2623,7 @@ void wave_add_param(int d)
 	{
 		switch (mused.wavetable_param)
 		{
+			case W_OSCVOL: d *= 256; break;
 			default: d *= 4096; break;
 		}
 	}
@@ -2666,13 +2724,13 @@ void wave_add_param(int d)
 
 		case W_OSCMUL:
 		{
-			osc->mult = my_max(1, my_min(15, osc->mult + d));
+			osc->mult = my_max(1, my_min(255, osc->mult + d));
 		}
 		break;
 
 		case W_OSCSHIFT:
 		{
-			osc->shift = my_max(0, my_min(15, osc->shift + d));
+			osc->shift = my_max(0, my_min(255, osc->shift + d));
 		}
 		break;
 		
@@ -2680,18 +2738,18 @@ void wave_add_param(int d)
 		{
 			//osc->vol = my_min(255, osc->vol + d); 
 			//based on `clamp(i->adsr.r, a, 0, 32 * ENVELOPE_SCALE - 1);`
-			clamp(osc->vol, d, 0, 255);
+			clamp(osc->vol, d, 0, 65535);
 		}
 		break;
 
 		case W_OSCEXP:
 		{
-			osc->exp += d * 5;
+			osc->exp += d;
 
-			if (osc->exp < 5)
-				osc->exp = 5;
-			else if (osc->exp > 95)
-				osc->exp = 95;
+			if (osc->exp < 1)
+				osc->exp = 1;
+			else if (osc->exp > 99)
+				osc->exp = 99;
 		}
 		break;
 

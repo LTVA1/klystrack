@@ -43,6 +43,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "help.h"
 #include <string.h>
 
+#include "../klystron/src/snd/music.c"
+
 extern Mused mused;
 extern GfxDomain *domain;
 extern const Menu mainmenu[];
@@ -335,7 +337,7 @@ void hide_command(int channel, void *, void *) //wasn't there
 void solo_channel(void *_channel, void *unused1, void *unused2)
 {
 	int c = 0;
-	int channel = CASTPTR(int,_channel); //was int channel = CASTPTR(int,channel);
+	int channel = CASTPTR(int, _channel); //was int channel = CASTPTR(int,channel);
 	//dirty hack
 	
 	debug("Current chn %d", channel); //wasn't there
@@ -375,6 +377,8 @@ void solo_channel(void *_channel, void *unused1, void *unused2)
 
 		set_info_message("Channel %d solo", channel);
 	}
+	
+	update_all_volumes(&mused.mus);
 }
 
 

@@ -278,6 +278,11 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 	SDL_RWwrite(f, &temp32, sizeof(temp32), 1);
 	SDL_RWwrite(f, &inst->adsr, sizeof(inst->adsr), 1);
 	
+	if(inst->cydflags & CYD_CHN_ENABLE_FIXED_NOISE_PITCH)
+	{
+		SDL_RWwrite(f, &inst->noise_note, sizeof(inst->noise_note), 1);
+	}
+	
 	if(inst->cydflags & CYD_CHN_ENABLE_VOLUME_KEY_SCALING)
 	{
 		SDL_RWwrite(f, &inst->vol_ksl_level, sizeof(inst->vol_ksl_level), 1);

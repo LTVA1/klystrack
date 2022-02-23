@@ -39,6 +39,7 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_LABEL, 0xff00, "Loop begin", "Begin", 0, 0},
 	{MUS_FX_LOOP, 0xff00, "Loop end", "Loop", -1, -1},	
 	{MUS_FX_ARPEGGIO, 0xff00, "Set arpeggio note", "Arp", -1, -1},
+	{MUS_FX_SET_NOISE_CONSTANT_PITCH, 0xff00, "Set noise note in \"LOCK NOISE PITCH\" mode", "NoiPitNote", 0, FREQ_TAB_SIZE - 1}, //wasn't there
 	{MUS_FX_ARPEGGIO_ABS, 0xff00, "Set absolute arpeggio note", "AbsArp", 0, FREQ_TAB_SIZE - 1},
 	{MUS_FX_SET_EXT_ARP, 0xff00, "Set external arpeggio notes", "ExtArp", -1, -1},
 	{MUS_FX_PORTA_UP, 0xff00, "Portamento up", "PortUp", -1, -1},
@@ -58,8 +59,8 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_CUTOFF_DN, 0xff00, "Filter cutoff down", "CutoffDn", -1, -1},
 	{MUS_FX_CUTOFF_SET, 0xff00, "Set filter cutoff", "Cutoff", 0, 0xff},
 	{MUS_FX_CUTOFF_SET_COMBINED, 0xff00, "Set combined cutoff", "CutoffAHX", 0, 0xff},
-	{MUS_FX_RESONANCE_SET, 0xff00, "Set filter resonance", "Resonance", 0, 0x0f}, //was `0, 3},`
-	{MUS_FX_FILTER_TYPE, 0xff00, "Set filter type", "FltType", 0, 0x07},
+	{MUS_FX_RESONANCE_SET, 0xff00, "Set filter resonance", "Resonance", 0, 0xf}, //was `0, 3},`
+	{MUS_FX_FILTER_TYPE, 0xff00, "Set filter type", "FltType", 0, 0x7},
 	{MUS_FX_FILTER_SLOPE, 0xfff0, "Set filter slope", "FltSlope", 0, 5}, //wasn't there
 	{MUS_FX_PW_DN, 0xff00, "Pulse width down", "PWDn", -1, -1},
 	{MUS_FX_PW_UP, 0xff00, "Pulse width up", "PWUp", -1, -1},
@@ -73,7 +74,8 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_SET_ENV_KSL_LEVEL, 0xff00, "Set envelope key scaling level", "EnvKslLev", 0, 0xff}, //wasn't there
 	{MUS_FX_SET_FM_ENV_KSL_LEVEL, 0xff00, "Set FM modulator envelope key scaling level", "EnvKslFMlev", 0, 0xff}, //wasn't there
 	{MUS_FX_SET_WAVEFORM, 0xff00, "Set waveform", "Waveform", 0, 0xff},
-	{MUS_FX_OSC_MIX, 0x7ff0, "Set oscillators' mix mode", "OscMix", 0, 4}, //wasn't there
+	{MUS_FX_SET_NOISE_MODE, 0xfff0, "Set noise mode", "NoiMode", 0, 0x7}, //wasn't there
+	{MUS_FX_OSC_MIX, 0xfff0, "Set oscillators' mix mode", "OscMix", 0, 4}, //wasn't there
 	{MUS_FX_SET_WAVETABLE_ITEM, 0xff00, "Set wavetable item", "Wavetable", 0, CYD_WAVE_MAX_ENTRIES - 1},
 	{MUS_FX_SET_FXBUS, 0xff00, "Set FX bus", "SetFxBus", 0, CYD_MAX_FX_CHANNELS - 1},
 	{MUS_FX_SET_RINGSRC, 0xff00, "Set ring modulation source (FF=off)", "SetRingSrc", 0, 0xff},
@@ -101,6 +103,21 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_EXT_NOTE_CUT, 0xfff0, "Note cut", "NoteCut", 0, 0xf},
 	{MUS_FX_EXT_RETRIGGER, 0xfff0, "Retrigger", "Retrig", 0, 0xf},
 	{MUS_FX_WAVETABLE_OFFSET, 0xf000, "Wavetable offset", "WaveOffs", 0, 0xfff},
+	{MUS_FX_WAVETABLE_OFFSET_UP, 0xff00, "Wavetable offset up", "WaveOffsUp", 0, 0xff}, //wasn't there
+	{MUS_FX_WAVETABLE_OFFSET_DOWN, 0xff00, "Wavetable offset down", "WaveOffsDn", 0, 0xff}, //wasn't there
+	
+	{MUS_FX_WAVETABLE_END_POINT, 0xf000, "Wavetable end offset", "WaveEndOffs", 0, 0xfff}, //wasn't there
+	{MUS_FX_WAVETABLE_END_POINT_UP, 0xff00, "Wavetable end offset up", "WaveEndOffsUp", 0, 0xff}, //wasn't there
+	{MUS_FX_WAVETABLE_END_POINT_DOWN, 0xff00, "Wavetable end offset down", "WaveEndOffsDn", 0, 0xff}, //wasn't there
+	
+	{MUS_FX_FM_WAVETABLE_OFFSET, 0xff00, "FM wavetable offset", "FMWaveOffs", 0, 0xff}, //wasn't there
+	{MUS_FX_FM_WAVETABLE_OFFSET_UP, 0xff00, "FM wavetable offset up", "FMWaveOffsUp", 0, 0xff}, //wasn't there
+	{MUS_FX_FM_WAVETABLE_OFFSET_DOWN, 0xff00, "FM wavetable offset down", "FMWaveOffsDn", 0, 0xff}, //wasn't there
+	
+	{MUS_FX_FM_WAVETABLE_END_POINT, 0xff00, "FM wavetable end offset", "FMWaveEndOffs", 0, 0xff}, //wasn't there
+	{MUS_FX_FM_WAVETABLE_END_POINT_UP, 0xff00, "FM wavetable end offset up", "FMWaveEndOffsUp", 0, 0xff}, //wasn't there
+	{MUS_FX_FM_WAVETABLE_END_POINT_DOWN, 0xff00, "FM wavetable end offset down", "FMWaveEndOffsDn", 0, 0xff}, //wasn't there
+	
 	{MUS_FX_SET_PANNING, 0xff00, "Set panning", "SetPan", -1, -1},
 	{MUS_FX_PAN_LEFT, 0xff00, "Pan left", "PanLeft", -1, -1},
 	{MUS_FX_PAN_RIGHT, 0xff00, "Pan right", "PanRight", -1, -1},
@@ -120,82 +137,6 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_FM_SET_EXPONENTIALS, 0xfff0, "Set FM modulator exponential settings", "SetFMexpSett", 0, 0xf}, //wasn't there
 	{0, 0, NULL}
 };
-
-/*static const InstructionDesc instruction_desc[] =
-{
-	{MUS_FX_END, 0xffff, "Program end", "PrgEnd", 0, 0},
-	{MUS_FX_NOP, 0xffff, "No operation", "Nop", 0, 0},
-	{MUS_FX_JUMP, 0xff00, "Goto", NULL, -1, -1},
-	{MUS_FX_LABEL, 0xff00, "Loop begin", "Begin", 0, 0},
-	{MUS_FX_LOOP, 0xff00, "Loop end", "Loop", -1, -1},	
-	{MUS_FX_ARPEGGIO, 0x7f00, "Set arpeggio note", "Arp", -1, -1},
-	{MUS_FX_ARPEGGIO_ABS, 0x7f00, "Set absolute arpeggio note", "AbsArp", 0, FREQ_TAB_SIZE - 1},
-	{MUS_FX_SET_EXT_ARP, 0x7f00, "Set external arpeggio notes", "ExtArp", -1, -1},
-	{MUS_FX_PORTA_UP, 0x7f00, "Portamento up", "PortUp", -1, -1},
-	{MUS_FX_PORTA_DN, 0x7f00, "Portamento down", "PortDn", -1, -1},
-	{MUS_FX_PORTA_UP_LOG, 0x7f00, "Portamento up (curve)", "PortUpC", -1, -1},
-	{MUS_FX_PORTA_DN_LOG, 0x7f00, "Portamento down (curve)", "PortDnC", -1, -1},
-	{MUS_FX_EXT_NOTE_DELAY, 0x7ff0, "Note delay", "Delay", -1, -1},
-	{MUS_FX_VIBRATO, 0x7f00, "Vibrato", NULL, -1, -1},
-	{MUS_FX_TREMOLO, 0x7f00, "Tremolo", NULL, -1, -1},
-	{MUS_FX_PWM, 0x7f00, "Pulse width modification", "PWM", -1, -1}, //wasn't there
-	{MUS_FX_SLIDE, 0x7f00, "Slide", NULL, -1, -1},
-	{MUS_FX_PORTA_UP_SEMI, 0x7f00, "Portamento up (semitones)", "PortUpST", -1, -1},
-	{MUS_FX_PORTA_DN_SEMI, 0x7f00, "Portamento down (semitones)", "PortDnST", -1, -1},
-	{MUS_FX_CUTOFF_UP, 0x7f00, "Filter cutoff up", "CutoffUp", -1, -1},
-	{MUS_FX_CUTOFF_DN, 0x7f00, "Filter cutoff down", "CutoffDn", -1, -1},
-	{MUS_FX_CUTOFF_SET, 0x7f00, "Set filter cutoff", "Cutoff", 0, 0xff},
-	{MUS_FX_CUTOFF_SET_COMBINED, 0x7f00, "Set combined cutoff", "CutoffAHX", 0, 0xff},
-	{MUS_FX_RESONANCE_SET, 0x7f00, "Set filter resonance", "Resonance", 0, 0x0f}, //was `0, 3},`
-	{MUS_FX_FILTER_TYPE, 0x7f00, "Set filter type", "FltType", 0, 0x07},
-	{MUS_FX_FILTER_SLOPE, 0x7ff0, "Set filter slope", "FltSlope", 0, 5}, //wasn't there
-	{MUS_FX_PW_DN, 0x7f00, "Pulse width down", "PWDn", -1, -1},
-	{MUS_FX_PW_UP, 0x7f00, "Pulse width up", "PWUp", -1, -1},
-	{MUS_FX_PW_SET, 0x7f00, "Set pulse width", "PW", -1, -1},
-	{MUS_FX_SET_VOLUME, 0x7f00, "Set volume", "Volume", 0, 0xff},
-	{MUS_FX_FADE_GLOBAL_VOLUME, 0x7f00, "Global volume fade", "GlobFade", -1, -1},
-	{MUS_FX_SET_GLOBAL_VOLUME, 0x7f00, "Set global volume", "GlobVol", 0, MAX_VOLUME},
-	{MUS_FX_SET_CHANNEL_VOLUME, 0x7f00, "Set channel volume", "ChnVol", 0, MAX_VOLUME},
-	{MUS_FX_SET_VOL_KSL_LEVEL, 0x7f00, "Set key scaling level", "KslLev", 0, 0xff}, //wasn't there
-	{MUS_FX_SET_FM_VOL_KSL_LEVEL, 0x7f00, "Set FM modulator key scaling level", "KslFMlev", 0, 0xff}, //wasn't there
-	{MUS_FX_SET_WAVEFORM, 0x7f00, "Set waveform", "Waveform", 0, 0xff},
-	{MUS_FX_OSC_MIX, 0x7ff0, "Set oscillators' mix mode", "OscMix", 0, 4}, //wasn't there
-	{MUS_FX_SET_WAVETABLE_ITEM, 0x7f00, "Set wavetable item", "Wavetable", 0, CYD_WAVE_MAX_ENTRIES - 1},
-	{MUS_FX_SET_FXBUS, 0x7f00, "Set FX bus", "SetFxBus", 0, CYD_MAX_FX_CHANNELS - 1},
-	{MUS_FX_SET_RINGSRC, 0x7f00, "Set ring modulation source (FF=off)", "SetRingSrc", 0, 0xff},
-	{MUS_FX_SET_SYNCSRC, 0x7f00, "Set sync source (FF=off)", "SetSyncSrc", 0, 0xff},
-	{MUS_FX_SET_DOWNSAMPLE, 0x7f00, "Set downsample", "SetDnSmp", 0, 0xff},
-	{MUS_FX_SET_SPEED, 0x7f00, "Set speed", "Speed", -1, -1},
-	{MUS_FX_SET_RATE, 0x7f00, "Set rate", "Rate", -1, -1},
-	{MUS_FX_LOOP_PATTERN, 0x7f00, "Loop pattern", "PatLoop", -1, -1},
-	{MUS_FX_SKIP_PATTERN, 0x7f00, "Skip pattern", "PatSkip", -1, -1},
-	{MUS_FX_TRIGGER_RELEASE, 0x7f00, "Trigger release", "Release", 0, 0xff},
-	{MUS_FX_RESTART_PROGRAM, 0x7f00, "Restart program", "Restart", 0, 0},
-	{MUS_FX_FADE_VOLUME, 0x7f00, "Fade volume", "VolFade", -1, -1},
-	{MUS_FX_EXT_FADE_VOLUME_UP, 0x7ff0, "Fine fade volume in", "VolUpFine", 0, 0xf},
-	{MUS_FX_EXT_FADE_VOLUME_DN, 0x7ff0, "Fine fade volume out", "VolDnFine", 0, 0xf},
-	{MUS_FX_EXT_PORTA_UP, 0x7ff0, "Fine portamento up", "PortUpFine", 0, 0xf},
-	{MUS_FX_EXT_PORTA_DN, 0x7ff0, "Fine portamento down", "PortDnFine", 0, 0xf},
-	{MUS_FX_EXT_NOTE_CUT, 0x7ff0, "Note cut", "NoteCut", 0, 0xf},
-	{MUS_FX_EXT_RETRIGGER, 0x7ff0, "Retrigger", "Retrig", 0, 0xf},
-	{MUS_FX_WAVETABLE_OFFSET, 0x7000, "Wavetable offset", "WaveOffs", 0, 0xfff},
-	{MUS_FX_SET_PANNING, 0x7f00, "Set panning", "SetPan", -1, -1},
-	{MUS_FX_PAN_LEFT, 0x7f00, "Pan left", "PanLeft", -1, -1},
-	{MUS_FX_PAN_RIGHT, 0x7f00, "Pan right", "PanRight", -1, -1},
-	{MUS_FX_BUZZ_UP, 0x7f00, "Tune buzz up", "BuzzUp", -1, -1},
-	{MUS_FX_BUZZ_DN, 0x7f00, "Tune buzz down", "BuzzDn", -1, -1},
-	{MUS_FX_BUZZ_SHAPE, 0x7f00, "Set buzz shape", "BuzzShape", 0, 3},
-	{MUS_FX_BUZZ_SET, 0x7f00, "Set buzz finetune", "BuzzFine", -1, -1},
-	{MUS_FX_CUTOFF_FINE_SET, 0x7000, "Set filter cutoff (fine)", "CutFine", 0, CYD_CUTOFF_MAX - 1},
-	{MUS_FX_PW_FINE_SET, 0xf000, "Set pulse width (fine)", "PWFine", 0, 0xfff}, //wasn't there
-	{MUS_FX_BUZZ_SET_SEMI, 0x7f00, "Set buzz semitone", "BuzzSemi", -1, -1},
-	{MUS_FX_FM_SET_MODULATION, 0x7f00, "Set FM modulation", "FMMod", 0, 0x7f},
-	{MUS_FX_FM_SET_FEEDBACK, 0x7ff0, "Set FM feedback", "FMFB", 0, 7},
-	{MUS_FX_FM_SET_HARMONIC, 0x7f00, "Set FM multiplier", "FMMult", 0, 255},
-	{MUS_FX_FM_SET_WAVEFORM, 0x7f00, "Set FM waveform", "FMWave", 0, 255},
-	{0, 0, NULL}
-};*/
-
 
 const InstructionDesc * get_instruction_desc(Uint16 command)
 {
@@ -230,7 +171,7 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst)
 	const char *name = i->name;
 	const Uint16 fi = i->opcode;
 	
-	if ((fi & 0x7f00) == MUS_FX_SET_WAVEFORM)
+	if ((fi & 0xff00) == MUS_FX_SET_WAVEFORM)
 	{
 		if (inst & 0xff)
 			snprintf(text, buffer_size, "%s (%s%s%s%s%s%s)\n", name, (inst & MUS_FX_WAVE_NOISE) ? "N" : "", (inst & MUS_FX_WAVE_SAW) ? "S" : "", (inst & MUS_FX_WAVE_TRIANGLE) ? "T" : "", 
@@ -238,34 +179,52 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst)
 		else
 			snprintf(text, buffer_size, "%s (None)\n", name);
 	}
-	else if ((fi & 0x7f00) == MUS_FX_FILTER_TYPE)
+	
+	else if ((fi & 0xff00) == MUS_FX_FILTER_TYPE)
 	{
 		static const char *fn[FLT_TYPES] = {"LP", "HP", "BP", "LHP", "HBP", "LBP", "ALL"}; //was `{"LP", "HP", "BP"};`
 		snprintf(text, buffer_size, "%s (%s)\n", name, fn[(inst & 0xf) % FLT_TYPES]);
 	}
-	else if ((fi & 0x7f00) == MUS_FX_BUZZ_SHAPE)
+	
+	else if ((fi & 0xff00) == MUS_FX_BUZZ_SHAPE)
 	{
-		snprintf(text, buffer_size, "%s (%c)\n", name, ((inst & 0xf) % 4) + 0xf0);
+		snprintf(text, buffer_size, "%s (%c)\n", name, ((inst & 0xf) & 3) + 0xf0);
 	}
-	else if ((fi & 0x7f00) == MUS_FX_SET_FXBUS)
+	
+	else if ((fi & 0xff00) == MUS_FX_SET_FXBUS)
 	{
 		snprintf(text, buffer_size, "%s (%s)\n", name, mused.song.fx[(inst & 0xf) % CYD_MAX_FX_CHANNELS].name);
 	}
-	else if ((fi & 0x7f00) == MUS_FX_SET_WAVETABLE_ITEM)
+	
+	else if ((fi & 0xff00) == MUS_FX_SET_WAVETABLE_ITEM)
 	{
 		snprintf(text, buffer_size, "%s (%s)\n", name, mused.song.wavetable_names[(inst & 0xff)]);
 	}
-	else if ((fi & 0x7f00) == MUS_FX_SET_VOLUME)
+	
+	else if ((fi & 0xff00) == MUS_FX_SET_VOLUME)
 	{
 		snprintf(text, buffer_size, "%s (%+.1f dB)\n", name, percent_to_dB((float)(inst & 0xff) / MAX_VOLUME));
 	}
+	
+	else if ((fi & 0xfff0) == MUS_FX_SET_NOISE_MODE)
+	{
+		if (inst & 0xf)
+		{
+			snprintf(text, buffer_size, "%s (%s%s%s)\n", name, (inst & 0b1) ? "1-bit" : "", (inst & 0b10) ? " Metal" : "", (inst & 0b100) ? " Fixed pitch" : "");
+		}
+		
+		else
+		{
+			snprintf(text, buffer_size, "%s (Default)\n", name);
+		}
+	}
+	
 	else snprintf(text, buffer_size, "%s\n", name);
 }
 
-
 Uint16 validate_command(Uint16 command)
 {
-	//const InstructionDesc *i = get_instruction_desc(command);
+	const InstructionDesc *i = get_instruction_desc(command);
 	
 	/*if (i)
 	{
@@ -281,12 +240,17 @@ Uint16 validate_command(Uint16 command)
 	if(command >= 0xf000)
 	{
 		return command & 0x0fff;
+	}*/
+	if(i)
+	{
+		if((command & i->mask) > i->maxv && i->maxv != -1 && i->minv != -1)
+		{
+			return (command & i->mask) | my_min((command & ~(i->mask)), i->maxv);
+		}
 	}
 	
-	else
-	{*/
-		return command;
-	//}
+	return command;
+
 }
 
 

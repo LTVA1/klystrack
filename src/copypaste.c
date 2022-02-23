@@ -67,7 +67,7 @@ void copy()
 			
 			for(int i = mused.selection.start; i <= mused.selection.end; ++i)
 			{
-				mused.unite_bits_buffer[i] = (mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8]) & (1 << (i % 8));
+				mused.unite_bits_buffer[i] = (mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8]) & (1 << (i & 7));
 				
 				if(mused.unite_bits_buffer[i] > 0)
 				{
@@ -218,12 +218,12 @@ void paste()
 					//mused.unite_bits_buffer[i] = (mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8]) & (1 << (i % 8));
 					if(mused.unite_bits_buffer[mused.paste_pointer + y] == 0)
 					{
-						mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] &= ~(1 << (i % 8));
+						mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] &= ~(1 << (i & 7));
 					}
 					
 					else
 					{
-						mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] |= (1 << (i % 8));
+						mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] |= (1 << (i & 7));
 					}
 				}
 				

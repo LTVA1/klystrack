@@ -8,7 +8,7 @@
 float wg_osc(WgOsc *osc, float _phase)
 {
 	double intpart = 0.0f;
-	double phase = pow(modf(_phase * osc->mult + (float)osc->shift / 16, &intpart), osc->exp_c); 
+	double phase = pow(modf(_phase * osc->mult + (float)osc->shift / 255, &intpart), osc->exp_c); 
 	float output = 0;
 	
 	switch (osc->osc)
