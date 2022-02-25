@@ -340,12 +340,12 @@ void wavegen_randomize(void *unused1, void *unused2, void *unused3)
 		mused.wgset.chain[i].op = rnd(0, WG_NUM_OPS - 1);
 		
 		if (do_shift)
-			mused.wgset.chain[i].shift = rnd(0, 15);
+			mused.wgset.chain[i].shift = rnd(0, 255);
 		else
 			mused.wgset.chain[i].shift = 0;
 		
 		if (do_exp)
-			mused.wgset.chain[i].exp = rnd(5,95);
+			mused.wgset.chain[i].exp = rnd(5, 95);
 		else
 		{
 			mused.wgset.chain[i].exp = 50;

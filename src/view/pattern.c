@@ -88,6 +88,7 @@ const struct { bool margin; int w; int id; } pattern_params[] =
 #define selrow(sel, nor) ((current_patternstep() == i) ? (sel) : (nor))
 #define diszero(e, c) ((!(e)) ? mix_colors(c, colors[COLOR_PATTERN_EMPTY_DATA]) : c)
 
+extern GfxDomain* domain;
 
 void pattern_view_header(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, int channel)
 {
@@ -109,41 +110,37 @@ void pattern_view_header(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 		if (!(mused.flags & COMPACT_VIEW) && !(mused.flags & EXPAND_ONLY_CURRENT_TRACK))//&& (!(mused.flags & EXPAND_ONLY_CURRENT_TRACK)))
 		{
 			mute.x = dest->x + destw - mute.w - 16; //was mute.x = dest->x + dest->w - mute.w; //mute.x = dest->x + dest->w - mute.w - 16;
+
+			SDL_Rect expand;
+			SDL_Rect collapse;
 			
-			//if(channel == mused.current_sequencetrack)
-			//{
-				SDL_Rect expand;
-				SDL_Rect collapse;
+			copy_rect(&expand, dest);
+			copy_rect(&collapse, dest);
+			expand.w = 8;
+			collapse.w = 8;
+			
+			expand.x = dest->x + destw - mute.w + 4; //expand.x = dest->x + dest->w - mute.w + 4;
+			collapse.x = dest->x + destw - mute.w - 4; //collapse.x = dest->x + dest->w - mute.w - 4;
+			
+			void *action = expand_command;
+			
+			if(mused.song.pattern[current_pattern_for_channel(channel)].command_columns != MUS_MAX_COMMANDS - 1)
+			{
+				button_event(dest_surface, event, &expand, mused.slider_bevel,
+					BEV_BUTTON, 
+					BEV_BUTTON_ACTIVE, 
+					DECAL_EXPAND, action, MAKEPTR(channel), 0, 0);
+			}
 				
-				copy_rect(&expand, dest);
-				copy_rect(&collapse, dest);
-				expand.w = 8;
-				collapse.w = 8;
+			if(mused.song.pattern[current_pattern_for_channel(channel)].command_columns > 0)
+			{
+				action = hide_command;
 				
-				expand.x = dest->x + destw - mute.w + 4; //expand.x = dest->x + dest->w - mute.w + 4;
-				collapse.x = dest->x + destw - mute.w - 4; //collapse.x = dest->x + dest->w - mute.w - 4;
-				
-				void *action = expand_command;
-				
-				if(mused.song.pattern[current_pattern_for_channel(channel)].command_columns != MUS_MAX_COMMANDS - 1)
-				{
-					button_event(dest_surface, event, &expand, mused.slider_bevel,
-						BEV_BUTTON, 
-						BEV_BUTTON_ACTIVE, 
-						DECAL_EXPAND, action, MAKEPTR(channel), 0, 0);
-				} //plus = button_event(dest, event, &area, gfx, BEV_BUTTON, BEV_BUTTON_ACTIVE, DECAL_PLUS, NULL, MAKEPTR(0x81000000 | ((Uint32)area.x << 16 | area.y)), 0, NULL) & 1;
-				
-				if(mused.song.pattern[current_pattern_for_channel(channel)].command_columns > 0)
-				{
-					action = hide_command;
-					
-					button_event(dest_surface, event, &collapse, mused.slider_bevel,
-						BEV_BUTTON, 
-						BEV_BUTTON_ACTIVE, 
-						DECAL_COLLAPSE, action, MAKEPTR(channel), 0, 0);
-				}
-			//}
-			//debug("%d", mused.song.pattern[current_pattern_for_channel(channel)].command_columns);
+				button_event(dest_surface, event, &collapse, mused.slider_bevel,
+					BEV_BUTTON, 
+					BEV_BUTTON_ACTIVE, 
+					DECAL_COLLAPSE, action, MAKEPTR(channel), 0, 0);
+			}
 		}
 		
 		else
@@ -154,8 +151,6 @@ void pattern_view_header(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 		void *action = enable_channel;
                 
         if (SDL_GetModState() & KMOD_SHIFT) action = solo_channel;
-		
-		//debug("Current chn from pattern.c %d", channel); //wasn't there
         
 		button_event(dest_surface, event, &mute, mused.slider_bevel, 
 				(mused.mus.channel[channel].flags & MUS_CHN_DISABLED) ? BEV_BUTTON : BEV_BUTTON_ACTIVE, 
@@ -224,6 +219,303 @@ void pattern_view_header(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 			snapshot_cascade(S_T_SONGINFO, 98, channel);
 			mused.song.default_volume[channel] = my_max(0, my_min(MAX_VOLUME, (int)mused.song.default_volume[channel] + d));
 		}
+	}
+}
+
+static void pattern_view_registers_map(GfxDomain *dest_surface, const SDL_Rect *reg_map)
+{
+	gfx_domain_set_clip(dest_surface, reg_map);
+	
+	//console_set_clip(mused.console, reg_map);
+	console_clear(mused.console);
+	
+	//console_set_background(mused.console, 0);
+	
+	console_set_color(mused.console, colors[COLOR_WAVETABLE_SAMPLE]);
+	
+	Uint16 current_registers_row = 0;
+	Uint8 current_registers[8];
+	
+	font_write_args(&mused.tinyfont, dest_surface, reg_map, "CYD chip registers:");
+	
+	const int spacer = 3;
+	
+	int ch_reg_map_h = 0;
+	int flag = 0;
+	
+	for(int i = 0; i < mused.song.num_channels; ++i)
+	{	
+		if((mused.cyd.channel[i].fm.flags & CYD_FM_ENABLE_4OP) && flag == 0)
+		{
+			ch_reg_map_h = 80;
+			flag = 1;
+		}
+		
+		else if(flag == 0)
+		{
+			ch_reg_map_h = 40;
+		}
+	}
+	
+	int cols = 0;
+	int i1 = 0;
+	
+	const int col_w = 162;
+	
+	for(int i = 0; i < mused.song.num_channels; ++i)
+	{
+		current_registers_row = 0x400 * i;
+		
+		SDL_Rect row = { reg_map->x + cols * col_w, reg_map->y + 6 + spacer + ch_reg_map_h * i1, 200, 6 };
+		
+		for(int i = 0; i < 8; ++i)
+		{
+			current_registers[i] = 0;
+		}
+		
+		current_registers[0] |= (((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_KEY_SYNC) ? 1 : 0) << 7);
+		current_registers[0] |= (((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_GATE) ? 1 : 0) << 6);
+		current_registers[0] |= (((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_PULSE) ? 1 : 0) << 5);
+		current_registers[0] |= (((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_TRIANGLE) ? 1 : 0) << 4);
+		current_registers[0] |= (((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_SAW) ? 1 : 0) << 3);
+		current_registers[0] |= (((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_NOISE) ? 1 : 0) << 2);
+		current_registers[0] |= (((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_METAL) ? 1 : 0) << 1);
+		current_registers[0] |= ((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_LFSR) ? 1 : 0);
+		
+		current_registers[1] |= ((mused.cyd.channel[i].lfsr_type & 0xf) << 4);
+		current_registers[1] |= ((mused.cyd.channel[i].pw & 0xf00) >> 8);
+		
+		current_registers[2] |= mused.cyd.channel[i].pw & 0xff;
+		
+		current_registers[3] |= (((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_FIXED_NOISE_PITCH) ? 1 : 0) << 7);
+		current_registers[3] |= mused.mus.channel[i].noise_note & 0x7f;
+		
+		current_registers[4] |= (((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_WAVE) ? 1 : 0) << 7);
+		current_registers[4] |= (((mused.cyd.channel[i].musflags & MUS_INST_LOCK_NOTE) ? 1 : 0) << 6);
+		current_registers[4] |= (((mused.cyd.channel[i].musflags & MUS_INST_WAVE_LOCK_NOTE) ? 1 : 0) << 5);
+		current_registers[4] |= (((mused.cyd.channel[i].flags & CYD_CHN_WAVE_OVERRIDE_ENV) ? 1 : 0) << 4);
+		current_registers[4] |= (((mused.cyd.channel[i].musflags & MUS_INST_RELATIVE_VOLUME) ? 1 : 0) << 3);
+		current_registers[4] |= mused.cyd.channel[i].mixmode & 0x7;
+		
+		current_registers[5] |= (((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_FILTER) ? 1 : 0) << 7);
+		current_registers[5] |= ((mused.cyd.channel[i].flttype & 0x7) << 4);
+		current_registers[5] |= ((mused.mus.song_track[i].filter_cutoff & 0xf00) >> 8);
+		
+		current_registers[6] |= mused.mus.song_track[i].filter_cutoff & 0xff;
+		
+		current_registers[7] |= ((mused.cyd.channel[i].flt_slope & 0x7) << 5);
+		current_registers[7] |= ((mused.mus.song_track[i].filter_resonance & 0xf) << 1);
+		current_registers[7] |= ((mused.cyd.channel[i].musflags & MUS_INST_QUARTER_FREQ) ? 1 : 0);
+		
+		font_write_args(&mused.tinyfont, dest_surface, &row, "#%04X: #%02X #%02X #%02X #%02X #%02X #%02X #%02X #%02X", current_registers_row, current_registers[0], current_registers[1], 
+		current_registers[2], current_registers[3], current_registers[4], current_registers[5], current_registers[6], current_registers[7]);
+		
+		current_registers_row += 8;
+		
+		SDL_Rect row1 = { reg_map->x + cols * col_w, reg_map->y + 12 + spacer + ch_reg_map_h * i1, 200, 6 };
+		
+		for(int i = 0; i < 8; ++i)
+		{
+			current_registers[i] = 0;
+		}
+		
+		current_registers[0] |= (((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_1_BIT_NOISE) ? 1 : 0) << 7);
+		current_registers[0] |= (((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_EXPONENTIAL_VOLUME) ? 1 : 0) << 6);
+		current_registers[0] |= (((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_EXPONENTIAL_ATTACK) ? 1 : 0) << 5);
+		current_registers[0] |= (((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_EXPONENTIAL_DECAY) ? 1 : 0) << 4);
+		current_registers[0] |= ((mused.cyd.channel[i].true_freq) >> 16) & 0xf;
+		
+		current_registers[1] |= ((mused.cyd.channel[i].true_freq & 0xff00) >> 8);
+		
+		current_registers[2] |= mused.cyd.channel[i].true_freq & 0xff;
+		
+		for(int k = 0; k < CYD_WAVE_MAX_ENTRIES; ++k)
+		{
+			if(mused.cyd.channel[i].wave_entry == &mused.cyd.wavetable_entries[k])
+			{
+				current_registers[3] |= k;
+			}
+		}
+		
+		current_registers[4] |= (mused.cyd.channel[i].subosc[0].wave.start_offset >> 8);
+		
+		current_registers[5] |= mused.cyd.channel[i].subosc[0].wave.start_offset & 0xff;
+		
+		current_registers[6] |= (mused.cyd.channel[i].subosc[0].wave.end_offset >> 8);
+		
+		current_registers[7] |= mused.cyd.channel[i].subosc[0].wave.end_offset & 0xff;
+		
+		font_write_args(&mused.tinyfont, dest_surface, &row1, "#%04X: #%02X #%02X #%02X #%02X #%02X #%02X #%02X #%02X", current_registers_row, current_registers[0], current_registers[1], 
+		current_registers[2], current_registers[3], current_registers[4], current_registers[5], current_registers[6], current_registers[7]);
+		
+		current_registers_row += 8;
+		
+		SDL_Rect row2 = { reg_map->x + cols * col_w, reg_map->y + 18 + spacer + ch_reg_map_h * i1, 200, 6 };
+		
+		for(int i = 0; i < 8; ++i)
+		{
+			current_registers[i] = 0;
+		}
+		
+		current_registers[0] |= my_min(0xff, mused.cyd.channel[i].adsr.volume) * (mused.cyd.channel[i].curr_tremolo + 512) / 512;
+		
+		current_registers[1] |= mused.cyd.channel[i].panning;
+		
+		current_registers[2] |= ((mused.cyd.channel[i].adsr.a & 0x3f) << 2);
+		current_registers[2] |= ((mused.cyd.channel[i].adsr.d & 0x3f) >> 6);
+		
+		current_registers[3] |= ((mused.cyd.channel[i].adsr.d & 0xf) << 4);
+		current_registers[3] |= ((mused.cyd.channel[i].adsr.s & 0x1f) >> 1);
+		
+		current_registers[4] |= ((mused.cyd.channel[i].adsr.s & 0x1) << 7);
+		current_registers[4] |= ((mused.cyd.channel[i].adsr.r & 0x3f) << 1);
+		current_registers[4] |= ((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_ENVELOPE_KEY_SCALING) ? 1 : 0);
+		
+		current_registers[5] |= mused.cyd.channel[i].env_ksl_level;
+		
+		current_registers[6] |= (((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_VOLUME_KEY_SCALING) ? 1 : 0) << 7);
+		current_registers[6] |= (((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_YM_ENV) ? 1 : 0) << 6);
+		current_registers[6] |= (((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_AY8930_BUZZ_MODE) ? 1 : 0) << 5);
+		current_registers[6] |= ((mused.cyd.channel[i].ym_env_shape & 0x3) << 3);
+		current_registers[6] |= (((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_RING_MODULATION) ? 1 : 0) << 2);
+		current_registers[6] |= (((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_SYNC) ? 1 : 0) << 1);
+		current_registers[6] |= ((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_FX) ? 1 : 0);
+		
+		current_registers[7] |= mused.cyd.channel[i].vol_ksl_level;
+		
+		font_write_args(&mused.tinyfont, dest_surface, &row2, "#%04X: #%02X #%02X #%02X #%02X #%02X #%02X #%02X #%02X", current_registers_row, current_registers[0], current_registers[1], 
+		current_registers[2], current_registers[3], current_registers[4], current_registers[5], current_registers[6], current_registers[7]);
+		
+		current_registers_row += 8;
+		
+		SDL_Rect row3 = { reg_map->x + cols * col_w, reg_map->y + 24 + spacer + ch_reg_map_h * i1, 200, 6 };
+		
+		for(int i = 0; i < 8; ++i)
+		{
+			current_registers[i] = 0;
+		}
+		
+		current_registers[0] |= (mused.cyd.channel[i].subosc[0].buzz_detune_freq >> 8);
+		
+		current_registers[1] |= mused.cyd.channel[i].subosc[0].buzz_detune_freq & 0xff;
+		
+		current_registers[2] |= mused.cyd.channel[i].ring_mod;
+		
+		current_registers[3] |= mused.cyd.channel[i].sync_source;
+		
+		current_registers[4] |= ((mused.cyd.channel[i].fx_bus & 0x3f) << 2);
+		current_registers[4] |= (((mused.cyd.channel[i].musflags & MUS_INST_MULTIOSC) ? 1 : 0) << 1);
+		current_registers[4] |= ((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_FM) ? 1 : 0);
+		
+		current_registers[5] |= mused.mus.song_track[i].extarp1;
+		current_registers[6] |= mused.mus.song_track[i].extarp2;
+		
+		current_registers[7] |= (((mused.cyd.channel[i].fm.flags & CYD_FM_ENABLE_WAVE) ? 1 : 0) << 7);
+		current_registers[7] |= (((mused.cyd.channel[i].fm.flags & CYD_FM_ENABLE_EXPONENTIAL_VOLUME) ? 1 : 0) << 6);
+		current_registers[7] |= (((mused.cyd.channel[i].fm.flags & CYD_FM_ENABLE_EXPONENTIAL_ATTACK) ? 1 : 0) << 5);
+		current_registers[7] |= (((mused.cyd.channel[i].fm.flags & CYD_FM_ENABLE_EXPONENTIAL_DECAY) ? 1 : 0) << 4);
+		if(mused.cyd.channel[i].flags & CYD_CHN_ENABLE_FM)
+		{
+			current_registers[7] |= ((mused.cyd.channel[i].true_freq + (((mused.cyd.channel[i].fm.fm_base_note - mused.cyd.channel[i].fm.fm_carrier_base_note) << 8) + mused.cyd.channel[i].fm.fm_finetune + mused.cyd.channel[i].fm.fm_vib == 0 ? 0 : get_freq(((mused.cyd.channel[i].fm.fm_base_note - mused.cyd.channel[i].fm.fm_carrier_base_note) << 8) + mused.cyd.channel[i].fm.fm_finetune + mused.cyd.channel[i].fm.fm_vib) - get_freq(0))) >> 16) & 0xf;
+		}
+		
+		font_write_args(&mused.tinyfont, dest_surface, &row3, "#%04X: #%02X #%02X #%02X #%02X #%02X #%02X #%02X #%02X", current_registers_row, current_registers[0], current_registers[1], 
+		current_registers[2], current_registers[3], current_registers[4], current_registers[5], current_registers[6], current_registers[7]);
+		
+		current_registers_row += 8;
+		
+		SDL_Rect row4 = { reg_map->x + cols * col_w, reg_map->y + 30 + spacer + ch_reg_map_h * i1, 200, 6 };
+		
+		for(int i = 0; i < 8; ++i)
+		{
+			current_registers[i] = 0;
+		}
+		
+		if(mused.cyd.channel[i].flags & CYD_CHN_ENABLE_FM)
+		{
+			current_registers[0] |= (((mused.cyd.channel[i].true_freq + (((mused.cyd.channel[i].fm.fm_base_note - mused.cyd.channel[i].fm.fm_carrier_base_note) << 8) + mused.cyd.channel[i].fm.fm_finetune + mused.cyd.channel[i].fm.fm_vib == 0 ? 0 : get_freq(((mused.cyd.channel[i].fm.fm_base_note - mused.cyd.channel[i].fm.fm_carrier_base_note) << 8) + mused.cyd.channel[i].fm.fm_finetune + mused.cyd.channel[i].fm.fm_vib) - get_freq(0))) & 0xff00) >> 8);
+			
+			current_registers[1] |= (mused.cyd.channel[i].true_freq + (((mused.cyd.channel[i].fm.fm_base_note - mused.cyd.channel[i].fm.fm_carrier_base_note) << 8) + mused.cyd.channel[i].fm.fm_finetune + mused.cyd.channel[i].fm.fm_vib == 0 ? 0 : get_freq(((mused.cyd.channel[i].fm.fm_base_note - mused.cyd.channel[i].fm.fm_carrier_base_note) << 8) + mused.cyd.channel[i].fm.fm_finetune + mused.cyd.channel[i].fm.fm_vib) - get_freq(0))) & 0xff;
+		}
+		
+		for(int k = 0; k < CYD_WAVE_MAX_ENTRIES; ++k)
+		{
+			if(mused.cyd.channel[i].fm.wave_entry == &mused.cyd.wavetable_entries[k])
+			{
+				current_registers[2] |= k;
+			}
+		}
+		
+		current_registers[3] |= (mused.cyd.channel[i].fm.wave.start_offset >> 8);
+		
+		current_registers[4] |= mused.cyd.channel[i].fm.wave.start_offset & 0xff;
+		
+		current_registers[5] |= (mused.cyd.channel[i].fm.wave.end_offset >> 8);
+		
+		current_registers[6] |= mused.cyd.channel[i].fm.wave.end_offset & 0xff;
+		
+		current_registers[7] |= (((mused.cyd.channel[i].fm.flags & CYD_FM_ENABLE_ADDITIVE) ? 1 : 0) << 7);
+		current_registers[7] |= (((mused.cyd.channel[i].fm.flags & CYD_FM_ENABLE_VOLUME_KEY_SCALING) ? 1 : 0) << 6);
+		current_registers[7] |= (((mused.cyd.channel[i].fm.flags & CYD_FM_ENABLE_ENVELOPE_KEY_SCALING) ? 1 : 0) << 5);
+		current_registers[7] |= ((mused.cyd.channel[i].fm.fm_freq_LUT & 0x3) << 3);
+		current_registers[7] |= mused.cyd.channel[i].fm.feedback & 0x7;
+		
+		font_write_args(&mused.tinyfont, dest_surface, &row4, "#%04X: #%02X #%02X #%02X #%02X #%02X #%02X #%02X #%02X", current_registers_row, current_registers[0], current_registers[1], 
+		current_registers[2], current_registers[3], current_registers[4], current_registers[5], current_registers[6], current_registers[7]);
+		
+		current_registers_row += 8;
+		
+		SDL_Rect row5 = { reg_map->x + cols * col_w, reg_map->y + 36 + spacer + ch_reg_map_h * i1, 200, 6 };
+		
+		for(int i = 0; i < 8; ++i)
+		{
+			current_registers[i] = 0;
+		}
+		
+		current_registers[0] |= mused.cyd.channel[i].fm.adsr.volume;
+		
+		current_registers[1] |= mused.cyd.channel[i].fm.fm_vol_ksl_level;
+		
+		current_registers[2] |= mused.cyd.channel[i].fm.fm_env_ksl_level;
+		
+		current_registers[3] |= mused.cyd.channel[i].fm.harmonic;
+		
+		current_registers[4] |= ((mused.cyd.channel[i].fm.adsr.a & 0x3f) << 2);
+		current_registers[4] |= ((mused.cyd.channel[i].fm.adsr.d & 0x3f) >> 6);
+		
+		current_registers[5] |= ((mused.cyd.channel[i].fm.adsr.d & 0xf) << 4);
+		current_registers[5] |= ((mused.cyd.channel[i].fm.adsr.s & 0x1f) >> 1);
+		
+		current_registers[6] |= ((mused.cyd.channel[i].fm.adsr.s & 0x1) << 7);
+		current_registers[6] |= ((mused.cyd.channel[i].fm.adsr.r & 0x3f) << 1);
+		
+		current_registers[6] |= mused.cyd.channel[i].fm.flags & CYD_FM_ENABLE_GATE;
+		
+		current_registers[7] |= (((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_EXPONENTIAL_RELEASE) ? 1 : 0) << 7);
+		current_registers[7] |= (((mused.cyd.channel[i].fm.flags & CYD_FM_ENABLE_EXPONENTIAL_RELEASE) ? 1 : 0) << 6);
+		
+		font_write_args(&mused.tinyfont, dest_surface, &row5, "#%04X: #%02X #%02X #%02X #%02X #%02X #%02X #%02X #%02X", current_registers_row, current_registers[0], current_registers[1], 
+		current_registers[2], current_registers[3], current_registers[4], current_registers[5], current_registers[6], current_registers[7]);
+		
+		if(reg_map->y + 36 + spacer + ch_reg_map_h * i1 + 80 > domain->screen_h)
+		{
+			i1 = 0;
+			cols++;
+		}
+		
+		else
+		{
+			i1++;
+		}
+	}
+	
+	//mused.mus.channel.note
+	//mused.cyd.channel->flags
+	
+	for(int i = 0; i < mused.song.num_channels; ++i)
+	{
+		//SDL_Rect row = { reg_map->x, reg_map->y + 6 * i, 200, 6 };
+		//font_write_args(&mused.tinyfont, dest_surface, &row, "CYD chip registers:");
 	}
 }
 
@@ -362,10 +654,13 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 	
 	
 	
-	
+	//                                                                                                                 my_min(mused.song.num_channels, last_visible - 1) - 1
 	slider_set_params(&mused.pattern_horiz_slider_param, 0, mused.song.num_channels - 1, mused.pattern_horiz_position, my_min(mused.song.num_channels, last_visible - 1) - 1, &mused.pattern_horiz_position, 1, SLIDER_HORIZONTAL, mused.slider_bevel); //slider_set_params(&mused.pattern_horiz_slider_param, 0, mused.song.num_channels - 1, mused.pattern_horiz_position, my_min(mused.song.num_channels, mused.pattern_horiz_position + 1 + (dest->w - w) / narrow_w) - 1, &mused.pattern_horiz_position, 1, SLIDER_HORIZONTAL, mused.slider_bevel);
 	
 	int x = 0;
+	
+	int registers_map_x_offset = 0;
+	int registers_map_y_offset = 0;
 	
 	for (int channel = mused.pattern_horiz_position; channel < mused.song.num_channels && x < dest->w; x += ((channel == mused.current_sequencetrack) ? mused.widths[channel][0] : mused.widths[channel][1]), ++channel) //for (int channel = mused.pattern_horiz_position; channel < mused.song.num_channels && x < dest->w; x += ((channel == mused.current_sequencetrack) ? w : narrow_w), ++channel)
 	{
@@ -486,7 +781,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 					copy_rect(&cpos, &pos);
 					
 					cpos.y += (mused.console->font.h - mused.tinyfont.h) / 2;
-					cpos.x += (mused.console->font.w * 2 - mused.tinyfont.w * 2) / 2;
+					cpos.x += (mused.console->font.w * 2 - mused.tinyfont.w * 2) / 2 - 1;
 					
 					if (SHOW_DECIMALS & mused.flags)
 						font_write_args(&mused.tinyfont, dest_surface, &cpos, "%02d\n", (step + 100) % 100); // so we don't get negative numbers
@@ -777,6 +1072,12 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 			update_oscillscope_view(dest_surface, &area, mused.channels_output_buffers[channel], area.w / 8, pointer, false, (bool)(mused.flags & SHOW_OSCILLOSCOPE_MIDLINES));
 			//void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area, int* sound_buffer, int size, int* buffer_counter, bool is_translucent, bool show_midlines);
 		}
+		
+		if(mused.flags & SHOW_REGISTERS_MAP)
+		{
+			registers_map_x_offset = track.x + track.w;
+			registers_map_y_offset = track.y;
+		}
 	}
 	
 	//debug("big big loop finished");
@@ -890,8 +1191,23 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 		
 		mused.pattern_position = my_max(0, my_min(mused.song.song_length - 1, mused.pattern_position));
 	}
+	
+	if(mused.flags & SHOW_REGISTERS_MAP)
+	{
+		SDL_Rect reg_map;
+		copy_rect(&reg_map, dest);
+		
+		reg_map.x = registers_map_x_offset + 16;
+		reg_map.y = registers_map_y_offset - 8;
+		
+		reg_map.h = 3000;
+		reg_map.w = 2000;
+		
+		//debug("x %d y %d", reg_map.x, reg_map.y);
+		
+		pattern_view_registers_map(dest_surface, &reg_map);
+	}
 }
-
 
 static void pattern_view_stepcounter(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event)
 {
@@ -990,4 +1306,3 @@ void pattern_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Even
 	
 	slider(dest_surface, &scrollbar, event, &mused.pattern_horiz_slider_param); 
 }
-

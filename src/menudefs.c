@@ -86,7 +86,7 @@ static const Menu showmenu[] =
 	{ 0, mainmenu, "Oscilloscope (inst. editor)", NULL, MENU_CHECK, &mused.flags, (void*)SHOW_OSCILLOSCOPE_INST_EDITOR, 0 }, //wasn't there
 	{ 0, mainmenu, "Oscilloscopes (pat. editor)", NULL, MENU_CHECK, &mused.flags, (void*)SHOW_OSCILLOSCOPES_PATTERN_EDITOR, 0 }, //wasn't there
 	{ 0, mainmenu, "Show oscilloscope midlines", NULL, MENU_CHECK, &mused.flags, (void*)SHOW_OSCILLOSCOPE_MIDLINES, 0 }, //wasn't there
-	//{ 0, mainmenu, "Show \"registers\" table", NULL, MENU_CHECK, &mused.flags, (void*)SHOW_REGISTERS_TABLE, 0 }, //wasn't there
+	{ 0, mainmenu, "Show \"registers\" table", NULL, MENU_CHECK, &mused.flags, (void*)SHOW_REGISTERS_MAP, 0 }, //wasn't there
 	{ 0, NULL, NULL }
 };
 

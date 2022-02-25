@@ -581,7 +581,7 @@ void wavegen_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 	
 	r.x += r.w + 4;
 	
-	if ((d = generic_field(event, &r, EDITWAVETABLE, W_OSCMUL, "MUL", (osc->mult < 16) ? "0%1X" : "%2X", MAKEPTR(osc->mult), 2)) != 0)
+	if ((d = generic_field(event, &r, EDITWAVETABLE, W_OSCMUL, "MUL", "%02X", MAKEPTR(osc->mult), 2)) != 0)
 	{
 		wave_add_param(d);
 	}
@@ -589,7 +589,7 @@ void wavegen_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 	r.x = row_begin;
 	r.y += r.h;
 	
-	if ((d = generic_field(event, &r, EDITWAVETABLE, W_OSCSHIFT, "SHIFT", (osc->shift < 16) ? "0%1X" : "%2X", MAKEPTR(osc->shift), 2)) != 0)
+	if ((d = generic_field(event, &r, EDITWAVETABLE, W_OSCSHIFT, "SHIFT", "%02X", MAKEPTR(osc->shift), 2)) != 0)
 	{
 		wave_add_param(d);
 	}
@@ -605,7 +605,7 @@ void wavegen_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 	r.y += r.h;
 	r.w = frame.w; //was r.w = frame.w - 2;
 	
-	if ((d = generic_field(event, &r, EDITWAVETABLE, W_OSCVOL, "OSCILLATOR VOLUME", (osc->vol > 4095 ? "%4X" : (osc->vol > 255 ? "0%3X" : ((osc->vol < 16) ? "0%1X" : "00%2X"))), MAKEPTR(osc->vol), 4)) != 0) //from there
+	if ((d = generic_field(event, &r, EDITWAVETABLE, W_OSCVOL, "OSCILLATOR VOLUME", "%04X", MAKEPTR(osc->vol), 4)) != 0) //from there
 	{
 		wave_add_param(d);
 	}

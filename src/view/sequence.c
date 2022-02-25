@@ -86,6 +86,8 @@ void sequence_view_inner(GfxDomain *dest_surface, const SDL_Rect *_dest, const S
 			adjust_rect(&text, 2);
 			text.h += 1;
 			
+			text.x -= 1;
+			
 			gfx_domain_set_clip(domain, &text);
 			
 			if (mused.flags & SHOW_PATTERN_POS_OFFSET)

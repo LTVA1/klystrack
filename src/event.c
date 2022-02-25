@@ -2738,7 +2738,22 @@ void wave_add_param(int d)
 		{
 			//osc->vol = my_min(255, osc->vol + d); 
 			//based on `clamp(i->adsr.r, a, 0, 32 * ENVELOPE_SCALE - 1);`
-			clamp(osc->vol, d, 0, 65535);
+			//clamp(osc->vol, d, 0, 65535);
+			
+			if(osc->vol + d > 65535)
+			{
+				osc->vol = 65535;
+			}
+			
+			else if(osc->vol + d < 0)
+			{
+				osc->vol = 0;
+			}
+			
+			else
+			{
+				osc->vol += d;
+			}
 		}
 		break;
 

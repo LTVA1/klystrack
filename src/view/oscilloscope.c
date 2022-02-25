@@ -139,7 +139,7 @@ void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area, int* sound_b
 		
 		if(x != 0)
 		{
-			gfx_line(domain, area->x + x - 1, area->h / 2 + area->y + my_min(my_max(last_sample, area->h / (-2)), area->h / 2), area->x + x, area->h / 2 + area->y + my_min(my_max(scaled_sample, area->h / (-2)), area->h / 2), colors[COLOR_WAVETABLE_SAMPLE]);
+			gfx_line(domain, area->x + x - 1, area->h / 2 + area->y - my_min(my_max(last_sample, area->h / (-2)), area->h / 2), area->x + x, area->h / 2 + area->y - my_min(my_max(scaled_sample, area->h / (-2)), area->h / 2), colors[COLOR_WAVETABLE_SAMPLE]);
 			//gfx_line(domain, area->x + (x - i + area->w) / 2 - 1, area->h / 2 + area->y + my_min(my_max(last_sample, area->h / (-2)), area->h / 2), area->x + (x - i + area->w) / 2, area->h / 2 + area->y + my_min(my_max(scaled_sample, area->h / (-2)), area->h / 2), colors[COLOR_WAVETABLE_SAMPLE]);
 		}
 	}
