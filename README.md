@@ -23,6 +23,10 @@ A fork of klystrack chiptune tracker. A bit outdated but very good and comprehen
 - FamiTracker files import (`.ftm`, `.0cc`, `.dnm`, `.eft` and others, one song at a time)
 - `.dmf` import (probably steal algorithm from… [you know](https://github.com/tildearrow/furnace))
 - `.a2m` (Adlib Tracker II) file import
+- `.s3m` (Schism Tracker) file import
+- `.MED` (OctaMED tracker) file import
+- `.mid`/`.midi` file import along with some kind of klystrack own file for creating instrument banks
+- MIDI input support
 - `.mptm` import (OpenMPT file)
 - [`.fur`](https://github.com/tildearrow/furnace) import. I love how this tracker also uses 16-bit commands (and will probably steal some algorithms from it). Deflemask killer (potentially).
 - Custom envelope for instruments and thus more precise `.xm` (and maybe other formats) import
