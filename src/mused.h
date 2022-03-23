@@ -38,6 +38,9 @@ enum
 	EDITSEQUENCE,
 	EDITCLASSIC,
 	EDITINSTRUMENT,
+	
+	EDIT4OP,
+	
 	EDITFX,
 	EDITWAVETABLE,
 	/* Focuses */
@@ -137,7 +140,7 @@ typedef struct
 	MusSong song;
 	CydEngine cyd;
 	MusEngine mus;
-	int octave, instrument_page, current_instrument, default_pattern_length, selected_param, editpos, mode, focus,
+	int octave, instrument_page, current_instrument, default_pattern_length, selected_param, fourop_selected_param, editpos, mode, focus,
 		current_patternx, current_patternpos, current_sequencepos, sequenceview_steps, single_pattern_edit, 
 		prev_mode, current_sequenceparam, instrument_list_position,
 		pattern_position, sequence_position, pattern_horiz_position, sequence_horiz_position,
@@ -252,6 +255,8 @@ typedef struct
 		
 		Uint32 current_score, high_scores[20];
 	} game;*/
+	
+	bool show_four_op_menu;
 } Mused;
 
 extern Mused mused;

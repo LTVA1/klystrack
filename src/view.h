@@ -62,6 +62,7 @@ void instrument_disk_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
 
 void oscilloscope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param); //wasn't there
+void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
 
 void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
 void sequence_spectrum_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);

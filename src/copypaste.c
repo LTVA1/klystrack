@@ -50,6 +50,7 @@ void copy()
 		break;
 		
 		case EDITINSTRUMENT:
+		case EDIT4OP:
 		{
 			cp_copy(&mused.cp, CP_INSTRUMENT, &mused.song.instrument[mused.current_instrument], sizeof(mused.song.instrument[mused.current_instrument]), 0);
 		}
@@ -188,6 +189,7 @@ void paste()
 		break;
 	
 		case EDITINSTRUMENT:
+		case EDIT4OP:
 		{
 			if (mused.cp.type == CP_INSTRUMENT)
 			{

@@ -45,7 +45,7 @@ void new_song_action(void *, void *, void *);
 void kill_instrument(void *, void *, void *);
 void generic_action(void *func, void *, void *);
 void quit_action(void *, void *, void *);
-void change_mode_action(void *mode, void *, void *);
+void change_mode_action(void *mode, void *from_shortcut, void *);
 void enable_channel(void *channel, void *, void *);
 
 void expand_command(int channel, void *, void *);

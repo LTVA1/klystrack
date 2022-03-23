@@ -58,6 +58,8 @@ void set_edit_buffer(char *buffer, size_t size)
 
 void change_mode(int newmode)
 {
+	debug("Change mode to %d", newmode);
+	
 	if (newmode == EDITBUFFER)
 		SDL_StartTextInput();
 	else

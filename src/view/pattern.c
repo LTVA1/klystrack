@@ -531,7 +531,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 	copy_rect(&row, dest);
 	
 	adjust_rect(&row, 1);
-	gfx_rect(dest_surface, &row, colors[COLOR_BACKGROUND]);
+	gfx_rect(dest_surface, &row, colors[COLOR_OF_BACKGROUND]);
 	
 	row.y = (bottom - top) / 2 * height + row.y + 2 + HEADER_HEIGHT;
 	row.h = height + 1;

@@ -303,9 +303,25 @@ void quit_action(void *unused1, void *unused2, void *unused3)
 	}
 }
 
-void change_mode_action(void *mode, void *unused1, void *unused2)
+void change_mode_action(void *mode, void *from_shortcut, void *unused2)
 {
-	change_mode(CASTPTR(int,mode));
+	if(CASTPTR(int, from_shortcut) == 1)
+	{
+		if(CASTPTR(int, mode) > EDITINSTRUMENT)
+		{
+			change_mode(CASTPTR(int, mused.show_four_op_menu ? mode : mode - 1));
+		}
+		
+		else
+		{
+			change_mode(CASTPTR(int, mused.show_four_op_menu ? mode + 1 : mode));
+		}
+	}
+	
+	else
+	{
+		change_mode(CASTPTR(int, mode));
+	}
 }
 
 
@@ -318,7 +334,7 @@ void enable_channel(void *channel, void *unused1, void *unused2)
 }
 
 
-void expand_command(int channel, void *, void *) //wasn't there
+void expand_command(int channel, void *unused2, void *unused3) //wasn't there
 {
 	if(mused.song.pattern[current_pattern_for_channel(channel)].command_columns <= MUS_MAX_COMMANDS - 2)
 	{
@@ -326,7 +342,7 @@ void expand_command(int channel, void *, void *) //wasn't there
 	}
 }
 
-void hide_command(int channel, void *, void *) //wasn't there
+void hide_command(int channel, void *unused2, void *unused3) //wasn't there
 {
 	if(mused.song.pattern[current_pattern_for_channel(channel)].command_columns > 0)
 	{

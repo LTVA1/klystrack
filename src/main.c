@@ -53,7 +53,6 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "nostalgy.h"
 #include "theme.h"
 
-#include "combWFgen.h"
 #include "view/oscilloscope.h"
 
 #ifdef MIDI
@@ -79,7 +78,7 @@ extern const Menu mainmenu[];
 #define SCROLLBAR 10
 #define INST_LIST (6*8 + 3*2)
 #define INFO 13
-#define INST_VIEW2 (38+10+10+10+176) //#define INST_VIEW2 (38+10+10+10+52)
+#define INST_VIEW2 (38+10+10+10+186) //#define INST_VIEW2 (38+10+10+10+52)
 
 void change_pixel_scale(void *, void*, void*);
 
@@ -106,10 +105,9 @@ static const View instrument_view_tab[] =
 	{{0 - SCROLLBAR, 14, SCROLLBAR, INST_LIST }, slider, &mused.instrument_list_slider_param, EDITINSTRUMENT },
 	{{0, 0 - INFO, 0, INFO }, info_line, NULL, -1 },
 	
-	
 	{{ 2 * ( - OSC_SIZE - (SCROLLBAR / 2) - 2), 14 + INST_LIST + INST_VIEW2 + 4, 2 * OSC_SIZE, OSC_SIZE }, oscilloscope_view, NULL, EDITINSTRUMENT }, //wasn't there
 	//{{154 + 100, 14 + INST_LIST + INST_VIEW2 + 10, -OSC_SIZE, -OSC_SIZE }, oscilloscope_view, NULL, EDITINSTRUMENT }, //wasn't there
-	
+	{{100, 100, -100, -100}, four_op_menu_view, NULL, EDITINSTRUMENT },
 	
 	{{0, 0, 0, 0}, NULL}
 };
@@ -192,6 +190,7 @@ const View *tab[] =
 	sequence_view_tab,
 	classic_view_tab,
 	instrument_view_tab,
+
 	fx_view_tab,
 	wavetable_view_tab,
 };
@@ -216,11 +215,6 @@ void my_open_menu(const Menu *menu, const Menu *action)
 #undef main
 #endif
 
-int TriSaw_8580[4096]; //wasn't there
-int PulseSaw_8580[4096];
-int PulseTriSaw_8580[4096];
-extern int PulseTri_8580[8192];
-
 int main(int argc, char **argv)
 {
 #ifdef WIN32
@@ -235,13 +229,6 @@ int main(int argc, char **argv)
 	
 	debug("Starting %s", VERSION_STRING);
 	
-	//SDL_Delay(3000);
-	
-	createCombinedWF(PulseSaw_8580,1.4,1.9,0.68); //wasn't there
-	createCombinedWF(PulseTriSaw_8580,0.8,2.5,0.64); 
-	createCombinedWF(TriSaw_8580,0.8,2.4,0.64); 
-	//createPulseTri(PulseTri_8580,1.4,1.9,0.68); //createPulseTri(PulseTri_8580,3.1,1.1,0.64);
-	
 	debug("%d", sizeof(CydFmOp));
 	
 	mused.output_buffer_counter = 0; //wasn't there
@@ -249,9 +236,6 @@ int main(int argc, char **argv)
 	SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_NOPARACHUTE|SDL_INIT_TIMER);
 	atexit(SDL_Quit);
 	
-	//SDL_Delay(3000);
-	//debug("SDL inited");
-
 	default_settings();
 	load_config(".klystrack", false); //was `load_config(TOSTRING(CONFIG_PATH), false);`
 
@@ -269,27 +253,15 @@ int main(int argc, char **argv)
 
 	init(instrument, pattern, sequence, channel);
 	
-	//SDL_Delay(3000);
-	//debug("Ins pat seq channels inited");
-	
 	load_config(".klystrack", true); //was `load_config(TOSTRING(CONFIG_PATH), true);`
 
 	post_config_load();
 
 	init_scrollbars();
-	
-	//debug("before cyd inited");
-	//SDL_Delay(3000);
 
 	cyd_init(&mused.cyd, mused.mix_rate, MUS_MAX_CHANNELS);
 	
-	//SDL_Delay(5000);
-	//debug("Cyd inited");
-	
 	mus_init_engine(&mused.mus, &mused.cyd);
-	
-	//SDL_Delay(3000);
-	//debug("MusEngine inited");
 	
 	new_song();
 
@@ -496,6 +468,12 @@ int main(int argc, char **argv)
 
 							case EDITINSTRUMENT:
 							edit_instrument_event(&e);
+							debug("insevent curr focus %d", mused.focus);
+							break;
+							
+							case EDIT4OP:
+							edit_4op_event(&e);
+							debug("4opevent curr focus %d", mused.focus);
 							break;
 
 							case EDITPATTERN:
@@ -587,7 +565,7 @@ int main(int argc, char **argv)
 				{
 					SDL_Event foo = {0};
 
-					my_draw_view(tab[m], &foo, domain);
+					my_draw_view(tab[((mused.show_four_op_menu) ? (m - 1) : m)], &foo, domain);
 
 					draw_menu(domain, &e);
 
@@ -605,7 +583,7 @@ int main(int argc, char **argv)
 				
 				else
 				{
-					my_draw_view(tab[m], &e, domain);
+					my_draw_view(tab[((mused.show_four_op_menu) ? (m - 1) : m)], &e, domain);
 				}
 
 				e.type = 0;
@@ -623,7 +601,7 @@ int main(int argc, char **argv)
 		}
 		
 		else
-			SDL_Delay(4); //was SDL_Delay(4);
+			SDL_Delay(4);
 
 		if (mused.done)
 		{

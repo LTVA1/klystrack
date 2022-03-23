@@ -88,7 +88,7 @@ const SDL_Rect * console_write_args(Console* console, const char *string, ...)
 
 void console_clear(Console *console)
 {
-	gfx_rect(domain, &console->clip, colors[COLOR_BACKGROUND]);
+	gfx_rect(domain, &console->clip, colors[COLOR_OF_BACKGROUND]);
 	console->cursor = 0;
 }
 

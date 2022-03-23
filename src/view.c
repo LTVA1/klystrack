@@ -48,6 +48,8 @@ extern Mused mused;
 
 extern int event_hit;
 
+void open_4op(void *unused1, void *unused2, void *unused3);
+
 /*
 
 Cyd envelope length in milliseconds
@@ -68,6 +70,10 @@ bool is_selected_param(int focus, int p)
 	{
 		case EDITINSTRUMENT:
 			return p == mused.selected_param;
+			break;
+			
+		case EDIT4OP:
+			return p == mused.fourop_selected_param;
 			break;
 
 		case EDITFX:
@@ -96,7 +102,7 @@ void my_separator(const SDL_Rect *parent, SDL_Rect *rect)
 
 void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain)
 {
-	gfx_rect(domain, NULL, colors[COLOR_BACKGROUND]);
+	gfx_rect(domain, NULL, colors[COLOR_OF_BACKGROUND]);
 
 	SDL_Event event;
 	memcpy(&event, _event, sizeof(event));
@@ -123,7 +129,13 @@ void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain)
 				event.type = MSG_EVENTHIT;
 				if (view->focus != -1 && mused.focus != view->focus && orig_focus != EDITBUFFER && mused.focus != EDITBUFFER)
 				{
-					mused.focus = view->focus;
+					if(!(mused.show_four_op_menu) && mused.focus != 4)
+					{
+						mused.focus = view->focus;
+					}
+					
+					debug("my_draw_view curr mused.focus %d", mused.focus);
+					
 					clear_selection(0,0,0);
 				}
 				++iter;
@@ -139,8 +151,13 @@ void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain)
 			{
 				if (orig_focus == EDITBUFFER)
 					change_mode(view->focus);
-
-				mused.focus = view->focus;
+				
+				if(!(mused.show_four_op_menu) && mused.focus != 4)
+				{
+					mused.focus = view->focus;
+				}
+				debug("my_draw_view lower curr mused.focus %d", mused.focus);
+				
 				clear_selection(0,0,0);
 			}
 		}
@@ -224,7 +241,14 @@ bool check_mouse_hit(const SDL_Event *e, const SDL_Rect *area, int focus, int pa
 		switch (focus)
 		{
 			case EDITINSTRUMENT:
+			if(!(mused.show_four_op_menu))
+			{
 				mused.selected_param = param;
+			}
+				break;
+			
+			case EDIT4OP:
+				mused.fourop_selected_param = param;
 				break;
 
 			case EDITFX:
@@ -298,16 +322,20 @@ void generic_flags(const SDL_Event *e, const SDL_Rect *_area, int focus, int p, 
 	int hit = check_mouse_hit(e, _area, focus, p);
 	Uint32 flags = *_flags;
 
-	if (checkbox(domain, e, &area, mused.slider_bevel, &mused.smallfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, DECAL_TICK, label, &flags, mask))
-	{
+		if (checkbox(domain, e, &area, mused.slider_bevel, &mused.smallfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, DECAL_TICK, label, &flags, mask))
+		{
 
-	}
+		}
+		
+		else if (hit)
+		{
+			if(mused.mode == focus)
+			{
+			// so that the gap between the box and label works too
+			flags ^= mask;
+			}
+		}
 	
-	else if (hit)
-	{
-		// so that the gap between the box and label works too
-		flags ^= mask;
-	}
 
 	if (*_flags != flags)
 	{
@@ -540,7 +568,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 {
 	SDL_Rect area;
 	copy_rect(&area, dest);
-	area.w -= N_VIEWS * dest->h;
+	area.w -= (N_VIEWS - 1) * dest->h;
 	console_set_clip(mused.console, &area);
 	console_clear(mused.console);
 	bevelex(domain,&area, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
@@ -710,7 +738,8 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"FM modulator tremolo shape", //wasn't there
 					"FM modulator tremolo delay", //wasn't there
 					"FM enable additive synth mode", //wasn't there
-					"Save FM modulator vibrato and tremolo settings" //wasn't there
+					"Save FM modulator vibrato and tremolo settings", //wasn't there
+					"FM enable 4-operator mode (independent from these FM settings)", //wasn't there
 				};
 				
 				static const char * mixmodes[] =
@@ -876,11 +905,62 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 
 	for (int i = 0; i < N_VIEWS; ++i)
 	{
-		button_event(domain, event, &button, mused.slider_bevel,
-			(mused.mode != i) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			(mused.mode != i) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			DECAL_MODE_PATTERN + i + (mused.mode == i ? DECAL_MODE_PATTERN_SELECTED -  DECAL_MODE_PATTERN : 0), (mused.mode != i) ? change_mode_action : NULL, (mused.mode != i) ? MAKEPTR(i) : 0, 0, 0);
+		if(!(mused.show_four_op_menu))
+		{
+			if(i != EDIT4OP)
+			{
+				button_event(domain, event, &button, mused.slider_bevel,
+					(mused.mode != ((i > EDITINSTRUMENT) ? (i - 1) : i)) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+					(mused.mode != ((i > EDITINSTRUMENT) ? (i - 1) : i)) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+					DECAL_MODE_PATTERN + ((i > EDITINSTRUMENT) ? (i - 1) : i) + (mused.mode == ((i > EDITINSTRUMENT) ? (i - 1) : i) ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != ((i > EDITINSTRUMENT) ? (i - 1) : i)) ? change_mode_action : NULL, (mused.mode != ((i > EDITINSTRUMENT) ? (i - 1) : i)) ? MAKEPTR(((i > EDITINSTRUMENT) ? (i - 1) : i)) : 0, 0, 0);
 
+				button.x += button.w;
+			}
+		}
+	}
+	
+	if(mused.show_four_op_menu)
+	{
+		button_event(domain, event, &button, mused.slider_bevel,
+			(mused.mode != EDITPATTERN + 1) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+			(mused.mode != EDITPATTERN + 1) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+			DECAL_MODE_PATTERN + EDITPATTERN + (mused.mode == EDITPATTERN + 1 ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITPATTERN + 1) ? change_mode_action : NULL, (mused.mode != EDITPATTERN + 1) ? MAKEPTR(EDITPATTERN + 1) : 0, 0, 0);
+		
+		button.x += button.w;
+		
+		button_event(domain, event, &button, mused.slider_bevel,
+			(mused.mode != EDITSEQUENCE + 1) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+			(mused.mode != EDITSEQUENCE + 1) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+			DECAL_MODE_PATTERN + EDITSEQUENCE + (mused.mode == EDITSEQUENCE + 1 ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITSEQUENCE + 1) ? change_mode_action : NULL, (mused.mode != EDITSEQUENCE + 1) ? MAKEPTR(EDITSEQUENCE + 1) : 0, 0, 0);
+		
+		button.x += button.w;
+		
+		button_event(domain, event, &button, mused.slider_bevel,
+			(mused.mode != EDITCLASSIC + 1) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+			(mused.mode != EDITCLASSIC + 1) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+			DECAL_MODE_PATTERN + EDITCLASSIC + (mused.mode == EDITCLASSIC + 1 ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITCLASSIC + 1) ? change_mode_action : NULL, (mused.mode != EDITCLASSIC + 1) ? MAKEPTR(EDITCLASSIC + 1) : 0, 0, 0);
+		
+		button.x += button.w;
+		
+		button_event(domain, event, &button, mused.slider_bevel,
+			(mused.mode != EDITINSTRUMENT + 1) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+			(mused.mode != EDITINSTRUMENT + 1) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+			DECAL_MODE_PATTERN + EDITINSTRUMENT + (mused.mode == EDITINSTRUMENT + 1 ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITINSTRUMENT + 1) ? change_mode_action : NULL, (mused.mode != EDITINSTRUMENT + 1) ? MAKEPTR(EDITINSTRUMENT + 1) : 0, 0, 0);
+		
+		button.x += button.w;
+		
+		button_event(domain, event, &button, mused.slider_bevel,
+			(mused.mode != EDITFX) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+			(mused.mode != EDITFX) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+			DECAL_MODE_PATTERN + EDITFX - 1 + (mused.mode == EDITFX ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITFX) ? change_mode_action : NULL, (mused.mode != EDITFX) ? MAKEPTR(EDITFX) : 0, 0, 0);
+		
+		button.x += button.w;
+		
+		button_event(domain, event, &button, mused.slider_bevel,
+			(mused.mode != EDITWAVETABLE) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+			(mused.mode != EDITWAVETABLE) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+			DECAL_MODE_PATTERN + EDITWAVETABLE - 1 + (mused.mode == EDITWAVETABLE ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITWAVETABLE) ? change_mode_action : NULL, (mused.mode != EDITWAVETABLE) ? MAKEPTR(EDITWAVETABLE) : 0, 0, 0);
+		
 		button.x += button.w;
 	}
 }
@@ -1081,12 +1161,40 @@ static void inst_text(const SDL_Event *e, const SDL_Rect *area, int p, const cha
 	//check_event(e, area, select_instrument_param, (void*)p, 0, 0);
 
 	int d = generic_field(e, area, EDITINSTRUMENT, p, _label, format, value, width);
-	if (d)
+	if (d && mused.mode == EDITINSTRUMENT)
 	{
 		if (p >= 0) mused.selected_param = p;
 		if (p != P_INSTRUMENT) snapshot_cascade(S_T_INSTRUMENT, mused.current_instrument, p);
 		if (d < 0) instrument_add_param(-1);
 		else if (d > 0) instrument_add_param(1);
+	}
+
+	/*if (p == mused.selected_param && mused.focus == EDITINSTRUMENT)
+	{
+		SDL_Rect r;
+		copy_rect(&r, area);
+		adjust_rect(&r, -1);
+		bevel(domain,&r, mused.slider_bevel, BEV_CURSOR);
+	}*/
+}
+
+static void four_op_flags(const SDL_Event *e, const SDL_Rect *_area, int p, const char *label, Uint32 *flags, Uint32 mask)
+{
+	generic_flags(e, _area, EDIT4OP, p, label, flags, mask);
+}
+
+
+static void four_op_text(const SDL_Event *e, const SDL_Rect *area, int p, const char *_label, const char *format, void *value, int width)
+{
+	//check_event(e, area, select_instrument_param, (void*)p, 0, 0);
+
+	int d = generic_field(e, area, EDIT4OP, p, _label, format, value, width);
+	if (d)
+	{
+		if (p >= 0) mused.fourop_selected_param = p;
+		if (p != P_INSTRUMENT) snapshot_cascade(S_T_INSTRUMENT, mused.current_instrument, p);
+		if (d < 0) four_op_add_param(-1);
+		else if (d > 0) four_op_add_param(1);
 	}
 
 	/*if (p == mused.selected_param && mused.focus == EDITINSTRUMENT)
@@ -1206,7 +1314,7 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 
 	SDL_Rect r, frame;
 	copy_rect(&frame, dest);
-	bevelex(domain,&frame, mused.slider_bevel, BEV_BACKGROUND, BEV_F_STRETCH_ALL);
+	bevelex(domain, &frame, mused.slider_bevel, BEV_BACKGROUND, BEV_F_STRETCH_ALL);
 	adjust_rect(&frame, 4);
 	copy_rect(&r, &frame);
 	r.w = r.w / 2 - 2;
@@ -1424,6 +1532,92 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 	update_rect(&frame, &r);
 }
 
+void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param) //4-op FM menu, filebox-like
+{
+	if(mused.show_four_op_menu)
+	{
+		MusInstrument *inst = &mused.song.instrument[mused.current_instrument];
+
+		SDL_Rect r, frame;
+		copy_rect(&frame, dest);
+		
+		bevel(dest_surface, dest, mused.slider_bevel, BEV_MENU);
+		//bevelex(domain, &frame, mused.slider_bevel, BEV_BACKGROUND, BEV_F_STRETCH_ALL);
+		
+		frame.h -= 20;
+		frame.y += 20;
+		
+		const char* title = "4-op FM settings";
+		SDL_Rect titlearea, button;
+		copy_rect(&titlearea, dest);
+		
+		adjust_rect(&titlearea, 10);
+		
+		//titlearea.w -= 4;
+		copy_rect(&button, dest);
+		adjust_rect(&button, titlearea.h);
+		button.w = 12;
+		
+		button.h = 12;
+		
+		button.x = dest->w + dest->x - 20;
+		button.y -= dest->h - 28;
+		
+		font_write(&mused.largefont, dest_surface, &titlearea, title);
+		
+		if (button_event(dest_surface, event, &button, mused.slider_bevel, BEV_BUTTON, BEV_BUTTON_ACTIVE, DECAL_CLOSE, NULL, MAKEPTR(1), 0, 0) & 1) //button to exit filebox
+		{
+			mused.show_four_op_menu = false;
+			
+			change_mode(EDITINSTRUMENT);
+			
+			mused.mode = EDITINSTRUMENT;
+			mused.focus = EDITINSTRUMENT;
+			debug("four_op_menu_view curr mused.focus %d", mused.focus);
+		}
+		
+		adjust_rect(&frame, 8);
+		copy_rect(&r, &frame);
+		r.w = r.w / 2 - 2;
+		r.h = 10;
+		r.y += r.h + 1;
+
+		{
+			SDL_Rect note;
+			copy_rect(&note, &frame);
+
+			note.w = frame.w / 2 + 2;
+			note.h = 10;
+
+			four_op_text(event, &note, P_BASENOTE, "BASE", "%s", notename(inst->base_note), 3);
+			note.x += note.w + 2;
+			note.w = frame.w / 3;
+			four_op_text(event, &note, P_FINETUNE, "", "%+4d", MAKEPTR(inst->finetune), 4);
+			note.x += note.w + 2;
+			note.w = frame.w - note.x;
+
+			four_op_flags(event, &note, P_LOCKNOTE, "L", &inst->flags, MUS_INST_LOCK_NOTE);
+			
+			four_op_flags(event, &r, P_DRUM, "DRUM", &inst->flags, MUS_INST_DRUM);
+			update_rect(&frame, &r);
+			four_op_flags(event, &r, P_KEYSYNC, "KSYNC", &inst->cydflags, CYD_CHN_ENABLE_KEY_SYNC);
+			update_rect(&frame, &r);
+			four_op_flags(event, &r, P_INVVIB, "VIB", &inst->flags, MUS_INST_INVERT_VIBRATO_BIT);
+			update_rect(&frame, &r);
+			
+			four_op_flags(event, &r, P_INVTREM, "TREM", &inst->flags, MUS_INST_INVERT_TREMOLO_BIT);
+			update_rect(&frame, &r);
+			
+			four_op_flags(event, &r, P_SETPW, "SET PW", &inst->flags, MUS_INST_SET_PW);
+			update_rect(&frame, &r);
+			four_op_flags(event, &r, P_SETCUTOFF, "SET CUT", &inst->flags, MUS_INST_SET_CUTOFF);
+			update_rect(&frame, &r);
+
+			four_op_text(event, &r, P_SLIDESPEED, "SLIDE", "%02X", MAKEPTR(inst->slide_speed), 2);
+			update_rect(&frame, &r);
+		}
+	}
+}
 
 void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
@@ -1618,8 +1812,24 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 	
 	inst_flags(event, &r, P_FM_SAVE_LFO_SETTINGS, "SAVE FM LFO SET.", &inst->fm_flags, CYD_FM_SAVE_LFO_SETTINGS);
 	update_rect(&frame, &r);
+	
+	inst_flags(event, &r, P_FM_ENABLE_4OP, "4-OP", &inst->fm_flags, CYD_FM_ENABLE_4OP);
+	update_rect(&frame, &r);
+	
+	button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "OPEN MENU", open_4op, NULL, NULL, NULL);
+	update_rect(&frame, &r);
 }
 
+void open_4op(void *unused1, void *unused2, void *unused3)
+{
+	mused.show_four_op_menu = true;
+	
+	change_mode(EDIT4OP);
+	
+	mused.mode = EDIT4OP;
+	mused.focus = EDIT4OP;
+	debug("open_4op curr mused.focus %d", mused.focus);
+}
 
 
 void instrument_list(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
@@ -2281,7 +2491,7 @@ void sequence_spectrum_view(GfxDomain *dest_surface, const SDL_Rect *dest, const
 			SDL_Rect a;
 			copy_rect(&a, dest);
 			a.w += SCROLLBAR;
-			gfx_rect(dest_surface, &a, colors[COLOR_BACKGROUND]);
+			gfx_rect(dest_surface, &a, colors[COLOR_OF_BACKGROUND]);
 			SDL_Rect d, s = {0,0,a.w,a.h};
 			gfx_domain_set_clip(domain, &a);
 			copy_rect(&d, &a);

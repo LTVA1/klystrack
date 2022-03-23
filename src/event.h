@@ -233,6 +233,7 @@ enum
 	
 	P_FM_ADDITIVE, //wasn't there
 	P_FM_SAVE_LFO_SETTINGS,
+	P_FM_ENABLE_4OP,
 	/*----------*/
 	P_PARAMS
 };

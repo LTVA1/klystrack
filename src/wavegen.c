@@ -3,8 +3,6 @@
 #include <math.h>
 #include "macros.h"
 
-#include "combWFgen.h" //wasn't there
-
 float wg_osc(WgOsc *osc, float _phase)
 {
 	double intpart = 0.0f;

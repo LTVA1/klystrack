@@ -769,6 +769,738 @@ void instrument_add_param(int a)
 		flipbit(i->fm_flags, CYD_FM_SAVE_LFO_SETTINGS);
 
 		break;
+		
+		case P_FM_ENABLE_4OP: //wasn't there
+
+		flipbit(i->fm_flags, CYD_FM_ENABLE_4OP);
+
+		break;
+
+		case P_FM_ENABLE:
+
+		flipbit(i->cydflags, CYD_CHN_ENABLE_FM);
+
+		break;
+
+		case P_FM_HARMONIC_CARRIER:
+		{
+			Uint8 carrier = (i->fm_harmonic >> 4);
+			Uint8 modulator = i->fm_harmonic & 0xf;
+
+			clamp(carrier, a, 0, 15);
+
+			i->fm_harmonic = carrier << 4 | modulator;
+		}
+		break;
+
+		case P_FM_HARMONIC_MODULATOR:
+		{
+			Uint8 carrier = (i->fm_harmonic >> 4);
+			Uint8 modulator = i->fm_harmonic & 0xf;
+
+			clamp(modulator, a, 0, 15);
+
+			i->fm_harmonic = carrier << 4 | modulator;
+		}
+		break;
+
+
+		case P_FM_WAVE_ENTRY:
+
+		clamp(i->fm_wave, a, 0, CYD_WAVE_MAX_ENTRIES - 1);
+
+		break;
+
+
+		default:
+		break;
+	}
+
+}
+
+void four_op_add_param(int a)
+{
+	MusInstrument *i = &mused.song.instrument[mused.current_instrument];
+
+	if (a < 0) a = -1; else if (a > 0) a = 1;
+
+	if (SDL_GetModState() & KMOD_SHIFT)
+	{
+		switch (mused.fourop_selected_param)
+		{
+			case P_BASENOTE: a *= 12; break;
+			case P_FIXED_NOISE_BASE_NOTE: a *= 12; break;
+			case P_BUZZ_SEMI: a *= 12; break;
+			
+			case P_FM_BASENOTE: a *= 12; break; //wasn't there
+			
+			default: a *= 16; break;
+		}
+	}
+	
+	if (SDL_GetModState() & KMOD_CTRL) //wasn't there
+	{
+		switch (mused.fourop_selected_param)
+		{
+			default: a *= 256; break;
+		}
+	}
+
+	switch (mused.fourop_selected_param)
+	{
+		case P_INSTRUMENT:
+
+		clamp(mused.current_instrument, a, 0, NUM_INSTRUMENTS - 1);
+
+		break;
+
+		case P_BASENOTE:
+
+		clamp(i->base_note, a, 0, FREQ_TAB_SIZE - 1);
+
+		break;
+		
+		case P_FIXED_NOISE_BASE_NOTE:
+
+		clamp(i->noise_note, a, 0, FREQ_TAB_SIZE - 1);
+
+		break;
+		
+		case P_1_BIT_NOISE:
+
+		flipbit(i->cydflags, P_1_BIT_NOISE);
+
+		break;
+
+		case P_FINETUNE:
+
+		clamp(i->finetune, a, -128, 127);
+
+		break;
+
+		case P_LOCKNOTE:
+
+		flipbit(i->flags, MUS_INST_LOCK_NOTE);
+
+		break;
+
+		case P_DRUM:
+
+		flipbit(i->flags, MUS_INST_DRUM);
+
+		break;
+
+		case P_KEYSYNC:
+
+		flipbit(i->cydflags, CYD_CHN_ENABLE_KEY_SYNC);
+
+		break;
+
+		case P_SYNC:
+
+		flipbit(i->cydflags, CYD_CHN_ENABLE_SYNC);
+
+		break;
+
+		case P_SYNCSRC:
+		{
+			int x = (Uint8)(i->sync_source+1);
+			clamp(x, a, 0, MUS_MAX_CHANNELS);
+			i->sync_source = x-1;
+		}
+		break;
+
+		case P_WAVE:
+
+		flipbit(i->cydflags, CYD_CHN_ENABLE_WAVE);
+
+		break;
+
+		case P_WAVE_ENTRY:
+
+		clamp(i->wavetable_entry, a, 0, CYD_WAVE_MAX_ENTRIES - 1);
+
+		break;
+
+		case P_WAVE_OVERRIDE_ENV:
+
+		flipbit(i->cydflags, CYD_CHN_WAVE_OVERRIDE_ENV);
+
+		break;
+
+		case P_WAVE_LOCK_NOTE:
+
+		flipbit(i->flags, MUS_INST_WAVE_LOCK_NOTE);
+
+		break;
+
+		case P_PULSE:
+
+		flipbit(i->cydflags, CYD_CHN_ENABLE_PULSE);
+
+		break;
+
+		case P_SAW:
+
+		flipbit(i->cydflags, CYD_CHN_ENABLE_SAW);
+
+		break;
+
+		case P_TRIANGLE:
+
+		flipbit(i->cydflags, CYD_CHN_ENABLE_TRIANGLE);
+
+		break;
+
+		case P_LFSR:
+
+		flipbit(i->cydflags, CYD_CHN_ENABLE_LFSR);
+
+		break;
+
+		case P_LFSRTYPE:
+
+		clamp(i->lfsr_type, a, 0, CYD_NUM_LFSR - 1);
+
+		break;
+
+		case P_NOISE:
+
+		flipbit(i->cydflags, CYD_CHN_ENABLE_NOISE);
+
+		break;
+
+		case P_METAL:
+
+		flipbit(i->cydflags, CYD_CHN_ENABLE_METAL);
+
+		break;
+		
+		case P_OSCMIXMODE: //wasn't there
+		
+		clamp(i->mixmode, a, 0, 4);
+
+		break;
+
+		case P_RELVOL:
+
+		flipbit(i->flags, MUS_INST_RELATIVE_VOLUME);
+
+		break;
+
+		case P_FX:
+
+		flipbit(i->cydflags, CYD_CHN_ENABLE_FX);
+
+		break;
+
+		case P_FXBUS:
+
+		clamp(i->fx_bus, a, 0, CYD_MAX_FX_CHANNELS - 1);
+
+		break;
+
+		case P_ATTACK:
+
+		clamp(i->adsr.a, a, 0, 32 * ENVELOPE_SCALE - 1);
+
+		break;
+
+		case P_DECAY:
+
+		clamp(i->adsr.d, a, 0, 32 * ENVELOPE_SCALE - 1);
+
+		break;
+
+		case P_SUSTAIN:
+
+		clamp(i->adsr.s, a, 0, 31);
+
+		break;
+
+		case P_RELEASE:
+
+		clamp(i->adsr.r, a, 0, 32 * ENVELOPE_SCALE - 1);
+
+		break;
+		
+		
+		case P_EXP_VOL:
+		
+		flipbit(i->cydflags, CYD_CHN_ENABLE_EXPONENTIAL_VOLUME);
+		
+		break;
+		
+		case P_EXP_ATTACK:
+		
+		flipbit(i->cydflags, CYD_CHN_ENABLE_EXPONENTIAL_ATTACK);
+		
+		break;
+		
+		case P_EXP_DECAY:
+		
+		flipbit(i->cydflags, CYD_CHN_ENABLE_EXPONENTIAL_DECAY);
+		
+		break;
+		
+		case P_EXP_RELEASE:
+		
+		flipbit(i->cydflags, CYD_CHN_ENABLE_EXPONENTIAL_RELEASE);
+		
+		break;
+		
+		
+		case P_VOL_KSL:
+		
+		flipbit(i->cydflags, CYD_CHN_ENABLE_VOLUME_KEY_SCALING);
+		
+		break;
+		
+		case P_VOL_KSL_LEVEL:
+		
+		clamp(i->vol_ksl_level, a, 0, 255);
+		
+		break;
+		
+		case P_ENV_KSL:
+		
+		flipbit(i->cydflags, CYD_CHN_ENABLE_ENVELOPE_KEY_SCALING);
+		
+		break;
+		
+		case P_ENV_KSL_LEVEL:
+		
+		clamp(i->env_ksl_level, a, 0, 255);
+		
+		break;
+		
+		
+
+		case P_BUZZ:
+
+		flipbit(i->flags, MUS_INST_YM_BUZZ);
+
+		break;
+
+		case P_BUZZ_SHAPE:
+
+		clamp(i->ym_env_shape, a, 0, 3);
+
+		break;
+		
+		case P_BUZZ_ENABLE_AY8930:
+		
+		flipbit(i->cydflags, CYD_CHN_ENABLE_AY8930_BUZZ_MODE);
+		
+		break;
+
+		case P_BUZZ_FINE:
+		{
+			clamp(i->buzz_offset, a, -32768, 32767);
+		}
+		break;
+
+		case P_BUZZ_SEMI:
+		{
+			int f = i->buzz_offset >> 8;
+			clamp(f, a, -99, 99);
+			i->buzz_offset = (i->buzz_offset & 0xff) | f << 8;
+		}
+		break;
+
+		case P_PW:
+
+		clamp(i->pw, a, 0, 0xfff); //was `clamp(i->pw, a*16, 0, 0x7ff);`
+
+		break;
+
+		case P_1_4TH:
+		
+		flipbit(i->flags, MUS_INST_QUARTER_FREQ);
+		
+		break;
+		
+		case P_FIX_NOISE_PITCH:
+		
+		flipbit(i->cydflags, CYD_CHN_ENABLE_FIXED_NOISE_PITCH);
+		
+		break;
+
+		case P_VOLUME:
+
+		clamp(i->volume, a, 0, 255); // 255 = ~2x boost
+
+		break;
+
+		case P_PROGPERIOD:
+
+		clamp(i->prog_period, a, 0, 0xff);
+
+		break;
+
+		case P_SLIDESPEED:
+
+		clamp(i->slide_speed, a, 0, 0xff);
+
+		break;
+		
+		
+
+		case P_VIBDEPTH:
+
+		clamp(i->vibrato_depth, a, 0, 0xff);
+
+		break;
+
+		case P_VIBDELAY:
+
+		clamp(i->vibrato_delay, a, 0, 0xff);
+
+		break;
+
+		case P_VIBSHAPE:
+
+		clamp(i->vibrato_shape, a, 0, MUS_NUM_SHAPES - 1);
+
+		break;
+
+		case P_VIBSPEED:
+
+		clamp(i->vibrato_speed, a, 0, 0xff);
+
+		break;
+		
+		
+		case P_FM_VIBDEPTH:
+
+		clamp(i->fm_vibrato_depth, a, 0, 0xff);
+
+		break;
+
+		case P_FM_VIBDELAY:
+
+		clamp(i->fm_vibrato_delay, a, 0, 0xff);
+
+		break;
+
+		case P_FM_VIBSHAPE:
+
+		clamp(i->fm_vibrato_shape, a, 0, MUS_NUM_SHAPES - 1);
+
+		break;
+
+		case P_FM_VIBSPEED:
+
+		clamp(i->fm_vibrato_speed, a, 0, 0xff);
+
+		break;
+		
+		
+
+		case P_PWMDEPTH:
+
+		clamp(i->pwm_depth, a, 0, 0xff);
+
+		break;
+
+		case P_PWMSPEED:
+
+		clamp(i->pwm_speed, a, 0, 0xff);
+
+		break;
+
+		case P_PWMSHAPE:
+
+		clamp(i->pwm_shape, a, 0, MUS_NUM_SHAPES - 1);
+
+		break;
+		
+		case P_PWMDELAY: //wasn't there
+
+		clamp(i->pwm_delay, a, 0, 0xff);
+
+		break;
+		
+		
+		
+		case P_TREMDEPTH:
+
+		clamp(i->tremolo_depth, a, 0, 0xff);
+
+		break;
+
+		case P_TREMSPEED:
+
+		clamp(i->tremolo_speed, a, 0, 0xff);
+
+		break;
+
+		case P_TREMSHAPE:
+
+		clamp(i->tremolo_shape, a, 0, MUS_NUM_SHAPES - 1);
+
+		break;
+		
+		case P_TREMDELAY: //wasn't there
+
+		clamp(i->tremolo_delay, a, 0, 0xff);
+
+		break;
+		
+		
+		
+		case P_FM_TREMDEPTH:
+
+		clamp(i->fm_tremolo_depth, a, 0, 0xff);
+
+		break;
+
+		case P_FM_TREMSPEED:
+
+		clamp(i->fm_tremolo_speed, a, 0, 0xff);
+
+		break;
+
+		case P_FM_TREMSHAPE:
+
+		clamp(i->fm_tremolo_shape, a, 0, MUS_NUM_SHAPES - 1);
+
+		break;
+		
+		case P_FM_TREMDELAY: //wasn't there
+
+		clamp(i->fm_tremolo_delay, a, 0, 0xff);
+
+		break;
+		
+		
+
+		case P_RINGMOD:
+
+		flipbit(i->cydflags, CYD_CHN_ENABLE_RING_MODULATION);
+
+		break;
+
+		case P_SETPW:
+
+		flipbit(i->flags, MUS_INST_SET_PW);
+
+		break;
+
+		case P_SETCUTOFF:
+
+		flipbit(i->flags, MUS_INST_SET_CUTOFF);
+
+		break;
+
+		case P_INVVIB:
+
+		flipbit(i->flags, MUS_INST_INVERT_VIBRATO_BIT);
+
+		break;
+		
+		case P_INVTREM:
+
+		flipbit(i->flags, MUS_INST_INVERT_TREMOLO_BIT);
+
+		break;
+
+		case P_FILTER:
+
+		flipbit(i->cydflags, CYD_CHN_ENABLE_FILTER);
+
+		break;
+
+		case P_RINGMODSRC:
+		{
+			int x = (Uint8)(i->ring_mod+1);
+			clamp(x, a, 0, MUS_MAX_CHANNELS);
+			i->ring_mod = x-1;
+		}
+		break;
+
+		case P_CUTOFF:
+
+		clamp(i->cutoff, a, 0, 4095); //was `clamp(i->cutoff, a*16, 0, 2047);`
+
+		break;
+
+		case P_RESONANCE:
+
+		clamp(i->resonance, a, 0, 15);  //was `0, 3)`
+
+		break;
+		
+		case P_SLOPE: //wasn't there
+
+		clamp(i->slope, a, 0, 5);  //was `0, 3)`
+
+		break;
+
+		case P_FLTTYPE:
+
+		clamp(i->flttype, a, 0, FLT_TYPES - 1);
+
+		break;
+
+		case P_NORESTART:
+
+		flipbit(i->flags, MUS_INST_NO_PROG_RESTART);
+
+		break;
+
+		case P_MULTIOSC:
+
+		flipbit(i->flags, MUS_INST_MULTIOSC);
+
+		break;
+		
+		case P_SAVE_LFO_SETTINGS:
+
+		flipbit(i->flags, MUS_INST_SAVE_LFO_SETTINGS);
+
+		break;
+
+		case P_FM_MODULATION:
+
+		clamp(i->fm_modulation, a, 0, 0xff);
+
+		break;
+
+		case P_FM_FEEDBACK:
+
+		clamp(i->fm_feedback, a, 0, 0x7);
+
+		break;
+		
+		
+		
+		
+		case P_FM_VOL_KSL_ENABLE:
+
+		flipbit(i->fm_flags, CYD_FM_ENABLE_VOLUME_KEY_SCALING);
+
+		break;
+		
+		case P_FM_VOL_KSL_LEVEL:
+
+		clamp(i->fm_vol_ksl_level, a, 0, 0xff);
+
+		break;
+		
+		case P_FM_ENV_KSL_ENABLE:
+
+		flipbit(i->fm_flags, CYD_FM_ENABLE_ENVELOPE_KEY_SCALING);
+
+		break;
+		
+		case P_FM_ENV_KSL_LEVEL:
+
+		clamp(i->fm_env_ksl_level, a, 0, 0xff);
+
+		break;
+		
+		
+		
+		
+		
+		case P_FM_BASENOTE: //weren't there
+
+		clamp(i->fm_base_note, a, 0, FREQ_TAB_SIZE - 1);
+
+		break;
+
+		case P_FM_FINETUNE:
+
+		clamp(i->fm_finetune, a, -128, 127);
+
+		break;
+		
+		
+		
+		
+		case P_FM_FREQ_LUT:
+
+		clamp(i->fm_freq_LUT, a, 0, 1);
+
+		break;
+		
+		
+		
+
+		case P_FM_ATTACK:
+
+		clamp(i->fm_adsr.a, a, 0, 32 * ENVELOPE_SCALE - 1);
+
+		break;
+
+		case P_FM_DECAY:
+
+		clamp(i->fm_adsr.d, a, 0, 32 * ENVELOPE_SCALE - 1);
+
+		break;
+
+		case P_FM_SUSTAIN:
+
+		clamp(i->fm_adsr.s, a, 0, 31);
+
+		break;
+
+		case P_FM_RELEASE:
+
+		clamp(i->fm_adsr.r, a, 0, 32 * ENVELOPE_SCALE - 1);
+
+		break;
+		
+		
+		case P_FM_EXP_VOL: //wasn't there
+
+		flipbit(i->fm_flags, CYD_FM_ENABLE_EXPONENTIAL_VOLUME);
+
+		break;
+		
+		case P_FM_EXP_ATTACK: //wasn't there
+
+		flipbit(i->fm_flags, CYD_FM_ENABLE_EXPONENTIAL_ATTACK);
+
+		break;
+		
+		case P_FM_EXP_DECAY: //wasn't there
+
+		flipbit(i->fm_flags, CYD_FM_ENABLE_EXPONENTIAL_DECAY);
+
+		break;
+		
+		case P_FM_EXP_RELEASE: //wasn't there
+
+		flipbit(i->fm_flags, CYD_FM_ENABLE_EXPONENTIAL_RELEASE);
+
+		break;
+		
+
+		case P_FM_ENV_START:
+
+		clamp(i->fm_attack_start, a, 0, 31);
+
+		break;
+
+		case P_FM_WAVE:
+
+		flipbit(i->fm_flags, CYD_FM_ENABLE_WAVE);
+
+		break;
+		
+		case P_FM_ADDITIVE: //wasn't there
+
+		flipbit(i->fm_flags, CYD_FM_ENABLE_ADDITIVE);
+
+		break;
+		
+		case P_FM_SAVE_LFO_SETTINGS: //wasn't there
+
+		flipbit(i->fm_flags, CYD_FM_SAVE_LFO_SETTINGS);
+
+		break;
 
 		case P_FM_ENABLE:
 
@@ -835,7 +1567,8 @@ static int find_playing_note(int n)
 }
 
 
-static void play_note(int note) {
+static void play_note(int note) 
+{
 	if (find_playing_note(note) == -1 && note < FREQ_TAB_SIZE)
 	{
 		int c = mus_trigger_instrument(&mused.mus, -1, &mused.song.instrument[mused.current_instrument], note << 8, CYD_PAN_CENTER);
@@ -878,6 +1611,7 @@ static void play_the_jams(int sym, int chn, int state)
 				else
 					stop_note(note);
 			}
+			
 			else
 			{
 				if (state == 1)
@@ -886,7 +1620,11 @@ static void play_the_jams(int sym, int chn, int state)
 						chn = 0;
 
 					int c = mus_trigger_instrument(&mused.mus, chn, &mused.song.instrument[mused.current_instrument], note << 8, CYD_PAN_CENTER);
-
+					
+					mused.cyd.channel[c].subosc[0].wave.acc = 0;
+					mused.cyd.channel[c].subosc[1].wave.acc = 0;
+					mused.cyd.channel[c].subosc[2].wave.acc = 0;
+					
 					mused.mus.song_track[c].extarp1 = 0;
 					mused.mus.song_track[c].extarp2 = 0;
 				}
@@ -973,6 +1711,76 @@ void edit_instrument_event(SDL_Event *e)
 			case SDLK_LEFT:
 			{
 				instrument_add_param(-1);
+			}
+			break;
+
+			default:
+			{
+				play_the_jams(e->key.keysym.sym, -1, 1);
+			}
+			break;
+		}
+
+		break;
+
+		case SDL_KEYUP:
+
+			play_the_jams(e->key.keysym.sym, -1, 0);
+
+		break;
+	}
+}
+
+void edit_4op_event(SDL_Event *e)
+{
+	switch (e->type)
+	{
+		case SDL_KEYDOWN:
+
+		switch (e->key.keysym.sym)
+		{
+			case SDLK_RETURN:
+			{
+				if (mused.fourop_selected_param == P_NAME)
+					set_edit_buffer(mused.song.instrument[mused.current_instrument].name, sizeof(mused.song.instrument[mused.current_instrument].name));
+			}
+			break;
+
+			case SDLK_DOWN:
+			{
+				++mused.fourop_selected_param;
+
+				if (mused.mode == EDIT4OP)
+				{
+					if (mused.fourop_selected_param >= P_PARAMS) mused.fourop_selected_param = P_PARAMS - 1;
+				}
+				else
+				{
+					if (mused.fourop_selected_param >= P_NAME) mused.fourop_selected_param = P_NAME;
+				}
+			}
+			break;
+
+			case SDLK_UP:
+			{
+				--mused.fourop_selected_param;
+
+				if (mused.fourop_selected_param < 0) mused.fourop_selected_param = 0;
+			}
+			break;
+
+
+
+			case SDLK_RIGHT:
+			{
+				four_op_add_param(+1);
+			}
+			break;
+
+
+			case SDLK_LEFT:
+			{
+				four_op_add_param(-1);
 			}
 			break;
 

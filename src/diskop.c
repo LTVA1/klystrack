@@ -276,7 +276,22 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 	temp32 = inst->cydflags;
 	FIX_ENDIAN(temp32);
 	SDL_RWwrite(f, &temp32, sizeof(temp32), 1);
-	SDL_RWwrite(f, &inst->adsr, sizeof(inst->adsr), 1);
+	//SDL_RWwrite(f, &inst->adsr, sizeof(inst->adsr), 1);
+	
+	if(inst->cydflags & CYD_CHN_ENABLE_FILTER)
+	{
+		inst->adsr.a |= ((inst->flttype & 0b110) << 5);
+		inst->adsr.d |= ((inst->flttype & 0b1) << 6);
+	}
+	
+	SDL_RWwrite(f, &inst->adsr.a, sizeof(inst->adsr.a), 1);
+	SDL_RWwrite(f, &inst->adsr.d, sizeof(inst->adsr.d), 1);
+	
+	Uint8 temp8 = inst->adsr.s;
+	temp8 |= (inst->slope << 5);
+	SDL_RWwrite(f, &temp8, sizeof(temp8), 1);
+	
+	SDL_RWwrite(f, &inst->adsr.r, sizeof(inst->adsr.r), 1);
 	
 	if(inst->cydflags & CYD_CHN_ENABLE_FIXED_NOISE_PITCH)
 	{
@@ -303,7 +318,12 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 		SDL_RWwrite(f, &inst->ring_mod, sizeof(inst->ring_mod), 1);
 	}
 	
-	Uint16 temp16 = inst->pw;
+	Uint16 temp16 = 0;
+	
+	temp16 = inst->pw;
+	
+	temp16 |= (inst->mixmode << 12);
+	
 	FIX_ENDIAN(temp16);
 	SDL_RWwrite(f, &temp16, sizeof(temp16), 1);
 	SDL_RWwrite(f, &inst->volume, sizeof(inst->volume), 1);
@@ -363,8 +383,8 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 		FIX_ENDIAN(temp16);
 		SDL_RWwrite(f, &temp16, sizeof(temp16), 1);
 		//SDL_RWwrite(f, &inst->resonance, sizeof(inst->resonance), 1);
-		SDL_RWwrite(f, &inst->flttype, sizeof(inst->flttype), 1);
-		SDL_RWwrite(f, &inst->slope, sizeof(inst->slope), 1);
+		//SDL_RWwrite(f, &inst->flttype, sizeof(inst->flttype), 1);
+		//SDL_RWwrite(f, &inst->slope, sizeof(inst->slope), 1);
 	}
 	
 	if(inst->flags & MUS_INST_YM_BUZZ)
@@ -392,9 +412,8 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 		SDL_RWwrite(f, &inst->lfsr_type, sizeof(inst->lfsr_type), 1);
 	}
 	
-	SDL_RWwrite(f, &inst->mixmode, sizeof(inst->mixmode), 1); //wasn't there
+	//SDL_RWwrite(f, &inst->mixmode, sizeof(inst->mixmode), 1); //wasn't there
 	
-
 	if (write_wave)
 	{
 		Uint8 temp = 0xff;
@@ -421,15 +440,27 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 			SDL_RWwrite(f, &inst->fm_env_ksl_level, sizeof(inst->fm_env_ksl_level), 1);
 		}
 		
-		SDL_RWwrite(f, &inst->fm_feedback, sizeof(inst->fm_feedback), 1);
+		//SDL_RWwrite(f, &inst->fm_feedback, sizeof(inst->fm_feedback), 1);
 		SDL_RWwrite(f, &inst->fm_harmonic, sizeof(inst->fm_harmonic), 1);
-		SDL_RWwrite(f, &inst->fm_adsr, sizeof(inst->fm_adsr), 1);
+		
+		//SDL_RWwrite(f, &inst->fm_adsr, sizeof(inst->fm_adsr), 1);
+		
+		inst->fm_adsr.a |= (inst->fm_freq_LUT << 6);
+		SDL_RWwrite(f, &inst->fm_adsr.a, sizeof(inst->fm_adsr.a), 1);
+		
+		SDL_RWwrite(f, &inst->fm_adsr.d, sizeof(inst->fm_adsr.d), 1);
+		
+		inst->fm_adsr.s |= (inst->fm_feedback << 5);
+		SDL_RWwrite(f, &inst->fm_adsr.s, sizeof(inst->fm_adsr.d), 1);
+		
+		SDL_RWwrite(f, &inst->fm_adsr.r, sizeof(inst->fm_adsr.r), 1);
+		
 		SDL_RWwrite(f, &inst->fm_attack_start, sizeof(inst->fm_attack_start), 1);
 		
 		SDL_RWwrite(f, &inst->fm_base_note, sizeof(inst->fm_base_note), 1); //weren't there
 		SDL_RWwrite(f, &inst->fm_finetune, sizeof(inst->fm_finetune), 1);
 		
-		SDL_RWwrite(f, &inst->fm_freq_LUT, sizeof(inst->fm_freq_LUT), 1);
+		//SDL_RWwrite(f, &inst->fm_freq_LUT, sizeof(inst->fm_freq_LUT), 1);
 		
 		if(inst->fm_flags & CYD_FM_SAVE_LFO_SETTINGS)
 		{
@@ -761,9 +792,7 @@ int save_wavepatch(SDL_RWops *f) //wasn't there
 int open_wavepatch(FILE *f) //wasn't there
 {
 	if (!mus_load_wavepatch(f, &mused.wgset)) return 0;
-
 	
-
 	return 1;
 }
 
