@@ -234,8 +234,6 @@ void default_settings()
 
 void init(MusInstrument *instrument, MusPattern *pattern, MusSeqPattern sequence[MUS_MAX_CHANNELS][NUM_SEQUENCES], MusChannel *channel)
 {
-	debug("init");
-
 	memset(&mused, 0, sizeof(mused));
 
 	set_info_message("Welcome to klystrack-plus!");
@@ -334,8 +332,6 @@ void init(MusInstrument *instrument, MusPattern *pattern, MusSeqPattern sequence
 	mused.prev_wavetable_y = -1;
 
 	init_recent_files_list();
-
-	debug("init done");
 }
 
 

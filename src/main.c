@@ -107,7 +107,7 @@ static const View instrument_view_tab[] =
 	
 	{{ 2 * ( - OSC_SIZE - (SCROLLBAR / 2) - 2), 14 + INST_LIST + INST_VIEW2 + 4, 2 * OSC_SIZE, OSC_SIZE }, oscilloscope_view, NULL, EDITINSTRUMENT }, //wasn't there
 	//{{154 + 100, 14 + INST_LIST + INST_VIEW2 + 10, -OSC_SIZE, -OSC_SIZE }, oscilloscope_view, NULL, EDITINSTRUMENT }, //wasn't there
-	{{100, 100, -100, -100}, four_op_menu_view, NULL, EDITINSTRUMENT },
+	{{0, 0, 0, -12}, four_op_menu_view, NULL, EDITINSTRUMENT },
 	
 	{{0, 0, 0, 0}, NULL}
 };
@@ -190,7 +190,9 @@ const View *tab[] =
 	sequence_view_tab,
 	classic_view_tab,
 	instrument_view_tab,
-
+	
+	instrument_view_tab, //for 4-op
+	
 	fx_view_tab,
 	wavetable_view_tab,
 };
@@ -228,8 +230,6 @@ int main(int argc, char **argv)
 	init_resources_dir();
 	
 	debug("Starting %s", VERSION_STRING);
-	
-	debug("%d", sizeof(CydFmOp));
 	
 	mused.output_buffer_counter = 0; //wasn't there
 
@@ -468,12 +468,10 @@ int main(int argc, char **argv)
 
 							case EDITINSTRUMENT:
 							edit_instrument_event(&e);
-							debug("insevent curr focus %d", mused.focus);
 							break;
 							
 							case EDIT4OP:
-							edit_4op_event(&e);
-							debug("4opevent curr focus %d", mused.focus);
+							edit_fourop_event(&e);
 							break;
 
 							case EDITPATTERN:
@@ -565,7 +563,7 @@ int main(int argc, char **argv)
 				{
 					SDL_Event foo = {0};
 
-					my_draw_view(tab[((mused.show_four_op_menu) ? (m - 1) : m)], &foo, domain);
+					my_draw_view(tab[((mused.show_four_op_menu) ? (m) : m)], &foo, domain);
 
 					draw_menu(domain, &e);
 
@@ -583,15 +581,14 @@ int main(int argc, char **argv)
 				
 				else
 				{
-					my_draw_view(tab[((mused.show_four_op_menu) ? (m - 1) : m)], &e, domain);
+					my_draw_view(tab[((mused.show_four_op_menu) ? (m) : m)], &e, domain);
 				}
 
 				e.type = 0;
 
 				// agh
 				mused.current_patternpos = mused.pattern_position;
-			}
-			while (mused.mode != prev_mode); // Eliminates the one-frame long black screen
+			} while (mused.mode != prev_mode); // Eliminates the one-frame long black screen
 
 #ifdef DEBUG
 			total_frames++;

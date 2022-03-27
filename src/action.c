@@ -307,7 +307,7 @@ void change_mode_action(void *mode, void *from_shortcut, void *unused2)
 {
 	if(CASTPTR(int, from_shortcut) == 1)
 	{
-		if(CASTPTR(int, mode) > EDITINSTRUMENT)
+		/*if(CASTPTR(int, mode) > EDITINSTRUMENT)
 		{
 			change_mode(CASTPTR(int, mused.show_four_op_menu ? mode : mode - 1));
 		}
@@ -315,7 +315,9 @@ void change_mode_action(void *mode, void *from_shortcut, void *unused2)
 		else
 		{
 			change_mode(CASTPTR(int, mused.show_four_op_menu ? mode + 1 : mode));
-		}
+		}*/
+		
+		change_mode(CASTPTR(int, mode));
 	}
 	
 	else

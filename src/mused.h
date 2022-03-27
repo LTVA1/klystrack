@@ -140,7 +140,7 @@ typedef struct
 	MusSong song;
 	CydEngine cyd;
 	MusEngine mus;
-	int octave, instrument_page, current_instrument, default_pattern_length, selected_param, fourop_selected_param, editpos, mode, focus,
+	int octave, instrument_page, current_instrument, default_pattern_length, selected_param, fourop_selected_param, selected_operator, editpos, mode, focus,
 		current_patternx, current_patternpos, current_sequencepos, sequenceview_steps, single_pattern_edit, 
 		prev_mode, current_sequenceparam, instrument_list_position,
 		pattern_position, sequence_position, pattern_horiz_position, sequence_horiz_position,

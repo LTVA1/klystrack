@@ -136,7 +136,7 @@ void instrument_add_param(int a)
 		
 		case P_1_BIT_NOISE:
 
-		flipbit(i->cydflags, P_1_BIT_NOISE);
+		flipbit(i->cydflags, CYD_CHN_ENABLE_1_BIT_NOISE);
 
 		break;
 
@@ -828,11 +828,8 @@ void four_op_add_param(int a)
 	{
 		switch (mused.fourop_selected_param)
 		{
-			case P_BASENOTE: a *= 12; break;
-			case P_FIXED_NOISE_BASE_NOTE: a *= 12; break;
-			case P_BUZZ_SEMI: a *= 12; break;
-			
-			case P_FM_BASENOTE: a *= 12; break; //wasn't there
+			case FOUROP_BASENOTE: a *= 12; break;
+			case FOUROP_FIXED_NOISE_BASE_NOTE: a *= 12; break;
 			
 			default: a *= 16; break;
 		}
@@ -848,702 +845,460 @@ void four_op_add_param(int a)
 
 	switch (mused.fourop_selected_param)
 	{
-		case P_INSTRUMENT:
+		case FOUROP_3CH_EXP_MODE:
 
-		clamp(mused.current_instrument, a, 0, NUM_INSTRUMENTS - 1);
-
-		break;
-
-		case P_BASENOTE:
-
-		clamp(i->base_note, a, 0, FREQ_TAB_SIZE - 1);
+		flipbit(i->fm_flags, CYD_CHN_ENABLE_1_BIT_NOISE);
 
 		break;
 		
-		case P_FIXED_NOISE_BASE_NOTE:
+		case FOUROP_ALG:
 
-		clamp(i->noise_note, a, 0, FREQ_TAB_SIZE - 1);
+		clamp(i->alg, a, 1, 12);
 
 		break;
 		
-		case P_1_BIT_NOISE:
+		case FOUROP_ENABLE_SSG_EG:
 
-		flipbit(i->cydflags, P_1_BIT_NOISE);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_SSG_EG);
+
+		break;
+		
+		case FOUROP_BASENOTE:
+
+		clamp(i->ops[mused.selected_operator - 1].base_note, a, 0, FREQ_TAB_SIZE - 1);
+
+		break;
+		
+		case FOUROP_FINETUNE:
+
+		clamp(i->ops[mused.selected_operator - 1].finetune, a, -128, 127);
+
+		break;
+		
+		case FOUROP_FIXED_NOISE_BASE_NOTE:
+
+		clamp(i->ops[mused.selected_operator - 1].noise_note, a, 0, FREQ_TAB_SIZE - 1);
+
+		break;
+		
+		case FOUROP_1_BIT_NOISE:
+
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_1_BIT_NOISE);
 
 		break;
 
-		case P_FINETUNE:
+		case FOUROP_DETUNE:
 
-		clamp(i->finetune, a, -128, 127);
+		clamp(i->ops[mused.selected_operator - 1].detune, a, -3, 3);
+
+		break;
+		
+		case FOUROP_COARSE_DETUNE:
+
+		clamp(i->ops[mused.selected_operator - 1].coarse_detune, a, -128, 127);
 
 		break;
 
-		case P_LOCKNOTE:
+		case FOUROP_LOCKNOTE:
 
-		flipbit(i->flags, MUS_INST_LOCK_NOTE);
-
-		break;
-
-		case P_DRUM:
-
-		flipbit(i->flags, MUS_INST_DRUM);
+		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_INST_LOCK_NOTE);
 
 		break;
 
-		case P_KEYSYNC:
+		case FOUROP_DRUM:
 
-		flipbit(i->cydflags, CYD_CHN_ENABLE_KEY_SYNC);
-
-		break;
-
-		case P_SYNC:
-
-		flipbit(i->cydflags, CYD_CHN_ENABLE_SYNC);
+		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_INST_DRUM);
 
 		break;
 
-		case P_SYNCSRC:
+		case FOUROP_KEYSYNC:
+
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_KEY_SYNC);
+
+		break;
+
+		case FOUROP_SYNC:
+
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_SYNC);
+
+		break;
+
+		case FOUROP_SYNCSRC:
 		{
-			int x = (Uint8)(i->sync_source+1);
+			int x = (Uint8)(i->ops[mused.selected_operator - 1].sync_source+1);
 			clamp(x, a, 0, MUS_MAX_CHANNELS);
-			i->sync_source = x-1;
+			i->ops[mused.selected_operator - 1].sync_source = x-1;
 		}
 		break;
 
-		case P_WAVE:
+		case FOUROP_WAVE:
 
-		flipbit(i->cydflags, CYD_CHN_ENABLE_WAVE);
-
-		break;
-
-		case P_WAVE_ENTRY:
-
-		clamp(i->wavetable_entry, a, 0, CYD_WAVE_MAX_ENTRIES - 1);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_WAVE);
 
 		break;
 
-		case P_WAVE_OVERRIDE_ENV:
+		case FOUROP_WAVE_ENTRY:
 
-		flipbit(i->cydflags, CYD_CHN_WAVE_OVERRIDE_ENV);
-
-		break;
-
-		case P_WAVE_LOCK_NOTE:
-
-		flipbit(i->flags, MUS_INST_WAVE_LOCK_NOTE);
+		clamp(i->ops[mused.selected_operator - 1].wavetable_entry, a, 0, CYD_WAVE_MAX_ENTRIES - 1);
 
 		break;
 
-		case P_PULSE:
+		case FOUROP_WAVE_OVERRIDE_ENV:
 
-		flipbit(i->cydflags, CYD_CHN_ENABLE_PULSE);
-
-		break;
-
-		case P_SAW:
-
-		flipbit(i->cydflags, CYD_CHN_ENABLE_SAW);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_WAVE_OVERRIDE_ENV);
 
 		break;
 
-		case P_TRIANGLE:
+		case FOUROP_WAVE_LOCK_NOTE:
 
-		flipbit(i->cydflags, CYD_CHN_ENABLE_TRIANGLE);
-
-		break;
-
-		case P_LFSR:
-
-		flipbit(i->cydflags, CYD_CHN_ENABLE_LFSR);
+		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_INST_WAVE_LOCK_NOTE);
 
 		break;
 
-		case P_LFSRTYPE:
+		case FOUROP_PULSE:
 
-		clamp(i->lfsr_type, a, 0, CYD_NUM_LFSR - 1);
-
-		break;
-
-		case P_NOISE:
-
-		flipbit(i->cydflags, CYD_CHN_ENABLE_NOISE);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_PULSE);
 
 		break;
 
-		case P_METAL:
+		case FOUROP_SAW:
 
-		flipbit(i->cydflags, CYD_CHN_ENABLE_METAL);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_SAW);
+
+		break;
+
+		case FOUROP_TRIANGLE:
+
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_TRIANGLE);
+
+		break;
+
+		case FOUROP_NOISE:
+
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_NOISE);
+
+		break;
+
+		case FOUROP_METAL:
+
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_METAL);
 
 		break;
 		
-		case P_OSCMIXMODE: //wasn't there
+		case FOUROP_OSCMIXMODE: //wasn't there
 		
-		clamp(i->mixmode, a, 0, 4);
+		clamp(i->ops[mused.selected_operator - 1].mixmode, a, 0, 4);
 
 		break;
 
-		case P_RELVOL:
+		case FOUROP_RELVOL:
 
-		flipbit(i->flags, MUS_INST_RELATIVE_VOLUME);
-
-		break;
-
-		case P_FX:
-
-		flipbit(i->cydflags, CYD_CHN_ENABLE_FX);
+		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_INST_RELATIVE_VOLUME);
 
 		break;
 
-		case P_FXBUS:
+		case FOUROP_ATTACK:
 
-		clamp(i->fx_bus, a, 0, CYD_MAX_FX_CHANNELS - 1);
-
-		break;
-
-		case P_ATTACK:
-
-		clamp(i->adsr.a, a, 0, 32 * ENVELOPE_SCALE - 1);
+		clamp(i->ops[mused.selected_operator - 1].adsr.a, a, 0, 32 * ENVELOPE_SCALE - 1);
 
 		break;
 
-		case P_DECAY:
+		case FOUROP_DECAY:
 
-		clamp(i->adsr.d, a, 0, 32 * ENVELOPE_SCALE - 1);
-
-		break;
-
-		case P_SUSTAIN:
-
-		clamp(i->adsr.s, a, 0, 31);
+		clamp(i->ops[mused.selected_operator - 1].adsr.d, a, 0, 32 * ENVELOPE_SCALE - 1);
 
 		break;
 
-		case P_RELEASE:
+		case FOUROP_SUSTAIN:
 
-		clamp(i->adsr.r, a, 0, 32 * ENVELOPE_SCALE - 1);
+		clamp(i->ops[mused.selected_operator - 1].adsr.s, a, 0, 31);
+
+		break;
+
+		case FOUROP_RELEASE:
+
+		clamp(i->ops[mused.selected_operator - 1].adsr.r, a, 0, 32 * ENVELOPE_SCALE - 1);
 
 		break;
 		
 		
-		case P_EXP_VOL:
+		case FOUROP_EXP_VOL:
 		
-		flipbit(i->cydflags, CYD_CHN_ENABLE_EXPONENTIAL_VOLUME);
-		
-		break;
-		
-		case P_EXP_ATTACK:
-		
-		flipbit(i->cydflags, CYD_CHN_ENABLE_EXPONENTIAL_ATTACK);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_EXPONENTIAL_VOLUME);
 		
 		break;
 		
-		case P_EXP_DECAY:
+		case FOUROP_EXP_ATTACK:
 		
-		flipbit(i->cydflags, CYD_CHN_ENABLE_EXPONENTIAL_DECAY);
-		
-		break;
-		
-		case P_EXP_RELEASE:
-		
-		flipbit(i->cydflags, CYD_CHN_ENABLE_EXPONENTIAL_RELEASE);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_EXPONENTIAL_ATTACK);
 		
 		break;
 		
+		case FOUROP_EXP_DECAY:
 		
-		case P_VOL_KSL:
-		
-		flipbit(i->cydflags, CYD_CHN_ENABLE_VOLUME_KEY_SCALING);
-		
-		break;
-		
-		case P_VOL_KSL_LEVEL:
-		
-		clamp(i->vol_ksl_level, a, 0, 255);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_EXPONENTIAL_DECAY);
 		
 		break;
 		
-		case P_ENV_KSL:
+		case FOUROP_EXP_RELEASE:
 		
-		flipbit(i->cydflags, CYD_CHN_ENABLE_ENVELOPE_KEY_SCALING);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_EXPONENTIAL_RELEASE);
 		
 		break;
 		
-		case P_ENV_KSL_LEVEL:
 		
-		clamp(i->env_ksl_level, a, 0, 255);
+		case FOUROP_VOL_KSL:
 		
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_VOLUME_KEY_SCALING);
+		
+		break;
+		
+		case FOUROP_VOL_KSL_LEVEL:
+		
+		clamp(i->ops[mused.selected_operator - 1].vol_ksl_level, a, 0, 255);
+		
+		break;
+		
+		case FOUROP_ENV_KSL:
+		
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_ENVELOPE_KEY_SCALING);
+		
+		break;
+		
+		case FOUROP_ENV_KSL_LEVEL:
+		
+		clamp(i->ops[mused.selected_operator - 1].env_ksl_level, a, 0, 255);
+		
+		break;
+		
+
+		case FOUROP_PW:
+
+		clamp(i->ops[mused.selected_operator - 1].pw, a, 0, 0xfff); //was `clamp(i->ops[mused.selected_operator - 1].pw, a*16, 0, 0x7ff);`
+
+		break;
+
+		case FOUROP_1_4TH:
+		
+		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_INST_QUARTER_FREQ);
+		
+		break;
+		
+		case FOUROP_FIX_NOISE_PITCH:
+		
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_FIXED_NOISE_PITCH);
+		
+		break;
+
+		case FOUROP_VOLUME:
+
+		clamp(i->ops[mused.selected_operator - 1].volume, a, 0, 255); // 255 = ~2x boost
+
+		break;
+
+		case FOUROP_PROGPERIOD:
+
+		clamp(i->ops[mused.selected_operator - 1].prog_period, a, 0, 0xff);
+
+		break;
+
+		case FOUROP_SLIDESPEED:
+
+		clamp(i->ops[mused.selected_operator - 1].slide_speed, a, 0, 0xff);
+
 		break;
 		
 		
 
-		case P_BUZZ:
+		case FOUROP_VIBDEPTH:
 
-		flipbit(i->flags, MUS_INST_YM_BUZZ);
+		clamp(i->ops[mused.selected_operator - 1].vibrato_depth, a, 0, 0xff);
+
+		break;
+
+		case FOUROP_VIBDELAY:
+
+		clamp(i->ops[mused.selected_operator - 1].vibrato_delay, a, 0, 0xff);
 
 		break;
 
-		case P_BUZZ_SHAPE:
+		case FOUROP_VIBSHAPE:
 
-		clamp(i->ym_env_shape, a, 0, 3);
+		clamp(i->ops[mused.selected_operator - 1].vibrato_shape, a, 0, MUS_NUM_SHAPES - 1);
+
+		break;
+
+		case FOUROP_VIBSPEED:
+
+		clamp(i->ops[mused.selected_operator - 1].vibrato_speed, a, 0, 0xff);
 
 		break;
 		
-		case P_BUZZ_ENABLE_AY8930:
-		
-		flipbit(i->cydflags, CYD_CHN_ENABLE_AY8930_BUZZ_MODE);
-		
+
+		case FOUROP_PWMDEPTH:
+
+		clamp(i->ops[mused.selected_operator - 1].pwm_depth, a, 0, 0xff);
+
 		break;
 
-		case P_BUZZ_FINE:
+		case FOUROP_PWMSPEED:
+
+		clamp(i->ops[mused.selected_operator - 1].pwm_speed, a, 0, 0xff);
+
+		break;
+
+		case FOUROP_PWMSHAPE:
+
+		clamp(i->ops[mused.selected_operator - 1].pwm_shape, a, 0, MUS_NUM_SHAPES - 1);
+
+		break;
+		
+		case FOUROP_PWMDELAY: //wasn't there
+
+		clamp(i->ops[mused.selected_operator - 1].pwm_delay, a, 0, 0xff);
+
+		break;
+		
+		
+		
+		case FOUROP_TREMDEPTH:
+
+		clamp(i->ops[mused.selected_operator - 1].tremolo_depth, a, 0, 0xff);
+
+		break;
+
+		case FOUROP_TREMSPEED:
+
+		clamp(i->ops[mused.selected_operator - 1].tremolo_speed, a, 0, 0xff);
+
+		break;
+
+		case FOUROP_TREMSHAPE:
+
+		clamp(i->ops[mused.selected_operator - 1].tremolo_shape, a, 0, MUS_NUM_SHAPES - 1);
+
+		break;
+		
+		case FOUROP_TREMDELAY: //wasn't there
+
+		clamp(i->ops[mused.selected_operator - 1].tremolo_delay, a, 0, 0xff);
+
+		break;
+
+
+		case FOUROP_RINGMOD:
+
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_RING_MODULATION);
+
+		break;
+
+		case FOUROP_SETPW:
+
+		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_INST_SET_PW);
+
+		break;
+
+		case FOUROP_SETCUTOFF:
+
+		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_INST_SET_CUTOFF);
+
+		break;
+
+		case FOUROP_INVVIB:
+
+		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_INST_INVERT_VIBRATO_BIT);
+
+		break;
+		
+		case FOUROP_INVTREM:
+
+		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_INST_INVERT_TREMOLO_BIT);
+
+		break;
+
+		case FOUROP_FILTER:
+
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_FILTER);
+
+		break;
+
+		case FOUROP_RINGMODSRC:
 		{
-			clamp(i->buzz_offset, a, -32768, 32767);
-		}
-		break;
-
-		case P_BUZZ_SEMI:
-		{
-			int f = i->buzz_offset >> 8;
-			clamp(f, a, -99, 99);
-			i->buzz_offset = (i->buzz_offset & 0xff) | f << 8;
-		}
-		break;
-
-		case P_PW:
-
-		clamp(i->pw, a, 0, 0xfff); //was `clamp(i->pw, a*16, 0, 0x7ff);`
-
-		break;
-
-		case P_1_4TH:
-		
-		flipbit(i->flags, MUS_INST_QUARTER_FREQ);
-		
-		break;
-		
-		case P_FIX_NOISE_PITCH:
-		
-		flipbit(i->cydflags, CYD_CHN_ENABLE_FIXED_NOISE_PITCH);
-		
-		break;
-
-		case P_VOLUME:
-
-		clamp(i->volume, a, 0, 255); // 255 = ~2x boost
-
-		break;
-
-		case P_PROGPERIOD:
-
-		clamp(i->prog_period, a, 0, 0xff);
-
-		break;
-
-		case P_SLIDESPEED:
-
-		clamp(i->slide_speed, a, 0, 0xff);
-
-		break;
-		
-		
-
-		case P_VIBDEPTH:
-
-		clamp(i->vibrato_depth, a, 0, 0xff);
-
-		break;
-
-		case P_VIBDELAY:
-
-		clamp(i->vibrato_delay, a, 0, 0xff);
-
-		break;
-
-		case P_VIBSHAPE:
-
-		clamp(i->vibrato_shape, a, 0, MUS_NUM_SHAPES - 1);
-
-		break;
-
-		case P_VIBSPEED:
-
-		clamp(i->vibrato_speed, a, 0, 0xff);
-
-		break;
-		
-		
-		case P_FM_VIBDEPTH:
-
-		clamp(i->fm_vibrato_depth, a, 0, 0xff);
-
-		break;
-
-		case P_FM_VIBDELAY:
-
-		clamp(i->fm_vibrato_delay, a, 0, 0xff);
-
-		break;
-
-		case P_FM_VIBSHAPE:
-
-		clamp(i->fm_vibrato_shape, a, 0, MUS_NUM_SHAPES - 1);
-
-		break;
-
-		case P_FM_VIBSPEED:
-
-		clamp(i->fm_vibrato_speed, a, 0, 0xff);
-
-		break;
-		
-		
-
-		case P_PWMDEPTH:
-
-		clamp(i->pwm_depth, a, 0, 0xff);
-
-		break;
-
-		case P_PWMSPEED:
-
-		clamp(i->pwm_speed, a, 0, 0xff);
-
-		break;
-
-		case P_PWMSHAPE:
-
-		clamp(i->pwm_shape, a, 0, MUS_NUM_SHAPES - 1);
-
-		break;
-		
-		case P_PWMDELAY: //wasn't there
-
-		clamp(i->pwm_delay, a, 0, 0xff);
-
-		break;
-		
-		
-		
-		case P_TREMDEPTH:
-
-		clamp(i->tremolo_depth, a, 0, 0xff);
-
-		break;
-
-		case P_TREMSPEED:
-
-		clamp(i->tremolo_speed, a, 0, 0xff);
-
-		break;
-
-		case P_TREMSHAPE:
-
-		clamp(i->tremolo_shape, a, 0, MUS_NUM_SHAPES - 1);
-
-		break;
-		
-		case P_TREMDELAY: //wasn't there
-
-		clamp(i->tremolo_delay, a, 0, 0xff);
-
-		break;
-		
-		
-		
-		case P_FM_TREMDEPTH:
-
-		clamp(i->fm_tremolo_depth, a, 0, 0xff);
-
-		break;
-
-		case P_FM_TREMSPEED:
-
-		clamp(i->fm_tremolo_speed, a, 0, 0xff);
-
-		break;
-
-		case P_FM_TREMSHAPE:
-
-		clamp(i->fm_tremolo_shape, a, 0, MUS_NUM_SHAPES - 1);
-
-		break;
-		
-		case P_FM_TREMDELAY: //wasn't there
-
-		clamp(i->fm_tremolo_delay, a, 0, 0xff);
-
-		break;
-		
-		
-
-		case P_RINGMOD:
-
-		flipbit(i->cydflags, CYD_CHN_ENABLE_RING_MODULATION);
-
-		break;
-
-		case P_SETPW:
-
-		flipbit(i->flags, MUS_INST_SET_PW);
-
-		break;
-
-		case P_SETCUTOFF:
-
-		flipbit(i->flags, MUS_INST_SET_CUTOFF);
-
-		break;
-
-		case P_INVVIB:
-
-		flipbit(i->flags, MUS_INST_INVERT_VIBRATO_BIT);
-
-		break;
-		
-		case P_INVTREM:
-
-		flipbit(i->flags, MUS_INST_INVERT_TREMOLO_BIT);
-
-		break;
-
-		case P_FILTER:
-
-		flipbit(i->cydflags, CYD_CHN_ENABLE_FILTER);
-
-		break;
-
-		case P_RINGMODSRC:
-		{
-			int x = (Uint8)(i->ring_mod+1);
+			int x = (Uint8)(i->ops[mused.selected_operator - 1].ring_mod+1);
 			clamp(x, a, 0, MUS_MAX_CHANNELS);
-			i->ring_mod = x-1;
+			i->ops[mused.selected_operator - 1].ring_mod = x-1;
 		}
 		break;
 
-		case P_CUTOFF:
+		case FOUROP_CUTOFF:
 
-		clamp(i->cutoff, a, 0, 4095); //was `clamp(i->cutoff, a*16, 0, 2047);`
-
-		break;
-
-		case P_RESONANCE:
-
-		clamp(i->resonance, a, 0, 15);  //was `0, 3)`
-
-		break;
-		
-		case P_SLOPE: //wasn't there
-
-		clamp(i->slope, a, 0, 5);  //was `0, 3)`
+		clamp(i->ops[mused.selected_operator - 1].cutoff, a, 0, 4095); //was `clamp(i->ops[mused.selected_operator - 1].cutoff, a*16, 0, 2047);`
 
 		break;
 
-		case P_FLTTYPE:
+		case FOUROP_RESONANCE:
 
-		clamp(i->flttype, a, 0, FLT_TYPES - 1);
-
-		break;
-
-		case P_NORESTART:
-
-		flipbit(i->flags, MUS_INST_NO_PROG_RESTART);
-
-		break;
-
-		case P_MULTIOSC:
-
-		flipbit(i->flags, MUS_INST_MULTIOSC);
+		clamp(i->ops[mused.selected_operator - 1].resonance, a, 0, 15);  //was `0, 3)`
 
 		break;
 		
-		case P_SAVE_LFO_SETTINGS:
+		case FOUROP_SLOPE: //wasn't there
 
-		flipbit(i->flags, MUS_INST_SAVE_LFO_SETTINGS);
-
-		break;
-
-		case P_FM_MODULATION:
-
-		clamp(i->fm_modulation, a, 0, 0xff);
+		clamp(i->ops[mused.selected_operator - 1].slope, a, 0, 5);  //was `0, 3)`
 
 		break;
 
-		case P_FM_FEEDBACK:
+		case FOUROP_FLTTYPE:
 
-		clamp(i->fm_feedback, a, 0, 0x7);
-
-		break;
-		
-		
-		
-		
-		case P_FM_VOL_KSL_ENABLE:
-
-		flipbit(i->fm_flags, CYD_FM_ENABLE_VOLUME_KEY_SCALING);
-
-		break;
-		
-		case P_FM_VOL_KSL_LEVEL:
-
-		clamp(i->fm_vol_ksl_level, a, 0, 0xff);
-
-		break;
-		
-		case P_FM_ENV_KSL_ENABLE:
-
-		flipbit(i->fm_flags, CYD_FM_ENABLE_ENVELOPE_KEY_SCALING);
-
-		break;
-		
-		case P_FM_ENV_KSL_LEVEL:
-
-		clamp(i->fm_env_ksl_level, a, 0, 0xff);
-
-		break;
-		
-		
-		
-		
-		
-		case P_FM_BASENOTE: //weren't there
-
-		clamp(i->fm_base_note, a, 0, FREQ_TAB_SIZE - 1);
+		clamp(i->ops[mused.selected_operator - 1].flttype, a, 0, FLT_TYPES - 1);
 
 		break;
 
-		case P_FM_FINETUNE:
+		case FOUROP_NORESTART:
 
-		clamp(i->fm_finetune, a, -128, 127);
-
-		break;
-		
-		
-		
-		
-		case P_FM_FREQ_LUT:
-
-		clamp(i->fm_freq_LUT, a, 0, 1);
+		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_INST_NO_PROG_RESTART);
 
 		break;
 		
-		
-		
+		case FOUROP_SAVE_LFO_SETTINGS:
 
-		case P_FM_ATTACK:
-
-		clamp(i->fm_adsr.a, a, 0, 32 * ENVELOPE_SCALE - 1);
+		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_INST_SAVE_LFO_SETTINGS);
 
 		break;
 
-		case P_FM_DECAY:
+		case FOUROP_FEEDBACK:
 
-		clamp(i->fm_adsr.d, a, 0, 32 * ENVELOPE_SCALE - 1);
-
-		break;
-
-		case P_FM_SUSTAIN:
-
-		clamp(i->fm_adsr.s, a, 0, 31);
+		clamp(i->ops[mused.selected_operator - 1].feedback, a, 0, 0x7);
 
 		break;
 
-		case P_FM_RELEASE:
-
-		clamp(i->fm_adsr.r, a, 0, 32 * ENVELOPE_SCALE - 1);
-
-		break;
-		
-		
-		case P_FM_EXP_VOL: //wasn't there
-
-		flipbit(i->fm_flags, CYD_FM_ENABLE_EXPONENTIAL_VOLUME);
-
-		break;
-		
-		case P_FM_EXP_ATTACK: //wasn't there
-
-		flipbit(i->fm_flags, CYD_FM_ENABLE_EXPONENTIAL_ATTACK);
-
-		break;
-		
-		case P_FM_EXP_DECAY: //wasn't there
-
-		flipbit(i->fm_flags, CYD_FM_ENABLE_EXPONENTIAL_DECAY);
-
-		break;
-		
-		case P_FM_EXP_RELEASE: //wasn't there
-
-		flipbit(i->fm_flags, CYD_FM_ENABLE_EXPONENTIAL_RELEASE);
-
-		break;
-		
-
-		case P_FM_ENV_START:
-
-		clamp(i->fm_attack_start, a, 0, 31);
-
-		break;
-
-		case P_FM_WAVE:
-
-		flipbit(i->fm_flags, CYD_FM_ENABLE_WAVE);
-
-		break;
-		
-		case P_FM_ADDITIVE: //wasn't there
-
-		flipbit(i->fm_flags, CYD_FM_ENABLE_ADDITIVE);
-
-		break;
-		
-		case P_FM_SAVE_LFO_SETTINGS: //wasn't there
-
-		flipbit(i->fm_flags, CYD_FM_SAVE_LFO_SETTINGS);
-
-		break;
-
-		case P_FM_ENABLE:
-
-		flipbit(i->cydflags, CYD_CHN_ENABLE_FM);
-
-		break;
-
-		case P_FM_HARMONIC_CARRIER:
+		case FOUROP_HARMONIC_CARRIER:
 		{
-			Uint8 carrier = (i->fm_harmonic >> 4);
-			Uint8 modulator = i->fm_harmonic & 0xf;
+			Uint8 carrier = (i->ops[mused.selected_operator - 1].harmonic >> 4);
+			Uint8 modulator = i->ops[mused.selected_operator - 1].harmonic & 0xf;
 
 			clamp(carrier, a, 0, 15);
 
-			i->fm_harmonic = carrier << 4 | modulator;
+			i->ops[mused.selected_operator - 1].harmonic = carrier << 4 | modulator;
 		}
 		break;
 
-		case P_FM_HARMONIC_MODULATOR:
+		case FOUROP_HARMONIC_MODULATOR:
 		{
-			Uint8 carrier = (i->fm_harmonic >> 4);
-			Uint8 modulator = i->fm_harmonic & 0xf;
+			Uint8 carrier = (i->ops[mused.selected_operator - 1].harmonic >> 4);
+			Uint8 modulator = i->ops[mused.selected_operator - 1].harmonic & 0xf;
 
 			clamp(modulator, a, 0, 15);
 
-			i->fm_harmonic = carrier << 4 | modulator;
+			i->ops[mused.selected_operator - 1].harmonic = carrier << 4 | modulator;
 		}
 		break;
-
-
-		case P_FM_WAVE_ENTRY:
-
-		clamp(i->fm_wave, a, 0, CYD_WAVE_MAX_ENTRIES - 1);
-
-		break;
-
 
 		default:
 		break;
 	}
 
 }
-
 
 static int note_playing[MUS_MAX_CHANNELS] = {-1};
 
@@ -1731,7 +1486,7 @@ void edit_instrument_event(SDL_Event *e)
 	}
 }
 
-void edit_4op_event(SDL_Event *e)
+void edit_fourop_event(SDL_Event *e)
 {
 	switch (e->type)
 	{
@@ -1752,11 +1507,12 @@ void edit_4op_event(SDL_Event *e)
 
 				if (mused.mode == EDIT4OP)
 				{
-					if (mused.fourop_selected_param >= P_PARAMS) mused.fourop_selected_param = P_PARAMS - 1;
+					if (mused.fourop_selected_param >= FOUROP_PARAMS) mused.fourop_selected_param = FOUROP_PARAMS - 1;
 				}
+				
 				else
 				{
-					if (mused.fourop_selected_param >= P_NAME) mused.fourop_selected_param = P_NAME;
+					if (mused.fourop_selected_param >= FOUROP_3CH_EXP_MODE) mused.fourop_selected_param = FOUROP_3CH_EXP_MODE;
 				}
 			}
 			break;
