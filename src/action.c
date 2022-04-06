@@ -59,11 +59,11 @@ void select_sequence_position(void *channel, void *position, void* unused)
 	if ((mused.flags & SONG_PLAYING) && (mused.flags & FOLLOW_PLAY_POSITION))
 		return;
 
-	if (CASTPTR(int,channel) != -1)
-		mused.current_sequencetrack = CASTPTR(int,channel);
+	if (CASTPTR(int, channel) != -1)
+		mused.current_sequencetrack = CASTPTR(int, channel);
 
-	if (CASTPTR(int,position) < mused.song.song_length)
-		mused.current_sequencepos = CASTPTR(int,position);
+	if (CASTPTR(int, position) < mused.song.song_length)
+		mused.current_sequencepos = CASTPTR(int, position);
 
 	mused.pattern_position = mused.current_patternpos = mused.current_sequencepos;
 
@@ -307,16 +307,6 @@ void change_mode_action(void *mode, void *from_shortcut, void *unused2)
 {
 	if(CASTPTR(int, from_shortcut) == 1)
 	{
-		/*if(CASTPTR(int, mode) > EDITINSTRUMENT)
-		{
-			change_mode(CASTPTR(int, mused.show_four_op_menu ? mode : mode - 1));
-		}
-		
-		else
-		{
-			change_mode(CASTPTR(int, mused.show_four_op_menu ? mode + 1 : mode));
-		}*/
-		
 		change_mode(CASTPTR(int, mode));
 	}
 	
@@ -417,6 +407,7 @@ void select_all(void *unused1, void *unused2, void *unused3)
 			break;
 
 		case EDITPROG:
+		case EDITPROG4OP:
 			mused.selection.start = 0;
 			mused.selection.end = MUS_PROG_LEN;
 			break;
@@ -576,6 +567,7 @@ void begin_selection_action(void *unused1, void *unused2, void *unused3)
 		break;
 
 		case EDITPROG:
+		case EDITPROG4OP:
 		begin_selection(mused.current_program_step);
 		break;
 	}
@@ -595,6 +587,7 @@ void end_selection_action(void *unused1, void *unused2, void *unused3)
 		break;
 
 		case EDITPROG:
+		case EDITPROG4OP:
 		select_range(mused.current_program_step);
 		break;
 	}

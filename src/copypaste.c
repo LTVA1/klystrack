@@ -57,9 +57,22 @@ void copy()
 		break;
 		
 		case EDITPROG:
+		case EDITPROG4OP:
 		{
 			cp_copy_items(&mused.cp, CP_PROGRAM, &mused.song.instrument[mused.current_instrument].program[mused.selection.start], mused.selection.end - mused.selection.start, 
 				sizeof(mused.song.instrument[mused.current_instrument].program[0]), mused.selection.start);
+			
+			if(mused.show_four_op_menu)
+			{
+				cp_copy_items(&mused.cp, CP_PROGRAM, &mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.selection.start], mused.selection.end - mused.selection.start, 
+				sizeof(mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[0]), mused.selection.start);
+			}
+				
+			else
+			{
+				cp_copy_items(&mused.cp, CP_PROGRAM, &mused.song.instrument[mused.current_instrument].program[mused.selection.start], mused.selection.end - mused.selection.start, 
+				sizeof(mused.song.instrument[mused.current_instrument].program[0]), mused.selection.start);
+			}
 			
 			/*for(int i = 0; i < MUS_PROG_LEN; ++i)
 			{
@@ -68,7 +81,15 @@ void copy()
 			
 			for(int i = mused.selection.start; i <= mused.selection.end; ++i)
 			{
-				mused.unite_bits_buffer[i] = (mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8]) & (1 << (i & 7));
+				if(mused.show_four_op_menu)
+				{
+					mused.unite_bits_buffer[i] = (mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[i / 8]) & (1 << (i & 7));
+				}
+				
+				else
+				{
+					mused.unite_bits_buffer[i] = (mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8]) & (1 << (i & 7));
+				}
 				
 				if(mused.unite_bits_buffer[i] > 0)
 				{
@@ -201,6 +222,7 @@ void paste()
 		break;
 		
 		case EDITPROG:
+		case EDITPROG4OP:
 		{
 			size_t items = cp_get_item_count(&mused.cp, sizeof(mused.song.instrument[mused.current_instrument].program[0]));
 			
@@ -210,8 +232,18 @@ void paste()
 			if (mused.cp.type == CP_PROGRAM)
 			{
 				snapshot(S_T_INSTRUMENT);
-				cp_paste_items(&mused.cp, CP_PROGRAM, &mused.song.instrument[mused.current_instrument].program[mused.current_program_step], MUS_PROG_LEN - mused.current_program_step, 
+				
+				if(mused.show_four_op_menu)
+				{
+					cp_paste_items(&mused.cp, CP_PROGRAM, &mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_program_step], MUS_PROG_LEN - mused.current_program_step, 
+					sizeof(mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[0]));
+				}
+				
+				else
+				{
+					cp_paste_items(&mused.cp, CP_PROGRAM, &mused.song.instrument[mused.current_instrument].program[mused.current_program_step], MUS_PROG_LEN - mused.current_program_step, 
 					sizeof(mused.song.instrument[mused.current_instrument].program[0]));
+				}
 				
 				int y = 0;
 				
@@ -220,12 +252,28 @@ void paste()
 					//mused.unite_bits_buffer[i] = (mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8]) & (1 << (i % 8));
 					if(mused.unite_bits_buffer[mused.paste_pointer + y] == 0)
 					{
-						mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] &= ~(1 << (i & 7));
+						if(mused.show_four_op_menu)
+						{
+							mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[i / 8] &= ~(1 << (i & 7));
+						}
+						
+						else
+						{
+							mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] &= ~(1 << (i & 7));
+						}
 					}
 					
 					else
 					{
-						mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] |= (1 << (i & 7));
+						if(mused.show_four_op_menu)
+						{
+							mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[i / 8] |= (1 << (i & 7));
+						}
+						
+						else
+						{
+							mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] |= (1 << (i & 7));
+						}
 					}
 				}
 				

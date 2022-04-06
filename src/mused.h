@@ -45,6 +45,7 @@ enum
 	EDITWAVETABLE,
 	/* Focuses */
 	EDITPROG,
+	EDITPROG4OP,
 	EDITSONGINFO,
 	/* Virtual modes, i.e. what are not modes itself but should be considered happening "inside" prev_mode */
 	EDITBUFFER,
@@ -158,7 +159,7 @@ typedef struct
 	
 	int edit_buffer_size;
 	SliderParam sequence_slider_param, pattern_slider_param, program_slider_param, instrument_list_slider_param, 
-		pattern_horiz_slider_param, sequence_horiz_slider_param, wavetable_list_slider_param;
+		pattern_horiz_slider_param, sequence_horiz_slider_param, wavetable_list_slider_param, four_op_slider_param;
 	char previous_song_filename[1000], previous_export_filename[1000], previous_filebox_path[OD_T_N_TYPES][1000];
 	/*---*/
 	char * edit_backup_buffer;

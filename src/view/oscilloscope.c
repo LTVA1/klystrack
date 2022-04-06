@@ -20,10 +20,12 @@ void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area, int* sound_b
 	
 	else
 	{
-		for(int x = 0; x < area->h; x++) //drawing black lines every pixel so oscilloscope is fully opaque
+		/*for(int x = 0; x < area->h; x++) //drawing black lines every pixel so oscilloscope is fully opaque
 		{
 			gfx_line(domain, area->x, area->y + x, area->x + area->w - 1, area->y + x, colors[COLOR_WAVETABLE_BACKGROUND]);
-		}
+		}*/
+		
+		gfx_rect(dest, area, colors[COLOR_WAVETABLE_BACKGROUND]);
 	}
 
 	Sint32 sample, last_sample, scaled_sample;

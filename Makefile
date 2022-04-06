@@ -146,7 +146,7 @@ src/version.h: src/version
 	$(Q)echo '#define REVISION "' | tr -d '\n'  >> ./src/version.h
 	$(Q)date +"%Y%m%d" | tr -d '\n' >> ./src/version.h
 	$(Q)echo '"' >> ./src/version.h
-	$(Q)echo '#define VERSION_STRING "klystrack " VERSION " " REVISION' >> ./src/version.h
+	$(Q)echo '#define VERSION_STRING "klystrack-plus " VERSION " " REVISION' >> ./src/version.h
 	$(Q)echo '#endif' >> ./src/version.h
 
 src/version_number.h: src/version

@@ -102,12 +102,14 @@ static const View instrument_view_tab[] =
 	{{154, 14, - SCROLLBAR, INST_LIST }, instrument_list, NULL, EDITINSTRUMENT},
 	{{154, 14 + INST_LIST + INST_VIEW2, 0 - SCROLLBAR, -INFO }, program_view, NULL, EDITPROG },
 	{{0 - SCROLLBAR, 14 + INST_LIST + INST_VIEW2, SCROLLBAR, -INFO }, slider, &mused.program_slider_param, EDITPROG },
-	{{0 - SCROLLBAR, 14, SCROLLBAR, INST_LIST }, slider, &mused.instrument_list_slider_param, EDITINSTRUMENT },
+	{{0 - SCROLLBAR, 14, SCROLLBAR, INST_LIST }, slider, &mused.instrument_list_slider_param, EDITPROG },
 	{{0, 0 - INFO, 0, INFO }, info_line, NULL, -1 },
+	//{{154 + 100, 14 + INST_LIST + INST_VIEW2 + 10, -OSC_SIZE, -OSC_SIZE }, oscilloscope_view, NULL, EDITINSTRUMENT }, //wasn't there
+	{{0, 0, 0, -12}, four_op_menu_view, NULL, EDIT4OP },
+	{{VIEW_WIDTH + 6, TOP_VIEW_H + ALG_VIEW_H + 19, 0 - SCROLLBAR_W - 10, -22}, four_op_program_view, NULL, EDITPROG4OP },
+	{{- SCROLLBAR_W - 10, TOP_VIEW_H + ALG_VIEW_H + 19, SCROLLBAR_W, -22}, slider, &mused.four_op_slider_param, EDITPROG4OP },
 	
 	{{ 2 * ( - OSC_SIZE - (SCROLLBAR / 2) - 2), 14 + INST_LIST + INST_VIEW2 + 4, 2 * OSC_SIZE, OSC_SIZE }, oscilloscope_view, NULL, EDITINSTRUMENT }, //wasn't there
-	//{{154 + 100, 14 + INST_LIST + INST_VIEW2 + 10, -OSC_SIZE, -OSC_SIZE }, oscilloscope_view, NULL, EDITINSTRUMENT }, //wasn't there
-	{{0, 0, 0, -12}, four_op_menu_view, NULL, EDITINSTRUMENT },
 	
 	{{0, 0, 0, 0}, NULL}
 };
@@ -463,6 +465,7 @@ int main(int argc, char **argv)
 							break;
 
 							case EDITPROG:
+							case EDITPROG4OP:
 							edit_program_event(&e);
 							break;
 
@@ -534,12 +537,14 @@ int main(int argc, char **argv)
 			{
 				mused.current_sequencepos = mused.stat_song_position - mused.stat_song_position % mused.sequenceview_steps;
 				mused.current_patternpos = mused.stat_song_position;
-				update_position_sliders();
+				//update_position_sliders(); //orig
 			}
+			
+			update_position_sliders();
 
 			for (int i = 0; i < MUS_MAX_CHANNELS; ++i)
 			{
-				stat_pattern_number[i] = (stat_pattern[i] - &mused.song.pattern[0])/sizeof(mused.song.pattern[0]);
+				stat_pattern_number[i] = (stat_pattern[i] - &mused.song.pattern[0]) / sizeof(mused.song.pattern[0]);
 			}
 
 			int m = mused.mode >= VIRTUAL_MODE ? mused.prev_mode : mused.mode;
@@ -562,8 +567,8 @@ int main(int argc, char **argv)
 				if (mused.mode == MENU)
 				{
 					SDL_Event foo = {0};
-
-					my_draw_view(tab[((mused.show_four_op_menu) ? (m) : m)], &foo, domain);
+					
+					my_draw_view(tab[m], &foo, domain, m);
 
 					draw_menu(domain, &e);
 
@@ -581,7 +586,7 @@ int main(int argc, char **argv)
 				
 				else
 				{
-					my_draw_view(tab[((mused.show_four_op_menu) ? (m) : m)], &e, domain);
+					my_draw_view(tab[m], &e, domain, m);
 				}
 
 				e.type = 0;

@@ -100,7 +100,7 @@ void my_separator(const SDL_Rect *parent, SDL_Rect *rect)
 
 // note: since we need to handle the focus this piece of code is duplicated from gui/view.c
 
-void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain)
+void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain, int m)
 {
 	gfx_rect(domain, NULL, colors[COLOR_OF_BACKGROUND]);
 
@@ -124,18 +124,21 @@ void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain)
 		{
 			event_hit = 0;
 			view->handler(domain, &area, &event, view->param);
+			
 			if (event_hit)
 			{
 				event.type = MSG_EVENTHIT;
+				
 				if (view->focus != -1 && mused.focus != view->focus && orig_focus != EDITBUFFER && mused.focus != EDITBUFFER)
 				{
-					if(!(mused.show_four_op_menu) && mused.focus != 4)
+					if((mused.show_four_op_menu && (m == 3 || m == 4) && i > 9) || (!(mused.show_four_op_menu) && (m != 3 || m != 4) && i <= 9))
+					//if((mused.show_four_op_menu) || (!(mused.show_four_op_menu) && (m != 3 || m != 4) && i != 11))
 					{
 						mused.focus = view->focus;
+						clear_selection(0,0,0);
 					}
-					
-					clear_selection(0,0,0);
 				}
+				
 				++iter;
 			}
 		}
@@ -147,15 +150,17 @@ void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain)
 		{
 			if (view->focus != -1 && mused.focus != view->focus)
 			{
-				if (orig_focus == EDITBUFFER)
-					change_mode(view->focus);
-				
-				if(!(mused.show_four_op_menu) && mused.focus != 4)
+				if((mused.show_four_op_menu && (m == 3 || m == 4) && i > 9) || (!(mused.show_four_op_menu) && (m != 3 || m != 4) && i <= 9))
+				//if((mused.show_four_op_menu) || (!(mused.show_four_op_menu) && (m != 3 || m != 4) && i != 11))
 				{
+					if (orig_focus == EDITBUFFER)
+					{
+						change_mode(view->focus);
+					}
+					
 					mused.focus = view->focus;
+					clear_selection(0,0,0);
 				}
-				
-				clear_selection(0,0,0);
 			}
 		}
 	}
@@ -222,6 +227,7 @@ void set_cursor(const SDL_Rect *location)
 		if (mused.cursor.w == 0 || mused.cursor.h == 0)
 			copy_rect(&mused.cursor, location);
 	}
+	
 	else
 	{
 		copy_rect(&mused.cursor_target, location);
@@ -238,10 +244,7 @@ bool check_mouse_hit(const SDL_Event *e, const SDL_Rect *area, int focus, int pa
 		switch (focus)
 		{
 			case EDITINSTRUMENT:
-			if(!(mused.show_four_op_menu))
-			{
 				mused.selected_param = param;
-			}
 				break;
 			
 			case EDIT4OP:
@@ -338,7 +341,7 @@ void generic_flags(const SDL_Event *e, const SDL_Rect *_area, int focus, int p, 
 	{
 		switch (focus)
 		{
-			case EDITINSTRUMENT: snapshot(S_T_INSTRUMENT); break;
+			case EDITINSTRUMENT: case EDIT4OP: snapshot(S_T_INSTRUMENT); break;
 			case EDITFX: snapshot(S_T_FX); break;
 		}
 		*_flags = flags;
@@ -584,8 +587,20 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 		switch (mused.focus)
 		{
 			case EDITPROG:
+			case EDITPROG4OP:
 			{
-				Uint16 inst = mused.song.instrument[mused.current_instrument].program[mused.current_program_step];
+				Uint16 inst;
+				
+				if(mused.show_four_op_menu)
+				{
+					inst = mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_program_step];
+				}
+				
+				else
+				{
+					inst = mused.song.instrument[mused.current_instrument].program[mused.current_program_step];
+				}
+				
 				get_command_desc(text, sizeof(text) - 1, inst);
 			}
 			break;
@@ -798,81 +813,83 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 				static const char * param_desc[] =
 				{
 					
-					"Enable 3CH_EXP mode (independent freq. per op.)",
-					"Algorithm",
+					"enable 3CH_EXP mode (independent freq. per op.)",
+					"4-op system algorithm",
 					
-					"Base note",
-					"Finetune",
+					"base note",
+					"finetune",
+					"lock to base note",
+					
 					"carrier frequency divider",
 					"modulator frequency multiplier",
-					
 					"detune",
 					"coarse detune (OPM chip only)",
+					
 					"feedback",
 					"enable SSG-EG",
-
+					"SSG-EG type",
 					
-					"Lock to base note",
-					"Drum (short burst of noise in the beginning)",
-					"Sync oscillator on keydown",
-					"Reverse vibrato bit",
-					"Reverse tremolo bit",
-					"Set PW on keydown",
-					"Set cutoff on keydown",
-					"Slide speed",
-					"Pulse wave",
-					"Pulse width",
-					"Sawtooth wave",
-					"Triangle wave",
-					"Noise",
-					"Metallic noise (shortens noise cycle)",
-					"Quarter frequency",
-					"Lock noise pitch", //wasn't there
-					"Constant noise note", //wasn't there
-					"Enable 1-bit noise (as on NES/Gameboy)", //wasn't there
-					"Wavetable",
-					"Wavetable entry",
-					"Override volume envelope for wavetable",
-					"Lock wave to base note",
-					"Oscillators mix mode", //wasn't there
-					"Volume",
-					"Relative volume commands",
-					"Envelope attack",
-					"Envelope decay",
-					"Envelope sustain",
-					"Envelope release",
-					"Enable exponential volume", //wasn't there
-					"Enable exponential attack", //wasn't there
-					"Enable exponential decay", //wasn't there
-					"Enable exponential release", //wasn't there
-					"Enable volume key scaling", //wasn't there
-					"Volume key scaling level", //wasn't there
-					"Enable envelope key scaling", //wasn't there
-					"Envelope key scaling level", //wasn't there
-					"Sync channel",
-					"Sync master channel",
-					"Ring modulation",
-					"Ring modulation source",
-					"Enable filter",
-					"Filter type",
-					"Filter cutoff frequency",
-					"Filter resonance",
-					"Filter slope",
-					"Vibrato speed",
-					"Vibrato depth",
-					"Vibrato shape",
-					"Vibrato delay",
-					"Pulse width modulation speed",
-					"Pulse width modulation depth",
-					"Pulse width modulation shape",
-					"Pulse width modulation delay", //wasn't there
-					"Tremolo speed", //wasn't there
-					"Tremolo depth", //wasn't there
-					"Tremolo shape", //wasn't there
-					"Tremolo delay", //wasn't there
-					"Program period",
-					"Don't restart program on keydown",
-					"Save vibrato, PWM and tremolo settings", //wasn't there
+					"drum (short burst of noise in the beginning)",
+					"sync oscillator on keydown",
+					"reverse vibrato bit",
+					"reverse tremolo bit",
+					"set PW on keydown",
+					"set cutoff on keydown",
+					"slide speed",
+					"pulse wave",
+					"pulse width",
+					"sawtooth wave",
+					"triangle wave",
+					"noise",
+					"metallic noise (shortens noise cycle)",
+					"quarter frequency",
+					"lock noise pitch", //wasn't there
+					"constant noise note", //wasn't there
+					"enable 1-bit noise (as on NES/Gameboy)", //wasn't there
+					"wavetable",
+					"wavetable entry",
+					"override volume envelope for wavetable",
+					"lock wave to base note",
+					"oscillators mix mode", //wasn't there
+					"volume",
+					"relative volume commands",
+					"envelope attack",
+					"envelope decay",
+					"envelope sustain",
+					"envelope release",
+					"enable exponential volume", //wasn't there
+					"enable exponential attack", //wasn't there
+					"enable exponential decay", //wasn't there
+					"enable exponential release", //wasn't there
+					"enable volume key scaling", //wasn't there
+					"volume key scaling level", //wasn't there
+					"enable envelope key scaling", //wasn't there
+					"envelope key scaling level", //wasn't there
+					"sync channel",
+					"sync master channel",
+					"ring modulation",
+					"ring modulation source",
+					"enable filter",
+					"filter type",
+					"filter cutoff frequency",
+					"filter resonance",
+					"filter slope",
+					"vibrato speed",
+					"vibrato depth",
+					"vibrato shape",
+					"vibrato delay",
+					"pulse width modulation speed",
+					"pulse width modulation depth",
+					"pulse width modulation shape",
+					"pulse width modulation delay", //wasn't there
+					"tremolo speed", //wasn't there
+					"tremolo depth", //wasn't there
+					"tremolo shape", //wasn't there
+					"tremolo delay", //wasn't there
+					"program period",
+					"don't restart program on keydown",
+					"save vibrato, PWM and tremolo settings", //wasn't there
+					"trigger delay (in ticks)",
 				};
 				
 				static const char * mixmodes[] =
@@ -894,24 +911,30 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"lowpass + bypass (signal sum)",
 					"lowpass + highpass + bypass (signal sum)"
 				};
+				
+				static const char * ssg_eg_types[] = { "\\\\\\\\", "\\___", "\\/\\/", "\\\xfd\xfd\xfd", "////", "/\xfd\xfd\xfd", "/\\/\\", "/___" };
+				
+				//\xfd_/\\
 
 				if (mused.fourop_selected_param == FOUROP_WAVE_ENTRY)
 					snprintf(text, sizeof(text) - 1, "Operator %d %s (%s)", mused.selected_operator, param_desc[mused.fourop_selected_param], mused.song.wavetable_names[mused.song.instrument[mused.current_instrument].wavetable_entry]);
 				else if (mused.fourop_selected_param == FOUROP_VOLUME)
-					snprintf(text, sizeof(text) - 1, "Operator %d %s (%+.1f dB)", mused.selected_operator, param_desc[mused.fourop_selected_param], percent_to_dB((float)mused.song.instrument[mused.current_instrument].volume / MAX_VOLUME));
+					snprintf(text, sizeof(text) - 1, "Operator %d %s (%+.1f dB)", mused.selected_operator, param_desc[mused.fourop_selected_param], percent_to_dB((float)mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume / MAX_VOLUME));
 				else if (mused.fourop_selected_param == FOUROP_ATTACK)
-					snprintf(text, sizeof(text) - 1, "Operator %d %s (%.1f ms)", mused.selected_operator, param_desc[mused.fourop_selected_param], envelope_length(mused.song.instrument[mused.current_instrument].adsr.a));
+					snprintf(text, sizeof(text) - 1, "Operator %d %s (%.1f ms)", mused.selected_operator, param_desc[mused.fourop_selected_param], envelope_length(mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].adsr.a));
 				else if (mused.fourop_selected_param == FOUROP_DECAY)
-					snprintf(text, sizeof(text) - 1, "Operator %d %s (%.1f ms)", mused.selected_operator, param_desc[mused.fourop_selected_param], envelope_length(mused.song.instrument[mused.current_instrument].adsr.d));
+					snprintf(text, sizeof(text) - 1, "Operator %d %s (%.1f ms)", mused.selected_operator, param_desc[mused.fourop_selected_param], envelope_length(mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].adsr.d));
 				else if (mused.fourop_selected_param == FOUROP_RELEASE)
-					snprintf(text, sizeof(text) - 1, "Operator %d %s (%.1f ms)", mused.selected_operator, param_desc[mused.fourop_selected_param], envelope_length(mused.song.instrument[mused.current_instrument].adsr.r));
+					snprintf(text, sizeof(text) - 1, "Operator %d %s (%.1f ms)", mused.selected_operator, param_desc[mused.fourop_selected_param], envelope_length(mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].adsr.r));
 				
 				else if (mused.fourop_selected_param == FOUROP_CUTOFF) //wasn't there
-					snprintf(text, sizeof(text) - 1, "Operator %d %s (%d Hz)", mused.selected_operator, param_desc[mused.fourop_selected_param], (mused.song.instrument[mused.current_instrument].cutoff * 20000) / 4096 + 5);
+					snprintf(text, sizeof(text) - 1, "Operator %d %s (%d Hz)", mused.selected_operator, param_desc[mused.fourop_selected_param], (mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].cutoff * 20000) / 4096 + 5);
 				else if (mused.fourop_selected_param == FOUROP_FLTTYPE) //wasn't there
-					snprintf(text, sizeof(text) - 1, "Operator %d %s (%s)", mused.selected_operator, param_desc[mused.fourop_selected_param], filter_types[mused.song.instrument[mused.current_instrument].flttype]);
+					snprintf(text, sizeof(text) - 1, "Operator %d %s (%s)", mused.selected_operator, param_desc[mused.fourop_selected_param], filter_types[mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].flttype]);
 				else if (mused.fourop_selected_param == FOUROP_OSCMIXMODE) //wasn't there
-					snprintf(text, sizeof(text) - 1, "Operator %d %s (%s)", mused.selected_operator, param_desc[mused.fourop_selected_param], mixmodes[mused.song.instrument[mused.current_instrument].mixmode]);
+					snprintf(text, sizeof(text) - 1, "Operator %d %s (%s)", mused.selected_operator, param_desc[mused.fourop_selected_param], mixmodes[mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].mixmode]);
+				else if (mused.fourop_selected_param == FOUROP_SSG_EG_TYPE) //wasn't there
+					snprintf(text, sizeof(text) - 1, "Operator %d %s (%s)", mused.selected_operator, param_desc[mused.fourop_selected_param], ssg_eg_types[mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].ssg_eg_type]);
 				else if (mused.fourop_selected_param == FOUROP_ALG || mused.fourop_selected_param == FOUROP_3CH_EXP_MODE) //wasn't there
 					snprintf(text, sizeof(text) - 1, "%s", param_desc[mused.fourop_selected_param]);
 				
@@ -1046,8 +1069,6 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 		}
 	}*/
 	
-	if(mused.show_four_op_menu)
-	{
 		button_event(domain, event, &button, mused.slider_bevel,
 			(mused.mode != EDITPATTERN) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
 			(mused.mode != EDITPATTERN) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
@@ -1089,52 +1110,6 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 			DECAL_MODE_PATTERN + EDITWAVETABLE - 1 + (mused.mode == EDITWAVETABLE ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITWAVETABLE) ? change_mode_action : NULL, (mused.mode != EDITWAVETABLE) ? MAKEPTR(EDITWAVETABLE) : 0, 0, 0);
 		
 		button.x += button.w;
-	}
-	
-	else
-	{
-		button_event(domain, event, &button, mused.slider_bevel,
-			(mused.mode != EDITPATTERN) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			(mused.mode != EDITPATTERN) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			DECAL_MODE_PATTERN + EDITPATTERN + (mused.mode == EDITPATTERN ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITPATTERN) ? change_mode_action : NULL, (mused.mode != EDITPATTERN) ? MAKEPTR(EDITPATTERN) : 0, 0, 0);
-		
-		button.x += button.w;
-		
-		button_event(domain, event, &button, mused.slider_bevel,
-			(mused.mode != EDITSEQUENCE) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			(mused.mode != EDITSEQUENCE) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			DECAL_MODE_PATTERN + EDITSEQUENCE + (mused.mode == EDITSEQUENCE ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITSEQUENCE) ? change_mode_action : NULL, (mused.mode != EDITSEQUENCE) ? MAKEPTR(EDITSEQUENCE) : 0, 0, 0);
-		
-		button.x += button.w;
-		
-		button_event(domain, event, &button, mused.slider_bevel,
-			(mused.mode != EDITCLASSIC) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			(mused.mode != EDITCLASSIC) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			DECAL_MODE_PATTERN + EDITCLASSIC + (mused.mode == EDITCLASSIC ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITCLASSIC) ? change_mode_action : NULL, (mused.mode != EDITCLASSIC) ? MAKEPTR(EDITCLASSIC) : 0, 0, 0);
-		
-		button.x += button.w;
-		
-		button_event(domain, event, &button, mused.slider_bevel,
-			(mused.mode != EDITINSTRUMENT) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			(mused.mode != EDITINSTRUMENT) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			DECAL_MODE_PATTERN + EDITINSTRUMENT + (mused.mode == EDITINSTRUMENT ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITINSTRUMENT) ? change_mode_action : NULL, (mused.mode != EDITINSTRUMENT) ? MAKEPTR(EDITINSTRUMENT) : 0, 0, 0);
-		
-		button.x += button.w;
-		
-		button_event(domain, event, &button, mused.slider_bevel,
-			(mused.mode != EDITFX) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			(mused.mode != EDITFX) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			DECAL_MODE_PATTERN + EDITFX - 1 + (mused.mode == EDITFX ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITFX) ? change_mode_action : NULL, (mused.mode != EDITFX) ? MAKEPTR(EDITFX) : 0, 0, 0);
-		
-		button.x += button.w;
-		
-		button_event(domain, event, &button, mused.slider_bevel,
-			(mused.mode != EDITWAVETABLE) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			(mused.mode != EDITWAVETABLE) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			DECAL_MODE_PATTERN + EDITWAVETABLE - 1 + (mused.mode == EDITWAVETABLE ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITWAVETABLE) ? change_mode_action : NULL, (mused.mode != EDITWAVETABLE) ? MAKEPTR(EDITWAVETABLE) : 0, 0, 0);
-		
-		button.x += button.w;
-	}
 }
 
 
@@ -1148,7 +1123,7 @@ static void write_command(const SDL_Event *event, const char *text, int cmd_idx,
 		check_event(event, r = console_write_args(mused.console, "%c", *c),
 			select_program_step, MAKEPTR(cmd_idx), MAKEPTR(i), 0);
 
-		if (mused.focus == EDITPROG && mused.editpos == i && cmd_idx == cur_idx)
+		if (mused.focus == (mused.show_four_op_menu ? EDITPROG4OP : EDITPROG) && mused.editpos == i && cmd_idx == cur_idx)
 		{
 			SDL_Rect cur;
 			copy_rect(&cur, r);
@@ -1161,7 +1136,7 @@ static void write_command(const SDL_Event *event, const char *text, int cmd_idx,
 
 void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
-	if(!(mused.show_four_op_menu))
+	if(!(mused.show_four_op_menu) || ((mused.focus != EDIT4OP) && (mused.focus != EDITPROG4OP)))
 	{
 		SDL_Rect area, clip;
 		copy_rect(&area, dest);
@@ -1200,6 +1175,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 				bevel(domain,&row, mused.slider_bevel, BEV_SELECTED_PATTERN_ROW);
 				console_set_color(mused.console, colors[COLOR_PROGRAM_SELECTED]);
 			}
+			
 			else
 				console_set_color(mused.console,pos & 1 ? colors[COLOR_PROGRAM_ODD] : colors[COLOR_PROGRAM_EVEN]);
 
@@ -1225,7 +1201,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 			
 			else
 			{
-				sprintf(box, "%04X", ((inst->program[i] & 0xf000) != 0xf000) ? (inst->program[i] & 0xffff) : inst->program[i]); //old command sprintf(box, "%04X", ((inst->program[i] & 0xf000) != 0xf000) ? (inst->program[i] & 0x7fff) : inst->program[i]);
+				sprintf(box, "%04X", inst->program[i]); //old command sprintf(box, "%04X", ((inst->program[i] & 0xf000) != 0xf000) ? (inst->program[i] & 0x7fff) : inst->program[i]);
 			}
 
 			if (pos == prev_pos)
@@ -1299,7 +1275,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 
 			SDL_Rect selection = { area.x, selection_begin - 1, area.w, selection_end - selection_begin + 1 };
 			adjust_rect(&selection, -3);
-			bevel(domain,&selection, mused.slider_bevel, BEV_SELECTION);
+			bevel(domain, &selection, mused.slider_bevel, BEV_SELECTION);
 		}
 
 		gfx_domain_set_clip(domain, NULL);
@@ -1309,22 +1285,25 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 	}
 }
 
-void oscilloscope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param) //wasn't there
+void oscilloscope_view(GfxDomain *dest_surface, SDL_Rect *dest, const SDL_Event *event, void *param) //wasn't there
 {
-	if(!(mused.show_four_op_menu))
+	if(mused.show_four_op_menu)
 	{
-		if(mused.flags & SHOW_OSCILLOSCOPE_INST_EDITOR)
-		{
-			SDL_Rect area;
-			copy_rect(&area, dest);
-			bevelex(domain, &area, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
-			adjust_rect(&area, 2);
-			
-			int *pointer = &mused.output_buffer_counter;
-			
-			update_oscillscope_view(dest_surface, &area, mused.output_buffer, OSC_SIZE, pointer, true, (bool)(mused.flags & SHOW_OSCILLOSCOPE_MIDLINES));
-			//void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area, int* sound_buffer, int size, int* buffer_counter, bool is_translucent, bool show_midlines);
-		}
+		dest->y -= 155;
+		dest->x -= 10;
+	}
+	
+	if(mused.flags & SHOW_OSCILLOSCOPE_INST_EDITOR)
+	{
+		SDL_Rect area;
+		copy_rect(&area, dest);
+		bevelex(domain, &area, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
+		adjust_rect(&area, 2);
+		
+		int *pointer = &mused.output_buffer_counter;
+		
+		update_oscillscope_view(dest_surface, &area, mused.output_buffer, OSC_SIZE, pointer, true, (bool)(mused.flags & SHOW_OSCILLOSCOPE_MIDLINES));
+		//void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area, int* sound_buffer, int size, int* buffer_counter, bool is_translucent, bool show_midlines);
 	}
 }
 
@@ -1367,7 +1346,7 @@ static void four_op_text(const SDL_Event *e, const SDL_Rect *area, int p, const 
 	//check_event(e, area, select_instrument_param, (void*)p, 0, 0);
 
 	int d = generic_field(e, area, EDIT4OP, p, _label, format, value, width);
-	if (d)
+	if (d && mused.mode == EDIT4OP)
 	{
 		if (p >= 0) mused.fourop_selected_param = p;
 		if (p != P_INSTRUMENT) snapshot_cascade(S_T_INSTRUMENT, mused.current_instrument, p);
@@ -1452,7 +1431,7 @@ void inst_field(const SDL_Event *e, const SDL_Rect *area, int p, int length, cha
 
 void instrument_name_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
-	if(!(mused.show_four_op_menu))
+	if(!(mused.show_four_op_menu) || ((mused.focus != EDIT4OP) && (mused.focus != EDITPROG4OP)))
 	{
 		SDL_Rect farea, larea, tarea;
 		copy_rect(&farea,dest);
@@ -1489,10 +1468,9 @@ void instrument_name_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 	}
 }
 
-
 void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
-	if(!(mused.show_four_op_menu))
+	if(!(mused.show_four_op_menu) || ((mused.focus != EDIT4OP) && (mused.focus != EDITPROG4OP)))
 	{
 		MusInstrument *inst = &mused.song.instrument[mused.current_instrument];
 
@@ -1717,6 +1695,19 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 	}
 }
 
+
+void draw_op(SDL_Rect* op, int opx, int opy, int op_num, MusInstrument* inst)
+{
+	gfx_line(domain, opx + 1, opy + 2, opx - 2, opy + 2, ((0x90 * inst->ops[op_num].feedback / 7) << 16) + ((0xA7 * inst->ops[op_num].feedback / 7) << 8) + 0xA0 * inst->ops[op_num].feedback / 7); //feedback
+	gfx_line(domain, opx - 2, opy + 2, opx - 2, opy - 2, ((0x90 * inst->ops[op_num].feedback / 7) << 16) + ((0xA7 * inst->ops[op_num].feedback / 7) << 8) + 0xA0 * inst->ops[op_num].feedback / 7);
+	gfx_line(domain, opx - 2, opy - 2, opx + 23, opy - 2, ((0x90 * inst->ops[op_num].feedback / 7) << 16) + ((0xA7 * inst->ops[op_num].feedback / 7) << 8) + 0xA0 * inst->ops[op_num].feedback / 7);
+	gfx_line(domain, opx + 23, opy - 2, opx + 23, opy + 2, ((0x90 * inst->ops[op_num].feedback / 7) << 16) + ((0xA7 * inst->ops[op_num].feedback / 7) << 8) + 0xA0 * inst->ops[op_num].feedback / 7);
+	gfx_line(domain, opx + 23, opy + 2, opx + 20, opy + 2, ((0x90 * inst->ops[op_num].feedback / 7) << 16) + ((0xA7 * inst->ops[op_num].feedback / 7) << 8) + 0xA0 * inst->ops[op_num].feedback / 7);
+	
+	op->x = opx;
+	op->y = opy;
+}
+
 void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param) //4-op FM menu, filebox-like
 {
 	if(mused.show_four_op_menu)
@@ -1727,7 +1718,6 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 		copy_rect(&frame, dest);
 		
 		bevel(dest_surface, dest, mused.slider_bevel, BEV_MENU);
-		//bevelex(domain, &frame, mused.slider_bevel, BEV_BACKGROUND, BEV_F_STRETCH_ALL);
 		
 		frame.h -= 16;
 		frame.y += 16;
@@ -1738,7 +1728,6 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 		
 		adjust_rect(&titlearea, 10);
 		
-		//titlearea.w -= 4;
 		copy_rect(&button, dest);
 		adjust_rect(&button, titlearea.h);
 		button.w = 12;
@@ -1766,13 +1755,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 		
 		gfx_rect(dest_surface, &frame, 0x0);
 		
-		//adjust_rect(&frame, 4);
-		
 		SDL_Rect top_view, view, view2, oscilloscopes_view, op_alg_view, op_osc_view, program_view, slider;
-		
-		#define VIEW_WIDTH 166
-		#define TOP_VIEW_H 18
-		#define ALG_VIEW_H 160
 			
 		{
 			SDL_Rect r;
@@ -1785,7 +1768,6 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			adjust_rect(&top_view, 2);
 			bevelex(domain, &top_view, mused.slider_bevel, BEV_BACKGROUND, BEV_F_STRETCH_ALL);
 			
-			//copy_rect(&frame, &top_view);
 			adjust_rect(&top_view, 4);
 			
 			copy_rect(&r, &top_view);
@@ -1796,6 +1778,8 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			{
 				four_op_flags(event, &r, FOUROP_3CH_EXP_MODE, "ENABLE 3CH EXP MODE", &inst->fm_flags, CYD_FM_ENABLE_3CH_EXP_MODE);
 				update_rect(&top_view, &r);
+				
+				r.w = 120;
 				
 				four_op_text(event, &r, FOUROP_ALG, "ALGORITHM", "%02d", MAKEPTR(inst->alg), 2);
 				update_rect(&top_view, &r);
@@ -1813,7 +1797,6 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			view.w = VIEW_WIDTH;
 			
 			adjust_rect(&view, 2);
-			//bevelex(domain, &view, mused.slider_bevel, BEV_BACKGROUND, BEV_F_STRETCH_ALL);
 			
 			copy_rect(&frame, &view);
 			
@@ -1827,40 +1810,73 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			r.y += r.h + 1;
 
 			{
-				SDL_Rect note;
-				copy_rect(&note, &view);
+				if(inst->fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE)
+				{
+					SDL_Rect note;
+					copy_rect(&note, &view);
 
-				note.w = note.w / 2 - 6;
-				note.h = 10;
+					note.w = note.w / 2 - 6;
+					note.h = 10;
 
-				four_op_text(event, &note, FOUROP_BASENOTE, "BASE", "%s", notename(inst->ops[mused.selected_operator - 1].base_note), 3);
-				note.x += note.w + 2;
-				note.w = view.w / 3;
-				four_op_text(event, &note, FOUROP_FINETUNE, "", "%+4d", MAKEPTR(inst->ops[mused.selected_operator - 1].finetune), 4);
-				note.x += note.w + 2;
-				note.w = view.w - note.x;
+					four_op_text(event, &note, FOUROP_BASENOTE, "BASE", "%s", notename(inst->ops[mused.selected_operator - 1].base_note), 3);
+					note.x += note.w + 2;
+					note.w = view.w / 3;
+					four_op_text(event, &note, FOUROP_FINETUNE, "", "%+4d", MAKEPTR(inst->ops[mused.selected_operator - 1].finetune), 4);
+					note.x += note.w + 2;
+					note.w = view.w - note.x;
 
-				four_op_flags(event, &note, FOUROP_LOCKNOTE, "L", &inst->ops[mused.selected_operator - 1].flags, MUS_INST_LOCK_NOTE);
+					four_op_flags(event, &note, FOUROP_LOCKNOTE, "L", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_LOCK_NOTE);
+				}
+				
+				else //mult and detune
+				{
+					SDL_Rect note;
+					copy_rect(&note, &view);
+
+					note.w = note.w / 3 - 2;
+					note.h = 10;
+
+					four_op_text(event, &note, FOUROP_HARMONIC_MODULATOR, "MUL", "%01X", MAKEPTR(inst->ops[mused.selected_operator - 1].harmonic), 1);
+					note.x += note.w + 1;
+					note.w += 6;
+					four_op_text(event, &note, FOUROP_DETUNE, "DT1", "%+1d", MAKEPTR(inst->ops[mused.selected_operator - 1].detune), 2);
+					note.x += note.w + 1;
+					note.w -= 6;
+					four_op_text(event, &note, FOUROP_COARSE_DETUNE, "DT2", "%01d", MAKEPTR(inst->ops[mused.selected_operator - 1].coarse_detune), 1);
+				}
+				
+				int temp = r.w;
+				
+				r.w -= 12;
 				
 				four_op_text(event, &r, FOUROP_FEEDBACK, "FBACK", "%01X", MAKEPTR(inst->ops[mused.selected_operator - 1].feedback), 1);
 				update_rect(&view, &r);
 				
-				four_op_flags(event, &r, FOUROP_ENABLE_SSG_EG, "SSG-EG", &inst->ops[mused.selected_operator - 1].flags, CYD_FM_OP_ENABLE_SSG_EG);
+				r.w -= 7;
+				
+				four_op_flags(event, &r, FOUROP_ENABLE_SSG_EG, "SSG-EG", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_SSG_EG);
+				r.x += 63;
+				
+				r.w = 25;
+				
+				four_op_text(event, &r, FOUROP_SSG_EG_TYPE, "", "%01X", MAKEPTR(inst->ops[mused.selected_operator - 1].ssg_eg_type), 1);
 				update_rect(&view, &r);
 				
-				four_op_flags(event, &r, FOUROP_DRUM, "DRUM", &inst->ops[mused.selected_operator - 1].flags, MUS_INST_DRUM);
+				r.w = temp;
+				
+				four_op_flags(event, &r, FOUROP_DRUM, "DRUM", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_DRUM);
 				update_rect(&view, &r);
-				four_op_flags(event, &r, FOUROP_KEYSYNC, "KSYNC", &inst->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_KEY_SYNC);
+				four_op_flags(event, &r, FOUROP_KEYSYNC, "KSYNC", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_KEY_SYNC);
 				update_rect(&view, &r);
-				four_op_flags(event, &r, FOUROP_INVVIB, "VIB", &inst->ops[mused.selected_operator - 1].flags, MUS_INST_INVERT_VIBRATO_BIT);
+				four_op_flags(event, &r, FOUROP_INVVIB, "VIB", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_INVERT_VIBRATO_BIT);
 				update_rect(&view, &r);
 				
-				four_op_flags(event, &r, FOUROP_INVTREM, "TREM", &inst->ops[mused.selected_operator - 1].flags, MUS_INST_INVERT_TREMOLO_BIT);
+				four_op_flags(event, &r, FOUROP_INVTREM, "TREM", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_INVERT_TREMOLO_BIT);
 				update_rect(&view, &r);
 				
-				four_op_flags(event, &r, FOUROP_SETPW, "SET PW", &inst->ops[mused.selected_operator - 1].flags, MUS_INST_SET_PW);
+				four_op_flags(event, &r, FOUROP_SETPW, "SET PW", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_SET_PW);
 				update_rect(&view, &r);
-				four_op_flags(event, &r, FOUROP_SETCUTOFF, "SET CUT", &inst->ops[mused.selected_operator - 1].flags, MUS_INST_SET_CUTOFF);
+				four_op_flags(event, &r, FOUROP_SETCUTOFF, "SET CUT", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_SET_CUTOFF);
 				update_rect(&view, &r);
 
 				four_op_text(event, &r, FOUROP_SLIDESPEED, "SLIDE", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].slide_speed), 2);
@@ -1871,26 +1887,26 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 				int tmp = r.w;
 				r.w = view.w / 3 - 2 - 12;
 				my_separator(&view, &r);
-				four_op_flags(event, &r, FOUROP_PULSE, "PUL", &inst->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_PULSE);
+				four_op_flags(event, &r, FOUROP_PULSE, "PUL", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_PULSE);
 				update_rect(&view, &r);
-				r.w = view.w / 2 - 2 - 25;
+				r.w = view.w / 2 - 2 - 26;
 				four_op_text(event, &r, FOUROP_PW, "", "%03X", MAKEPTR(inst->ops[mused.selected_operator - 1].pw), 3);
 				update_rect(&view, &r);
 				r.w = view.w / 3 - 8;
-				four_op_flags(event, &r, FOUROP_SAW, "SAW", &inst->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_SAW);
+				four_op_flags(event, &r, FOUROP_SAW, "SAW", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_SAW);
 				update_rect(&view, &r);
 				r.w = view.w / 3 - 8;
-				four_op_flags(event, &r, FOUROP_TRIANGLE, "TRI", &inst->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_TRIANGLE);
+				four_op_flags(event, &r, FOUROP_TRIANGLE, "TRI", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_TRIANGLE);
 				update_rect(&view, &r);
-				four_op_flags(event, &r, FOUROP_NOISE, "NOI", &inst->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_NOISE);
+				four_op_flags(event, &r, FOUROP_NOISE, "NOI", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_NOISE);
 				update_rect(&view, &r);
 				r.w = view.w / 3;
-				four_op_flags(event, &r, FOUROP_METAL, "METAL", &inst->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_METAL);
+				four_op_flags(event, &r, FOUROP_METAL, "METAL", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_METAL);
 				update_rect(&view, &r);
 
 				r.w = view.w / 2 + 26;
 				
-				four_op_flags(event, &r, FOUROP_FIX_NOISE_PITCH, "LOCK NOI PIT", &inst->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_FIXED_NOISE_PITCH);
+				four_op_flags(event, &r, FOUROP_FIX_NOISE_PITCH, "LOCK NOI PIT", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_FIXED_NOISE_PITCH);
 				update_rect(&view, &r);
 				
 				SDL_Rect npitch;
@@ -1902,11 +1918,10 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 				npitch.y += 87;
 				
 				four_op_text(event, &npitch, FOUROP_FIXED_NOISE_BASE_NOTE, "", "%s", notename(inst->ops[mused.selected_operator - 1].noise_note), 3);
-				//update_rect(&npitch, &r);
 				
 				r.w = view.w;
 				
-				four_op_flags(event, &r, FOUROP_1_BIT_NOISE, "ENABLE 1-BIT NOISE", &inst->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_1_BIT_NOISE);
+				four_op_flags(event, &r, FOUROP_1_BIT_NOISE, "ENABLE 1-BIT NOISE", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_1_BIT_NOISE);
 				update_rect(&view, &r);
 				
 				r.w = tmp;
@@ -1917,16 +1932,16 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 				int tmp = r.w;
 				r.w = 42;
 
-				four_op_flags(event, &r, FOUROP_WAVE, "WAVE", &inst->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_WAVE);
+				four_op_flags(event, &r, FOUROP_WAVE, "WAVE", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_WAVE);
 				r.x += 44;
 				r.w = 32;
 				four_op_text(event, &r, FOUROP_WAVE_ENTRY, "", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].wavetable_entry), 2);
 				update_rect(&view, &r);
 				r.w = 42;
-				four_op_flags(event, &r, FOUROP_WAVE_OVERRIDE_ENV, "OENV", &inst->ops[mused.selected_operator - 1].cydflags, CYD_CHN_WAVE_OVERRIDE_ENV);
+				four_op_flags(event, &r, FOUROP_WAVE_OVERRIDE_ENV, "OENV", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_WAVE_OVERRIDE_ENV);
 				r.x += r.w;
 				r.w = 20;
-				four_op_flags(event, &r, FOUROP_WAVE_LOCK_NOTE, "L", &inst->ops[mused.selected_operator - 1].flags, MUS_INST_WAVE_LOCK_NOTE);
+				four_op_flags(event, &r, FOUROP_WAVE_LOCK_NOTE, "L", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_WAVE_LOCK_NOTE);
 				update_rect(&view, &r);
 
 				r.w = tmp;
@@ -1960,33 +1975,33 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			int temp = r.w;
 			r.w = view.w / 4 - 2;
 			
-			four_op_flags(event, &r, FOUROP_EXP_VOL, "E.V", &inst->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_EXPONENTIAL_VOLUME);
+			four_op_flags(event, &r, FOUROP_EXP_VOL, "E.V", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_EXPONENTIAL_VOLUME);
 			update_rect(&view, &r);
-			four_op_flags(event, &r, FOUROP_EXP_ATTACK, "ATK", &inst->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_EXPONENTIAL_ATTACK);
+			four_op_flags(event, &r, FOUROP_EXP_ATTACK, "ATK", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_EXPONENTIAL_ATTACK);
 			update_rect(&view, &r);
-			four_op_flags(event, &r, FOUROP_EXP_DECAY, "DEC", &inst->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_EXPONENTIAL_DECAY);
+			four_op_flags(event, &r, FOUROP_EXP_DECAY, "DEC", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_EXPONENTIAL_DECAY);
 			update_rect(&view, &r);
-			four_op_flags(event, &r, FOUROP_EXP_RELEASE, "REL", &inst->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_EXPONENTIAL_RELEASE);
+			four_op_flags(event, &r, FOUROP_EXP_RELEASE, "REL", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_EXPONENTIAL_RELEASE);
 			update_rect(&view, &r);
 			
 			r.w = temp;
 			
-			four_op_flags(event, &r, FOUROP_VOL_KSL, "VOL.KSL", &inst->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_VOLUME_KEY_SCALING);
+			four_op_flags(event, &r, FOUROP_VOL_KSL, "VOL.KSL", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_VOLUME_KEY_SCALING);
 			update_rect(&view, &r);
 			four_op_text(event, &r, FOUROP_VOL_KSL_LEVEL, "LEVEL", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].vol_ksl_level), 2);
 			update_rect(&view, &r);
 			
-			four_op_flags(event, &r, FOUROP_ENV_KSL, "ENV.KSL", &inst->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_ENVELOPE_KEY_SCALING);
+			four_op_flags(event, &r, FOUROP_ENV_KSL, "ENV.KSL", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_ENVELOPE_KEY_SCALING);
 			update_rect(&view, &r);
 			four_op_text(event, &r, FOUROP_ENV_KSL_LEVEL, "LEVEL", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].env_ksl_level), 2);
 			update_rect(&view, &r);
 
 			my_separator(&view, &r);
-			four_op_flags(event, &r, FOUROP_SYNC, "SYNC", &inst->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_SYNC);
+			four_op_flags(event, &r, FOUROP_SYNC, "SYNC", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_SYNC);
 			update_rect(&view, &r);
 			four_op_text(event, &r, FOUROP_SYNCSRC, "SRC", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].sync_source), 2);
 			update_rect(&view, &r);
-			four_op_flags(event, &r, FOUROP_RINGMOD, "RING MOD", &inst->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_RING_MODULATION);
+			four_op_flags(event, &r, FOUROP_RINGMOD, "RING MOD", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_RING_MODULATION);
 			update_rect(&view, &r);
 			four_op_text(event, &r, FOUROP_RINGMODSRC, "SRC", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].ring_mod), 2);
 			update_rect(&view, &r);
@@ -1995,7 +2010,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			static const char *slope_4op[] = { "12  dB/oct", "24  dB/oct", "48  dB/oct", "96  dB/oct", "192 dB/oct", "384 dB/oct" };
 
 			my_separator(&view, &r);
-			four_op_flags(event, &r, FOUROP_FILTER, "FILTER", &inst->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_FILTER);
+			four_op_flags(event, &r, FOUROP_FILTER, "FILTER", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_FILTER);
 			update_rect(&view, &r);
 			four_op_text(event, &r, FOUROP_FLTTYPE, "TYPE", "%s", (char*)flttype_4op[inst->ops[mused.selected_operator - 1].flttype], 3); //was `(char*)flttype[inst->ops[mused.selected_operator - 1].flttype], 2);`
 			update_rect(&view, &r);
@@ -2026,7 +2041,6 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			adjust_rect(&op_alg_view, 2);
 			bevelex(domain, &op_alg_view, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
 			
-			//copy_rect(&frame, &top_view);
 			adjust_rect(&op_alg_view, 4);
 			
 			SDL_Rect but1, but2, but3, but4;
@@ -2049,46 +2063,272 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 34, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 - 24, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0); //lines between ops
 					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 5, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 + 5, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0);
 					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 24, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 + 34, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 53, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 + 60, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0);
 					
+					// F  F  F  F
+					// 4--3--2--1--(OUT)
 					
-					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 53, op_alg_view_y + op_alg_view_h / 2 - 4, op_alg_view_x + op_alg_view_w / 2 - 56, op_alg_view_y + op_alg_view_h / 2 - 4, ((0x90 * inst->ops[0].feedback / 7) << 16) + ((0xA7 * inst->ops[0].feedback / 7) << 8) + 0xA0 * inst->ops[0].feedback / 7); //feedback
-					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 56, op_alg_view_y + op_alg_view_h / 2 - 4, op_alg_view_x + op_alg_view_w / 2 - 56, op_alg_view_y + op_alg_view_h / 2 - 8, ((0x90 * inst->ops[0].feedback / 7) << 16) + ((0xA7 * inst->ops[0].feedback / 7) << 8) + 0xA0 * inst->ops[0].feedback / 7);
-					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 56, op_alg_view_y + op_alg_view_h / 2 - 8, op_alg_view_x + op_alg_view_w / 2 - 31, op_alg_view_y + op_alg_view_h / 2 - 8, ((0x90 * inst->ops[0].feedback / 7) << 16) + ((0xA7 * inst->ops[0].feedback / 7) << 8) + 0xA0 * inst->ops[0].feedback / 7);
-					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 31, op_alg_view_y + op_alg_view_h / 2 - 8, op_alg_view_x + op_alg_view_w / 2 - 31, op_alg_view_y + op_alg_view_h / 2 - 4, ((0x90 * inst->ops[0].feedback / 7) << 16) + ((0xA7 * inst->ops[0].feedback / 7) << 8) + 0xA0 * inst->ops[0].feedback / 7);
-					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 31, op_alg_view_y + op_alg_view_h / 2 - 4, op_alg_view_x + op_alg_view_w / 2 - 34, op_alg_view_y + op_alg_view_h / 2 - 4, ((0x90 * inst->ops[0].feedback / 7) << 16) + ((0xA7 * inst->ops[0].feedback / 7) << 8) + 0xA0 * inst->ops[0].feedback / 7);
-					
-					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 24, op_alg_view_y + op_alg_view_h / 2 - 4, op_alg_view_x + op_alg_view_w / 2 - 27, op_alg_view_y + op_alg_view_h / 2 - 4, ((0x90 * inst->ops[1].feedback / 7) << 16) + ((0xA7 * inst->ops[1].feedback / 7) << 8) + 0xA0 * inst->ops[1].feedback / 7); //feedback
-					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 27, op_alg_view_y + op_alg_view_h / 2 - 4, op_alg_view_x + op_alg_view_w / 2 - 27, op_alg_view_y + op_alg_view_h / 2 - 8, ((0x90 * inst->ops[1].feedback / 7) << 16) + ((0xA7 * inst->ops[1].feedback / 7) << 8) + 0xA0 * inst->ops[1].feedback / 7);
-					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 27, op_alg_view_y + op_alg_view_h / 2 - 8, op_alg_view_x + op_alg_view_w / 2 - 2, op_alg_view_y + op_alg_view_h / 2 - 8, ((0x90 * inst->ops[1].feedback / 7) << 16) + ((0xA7 * inst->ops[1].feedback / 7) << 8) + 0xA0 * inst->ops[1].feedback / 7);
-					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 2, op_alg_view_y + op_alg_view_h / 2 - 8, op_alg_view_x + op_alg_view_w / 2 - 2, op_alg_view_y + op_alg_view_h / 2 - 4, ((0x90 * inst->ops[1].feedback / 7) << 16) + ((0xA7 * inst->ops[1].feedback / 7) << 8) + 0xA0 * inst->ops[1].feedback / 7);
-					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 2, op_alg_view_y + op_alg_view_h / 2 - 4, op_alg_view_x + op_alg_view_w / 2 - 5, op_alg_view_y + op_alg_view_h / 2 - 4, ((0x90 * inst->ops[1].feedback / 7) << 16) + ((0xA7 * inst->ops[1].feedback / 7) << 8) + 0xA0 * inst->ops[1].feedback / 7);
-					
-					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 5, op_alg_view_y + op_alg_view_h / 2 - 4, op_alg_view_x + op_alg_view_w / 2 + 2, op_alg_view_y + op_alg_view_h / 2 - 4, ((0x90 * inst->ops[2].feedback / 7) << 16) + ((0xA7 * inst->ops[2].feedback / 7) << 8) + 0xA0 * inst->ops[2].feedback / 7); //feedback
-					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 2, op_alg_view_y + op_alg_view_h / 2 - 4, op_alg_view_x + op_alg_view_w / 2 + 2, op_alg_view_y + op_alg_view_h / 2 - 8, ((0x90 * inst->ops[2].feedback / 7) << 16) + ((0xA7 * inst->ops[2].feedback / 7) << 8) + 0xA0 * inst->ops[2].feedback / 7);
-					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 2, op_alg_view_y + op_alg_view_h / 2 - 8, op_alg_view_x + op_alg_view_w / 2 + 27, op_alg_view_y + op_alg_view_h / 2 - 8, ((0x90 * inst->ops[2].feedback / 7) << 16) + ((0xA7 * inst->ops[2].feedback / 7) << 8) + 0xA0 * inst->ops[2].feedback / 7);
-					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 27, op_alg_view_y + op_alg_view_h / 2 - 8, op_alg_view_x + op_alg_view_w / 2 + 27, op_alg_view_y + op_alg_view_h / 2 - 4, ((0x90 * inst->ops[2].feedback / 7) << 16) + ((0xA7 * inst->ops[2].feedback / 7) << 8) + 0xA0 * inst->ops[2].feedback / 7);
-					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 27, op_alg_view_y + op_alg_view_h / 2 - 4, op_alg_view_x + op_alg_view_w / 2 + 24, op_alg_view_y + op_alg_view_h / 2 - 4, ((0x90 * inst->ops[2].feedback / 7) << 16) + ((0xA7 * inst->ops[2].feedback / 7) << 8) + 0xA0 * inst->ops[2].feedback / 7);
-					
-					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 34, op_alg_view_y + op_alg_view_h / 2 - 4, op_alg_view_x + op_alg_view_w / 2 + 31, op_alg_view_y + op_alg_view_h / 2 - 4, ((0x90 * inst->ops[3].feedback / 7) << 16) + ((0xA7 * inst->ops[3].feedback / 7) << 8) + 0xA0 * inst->ops[3].feedback / 7); //feedback
-					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 31, op_alg_view_y + op_alg_view_h / 2 - 4, op_alg_view_x + op_alg_view_w / 2 + 31, op_alg_view_y + op_alg_view_h / 2 - 8, ((0x90 * inst->ops[3].feedback / 7) << 16) + ((0xA7 * inst->ops[3].feedback / 7) << 8) + 0xA0 * inst->ops[3].feedback / 7);
-					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 31, op_alg_view_y + op_alg_view_h / 2 - 8, op_alg_view_x + op_alg_view_w / 2 + 56, op_alg_view_y + op_alg_view_h / 2 - 8, ((0x90 * inst->ops[3].feedback / 7) << 16) + ((0xA7 * inst->ops[3].feedback / 7) << 8) + 0xA0 * inst->ops[3].feedback / 7);
-					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 56, op_alg_view_y + op_alg_view_h / 2 - 8, op_alg_view_x + op_alg_view_w / 2 + 56, op_alg_view_y + op_alg_view_h / 2 - 4, ((0x90 * inst->ops[3].feedback / 7) << 16) + ((0xA7 * inst->ops[3].feedback / 7) << 8) + 0xA0 * inst->ops[3].feedback / 7);
-					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 56, op_alg_view_y + op_alg_view_h / 2 - 4, op_alg_view_x + op_alg_view_w / 2 + 53, op_alg_view_y + op_alg_view_h / 2 - 4, ((0x90 * inst->ops[3].feedback / 7) << 16) + ((0xA7 * inst->ops[3].feedback / 7) << 8) + 0xA0 * inst->ops[3].feedback / 7);
-					
-					
-					
-					but1.x = op_alg_view_x + op_alg_view_w / 2 - 54;
-					but1.y = op_alg_view_y + op_alg_view_h / 2 - 6;
-					
-					but2.x = op_alg_view_x + op_alg_view_w / 2 - 25;
-					but2.y = op_alg_view_y + op_alg_view_h / 2 - 6;
-					
-					but3.x = op_alg_view_x + op_alg_view_w / 2 + 4;
-					but3.y = op_alg_view_y + op_alg_view_h / 2 - 6;
-					
-					but4.x = op_alg_view_x + op_alg_view_w / 2 + 33;
-					but4.y = op_alg_view_y + op_alg_view_h / 2 - 6;
+					draw_op(&but4, op_alg_view_x + op_alg_view_w / 2 - 54, op_alg_view_y + op_alg_view_h / 2 - 6, 3, inst);
+					draw_op(&but3, op_alg_view_x + op_alg_view_w / 2 - 25, op_alg_view_y + op_alg_view_h / 2 - 6, 2, inst);
+					draw_op(&but2, op_alg_view_x + op_alg_view_w / 2 + 4, op_alg_view_y + op_alg_view_h / 2 - 6, 1, inst);
+					draw_op(&but1, op_alg_view_x + op_alg_view_w / 2 + 33, op_alg_view_y + op_alg_view_h / 2 - 6, 0, inst);
 				break;
+				
+				case 2:
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 22, op_alg_view_y + op_alg_view_h / 2 - 15, op_alg_view_x + op_alg_view_w / 2 - 17, op_alg_view_y + op_alg_view_h / 2 - 15, 0x90A7A0); //lines between ops
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 22, op_alg_view_y + op_alg_view_h / 2 + 15, op_alg_view_x + op_alg_view_w / 2 - 17, op_alg_view_y + op_alg_view_h / 2 + 15, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 17, op_alg_view_y + op_alg_view_h / 2 - 15, op_alg_view_x + op_alg_view_w / 2 - 17, op_alg_view_y + op_alg_view_h / 2 + 15, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 17, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 - 10, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 9, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 + 19, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 38, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 + 45, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0);
+					
+					// F
+					// 4--| F  F
+					//    |--2--1--(OUT)
+					// F  |
+					// 3--|
+					
+					draw_op(&but4, op_alg_view_x + op_alg_view_w / 2 - 42, op_alg_view_y + op_alg_view_h / 2 - 21, 3, inst);
+					draw_op(&but3, op_alg_view_x + op_alg_view_w / 2 - 42, op_alg_view_y + op_alg_view_h / 2 + 9, 2, inst);
+					draw_op(&but2, op_alg_view_x + op_alg_view_w / 2 - 11, op_alg_view_y + op_alg_view_h / 2 - 6, 1, inst);
+					draw_op(&but1, op_alg_view_x + op_alg_view_w / 2 + 18, op_alg_view_y + op_alg_view_h / 2 - 6, 0, inst);
+				break;
+				
+				case 3:
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 24, op_alg_view_y + op_alg_view_h / 2 + 15, op_alg_view_x + op_alg_view_w / 2 - 12, op_alg_view_y + op_alg_view_h / 2 + 15, 0x90A7A0); //lines between ops
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 7, op_alg_view_y + op_alg_view_h / 2 + 15, op_alg_view_x + op_alg_view_w / 2 + 12, op_alg_view_y + op_alg_view_h / 2 + 15, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 12, op_alg_view_y + op_alg_view_h / 2 + 15, op_alg_view_x + op_alg_view_w / 2 + 12, op_alg_view_y + op_alg_view_h / 2 - 15, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 12, op_alg_view_y + op_alg_view_h / 2 - 15, op_alg_view_x + op_alg_view_w / 2 + 7, op_alg_view_y + op_alg_view_h / 2 - 15, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 12, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 + 19, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 38, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 + 45, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0);
+					
+					//    F
+					//    4--|  F
+					//       |--1--(OUT)
+					// F  F  |
+					// 3--2--|
+					
+					draw_op(&but4, op_alg_view_x + op_alg_view_w / 2 - 13, op_alg_view_y + op_alg_view_h / 2 - 21, 3, inst);
+					draw_op(&but3, op_alg_view_x + op_alg_view_w / 2 - 42, op_alg_view_y + op_alg_view_h / 2 + 9, 2, inst);
+					draw_op(&but2, op_alg_view_x + op_alg_view_w / 2 - 13, op_alg_view_y + op_alg_view_h / 2 + 9, 1, inst);
+					draw_op(&but1, op_alg_view_x + op_alg_view_w / 2 + 18, op_alg_view_y + op_alg_view_h / 2 - 6, 0, inst);
+				break;
+				
+				case 4:
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 22, op_alg_view_y + op_alg_view_h / 2 + 15, op_alg_view_x + op_alg_view_w / 2 - 10, op_alg_view_y + op_alg_view_h / 2 + 15, 0x90A7A0); //lines between ops
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 9, op_alg_view_y + op_alg_view_h / 2 + 15, op_alg_view_x + op_alg_view_w / 2 + 21, op_alg_view_y + op_alg_view_h / 2 + 15, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 40, op_alg_view_y + op_alg_view_h / 2 + 15, op_alg_view_x + op_alg_view_w / 2 + 45, op_alg_view_y + op_alg_view_h / 2 + 15, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 45, op_alg_view_y + op_alg_view_h / 2 + 15, op_alg_view_x + op_alg_view_w / 2 + 45, op_alg_view_y + op_alg_view_h / 2 - 15, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 45, op_alg_view_y + op_alg_view_h / 2 - 15, op_alg_view_x + op_alg_view_w / 2 + 40, op_alg_view_y + op_alg_view_h / 2 - 15, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 45, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 + 51, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0);
+					
+					//       F
+					//       1--|
+					//          |
+					// F  F  F  |--(OUT)
+					// 4--3--2--|
+					
+					draw_op(&but4, op_alg_view_x + op_alg_view_w / 2 - 42, op_alg_view_y + op_alg_view_h / 2 + 9, 3, inst);
+					draw_op(&but3, op_alg_view_x + op_alg_view_w / 2 - 11, op_alg_view_y + op_alg_view_h / 2 + 9, 2, inst);
+					draw_op(&but2, op_alg_view_x + op_alg_view_w / 2 + 20, op_alg_view_y + op_alg_view_h / 2 + 9, 1, inst);
+					draw_op(&but1, op_alg_view_x + op_alg_view_w / 2 + 20, op_alg_view_y + op_alg_view_h / 2 - 21, 0, inst);
+				break;
+				
+				case 5:
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 20, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 + 16, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0); //lines between ops
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 16, op_alg_view_y + op_alg_view_h / 2 + 15, op_alg_view_x + op_alg_view_w / 2 + 16, op_alg_view_y + op_alg_view_h / 2 - 15, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 16, op_alg_view_y + op_alg_view_h / 2 - 15, op_alg_view_x + op_alg_view_w / 2 + 45, op_alg_view_y + op_alg_view_h / 2 - 15, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 16, op_alg_view_y + op_alg_view_h / 2 + 15, op_alg_view_x + op_alg_view_w / 2 + 45, op_alg_view_y + op_alg_view_h / 2 + 15, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 45, op_alg_view_y + op_alg_view_h / 2 - 15, op_alg_view_x + op_alg_view_w / 2 + 45, op_alg_view_y + op_alg_view_h / 2 + 15, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 45, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 + 51, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0);
+					
+					//          F
+					// F  F  |--1--|
+					// 4--3--|     |--(OUT) 
+					//       |  F  |
+					//       |--2--|
+					
+					draw_op(&but4, op_alg_view_x + op_alg_view_w / 2 - 40, op_alg_view_y + op_alg_view_h / 2 - 6, 3, inst);
+					draw_op(&but3, op_alg_view_x + op_alg_view_w / 2 - 10, op_alg_view_y + op_alg_view_h / 2 - 6, 2, inst);
+					draw_op(&but2, op_alg_view_x + op_alg_view_w / 2 + 20, op_alg_view_y + op_alg_view_h / 2 + 9, 1, inst);
+					draw_op(&but1, op_alg_view_x + op_alg_view_w / 2 + 20, op_alg_view_y + op_alg_view_h / 2 - 21, 0, inst);
+				break;
+				
+				case 6:
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 6, op_alg_view_y + op_alg_view_h / 2 - 15, op_alg_view_x + op_alg_view_w / 2 + 30, op_alg_view_y + op_alg_view_h / 2 - 15, 0x90A7A0); //lines between ops
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 6, op_alg_view_y + op_alg_view_h / 2 + 15, op_alg_view_x + op_alg_view_w / 2 + 30, op_alg_view_y + op_alg_view_h / 2 + 15, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 30, op_alg_view_y + op_alg_view_h / 2 - 15, op_alg_view_x + op_alg_view_w / 2 + 30, op_alg_view_y + op_alg_view_h / 2 + 15, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 30, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 + 36, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0);
+					
+					// F  F
+					// 4--3--|
+					//       |--(OUT)
+					// F  F  |
+					// 2--1--|
+					
+					draw_op(&but4, op_alg_view_x + op_alg_view_w / 2 - 26, op_alg_view_y + op_alg_view_h / 2 - 21, 3, inst);
+					draw_op(&but3, op_alg_view_x + op_alg_view_w / 2 + 5, op_alg_view_y + op_alg_view_h / 2 - 21, 2, inst);
+					draw_op(&but2, op_alg_view_x + op_alg_view_w / 2 - 26, op_alg_view_y + op_alg_view_h / 2 + 9, 1, inst);
+					draw_op(&but1, op_alg_view_x + op_alg_view_w / 2 + 5, op_alg_view_y + op_alg_view_h / 2 + 9, 0, inst);
+				break;
+				
+				case 7:
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 10, op_alg_view_y + op_alg_view_h / 2 - 21, op_alg_view_x + op_alg_view_w / 2 - 5, op_alg_view_y + op_alg_view_h / 2 - 21, 0x90A7A0); //lines between ops
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 10, op_alg_view_y + op_alg_view_h / 2 + 9, op_alg_view_x + op_alg_view_w / 2 - 5, op_alg_view_y + op_alg_view_h / 2 + 9, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 5, op_alg_view_y + op_alg_view_h / 2 - 21, op_alg_view_x + op_alg_view_w / 2 - 5, op_alg_view_y + op_alg_view_h / 2 + 9, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 5, op_alg_view_y + op_alg_view_h / 2 - 6, op_alg_view_x + op_alg_view_w / 2 + 30, op_alg_view_y + op_alg_view_h / 2 - 6, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 25, op_alg_view_y + op_alg_view_h / 2 + 24, op_alg_view_x + op_alg_view_w / 2 + 30, op_alg_view_y + op_alg_view_h / 2 + 24, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 30, op_alg_view_y + op_alg_view_h / 2 - 6, op_alg_view_x + op_alg_view_w / 2 + 30, op_alg_view_y + op_alg_view_h / 2 + 24, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 30, op_alg_view_y + op_alg_view_h / 2 + 9, op_alg_view_x + op_alg_view_w / 2 + 36, op_alg_view_y + op_alg_view_h / 2 + 9, 0x90A7A0);
+					
+					// F  
+					// 4--|  F
+					//    |--2--|
+					// F  |     |--(OUT)
+					// 3--|  F  |
+					//       1--|
+					
+					draw_op(&but4, op_alg_view_x + op_alg_view_w / 2 - 30, op_alg_view_y + op_alg_view_h / 2 - 27, 3, inst);
+					draw_op(&but3, op_alg_view_x + op_alg_view_w / 2 - 30, op_alg_view_y + op_alg_view_h / 2 + 3, 2, inst);
+					draw_op(&but2, op_alg_view_x + op_alg_view_w / 2 + 5, op_alg_view_y + op_alg_view_h / 2 - 12, 1, inst);
+					draw_op(&but1, op_alg_view_x + op_alg_view_w / 2 + 5, op_alg_view_y + op_alg_view_h / 2 + 18, 0, inst);
+				break;
+				
+				case 8:
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 8, op_alg_view_y + op_alg_view_h / 2 - 26, op_alg_view_x + op_alg_view_w / 2 - 3, op_alg_view_y + op_alg_view_h / 2 - 26, 0x90A7A0); //lines between ops
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 8, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 + 34, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 8, op_alg_view_y + op_alg_view_h / 2 + 26, op_alg_view_x + op_alg_view_w / 2 - 3, op_alg_view_y + op_alg_view_h / 2 + 26, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 3, op_alg_view_y + op_alg_view_h / 2 - 26, op_alg_view_x + op_alg_view_w / 2 - 3, op_alg_view_y + op_alg_view_h / 2 + 26, 0x90A7A0);
+					
+					// F  
+					// 4--|
+					//    |
+					// F  |  F
+					// 3--|--1--(OUT)
+					//    |
+					// F  |
+					// 2--|
+					
+					draw_op(&but4, op_alg_view_x + op_alg_view_w / 2 - 28, op_alg_view_y + op_alg_view_h / 2 - 32, 3, inst);
+					draw_op(&but3, op_alg_view_x + op_alg_view_w / 2 - 28, op_alg_view_y + op_alg_view_h / 2 - 6, 2, inst);
+					draw_op(&but2, op_alg_view_x + op_alg_view_w / 2 - 28, op_alg_view_y + op_alg_view_h / 2 + 20, 1, inst);
+					draw_op(&but1, op_alg_view_x + op_alg_view_w / 2 + 7, op_alg_view_y + op_alg_view_h / 2 - 6, 0, inst);
+				break;
+				
+				case 9:
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 6, op_alg_view_y + op_alg_view_h / 2 - 26, op_alg_view_x + op_alg_view_w / 2 + 30, op_alg_view_y + op_alg_view_h / 2 - 26, 0x90A7A0); //lines between ops
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 25, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 + 36, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 25, op_alg_view_y + op_alg_view_h / 2 + 26, op_alg_view_x + op_alg_view_w / 2 + 30, op_alg_view_y + op_alg_view_h / 2 + 26, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 30, op_alg_view_y + op_alg_view_h / 2 - 26, op_alg_view_x + op_alg_view_w / 2 + 30, op_alg_view_y + op_alg_view_h / 2 + 26, 0x90A7A0);
+					
+					// F  F
+					// 4--3--|
+					//       |
+					//    F  |
+					//    2--|--(OUT)
+					//       |
+					//    F  |
+					//    1--|
+					
+					draw_op(&but4, op_alg_view_x + op_alg_view_w / 2 - 26, op_alg_view_y + op_alg_view_h / 2 - 32, 3, inst);
+					draw_op(&but3, op_alg_view_x + op_alg_view_w / 2 + 5, op_alg_view_y + op_alg_view_h / 2 - 32, 2, inst);
+					draw_op(&but2, op_alg_view_x + op_alg_view_w / 2 + 5, op_alg_view_y + op_alg_view_h / 2 - 6, 1, inst);
+					draw_op(&but1, op_alg_view_x + op_alg_view_w / 2 + 5, op_alg_view_y + op_alg_view_h / 2 + 20, 0, inst);
+				break;
+				
+				case 10:
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 6, op_alg_view_y + op_alg_view_h / 2 - 13, op_alg_view_x + op_alg_view_w / 2, op_alg_view_y + op_alg_view_h / 2 - 13, 0x90A7A0); //lines between ops
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2, op_alg_view_y + op_alg_view_h / 2 - 26, op_alg_view_x + op_alg_view_w / 2 + 30, op_alg_view_y + op_alg_view_h / 2 - 26, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 + 36, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 25, op_alg_view_y + op_alg_view_h / 2 + 26, op_alg_view_x + op_alg_view_w / 2 + 30, op_alg_view_y + op_alg_view_h / 2 + 26, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2, op_alg_view_y + op_alg_view_h / 2 - 26, op_alg_view_x + op_alg_view_w / 2, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 30, op_alg_view_y + op_alg_view_h / 2 - 26, op_alg_view_x + op_alg_view_w / 2 + 30, op_alg_view_y + op_alg_view_h / 2 + 26, 0x90A7A0);
+					
+					//       F
+					// F  |--3--|
+					// 4--|     |
+					//    |  F  |
+					//    |--2--|--(OUT)
+					//          |
+					//       F  |
+					//       1--|
+					
+					draw_op(&but4, op_alg_view_x + op_alg_view_w / 2 - 26, op_alg_view_y + op_alg_view_h / 2 - 19, 3, inst);
+					draw_op(&but3, op_alg_view_x + op_alg_view_w / 2 + 5, op_alg_view_y + op_alg_view_h / 2 - 32, 2, inst);
+					draw_op(&but2, op_alg_view_x + op_alg_view_w / 2 + 5, op_alg_view_y + op_alg_view_h / 2 - 6, 1, inst);
+					draw_op(&but1, op_alg_view_x + op_alg_view_w / 2 + 5, op_alg_view_y + op_alg_view_h / 2 + 20, 0, inst);
+				break;
+				
+				case 11:
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 6, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0); //lines between ops
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2, op_alg_view_y + op_alg_view_h / 2 - 26, op_alg_view_x + op_alg_view_w / 2 + 30, op_alg_view_y + op_alg_view_h / 2 - 26, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 + 36, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2, op_alg_view_y + op_alg_view_h / 2 + 26, op_alg_view_x + op_alg_view_w / 2 + 30, op_alg_view_y + op_alg_view_h / 2 + 26, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2, op_alg_view_y + op_alg_view_h / 2 - 26, op_alg_view_x + op_alg_view_w / 2, op_alg_view_y + op_alg_view_h / 2 + 26, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 30, op_alg_view_y + op_alg_view_h / 2 - 26, op_alg_view_x + op_alg_view_w / 2 + 30, op_alg_view_y + op_alg_view_h / 2 + 26, 0x90A7A0);
+					
+					//       F
+					//    |--3--|
+					//    |     |
+					// F  |  F  |
+					// 4--|--2--|--(OUT)
+					//    |     |
+					//    |  F  |
+					//    |--1--|
+					
+					draw_op(&but4, op_alg_view_x + op_alg_view_w / 2 - 26, op_alg_view_y + op_alg_view_h / 2 - 6, 3, inst);
+					draw_op(&but3, op_alg_view_x + op_alg_view_w / 2 + 5, op_alg_view_y + op_alg_view_h / 2 - 32, 2, inst);
+					draw_op(&but2, op_alg_view_x + op_alg_view_w / 2 + 5, op_alg_view_y + op_alg_view_h / 2 - 6, 1, inst);
+					draw_op(&but1, op_alg_view_x + op_alg_view_w / 2 + 5, op_alg_view_y + op_alg_view_h / 2 + 20, 0, inst);
+				break;
+				
+				case 12:
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 21, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 - 15, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0); //lines between ops
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 16, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 + 48, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 15, op_alg_view_y + op_alg_view_h / 2 - 15, op_alg_view_x + op_alg_view_w / 2 + 16, op_alg_view_y + op_alg_view_h / 2 - 15, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 15, op_alg_view_y + op_alg_view_h / 2 + 15, op_alg_view_x + op_alg_view_w / 2 + 16, op_alg_view_y + op_alg_view_h / 2 + 15, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 15, op_alg_view_y + op_alg_view_h / 2 - 15, op_alg_view_x + op_alg_view_w / 2 - 15, op_alg_view_y + op_alg_view_h / 2 + 15, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 16, op_alg_view_y + op_alg_view_h / 2 - 15, op_alg_view_x + op_alg_view_w / 2 + 16, op_alg_view_y + op_alg_view_h / 2 + 15, 0x90A7A0);
+					
+					//       F
+					//    |--3--|
+					// F  |     |
+					// 4--|  F  |--1--(OUT)
+					//    |--2--|
+					
+					draw_op(&but4, op_alg_view_x + op_alg_view_w / 2 - 41, op_alg_view_y + op_alg_view_h / 2 - 6, 3, inst);
+					draw_op(&but3, op_alg_view_x + op_alg_view_w / 2 - 10, op_alg_view_y + op_alg_view_h / 2 - 21, 2, inst);
+					draw_op(&but2, op_alg_view_x + op_alg_view_w / 2 - 10, op_alg_view_y + op_alg_view_h / 2 + 9, 1, inst);
+					draw_op(&but1, op_alg_view_x + op_alg_view_w / 2 + 21, op_alg_view_y + op_alg_view_h / 2 - 6, 0, inst);
+				break;
+				
+				case 13:
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 10, op_alg_view_y + op_alg_view_h / 2 - 27, op_alg_view_x + op_alg_view_w / 2 + 16, op_alg_view_y + op_alg_view_h / 2 - 27, 0x90A7A0); //lines between ops
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 10, op_alg_view_y + op_alg_view_h / 2 - 9, op_alg_view_x + op_alg_view_w / 2 + 16, op_alg_view_y + op_alg_view_h / 2 - 9, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 10, op_alg_view_y + op_alg_view_h / 2 + 9, op_alg_view_x + op_alg_view_w / 2 + 16, op_alg_view_y + op_alg_view_h / 2 + 9, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 10, op_alg_view_y + op_alg_view_h / 2 + 27, op_alg_view_x + op_alg_view_w / 2 + 16, op_alg_view_y + op_alg_view_h / 2 + 27, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 16, op_alg_view_y + op_alg_view_h / 2 - 27, op_alg_view_x + op_alg_view_w / 2 + 16, op_alg_view_y + op_alg_view_h / 2 + 27, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 16, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 + 22, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0);
+					
+					// F
+					// 4--|
+					//    |
+					// F  |
+					// 3--|
+					//    |
+					// F  |--(OUT)
+					// 2--|
+					//    |
+					// F  |
+					// 1--|
+					
+					draw_op(&but4, op_alg_view_x + op_alg_view_w / 2 - 10, op_alg_view_y + op_alg_view_h / 2 - 33, 3, inst);
+					draw_op(&but3, op_alg_view_x + op_alg_view_w / 2 - 10, op_alg_view_y + op_alg_view_h / 2 - 15, 2, inst);
+					draw_op(&but2, op_alg_view_x + op_alg_view_w / 2 - 10, op_alg_view_y + op_alg_view_h / 2 + 3, 1, inst);
+					draw_op(&but1, op_alg_view_x + op_alg_view_w / 2 - 10, op_alg_view_y + op_alg_view_h / 2 + 21, 0, inst);
+				break;
+				
+				default: break;
 			}
 			
 			if (button_text_event(dest_surface, event, &but1, mused.slider_bevel, &mused.largefont,
@@ -2119,10 +2359,11 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 				mused.selected_operator = 4;
 			}
 			
-			SDL_Rect OPL3, OPN, DX;
+			SDL_Rect OPL3, OPN, DX, OPM;
 			copy_rect(&OPL3, dest);
 			copy_rect(&OPN, dest);
 			copy_rect(&DX, dest);
+			copy_rect(&OPM, dest);
 			
 			OPL3.x = op_alg_view_x + 4;
 			OPL3.y = op_alg_view_y + 5;
@@ -2130,51 +2371,261 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			OPN.y = op_alg_view_y + 11;
 			DX.x = op_alg_view_x + 4;
 			DX.y = op_alg_view_y + 17;
+			OPM.x = op_alg_view_x + 4;
+			OPM.y = op_alg_view_y + 23;
 			
-			OPL3.w = OPN.w = DX.w = 20;
-			OPL3.h = OPN.h = DX.h = 6;
+			OPL3.w = OPN.w = DX.w = OPM.w = 20;
+			OPL3.h = OPN.h = DX.h = OPM.h = 6;
 			
-			if(inst->alg == 1 || inst->alg == 7 || inst->alg == 5 || inst->alg == 10) //OPL3
+			if(inst->alg == 1 || inst->alg == 4 || inst->alg == 6 || inst->alg == 9) //OPL3
 			{
-				//copy_rect(&OPL3, &frame);
-				//gfx_domain_set_clip(dest_surface, &OPL3);
-				//console_clear(mused.console);
 				console_set_color(mused.console, colors[COLOR_WAVETABLE_SAMPLE]);
 				font_write_args(&mused.tinyfont, dest_surface, &OPL3, "OPL3");
+			}
+			
+			if(inst->alg == 1 || inst->alg == 2 || inst->alg == 3 || inst->alg == 6 || 
+			inst->alg == 9 || inst->alg == 11 || inst->alg == 13) //OPN, OPM, DX-9
+			{
+				console_set_color(mused.console, colors[COLOR_WAVETABLE_SAMPLE]);
+				font_write_args(&mused.tinyfont, dest_surface, &OPN, "OPN");
+				
+				console_set_color(mused.console, colors[COLOR_WAVETABLE_SAMPLE]);
+				font_write_args(&mused.tinyfont, dest_surface, &OPM, "OPM");
+				
+				console_set_color(mused.console, colors[COLOR_WAVETABLE_SAMPLE]);
+				font_write_args(&mused.tinyfont, dest_surface, &DX, "DX-9");
 			}
 		}
 		
 		{
-			oscilloscopes_view.x = frame_x + VIEW_WIDTH + (frame_w - VIEW_WIDTH) / 2 - 4;
-			oscilloscopes_view.y = frame_y + TOP_VIEW_H - 4;
-			oscilloscopes_view.h = ALG_VIEW_H;
-			oscilloscopes_view.w = (frame_w - VIEW_WIDTH) / 2 + 3;
+			SDL_Rect r;
 			
-			adjust_rect(&oscilloscopes_view, 2);
-			bevelex(domain, &oscilloscopes_view, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
+			view2.x = frame_x + VIEW_WIDTH + (frame_w - VIEW_WIDTH) / 2 - 4;
+			view2.y = frame_y + TOP_VIEW_H - 4;
+			view2.h = ALG_VIEW_H + 1;
+			view2.w = (frame_w - VIEW_WIDTH) / 2 + 4;
 			
-			adjust_rect(&oscilloscopes_view, 4);
-		}
-		
-		/*{
-			view2.x = frame.x;
-			view2.y = frame.y;
-			view2.h = frame.h;
-			view2.w = 166;
-			
-			adjust_rect(&view, 2);
+			adjust_rect(&view2, 2);
 			bevelex(domain, &view2, mused.slider_bevel, BEV_BACKGROUND, BEV_F_STRETCH_ALL);
 			
 			adjust_rect(&view2, 4);
-		}*/
+			
+			copy_rect(&r, &view2);
+			r.w = r.w / 2 - 2;
+			r.h = 10;
+			
+			four_op_text(event, &r, FOUROP_VIBSPEED,   "VIB.S", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].vibrato_speed), 2);
+			update_rect(&view2, &r);
+			four_op_text(event, &r, FOUROP_VIBDEPTH,   "VIB.D", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].vibrato_depth), 2);
+			update_rect(&view2, &r);
+			four_op_text(event, &r, FOUROP_VIBSHAPE,   "VIB.SH", "%c", MAKEPTR(inst->ops[mused.selected_operator - 1].vibrato_shape + 0xf4), 1);
+			update_rect(&view2, &r);
+			four_op_text(event, &r, FOUROP_VIBDELAY,   "V.DEL", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].vibrato_delay), 2);
+			update_rect(&view2, &r);
+			four_op_text(event, &r, FOUROP_PWMSPEED,   "PWM.S", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].pwm_speed), 2);
+			update_rect(&view2, &r);
+			four_op_text(event, &r, FOUROP_PWMDEPTH,   "PWM.D", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].pwm_depth), 2);
+			update_rect(&view2, &r);
+			four_op_text(event, &r, FOUROP_PWMSHAPE,   "PWM.SH", "%c", MAKEPTR(inst->ops[mused.selected_operator - 1].pwm_shape + 0xf4), 1);
+			update_rect(&view2, &r);
+			four_op_text(event, &r, FOUROP_PWMDELAY,   "PWM.DEL", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].pwm_delay), 2); //wasn't there
+			update_rect(&view2, &r);
+			four_op_text(event, &r, FOUROP_TREMSPEED,   "TR.S", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].tremolo_speed), 2); //wasn't there
+			update_rect(&view2, &r);
+			four_op_text(event, &r, FOUROP_TREMDEPTH,   "TR.D", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].tremolo_depth), 2);
+			update_rect(&view2, &r);
+			four_op_text(event, &r, FOUROP_TREMSHAPE,   "TR.SH", "%c", MAKEPTR(inst->ops[mused.selected_operator - 1].tremolo_shape + 0xf4), 1);
+			update_rect(&view2, &r);
+			four_op_text(event, &r, FOUROP_TREMDELAY,   "TR.DEL", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].tremolo_delay), 2);
+			update_rect(&view2, &r);
+			four_op_text(event, &r, FOUROP_PROGPERIOD, "P.PRD", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].prog_period), 2);
+			update_rect(&view2, &r);
+			four_op_flags(event, &r, FOUROP_NORESTART, "NO RESTART", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_NO_PROG_RESTART);
+			update_rect(&view2, &r);
+			four_op_flags(event, &r, FOUROP_SAVE_LFO_SETTINGS, "SAVE LFO SET.", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_SAVE_LFO_SETTINGS);
+			update_rect(&view2, &r);
+			
+			four_op_text(event, &r, FOUROP_TRIG_DELAY, "TRIG.DEL.", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].trigger_delay), 2);
+			update_rect(&view2, &r);
+		}
 		
 		//========================================================================
+		
+		{
+			slider.x = frame_x + VIEW_WIDTH + (frame_w - VIEW_WIDTH - SCROLLBAR_W);
+			slider.y = frame_y + TOP_VIEW_H + ALG_VIEW_H;
+			slider.h = frame_h - ALG_VIEW_H - TOP_VIEW_H;
+			slider.w = SCROLLBAR_W;
+		}
 	}
 }
 
+void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
+{
+	if(mused.show_four_op_menu)
+	{
+		SDL_Rect area, clip;
+		copy_rect(&area, dest);
+		console_set_clip(mused.console, &area);
+		console_clear(mused.console);
+		bevelex(domain, &area, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
+		adjust_rect(&area, 2);
+		copy_rect(&clip, &area);
+		adjust_rect(&area, 1);
+		area.w = 4000;
+		console_set_clip(mused.console, &area);
+
+		MusInstrument *inst = &mused.song.instrument[mused.current_instrument];
+
+		//separator("----program-----");
+
+		int start = mused.program_position;
+
+		int pos = 0, prev_pos = -1;
+		int selection_begin = -1, selection_end = -1;
+
+		for (int i = 0; i < start; ++i)
+		{
+			prev_pos = pos;
+			if (!(inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[i] & 0xf000) == 0xf000) ++pos; //old command if (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ++pos;
+		}
+
+		gfx_domain_set_clip(domain, &clip);
+
+		for (int i = start, s = 0, y = 0; i < MUS_PROG_LEN && y < area.h; ++i, ++s, y += mused.console->font.h)
+		{
+			SDL_Rect row = { area.x - 1, area.y + y - 1, area.w + 2, mused.console->font.h + 1};
+
+			if (mused.current_program_step == i && mused.focus == EDITPROG4OP)
+			{
+				bevel(domain, &row, mused.slider_bevel, BEV_SELECTED_PATTERN_ROW);
+				console_set_color(mused.console, colors[COLOR_PROGRAM_SELECTED]);
+			}
+			
+			else
+			{
+				console_set_color(mused.console, pos & 1 ? colors[COLOR_PROGRAM_ODD] : colors[COLOR_PROGRAM_EVEN]);
+			}
+
+			if (i <= mused.selection.start)
+			{
+				selection_begin = row.y;
+			}
+
+			if (i < mused.selection.end)
+			{
+				selection_end = row.y + row.h + 1;
+			}
+
+			char box[6], cur = ' ';
+
+			for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
+				if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE) || ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_FM) && (mused.cyd.channel[c].fm.adsr.envelope != 0) && !(mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE))) && (mused.channel[c].flags & MUS_CHN_PROGRAM_RUNNING) && mused.channel[c].program_tick == i) cur = '½'; //where arrow pointing at current instrument program step is drawn
+
+			if (inst->ops[mused.selected_operator - 1].program[i] == MUS_FX_NOP)
+			{
+				strcpy(box, "....");
+			}
+			
+			else
+			{
+				sprintf(box, "%04X", inst->ops[mused.selected_operator - 1].program[i]); //old command sprintf(box, "%04X", ((inst->program[i] & 0xf000) != 0xf000) ? (inst->program[i] & 0x7fff) : inst->program[i]);
+			}
+
+			if (pos == prev_pos)
+			{
+				check_event(event, console_write_args(mused.console, "%02X%c   ", i, cur),
+					select_program_step, MAKEPTR(i), 0, 0);
+				write_command(event, box, i, mused.current_program_step);
+				check_event(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[i] & 0xf000) == 0xf000) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
+					select_program_step, MAKEPTR(i), 0, 0);
+			}
+			
+			else
+			{
+				check_event(event, console_write_args(mused.console, "%02X%c%02X ", i, cur, pos),
+					select_program_step, MAKEPTR(i), 0, 0);
+				write_command(event, box, i, mused.current_program_step);
+				check_event(event, console_write_args(mused.console, "%c ", ((inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) && (inst->ops[mused.selected_operator - 1].program[i] & 0xf000) != 0xf000) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
+					select_program_step, MAKEPTR(i), 0, 0);
+			}
+
+			if (!is_valid_command(inst->ops[mused.selected_operator - 1].program[i]))
+			{
+				console_write_args(mused.console, "???");
+			}
+			
+			else if ((inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_ARPEGGIO || (inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_ARPEGGIO_ABS)
+			{
+				if ((inst->ops[mused.selected_operator - 1].program[i] & 0xff) != 0xf0 && (inst->ops[mused.selected_operator - 1].program[i] & 0xff) != 0xf1)
+					console_write_args(mused.console, "%s", notename(((inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_ARPEGGIO_ABS ? 0 : inst->base_note) + (inst->ops[mused.selected_operator - 1].program[i] & 0xff)));
+				else
+					console_write_args(mused.console, "EXT%x", inst->ops[mused.selected_operator - 1].program[i] & 0x0f);
+			}
+			
+			else if ((inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_SET_NOISE_CONSTANT_PITCH)
+			{
+				console_write_args(mused.console, "%s", notename(inst->ops[mused.selected_operator - 1].program[i] & 0xff));
+			}
+			
+			//old command
+			/*else if ((inst->program[i] & 0x7f00) == MUS_FX_ARPEGGIO || (inst->program[i] & 0x7f00) == MUS_FX_ARPEGGIO_ABS)
+			{
+				if ((inst->program[i] & 0xff) != 0xf0 && (inst->program[i] & 0xff) != 0xf1)
+					console_write_args(mused.console, "%s", notename(((inst->program[i] & 0x7f00) == MUS_FX_ARPEGGIO_ABS ? 0 : inst->base_note) + (inst->program[i] & 0xff)));
+				else
+					console_write_args(mused.console, "EXT%x", inst->program[i] & 0x0f);
+			}*/
+			
+			
+			else if (inst->ops[mused.selected_operator - 1].program[i] != MUS_FX_NOP)
+			{
+				const InstructionDesc *d = get_instruction_desc(inst->ops[mused.selected_operator - 1].program[i]);
+				
+				if (d)
+				{
+					console_write(mused.console, d->shortname ? d->shortname : d->name);
+				}
+			}
+
+			console_write_args(mused.console, "\n");
+
+			if (row.y + row.h < area.y + area.h)
+			{
+				slider_set_params(&mused.four_op_slider_param, 0, MUS_PROG_LEN - 1, start, i, &mused.program_position, 1, SLIDER_VERTICAL, mused.slider_bevel);
+			}
+
+			prev_pos = pos;
+
+			if (!(inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[i] & 0xf000) == 0xf000) ++pos;
+		}
+
+		if (mused.focus == EDITPROG4OP && mused.selection.start != mused.selection.end
+			&& !(mused.selection.start > mused.four_op_slider_param.visible_last || mused.selection.end <= mused.four_op_slider_param.visible_first))
+		{
+			if (selection_begin == -1) selection_begin = area.y - 8;
+			if (selection_end == -1) selection_end = area.y + area.h + 8;
+
+			if (selection_begin > selection_end) swap(selection_begin, selection_end);
+
+			SDL_Rect selection = { area.x, selection_begin - 1, area.w, selection_end - selection_begin + 1 };
+			adjust_rect(&selection, -3);
+			bevel(domain, &selection, mused.slider_bevel, BEV_SELECTION);
+		}
+
+		gfx_domain_set_clip(domain, NULL);
+		
+		if (mused.focus == EDITPROG4OP)
+		{
+			check_mouse_wheel_event(event, dest, &mused.four_op_slider_param);
+		}
+	}
+}
+		
+
 void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
-	if(!(mused.show_four_op_menu))
+	if(!(mused.show_four_op_menu) || ((mused.focus != EDIT4OP) && (mused.focus != EDITPROG4OP)))
 	{
 		MusInstrument *inst = &mused.song.instrument[mused.current_instrument];
 
@@ -2393,7 +2844,7 @@ void open_4op(void *unused1, void *unused2, void *unused3)
 
 void instrument_list(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
-	if(!(mused.show_four_op_menu))
+	if(!(mused.show_four_op_menu) || ((mused.focus != EDIT4OP) && (mused.focus != EDITPROG4OP)))
 	{
 		SDL_Rect area;
 		copy_rect(&area, dest);
@@ -2421,6 +2872,7 @@ void instrument_list(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 				bevel(domain,&row, mused.slider_bevel, BEV_SELECTED_PATTERN_ROW);
 				console_set_color(mused.console, colors[COLOR_INSTRUMENT_SELECTED]);
 			}
+			
 			else
 			{
 				console_set_color(mused.console, colors[COLOR_INSTRUMENT_NORMAL]);
@@ -3006,7 +3458,7 @@ void fx_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *eve
 
 void instrument_disk_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
-	if(!(mused.show_four_op_menu))
+	if(!(mused.show_four_op_menu) || ((mused.focus != EDIT4OP) && (mused.focus != EDITPROG4OP)))
 	{
 		SDL_Rect area;
 		copy_rect(&area, dest);

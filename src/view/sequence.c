@@ -10,7 +10,7 @@
 Uint32 pattern_color[16] = 
 { 
 	RGB(255,255,255), RGB(255,0,0), RGB(255,130,0), RGB(223,227,0), RGB(130,255,0), RGB(0,255, 0), RGB(0, 227, 130), RGB(0, 255,255), RGB(0,130,255),
-	RGB(0,0,255), RGB(130,0,255), RGB(255,0,255), RGB(239,0,130),RGB(196,196,196), RGB(130,130,130), RGB(85,85,85)
+	RGB(0,0,255), RGB(130,0,255), RGB(255,0,255), RGB(239,0,130), RGB(196,196,196), RGB(130,130,130), RGB(85,85,85)
 };
 
 void sequence_view_inner(GfxDomain *dest_surface, const SDL_Rect *_dest, const SDL_Event *event)
@@ -116,7 +116,7 @@ void sequence_view_inner(GfxDomain *dest_surface, const SDL_Rect *_dest, const S
 	
 	if (mused.focus == EDITSEQUENCE)
 	{
-		if (mused.current_sequencepos >= top  && mused.current_sequencepos < bottom && mused.current_sequencetrack >= mused.sequence_horiz_position && mused.current_sequencetrack <= vischans) 
+		if (mused.current_sequencepos >= top && mused.current_sequencepos < bottom && mused.current_sequencetrack >= mused.sequence_horiz_position && mused.current_sequencetrack <= vischans) 
 		{
 			if (mused.flags & EDIT_SEQUENCE_DIGITS) 
 			{
@@ -167,9 +167,8 @@ void sequence_view_inner(GfxDomain *dest_surface, const SDL_Rect *_dest, const S
     {
 		SDL_Rect play = { dest.x, (mused.stat_song_position - top) * height / mused.sequenceview_steps + dest.y, dest.w, 2 };
 		clip_rect(&play, &dest);
-        bevelex(dest_surface, &play, mused.slider_bevel, BEV_SEQUENCE_PLAY_POS, BEV_F_STRETCH_ALL);
+		bevelex(dest_surface, &play, mused.slider_bevel, BEV_SEQUENCE_PLAY_POS, BEV_F_STRETCH_ALL);
     }
-
 	
 	gfx_domain_set_clip(domain, NULL);
 	
@@ -185,8 +184,10 @@ void sequence_view_inner(GfxDomain *dest_surface, const SDL_Rect *_dest, const S
 				break;
 		}
 		
-		mused.sequence_position = my_max(0, my_min(mused.song.song_length - mused.sequenceview_steps, mused.sequence_position));
+		mused.sequence_position = my_max(0, my_min(mused.song.song_length - mused.sequenceview_steps, mused.sequence_position)); //orig
 	}
+	
+	//mused.sequence_position = my_max(0, my_min(mused.song.song_length - mused.sequenceview_steps, mused.sequence_position));
 }
 
 

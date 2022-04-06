@@ -472,7 +472,7 @@ static void pattern_view_registers_map(GfxDomain *dest_surface, const SDL_Rect *
 			current_registers[i] = 0;
 		}
 		
-		current_registers[0] |= mused.cyd.channel[i].fm.adsr.volume;
+		current_registers[0] |= mused.cyd.channel[i].fm.adsr.volume * (mused.cyd.channel[i].fm.fm_curr_tremolo + 512) / 512;
 		
 		current_registers[1] |= mused.cyd.channel[i].fm.fm_vol_ksl_level;
 		
@@ -493,6 +493,10 @@ static void pattern_view_registers_map(GfxDomain *dest_surface, const SDL_Rect *
 		
 		current_registers[7] |= (((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_EXPONENTIAL_RELEASE) ? 1 : 0) << 7);
 		current_registers[7] |= (((mused.cyd.channel[i].fm.flags & CYD_FM_ENABLE_EXPONENTIAL_RELEASE) ? 1 : 0) << 6);
+		
+		current_registers[7] |= (((mused.cyd.channel[i].fm.flags & CYD_FM_ENABLE_4OP) ? 1 : 0) << 5);
+		current_registers[7] |= ((mused.cyd.channel[i].fm.alg & 0xF) << 4);
+		current_registers[7] |= ((mused.cyd.channel[i].fm.flags & CYD_FM_ENABLE_3CH_EXP_MODE) ? 1 : 0);
 		
 		font_write_args(&mused.tinyfont, dest_surface, &row5, "#%04X: #%02X #%02X #%02X #%02X #%02X #%02X #%02X #%02X", current_registers_row, current_registers[0], current_registers[1], 
 		current_registers[2], current_registers[3], current_registers[4], current_registers[5], current_registers[6], current_registers[7]);

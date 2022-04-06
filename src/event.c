@@ -42,7 +42,18 @@ extern Mused mused;
 void editparambox(int v)
 {
 	MusInstrument *inst = &mused.song.instrument[mused.current_instrument];
-	Uint16 *param = &inst->program[mused.current_program_step];
+	Uint16 *param;
+	
+	if(mused.show_four_op_menu)
+	{
+		param = &inst->ops[mused.selected_operator - 1].program[mused.current_program_step];
+	}
+	
+	else
+	{
+		param = &inst->program[mused.current_program_step];
+	}
+	
 	Uint32 mask = 0xffff0fff >> (mused.editpos*4);
 
 	if (*param == MUS_FX_NOP)
@@ -815,7 +826,6 @@ void instrument_add_param(int a)
 		default:
 		break;
 	}
-
 }
 
 void four_op_add_param(int a)
@@ -847,19 +857,25 @@ void four_op_add_param(int a)
 	{
 		case FOUROP_3CH_EXP_MODE:
 
-		flipbit(i->fm_flags, CYD_CHN_ENABLE_1_BIT_NOISE);
+		flipbit(i->fm_flags, CYD_FM_ENABLE_3CH_EXP_MODE);
 
 		break;
 		
 		case FOUROP_ALG:
 
-		clamp(i->alg, a, 1, 12);
+		clamp(i->alg, a, 1, 13);
 
 		break;
 		
 		case FOUROP_ENABLE_SSG_EG:
 
 		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_SSG_EG);
+
+		break;
+		
+		case FOUROP_SSG_EG_TYPE:
+
+		clamp(i->ops[mused.selected_operator - 1].ssg_eg_type, a, 0, 0x7);
 
 		break;
 		
@@ -875,18 +891,7 @@ void four_op_add_param(int a)
 
 		break;
 		
-		case FOUROP_FIXED_NOISE_BASE_NOTE:
-
-		clamp(i->ops[mused.selected_operator - 1].noise_note, a, 0, FREQ_TAB_SIZE - 1);
-
-		break;
 		
-		case FOUROP_1_BIT_NOISE:
-
-		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_1_BIT_NOISE);
-
-		break;
-
 		case FOUROP_DETUNE:
 
 		clamp(i->ops[mused.selected_operator - 1].detune, a, -3, 3);
@@ -895,31 +900,55 @@ void four_op_add_param(int a)
 		
 		case FOUROP_COARSE_DETUNE:
 
-		clamp(i->ops[mused.selected_operator - 1].coarse_detune, a, -128, 127);
+		clamp(i->ops[mused.selected_operator - 1].coarse_detune, a, 0, 3);
+
+		break;
+		
+		case FOUROP_HARMONIC_MODULATOR:
+		{
+			Uint8 carrier = (i->ops[mused.selected_operator - 1].harmonic >> 4);
+			Uint8 modulator = i->ops[mused.selected_operator - 1].harmonic & 0xf;
+
+			clamp(modulator, a, 0, 15);
+
+			i->ops[mused.selected_operator - 1].harmonic = carrier << 4 | modulator;
+		}
+		break;
+		
+		
+		case FOUROP_FIXED_NOISE_BASE_NOTE:
+
+		clamp(i->ops[mused.selected_operator - 1].noise_note, a, 0, FREQ_TAB_SIZE - 1);
+
+		break;
+		
+		case FOUROP_1_BIT_NOISE:
+
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_1_BIT_NOISE);
 
 		break;
 
 		case FOUROP_LOCKNOTE:
 
-		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_INST_LOCK_NOTE);
+		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_FM_OP_LOCK_NOTE);
 
 		break;
 
 		case FOUROP_DRUM:
 
-		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_INST_DRUM);
+		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_FM_OP_DRUM);
 
 		break;
 
 		case FOUROP_KEYSYNC:
 
-		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_KEY_SYNC);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_KEY_SYNC);
 
 		break;
 
 		case FOUROP_SYNC:
 
-		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_SYNC);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_SYNC);
 
 		break;
 
@@ -933,7 +962,7 @@ void four_op_add_param(int a)
 
 		case FOUROP_WAVE:
 
-		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_WAVE);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_WAVE);
 
 		break;
 
@@ -945,43 +974,43 @@ void four_op_add_param(int a)
 
 		case FOUROP_WAVE_OVERRIDE_ENV:
 
-		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_WAVE_OVERRIDE_ENV);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_WAVE_OVERRIDE_ENV);
 
 		break;
 
 		case FOUROP_WAVE_LOCK_NOTE:
 
-		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_INST_WAVE_LOCK_NOTE);
+		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_FM_OP_WAVE_LOCK_NOTE);
 
 		break;
 
 		case FOUROP_PULSE:
 
-		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_PULSE);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_PULSE);
 
 		break;
 
 		case FOUROP_SAW:
 
-		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_SAW);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_SAW);
 
 		break;
 
 		case FOUROP_TRIANGLE:
 
-		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_TRIANGLE);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_TRIANGLE);
 
 		break;
 
 		case FOUROP_NOISE:
 
-		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_NOISE);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_NOISE);
 
 		break;
 
 		case FOUROP_METAL:
 
-		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_METAL);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_METAL);
 
 		break;
 		
@@ -993,7 +1022,7 @@ void four_op_add_param(int a)
 
 		case FOUROP_RELVOL:
 
-		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_INST_RELATIVE_VOLUME);
+		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_FM_OP_RELATIVE_VOLUME);
 
 		break;
 
@@ -1024,32 +1053,32 @@ void four_op_add_param(int a)
 		
 		case FOUROP_EXP_VOL:
 		
-		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_EXPONENTIAL_VOLUME);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_EXPONENTIAL_VOLUME);
 		
 		break;
 		
 		case FOUROP_EXP_ATTACK:
 		
-		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_EXPONENTIAL_ATTACK);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_EXPONENTIAL_ATTACK);
 		
 		break;
 		
 		case FOUROP_EXP_DECAY:
 		
-		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_EXPONENTIAL_DECAY);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_EXPONENTIAL_DECAY);
 		
 		break;
 		
 		case FOUROP_EXP_RELEASE:
 		
-		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_EXPONENTIAL_RELEASE);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_EXPONENTIAL_RELEASE);
 		
 		break;
 		
 		
 		case FOUROP_VOL_KSL:
 		
-		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_VOLUME_KEY_SCALING);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_VOLUME_KEY_SCALING);
 		
 		break;
 		
@@ -1061,7 +1090,7 @@ void four_op_add_param(int a)
 		
 		case FOUROP_ENV_KSL:
 		
-		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_ENVELOPE_KEY_SCALING);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_ENVELOPE_KEY_SCALING);
 		
 		break;
 		
@@ -1080,13 +1109,13 @@ void four_op_add_param(int a)
 
 		case FOUROP_1_4TH:
 		
-		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_INST_QUARTER_FREQ);
+		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_FM_OP_QUARTER_FREQ);
 		
 		break;
 		
 		case FOUROP_FIX_NOISE_PITCH:
 		
-		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_FIXED_NOISE_PITCH);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_FIXED_NOISE_PITCH);
 		
 		break;
 
@@ -1188,43 +1217,43 @@ void four_op_add_param(int a)
 
 		case FOUROP_RINGMOD:
 
-		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_RING_MODULATION);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_RING_MODULATION);
 
 		break;
 
 		case FOUROP_SETPW:
 
-		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_INST_SET_PW);
+		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_FM_OP_SET_PW);
 
 		break;
 
 		case FOUROP_SETCUTOFF:
 
-		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_INST_SET_CUTOFF);
+		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_FM_OP_SET_CUTOFF);
 
 		break;
 
 		case FOUROP_INVVIB:
 
-		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_INST_INVERT_VIBRATO_BIT);
+		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_FM_OP_INVERT_VIBRATO_BIT);
 
 		break;
 		
 		case FOUROP_INVTREM:
 
-		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_INST_INVERT_TREMOLO_BIT);
+		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_FM_OP_INVERT_TREMOLO_BIT);
 
 		break;
 
 		case FOUROP_FILTER:
 
-		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_FILTER);
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_FILTER);
 
 		break;
 
 		case FOUROP_RINGMODSRC:
 		{
-			int x = (Uint8)(i->ops[mused.selected_operator - 1].ring_mod+1);
+			int x = (Uint8)(i->ops[mused.selected_operator - 1].ring_mod + 1);
 			clamp(x, a, 0, MUS_MAX_CHANNELS);
 			i->ops[mused.selected_operator - 1].ring_mod = x-1;
 		}
@@ -1256,13 +1285,19 @@ void four_op_add_param(int a)
 
 		case FOUROP_NORESTART:
 
-		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_INST_NO_PROG_RESTART);
+		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_FM_OP_NO_PROG_RESTART);
 
 		break;
 		
 		case FOUROP_SAVE_LFO_SETTINGS:
 
-		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_INST_SAVE_LFO_SETTINGS);
+		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_FM_OP_SAVE_LFO_SETTINGS);
+
+		break;
+		
+		case FOUROP_TRIG_DELAY:
+
+		clamp(i->ops[mused.selected_operator - 1].trigger_delay, a, 0, 0xFF);
 
 		break;
 
@@ -1283,21 +1318,9 @@ void four_op_add_param(int a)
 		}
 		break;
 
-		case FOUROP_HARMONIC_MODULATOR:
-		{
-			Uint8 carrier = (i->ops[mused.selected_operator - 1].harmonic >> 4);
-			Uint8 modulator = i->ops[mused.selected_operator - 1].harmonic & 0xf;
-
-			clamp(modulator, a, 0, 15);
-
-			i->ops[mused.selected_operator - 1].harmonic = carrier << 4 | modulator;
-		}
-		break;
-
 		default:
 		break;
 	}
-
 }
 
 static int note_playing[MUS_MAX_CHANNELS] = {-1};
@@ -1501,10 +1524,20 @@ void edit_fourop_event(SDL_Event *e)
 			}
 			break;
 
-			case SDLK_DOWN:
+			case SDLK_DOWN: //switching between neighbour params through keyboard
 			{
 				++mused.fourop_selected_param;
-
+				
+				if(!(mused.song.instrument[mused.current_instrument].fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) && mused.fourop_selected_param > FOUROP_ALG && mused.fourop_selected_param < FOUROP_HARMONIC_MODULATOR)
+				{
+					mused.fourop_selected_param = FOUROP_HARMONIC_MODULATOR;
+				}
+				
+				if((mused.song.instrument[mused.current_instrument].fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) && mused.fourop_selected_param > FOUROP_LOCKNOTE && mused.fourop_selected_param < FOUROP_FEEDBACK)
+				{
+					mused.fourop_selected_param = FOUROP_FEEDBACK;
+				}
+				
 				if (mused.mode == EDIT4OP)
 				{
 					if (mused.fourop_selected_param >= FOUROP_PARAMS) mused.fourop_selected_param = FOUROP_PARAMS - 1;
@@ -1520,6 +1553,16 @@ void edit_fourop_event(SDL_Event *e)
 			case SDLK_UP:
 			{
 				--mused.fourop_selected_param;
+				
+				if(!(mused.song.instrument[mused.current_instrument].fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) && mused.fourop_selected_param > FOUROP_ALG && mused.fourop_selected_param < FOUROP_HARMONIC_MODULATOR)
+				{
+					mused.fourop_selected_param = FOUROP_ALG;
+				}
+				
+				if((mused.song.instrument[mused.current_instrument].fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) && mused.fourop_selected_param > FOUROP_LOCKNOTE && mused.fourop_selected_param < FOUROP_FEEDBACK)
+				{
+					mused.fourop_selected_param = FOUROP_LOCKNOTE;
+				}
 
 				if (mused.fourop_selected_param < 0) mused.fourop_selected_param = 0;
 			}
@@ -1684,7 +1727,7 @@ void add_note_offset(int a)
 static void update_sequence_slider(int d)
 {
 	int o = mused.current_sequencepos - mused.current_patternpos;
-
+	
 	slider_move_position(&mused.current_sequencepos, &mused.sequence_position, &mused.sequence_slider_param, d);
 
 	if (!(mused.flags & SONG_PLAYING))
@@ -1780,11 +1823,13 @@ void sequence_event(SDL_Event *e)
 					{
 						change_loop_point(MAKEPTR(steps), 0, 0);
 					}
+					
 					else
 					{
 						change_song_length(MAKEPTR(steps), 0, 0);
 					}
 				}
+				
 				else
 				{
 					update_sequence_slider(steps);
@@ -1823,6 +1868,7 @@ void sequence_event(SDL_Event *e)
 						change_song_length(MAKEPTR(-steps), 0, 0);
 					}
 				}
+				
 				else
 				{
 					update_sequence_slider(-steps);
@@ -2702,24 +2748,53 @@ void edit_program_event(SDL_Event *e)
 
 			case SDLK_PERIOD:
 				snapshot(S_T_INSTRUMENT);
-
-				mused.song.instrument[mused.current_instrument].program[mused.current_program_step] = MUS_FX_NOP;
+				
+				if(mused.show_four_op_menu)
+				{
+					mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_program_step] = MUS_FX_NOP;
+				}
+				
+				else
+				{
+					mused.song.instrument[mused.current_instrument].program[mused.current_program_step] = MUS_FX_NOP;
+				}
 			break;
 
 			case SDLK_SPACE:
 			{
 				snapshot(S_T_INSTRUMENT);
-
-				if ((mused.song.instrument[mused.current_instrument].program[mused.current_program_step] & 0xf000) != 0xf000)
-					//mused.song.instrument[mused.current_instrument].program[mused.current_program_step] ^= 0x8000; //old command mused.song.instrument[mused.current_instrument].program[mused.current_program_step] ^= 0x8000;
-					mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_program_step / 8] ^= (1 << (mused.current_program_step & 7));
+				
+				if(mused.show_four_op_menu)
+				{
+					if ((mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_program_step] & 0xf000) != 0xf000)
+						//mused.song.instrument[mused.current_instrument].program[mused.current_program_step] ^= 0x8000; //old command mused.song.instrument[mused.current_instrument].program[mused.current_program_step] ^= 0x8000;
+						mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[mused.current_program_step / 8] ^= (1 << (mused.current_program_step & 7));
+				}
+				
+				else
+				{
+					if ((mused.song.instrument[mused.current_instrument].program[mused.current_program_step] & 0xf000) != 0xf000)
+						//mused.song.instrument[mused.current_instrument].program[mused.current_program_step] ^= 0x8000; //old command mused.song.instrument[mused.current_instrument].program[mused.current_program_step] ^= 0x8000;
+						mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_program_step / 8] ^= (1 << (mused.current_program_step & 7));
+				}
 			}
 			break;
 
 			case SDLK_RETURN:
 			{
 				MusInstrument *inst = &mused.song.instrument[mused.current_instrument];
-				Uint16 *param = &inst->program[mused.current_program_step];
+				Uint16 *param;
+	
+				if(mused.show_four_op_menu)
+				{
+					param = &inst->ops[mused.selected_operator - 1].program[mused.current_program_step];
+				}
+				
+				else
+				{
+					param = &inst->program[mused.current_program_step];
+				}
+				
 				*param = validate_command(*param);
 			}
 			break;
@@ -2728,7 +2803,18 @@ void edit_program_event(SDL_Event *e)
 			case SDLK_DOWN:
 			{
 				MusInstrument *inst = &mused.song.instrument[mused.current_instrument];
-				Uint16 *param = &inst->program[mused.current_program_step];
+				
+				Uint16 *param;
+	
+	if(mused.show_four_op_menu)
+	{
+		param = &inst->ops[mused.selected_operator - 1].program[mused.current_program_step];
+	}
+	
+	else
+	{
+		param = &inst->program[mused.current_program_step];
+	}
 				*param = validate_command(*param);
 
 				int steps = 1;
@@ -2747,7 +2833,19 @@ void edit_program_event(SDL_Event *e)
 			case SDLK_UP:
 			{
 				MusInstrument *inst = &mused.song.instrument[mused.current_instrument];
-				Uint16 *param = &inst->program[mused.current_program_step];
+				
+				Uint16 *param;
+	
+				if(mused.show_four_op_menu)
+				{
+					param = &inst->ops[mused.selected_operator - 1].program[mused.current_program_step];
+				}
+				
+				else
+				{
+					param = &inst->program[mused.current_program_step];
+				}
+				
 				*param = validate_command(*param);
 
 				int steps = 1;
@@ -2767,21 +2865,50 @@ void edit_program_event(SDL_Event *e)
 				snapshot(S_T_INSTRUMENT);
 				for (int i = MUS_PROG_LEN-1; i > mused.current_program_step; --i)
 				{
-					mused.song.instrument[mused.current_instrument].program[i] = mused.song.instrument[mused.current_instrument].program[i-1];
-					
-					bool b = (mused.song.instrument[mused.current_instrument].program_unite_bits[(i - 1) / 8] & (1 << ((i - 1) & 7)));
-					
-					if(b == false)
+					if(mused.show_four_op_menu)
 					{
-						mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] &= ~(1 << (i & 7));
+						mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[i] = mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[i - 1];
+						
+						bool b = (mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[(i - 1) / 8] & (1 << ((i - 1) & 7)));
+						
+						if(b == false)
+						{
+							mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[i / 8] &= ~(1 << (i & 7));
+						}
+						
+						else
+						{
+							mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[i / 8] |= (1 << (i & 7));
+						}
 					}
 					
 					else
 					{
-						mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] |= (1 << (i & 7));
+						mused.song.instrument[mused.current_instrument].program[i] = mused.song.instrument[mused.current_instrument].program[i - 1];
+						
+						bool b = (mused.song.instrument[mused.current_instrument].program_unite_bits[(i - 1) / 8] & (1 << ((i - 1) & 7)));
+						
+						if(b == false)
+						{
+							mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] &= ~(1 << (i & 7));
+						}
+						
+						else
+						{
+							mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] |= (1 << (i & 7));
+						}
 					}
 				}
-				mused.song.instrument[mused.current_instrument].program[mused.current_program_step] = MUS_FX_NOP;
+				
+				if(mused.show_four_op_menu)
+				{
+					mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_program_step] = MUS_FX_NOP;
+				}
+				
+				else
+				{
+					mused.song.instrument[mused.current_instrument].program[mused.current_program_step] = MUS_FX_NOP;
+				}
 			}
 			break;
 
@@ -2799,28 +2926,67 @@ void edit_program_event(SDL_Event *e)
 				{
 					for (int i = mused.current_program_step; i < MUS_PROG_LEN-1; ++i)
 					{
-						mused.song.instrument[mused.current_instrument].program[i] = mused.song.instrument[mused.current_instrument].program[i+1];
-						
-						bool b = (mused.song.instrument[mused.current_instrument].program_unite_bits[(i + 1) / 8] & (1 << ((i + 1) & 7)));
-						
-						if(b == false)
+						if(mused.show_four_op_menu)
 						{
-							mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] &= ~(1 << (i & 7));
+							mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[i] = mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[i + 1];
+							
+							bool b = (mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[(i + 1) / 8] & (1 << ((i + 1) & 7)));
+							
+							if(b == false)
+							{
+								mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[i / 8] &= ~(1 << (i & 7));
+							}
+							
+							else
+							{
+								mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[i / 8] |= (1 << (i & 7));
+							}
 						}
 						
 						else
 						{
-							mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] |= (1 << (i & 7));
+							mused.song.instrument[mused.current_instrument].program[i] = mused.song.instrument[mused.current_instrument].program[i + 1];
+							
+							bool b = (mused.song.instrument[mused.current_instrument].program_unite_bits[(i + 1) / 8] & (1 << ((i + 1) & 7)));
+							
+							if(b == false)
+							{
+								mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] &= ~(1 << (i & 7));
+							}
+							
+							else
+							{
+								mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] |= (1 << (i & 7));
+							}
 						}
 					}
-					mused.song.instrument[mused.current_instrument].program[MUS_PROG_LEN-1] = MUS_FX_NOP;
+					
+					if(mused.show_four_op_menu)
+					{
+						mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[MUS_PROG_LEN - 1] = MUS_FX_NOP;
+					}
+					
+					else
+					{
+						mused.song.instrument[mused.current_instrument].program[MUS_PROG_LEN - 1] = MUS_FX_NOP;
+					}
 				}
 				
 				else
 				{
-					mused.song.instrument[mused.current_instrument].program[mused.current_program_step] = MUS_FX_NOP;
+					if(mused.show_four_op_menu)
+					{
+						mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_program_step] = MUS_FX_NOP;
+						
+						mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[mused.current_program_step / 8] &= ~(1 << (mused.current_program_step & 7));
+					}
 					
-					mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_program_step / 8] &= ~(1 << (mused.current_program_step & 7));
+					else
+					{
+						mused.song.instrument[mused.current_instrument].program[mused.current_program_step] = MUS_FX_NOP;
+						
+						mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_program_step / 8] &= ~(1 << (mused.current_program_step & 7));
+					}
 					
 					++mused.current_program_step;
 					if (mused.current_program_step >= MUS_PROG_LEN)
@@ -2831,14 +2997,14 @@ void edit_program_event(SDL_Event *e)
 
 			case SDLK_RIGHT:
 			{
-				clamp(mused.editpos,+1,0,3);
+				clamp(mused.editpos, +1, 0, 3);
 
 			}
 			break;
 
 			case SDLK_LEFT:
 			{
-				clamp(mused.editpos,-1,0,3);
+				clamp(mused.editpos, -1, 0, 3);
 			}
 			break;
 

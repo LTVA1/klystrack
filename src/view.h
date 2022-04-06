@@ -33,6 +33,11 @@ OTHER DEALINGS IN THE SOFTWARE.
 #define PLAYSTOP_INFO_W 78
 #define SCROLLBAR 10
 
+#define VIEW_WIDTH 166
+#define TOP_VIEW_H 18
+#define ALG_VIEW_H 130
+#define SCROLLBAR_W 10
+
 #define uppersig (Uint32)(mused.time_signature >> 8)
 #define lowersig (Uint32)(mused.time_signature & 0xff)
 #define compoundbeats (uppersig / 3)
@@ -42,7 +47,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #define timesig(i, bar, beat, normal) (((uppersig != 3) && (uppersig % 3) == 0) ? compoundtime(i, bar, beat, normal) : simpletime(i, bar, beat, normal))
 #define swap(a,b) { a ^= b; b ^= a; a ^= b; }
 
-void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain);
+void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain, int m);
 int generic_field(const SDL_Event *e, const SDL_Rect *area, int focus, int param, const char *_label, const char *format, void *value, int width);
 void generic_flags(const SDL_Event *e, const SDL_Rect *_area, int focus, int p, const char *label, Uint32 *flags, Uint32 mask);
 int generic_button(const SDL_Event *e, const SDL_Rect *area, int focus, int param, const char *_label, void (*action)(void*,void*,void*), void *p1, void *p2, void *p3);
@@ -58,11 +63,13 @@ float percent_to_dB(float percent);
 
 void song_name_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
 void instrument_name_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
+
 void instrument_disk_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
 void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
 
-void oscilloscope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param); //wasn't there
+void oscilloscope_view(GfxDomain *dest_surface, SDL_Rect *dest, const SDL_Event *event, void *param); //wasn't there
 void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
+void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
 
 void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
 void sequence_spectrum_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
