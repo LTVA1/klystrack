@@ -537,10 +537,12 @@ int main(int argc, char **argv)
 			{
 				mused.current_sequencepos = mused.stat_song_position - mused.stat_song_position % mused.sequenceview_steps;
 				mused.current_patternpos = mused.stat_song_position;
-				//update_position_sliders(); //orig
+				update_position_sliders(); //orig
 			}
 			
-			update_position_sliders();
+			//update_position_sliders();
+	
+			//slider_move_position(&mused.current_sequencepos, &mused.sequence_position, &mused.sequence_slider_param, 0);
 
 			for (int i = 0; i < MUS_MAX_CHANNELS; ++i)
 			{

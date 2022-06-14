@@ -270,10 +270,10 @@ static void write_string8(SDL_RWops *f, const char * string)
 
 static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWavetableEntry *write_wave, const CydWavetableEntry *write_wave_fm)
 {
-	Uint32 temp32 = inst->flags;
-	FIX_ENDIAN(temp32);
-	SDL_RWwrite(f, &temp32, sizeof(temp32), 1);
-	temp32 = inst->cydflags;
+	Uint16 temp16_f = inst->flags;
+	FIX_ENDIAN(temp16_f);
+	SDL_RWwrite(f, &temp16_f, sizeof(temp16_f), 1);
+	Uint32 temp32 = inst->cydflags;
 	FIX_ENDIAN(temp32);
 	SDL_RWwrite(f, &temp32, sizeof(temp32), 1);
 	//SDL_RWwrite(f, &inst->adsr, sizeof(inst->adsr), 1);
@@ -292,6 +292,11 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 	SDL_RWwrite(f, &temp8, sizeof(temp8), 1);
 	
 	SDL_RWwrite(f, &inst->adsr.r, sizeof(inst->adsr.r), 1);
+	
+	inst->adsr.a &= 0b00111111;
+	inst->adsr.d &= 0b00111111;
+	inst->adsr.s &= 0b00011111;
+	inst->adsr.r &= 0b00111111;
 	
 	if(inst->cydflags & CYD_CHN_ENABLE_FIXED_NOISE_PITCH)
 	{
@@ -455,6 +460,11 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 		
 		SDL_RWwrite(f, &inst->fm_adsr.r, sizeof(inst->fm_adsr.r), 1);
 		
+		inst->fm_adsr.a &= 0b00111111;
+		inst->fm_adsr.d &= 0b00111111;
+		inst->fm_adsr.s &= 0b00011111;
+		inst->fm_adsr.r &= 0b00111111;
+		
 		SDL_RWwrite(f, &inst->fm_attack_start, sizeof(inst->fm_attack_start), 1);
 		
 		SDL_RWwrite(f, &inst->fm_base_note, sizeof(inst->fm_base_note), 1); //weren't there
@@ -473,6 +483,184 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 			SDL_RWwrite(f, &inst->fm_tremolo_depth, sizeof(inst->fm_tremolo_depth), 1);
 			SDL_RWwrite(f, &inst->fm_tremolo_shape, sizeof(inst->fm_tremolo_shape), 1);
 			SDL_RWwrite(f, &inst->fm_tremolo_delay, sizeof(inst->fm_tremolo_delay), 1);
+		}
+		
+		if(inst->fm_flags & CYD_FM_ENABLE_4OP)
+		{
+			SDL_RWwrite(f, &inst->alg, sizeof(inst->alg), 1);
+			SDL_RWwrite(f, &inst->fm_4op_vol, sizeof(inst->fm_4op_vol), 1);
+			
+			for(int i = 0; i < CYD_FM_NUM_OPS; ++i)
+			{
+				Uint16 temp16_f = inst->ops[i].flags;
+				FIX_ENDIAN(temp16_f);
+				SDL_RWwrite(f, &temp16_f, sizeof(temp16_f), 1);
+				Uint32 temp32 = inst->ops[i].cydflags;
+				FIX_ENDIAN(temp32);
+				SDL_RWwrite(f, &temp32, sizeof(temp32), 1);
+				
+				SDL_RWwrite(f, &inst->ops[i].slide_speed, sizeof(inst->ops[i].slide_speed), 1);
+				
+				if(inst->fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE)
+				{
+					SDL_RWwrite(f, &inst->ops[i].base_note, sizeof(inst->ops[i].base_note), 1);
+					SDL_RWwrite(f, &inst->ops[i].finetune, sizeof(inst->ops[i].finetune), 1);
+					
+					debug("what");
+				}
+				
+				else
+				{
+					SDL_RWwrite(f, &inst->ops[i].harmonic, sizeof(inst->ops[i].harmonic), 1);
+					
+					Uint8 unsigned_detune = (Uint8)(inst->ops[i].detune + 3);
+					
+					Uint8 temp_detune = ((unsigned_detune << 5) | (inst->ops[i].coarse_detune) << 3);
+					
+					SDL_RWwrite(f, &temp_detune, sizeof(temp_detune), 1);
+				}
+				
+				Uint8 temp_feedback_ssgeg = inst->ops[i].feedback;
+				
+				if(inst->ops[i].cydflags & CYD_FM_OP_ENABLE_SSG_EG)
+				{
+					temp_feedback_ssgeg |= (inst->ops[i].ssg_eg_type << 3);
+				}
+				
+				SDL_RWwrite(f, &temp_feedback_ssgeg, sizeof(temp_feedback_ssgeg), 1);
+				
+				if(inst->ops[i].cydflags & CYD_FM_OP_ENABLE_FILTER)
+				{
+					inst->ops[i].adsr.a |= ((inst->ops[i].flttype & 0b110) << 5);
+					inst->ops[i].adsr.d |= ((inst->ops[i].flttype & 0b1) << 6);
+				}
+				
+				SDL_RWwrite(f, &inst->ops[i].adsr.a, sizeof(inst->ops[i].adsr.a), 1);
+				SDL_RWwrite(f, &inst->ops[i].adsr.d, sizeof(inst->ops[i].adsr.d), 1);
+				
+				Uint8 temp8 = inst->ops[i].adsr.s;
+				temp8 |= (inst->ops[i].slope << 5);
+				SDL_RWwrite(f, &temp8, sizeof(temp8), 1);
+				
+				SDL_RWwrite(f, &inst->ops[i].adsr.r, sizeof(inst->ops[i].adsr.r), 1);
+				
+				inst->ops[i].adsr.a &= 0b00111111;
+				inst->ops[i].adsr.d &= 0b00111111;
+				inst->ops[i].adsr.s &= 0b00011111;
+				inst->ops[i].adsr.r &= 0b00111111;
+				
+				if(inst->ops[i].cydflags & CYD_FM_OP_ENABLE_FIXED_NOISE_PITCH)
+				{
+					SDL_RWwrite(f, &inst->ops[i].noise_note, sizeof(inst->ops[i].noise_note), 1);
+				}
+				
+				if(inst->ops[i].cydflags & CYD_FM_OP_ENABLE_VOLUME_KEY_SCALING)
+				{
+					SDL_RWwrite(f, &inst->ops[i].vol_ksl_level, sizeof(inst->ops[i].vol_ksl_level), 1);
+				}
+				
+				if(inst->ops[i].cydflags & CYD_FM_OP_ENABLE_ENVELOPE_KEY_SCALING)
+				{
+					SDL_RWwrite(f, &inst->ops[i].env_ksl_level, sizeof(inst->ops[i].env_ksl_level), 1);
+				}
+				
+				if(inst->ops[i].cydflags & CYD_FM_OP_ENABLE_SYNC)
+				{
+					SDL_RWwrite(f, &inst->ops[i].sync_source, sizeof(inst->ops[i].sync_source), 1);
+				}
+				
+				if(inst->ops[i].cydflags & CYD_FM_OP_ENABLE_RING_MODULATION)
+				{
+					SDL_RWwrite(f, &inst->ops[i].ring_mod, sizeof(inst->ops[i].ring_mod), 1);
+				}
+				
+				Uint16 temp16 = 0;
+				
+				temp16 = inst->ops[i].pw;
+				
+				temp16 |= (inst->ops[i].mixmode << 12);
+				
+				FIX_ENDIAN(temp16);
+				SDL_RWwrite(f, &temp16, sizeof(temp16), 1);
+				SDL_RWwrite(f, &inst->ops[i].volume, sizeof(inst->ops[i].volume), 1);
+				Uint8 progsteps = 0;
+				
+				for (int j = 0; j < MUS_PROG_LEN; ++j)
+				{
+					if (inst->ops[i].program[j] != MUS_FX_NOP) 
+					{
+						progsteps = j + 1;
+					}
+				}
+				
+				SDL_RWwrite(f, &progsteps, sizeof(progsteps), 1);
+				
+				if(progsteps != 0)
+				{
+					for (int i1 = 0; i1 < progsteps / 8 + 1; ++i1)
+					{
+						SDL_RWwrite(f, &inst->ops[i].program_unite_bits[i1], sizeof(Uint8), 1);
+					}
+				}
+				
+				for (int i1 = 0; i1 < progsteps; ++i1)
+				{
+					temp16 = inst->ops[i].program[i1];
+					FIX_ENDIAN(temp16);
+					SDL_RWwrite(f, &temp16, sizeof(temp16), 1);
+				}
+
+				SDL_RWwrite(f, &inst->ops[i].prog_period, sizeof(inst->prog_period), 1);
+				
+				if(inst->ops[i].flags & MUS_FM_OP_SAVE_LFO_SETTINGS)
+				{
+					SDL_RWwrite(f, &inst->ops[i].vibrato_speed, sizeof(inst->ops[i].vibrato_speed), 1);
+					SDL_RWwrite(f, &inst->ops[i].vibrato_depth, sizeof(inst->ops[i].vibrato_depth), 1);
+					SDL_RWwrite(f, &inst->ops[i].vibrato_shape, sizeof(inst->ops[i].tremolo_shape), 1);
+					SDL_RWwrite(f, &inst->ops[i].vibrato_delay, sizeof(inst->ops[i].tremolo_delay), 1);
+					
+					SDL_RWwrite(f, &inst->ops[i].pwm_speed, sizeof(inst->ops[i].pwm_speed), 1);
+					SDL_RWwrite(f, &inst->ops[i].pwm_depth, sizeof(inst->ops[i].pwm_depth), 1);
+					SDL_RWwrite(f, &inst->ops[i].pwm_shape, sizeof(inst->ops[i].pwm_shape), 1);
+					SDL_RWwrite(f, &inst->ops[i].pwm_delay, sizeof(inst->ops[i].pwm_delay), 1);
+					
+					SDL_RWwrite(f, &inst->ops[i].tremolo_speed, sizeof(inst->ops[i].tremolo_speed), 1);
+					SDL_RWwrite(f, &inst->ops[i].tremolo_depth, sizeof(inst->ops[i].tremolo_depth), 1);
+					SDL_RWwrite(f, &inst->ops[i].tremolo_shape, sizeof(inst->ops[i].tremolo_shape), 1);
+					SDL_RWwrite(f, &inst->ops[i].tremolo_delay, sizeof(inst->ops[i].tremolo_delay), 1);
+				}
+				
+				SDL_RWwrite(f, &inst->ops[i].trigger_delay, sizeof(inst->ops[i].trigger_delay), 1);
+				
+				if(inst->ops[i].cydflags & CYD_FM_OP_ENABLE_FILTER)
+				{
+					temp16 = inst->ops[i].cutoff | (inst->ops[i].resonance << 12);
+					FIX_ENDIAN(temp16);
+					SDL_RWwrite(f, &temp16, sizeof(temp16), 1);
+				}
+				
+				if (inst->ops[i].cydflags & CYD_FM_OP_ENABLE_WAVE)
+				{
+					/*if(mused.mus.cyd->wavetable_entries[mused.song.instrument[mused.current_instrument].ops[i].wavetable_entry].data != NULL)
+					{
+						Uint8 temp111 = 0xff;
+						SDL_RWwrite(f, &temp111, sizeof(temp111), 1);
+						
+						debug("save wave 1");
+						write_wavetable_entry(f, &mused.mus.cyd->wavetable_entries[mused.song.instrument[mused.current_instrument].ops[i].wavetable_entry], true);
+						debug("wave saved");
+					}
+					
+					else
+					{
+						SDL_RWwrite(f, &inst->ops[i].wavetable_entry, sizeof(inst->ops[i].wavetable_entry), 1);
+					}*/
+					
+					
+						SDL_RWwrite(f, &inst->ops[i].wavetable_entry, sizeof(inst->ops[i].wavetable_entry), 1);
+					
+				}
+			}
 		}
 	}
 
@@ -495,7 +683,20 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 	if (write_wave_fm)
 	{
 		if (inst->wavetable_entry != inst->fm_wave)
+		{
 			write_wavetable_entry(f, write_wave_fm, true);
+		}
+	}
+	
+	if(inst->fm_flags & CYD_FM_ENABLE_4OP)
+	{
+		for(int i = 0; i < CYD_FM_NUM_OPS; ++i)
+		{
+			if (inst->ops[i].cydflags & CYD_FM_OP_ENABLE_WAVE)
+			{
+				//write_wavetable_entry(f, &mused.mus.cyd->wavetable_entries[mused.song.instrument[mused.current_instrument].ops[i].wavetable_entry], true);
+			}
+		}
 	}
 }
 
@@ -545,10 +746,6 @@ static void save_fx_inner(SDL_RWops *f, CydFxSerialized *fx)
 	if(temp.flags & CYDFX_ENABLE_CRUSH)
 	{
 		SDL_RWwrite(f, &temp.crushex.downsample, sizeof(temp.crushex.downsample), 1);
-	}
-	
-	if(temp.flags & CYDFX_ENABLE_CRUSH)
-	{
 		SDL_RWwrite(f, &temp.crushex.gain, sizeof(temp.crushex.gain), 1);
 	}
 }
@@ -623,20 +820,15 @@ static void write_packed_pattern(SDL_RWops *f, const MusPattern *pattern, bool s
 		
 		Uint8 ctrl = pattern->step[i].ctrl;
 		ctrl |= (coding_bits & 7) << 4;
-		
-		//debug("ctrl bit added val %d", (coding_bits & 7) << 4);
-		
-		//debug("coding bits %d", coding_bits);
-		
 
 		if (pattern->step[i].ctrl != 0 || pattern->step[i].volume != MUS_NOTE_NO_VOLUME || ctrl != 0)
 		{
-			//Uint8 ctrl = pattern->step[i].ctrl;
 			if (pattern->step[i].volume != MUS_NOTE_NO_VOLUME)
+			{
 				ctrl |= MUS_PAK_BIT_VOLUME;
-			SDL_RWwrite(f, &ctrl, 1, sizeof(pattern->step[i].ctrl));
+			}
 			
-			//debug("ctrl bit %d", ctrl);
+			SDL_RWwrite(f, &ctrl, 1, sizeof(pattern->step[i].ctrl));
 		}
 		
 		if (pattern->step[i].command[0] != 0)
@@ -652,13 +844,13 @@ static void write_packed_pattern(SDL_RWops *f, const MusPattern *pattern, bool s
 			Uint16 c = pattern->step[i].command[j + 1];
 			FIX_ENDIAN(c);
 			SDL_RWwrite(f, &c, 1, sizeof(pattern->step[i].command[j + 1]));
-			
-			//debug("Writing command %d at column %d", pattern->step[i].command[j + 1], j + 2);
 		}
 		
 
 		if (pattern->step[i].volume != MUS_NOTE_NO_VOLUME)
+		{
 			SDL_RWwrite(f, &pattern->step[i].volume, 1, sizeof(pattern->step[i].volume));
+		}
 	}
 }
 
@@ -846,12 +1038,14 @@ int save_song_inner(SDL_RWops *f, SongStats *stats)
 	temp16 = mused.song.num_patterns;
 	FIX_ENDIAN(temp16);
 	SDL_RWwrite(f, &temp16, 1, sizeof(mused.song.num_patterns));
+	
 	for (int i = 0; i < mused.song.num_channels; ++i)
 	{
 		temp16 = mused.song.num_sequences[i];
 		FIX_ENDIAN(temp16);
 		SDL_RWwrite(f, &temp16, 1, sizeof(mused.song.num_sequences[i]));
 	}
+	
 	temp16 = mused.song.song_length;
 	FIX_ENDIAN(temp16);
 	SDL_RWwrite(f, &temp16, 1, sizeof(mused.song.song_length));

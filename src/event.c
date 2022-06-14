@@ -867,6 +867,18 @@ void four_op_add_param(int a)
 
 		break;
 		
+		case FOUROP_MASTER_VOL:
+
+		clamp(i->fm_4op_vol, a, 0, 0xff);
+
+		break;
+		
+		case FOUROP_USE_MAIN_INST_PROG:
+
+		flipbit(i->fm_flags, CYD_FM_FOUROP_USE_MAIN_INST_PROG);
+
+		break;
+		
 		case FOUROP_ENABLE_SSG_EG:
 
 		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_SSG_EG);
@@ -1528,7 +1540,7 @@ void edit_fourop_event(SDL_Event *e)
 			{
 				++mused.fourop_selected_param;
 				
-				if(!(mused.song.instrument[mused.current_instrument].fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) && mused.fourop_selected_param > FOUROP_ALG && mused.fourop_selected_param < FOUROP_HARMONIC_MODULATOR)
+				if(!(mused.song.instrument[mused.current_instrument].fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) && mused.fourop_selected_param > FOUROP_USE_MAIN_INST_PROG && mused.fourop_selected_param < FOUROP_HARMONIC_MODULATOR)
 				{
 					mused.fourop_selected_param = FOUROP_HARMONIC_MODULATOR;
 				}
@@ -1554,9 +1566,9 @@ void edit_fourop_event(SDL_Event *e)
 			{
 				--mused.fourop_selected_param;
 				
-				if(!(mused.song.instrument[mused.current_instrument].fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) && mused.fourop_selected_param > FOUROP_ALG && mused.fourop_selected_param < FOUROP_HARMONIC_MODULATOR)
+				if(!(mused.song.instrument[mused.current_instrument].fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) && mused.fourop_selected_param > FOUROP_USE_MAIN_INST_PROG && mused.fourop_selected_param < FOUROP_HARMONIC_MODULATOR)
 				{
-					mused.fourop_selected_param = FOUROP_ALG;
+					mused.fourop_selected_param = FOUROP_USE_MAIN_INST_PROG;
 				}
 				
 				if((mused.song.instrument[mused.current_instrument].fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) && mused.fourop_selected_param > FOUROP_LOCKNOTE && mused.fourop_selected_param < FOUROP_FEEDBACK)
@@ -1710,15 +1722,13 @@ void del_sequence(int first,int last,int track)
 
 void add_note_offset(int a)
 {
+	for (int i = (int)mused.song.num_sequences[mused.current_sequencetrack] - 1; i >= 0; --i)
 	{
-		for (int i = (int)mused.song.num_sequences[mused.current_sequencetrack] - 1; i >= 0; --i)
+		if (mused.current_sequencepos >= mused.song.sequence[mused.current_sequencetrack][i].position &&
+			mused.song.sequence[mused.current_sequencetrack][i].position + mused.song.pattern[mused.song.sequence[mused.current_sequencetrack][i].pattern].num_steps > mused.current_sequencepos)
 		{
-			if (mused.current_sequencepos >= mused.song.sequence[mused.current_sequencetrack][i].position &&
-				mused.song.sequence[mused.current_sequencetrack][i].position + mused.song.pattern[mused.song.sequence[mused.current_sequencetrack][i].pattern].num_steps > mused.current_sequencepos)
-			{
-				mused.song.sequence[mused.current_sequencetrack][i].note_offset += a;
-				break;
-			}
+			mused.song.sequence[mused.current_sequencetrack][i].note_offset += a;
+			break;
 		}
 	}
 }
@@ -1731,7 +1741,9 @@ static void update_sequence_slider(int d)
 	slider_move_position(&mused.current_sequencepos, &mused.sequence_position, &mused.sequence_slider_param, d);
 
 	if (!(mused.flags & SONG_PLAYING))
+	{
 		mused.pattern_position = mused.current_patternpos = mused.current_sequencepos - o;
+	}
 }
 
 
@@ -1812,6 +1824,23 @@ void sequence_event(SDL_Event *e)
 					add_note_offset(-1);
 					break;
 				}
+				
+				if (e->key.keysym.mod & KMOD_CTRL)
+				{
+					snapshot(S_T_SEQUENCE);
+					
+					for (int i = (int)mused.song.num_sequences[mused.current_sequencetrack] - 1; i >= 0; --i)
+					{
+						if (mused.current_sequencepos >= mused.song.sequence[mused.current_sequencetrack][i].position - mused.sequenceview_steps &&
+							mused.song.sequence[mused.current_sequencetrack][i].position + mused.song.pattern[mused.song.sequence[mused.current_sequencetrack][i].pattern].num_steps > mused.current_sequencepos + mused.sequenceview_steps && mused.song.sequence[mused.current_sequencetrack][i].position > 0)
+						{
+							mused.song.sequence[mused.current_sequencetrack][i].position -= 1;
+							break;
+						}
+					}
+					
+					break;
+				}
 
 				int steps = mused.sequenceview_steps;
 				if (e->key.keysym.sym == SDLK_PAGEDOWN)
@@ -1849,6 +1878,24 @@ void sequence_event(SDL_Event *e)
 				{
 					snapshot(S_T_SEQUENCE);
 					add_note_offset(1);
+					break;
+				}
+				
+				if (e->key.keysym.mod & KMOD_CTRL)
+				{
+					snapshot(S_T_SEQUENCE);
+					
+					//mused.sequenceview_steps
+					for (int i = (int)mused.song.num_sequences[mused.current_sequencetrack] - 1; i >= 0; --i)
+					{
+						if (mused.current_sequencepos >= mused.song.sequence[mused.current_sequencetrack][i].position - mused.sequenceview_steps &&
+							mused.song.sequence[mused.current_sequencetrack][i].position + mused.song.pattern[mused.song.sequence[mused.current_sequencetrack][i].pattern].num_steps > mused.current_sequencepos + mused.sequenceview_steps && mused.song.sequence[mused.current_sequencetrack][i].position + mused.song.pattern[mused.song.sequence[mused.current_sequencetrack][i].pattern].num_steps < 0xffff)
+						{
+							mused.song.sequence[mused.current_sequencetrack][i].position += 1;
+							break;
+						}
+					}
+					
 					break;
 				}
 
@@ -2363,17 +2410,17 @@ void pattern_event(SDL_Event *e)
 						if(mused.current_sequencetrack > 0)
 						{
 							//mused.current_patternx = PED_COMMAND4 + mused.song.pattern[mused.song.sequence[mused.current_sequencetrack - 1][mused.sequence_position].pattern].command_columns * 4;
-							debug("current pattern %d, current sequence track %d, current seq pos %d", mused.song.sequence[mused.current_sequencetrack - 1][mused.current_sequencepos].pattern, mused.current_sequencetrack, mused.current_sequencepos);
+							//debug("current pattern %d, current sequence track %d, current seq pos %d", mused.song.sequence[mused.current_sequencetrack - 1][mused.current_sequencepos].pattern, mused.current_sequencetrack, mused.current_sequencepos);
 							
 							for(int i = 0; i < NUM_SEQUENCES; ++i)
 							{
 								const MusSeqPattern *sp = &mused.song.sequence[mused.current_sequencetrack - 1][i];
 								
-								if(sp->position + mused.song.pattern[sp->pattern].num_steps >= mused.current_sequencepos && sp->position <= mused.current_sequencepos)
+								if(sp->position + mused.song.pattern[sp->pattern].num_steps >= mused.current_patternpos && sp->position <= mused.current_patternpos)
 								{
 									mused.current_patternx = PED_COMMAND4 + mused.song.pattern[sp->pattern].command_columns * 4;
 									
-									debug("track %d pattern %d pos %d", mused.current_sequencetrack, sp->pattern, mused.current_patternx);
+									//debug("track %d pattern %d pos %d", mused.current_sequencetrack, sp->pattern, mused.current_patternx);
 									
 									break;
 								}
@@ -2383,17 +2430,17 @@ void pattern_event(SDL_Event *e)
 						else
 						{
 							//mused.current_patternx = PED_COMMAND4 + mused.song.pattern[mused.song.sequence[mused.song.num_channels - 1][mused.sequence_position].pattern].command_columns * 4;
-							debug("current pattern %d, current sequence track %d, current seq pos %d", mused.song.sequence[mused.song.num_channels - 1][mused.current_sequencepos].pattern, mused.current_sequencetrack, mused.current_sequencepos);
+							//debug("current pattern %d, current sequence track %d, current seq pos %d", mused.song.sequence[mused.song.num_channels - 1][mused.current_sequencepos].pattern, mused.current_sequencetrack, mused.current_sequencepos);
 							
 							for(int i = 0; i < NUM_SEQUENCES; ++i)
 							{
 								const MusSeqPattern *sp = &mused.song.sequence[mused.song.num_channels - 1][i];
 								
-								if(sp->position + mused.song.pattern[sp->pattern].num_steps >= mused.current_sequencepos && sp->position <= mused.current_sequencepos)
+								if(sp->position + mused.song.pattern[sp->pattern].num_steps >= mused.current_patternpos && sp->position <= mused.current_patternpos)
 								{
 									mused.current_patternx = PED_COMMAND4 + mused.song.pattern[sp->pattern].command_columns * 4;
 									
-									debug("track %d pattern %d pos %d", mused.current_sequencetrack, sp->pattern, mused.current_patternx);
+									//debug("track %d pattern %d pos %d", mused.current_sequencetrack, sp->pattern, mused.current_patternx);
 									
 									break;
 								}
@@ -2433,7 +2480,7 @@ void pattern_event(SDL_Event *e)
 								{
 									const MusSeqPattern *sp = &mused.song.sequence[mused.current_sequencetrack - 1][i];
 									
-									if(sp->position + mused.song.pattern[sp->pattern].num_steps >= mused.current_sequencepos && sp->position <= mused.current_sequencepos)
+									if(sp->position + mused.song.pattern[sp->pattern].num_steps >= mused.current_patternpos && sp->position <= mused.current_patternpos)
 									{
 										{
 											mused.current_patternx = PED_COMMAND4 + mused.song.pattern[sp->pattern].command_columns * 4;
@@ -2466,17 +2513,17 @@ void pattern_event(SDL_Event *e)
 							else
 							{
 								//mused.current_patternx = PED_COMMAND4 + mused.song.pattern[mused.song.sequence[mused.song.num_channels - 1][mused.sequence_position].pattern].command_columns * 4;
-								debug("current pattern %d, current sequence track %d, current seq pos %d", mused.song.sequence[mused.song.num_channels - 1][mused.current_sequencepos].pattern, mused.current_sequencetrack, mused.current_sequencepos);
+								//debug("current pattern %d, current sequence track %d, current seq pos %d", mused.song.sequence[mused.song.num_channels - 1][mused.current_sequencepos].pattern, mused.current_sequencetrack, mused.current_sequencepos);
 								
 								for(int i = 0; i < NUM_SEQUENCES; ++i)
 								{
 									const MusSeqPattern *sp = &mused.song.sequence[mused.song.num_channels - 1][i];
 									
-									if(sp->position + mused.song.pattern[sp->pattern].num_steps >= mused.current_sequencepos && sp->position <= mused.current_sequencepos)
+									if(sp->position + mused.song.pattern[sp->pattern].num_steps >= mused.current_patternpos && sp->position <= mused.current_patternpos)
 									{
 										mused.current_patternx = PED_COMMAND4 + mused.song.pattern[sp->pattern].command_columns * 4;
 										
-										debug("track %d pattern %d pos %d", mused.current_sequencetrack, sp->pattern, mused.current_patternx);
+										//debug("track %d pattern %d pos %d", mused.current_sequencetrack, sp->pattern, mused.current_patternx);
 										
 										break;
 									}

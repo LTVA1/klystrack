@@ -74,11 +74,6 @@ void copy()
 				sizeof(mused.song.instrument[mused.current_instrument].program[0]), mused.selection.start);
 			}
 			
-			/*for(int i = 0; i < MUS_PROG_LEN; ++i)
-			{
-				mused.unite_bits_buffer[i] = 0;
-			}*/
-			
 			for(int i = mused.selection.start; i <= mused.selection.end; ++i)
 			{
 				if(mused.show_four_op_menu)
@@ -147,6 +142,26 @@ void delete()
 		else
 			clear_pattern_range(&mused.song.pattern[get_pattern(mused.selection.start, mused.current_sequencetrack)], get_patternstep(mused.selection.start, mused.current_sequencetrack), get_patternstep(mused.selection.end, mused.current_sequencetrack));
 		
+		break;
+		
+		case EDITPROG:
+		{
+			for(int i = mused.selection.start; i < mused.selection.end; ++i)
+			{
+				mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] &= ~(1 << (i & 7));
+				mused.song.instrument[mused.current_instrument].program[i] = MUS_FX_NOP;
+			}
+		}
+		break;
+		
+		case EDITPROG4OP:
+		{
+			for(int i = mused.selection.start; i < mused.selection.end; ++i)
+			{
+				mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[i / 8] &= ~(1 << (i & 7));
+				mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[i] = MUS_FX_NOP;
+			}
+		}
 		break;
 		
 		case EDITSEQUENCE:
@@ -247,9 +262,8 @@ void paste()
 				
 				int y = 0;
 				
-				for(int i = mused.current_program_step; i <= my_max(MUS_PROG_LEN - 1, mused.current_program_step + mused.unite_bits_to_paste); ++i, ++y)
+				for(int i = mused.current_program_step; i <= my_min(MUS_PROG_LEN - 1, mused.current_program_step + mused.unite_bits_to_paste); ++i, ++y)
 				{
-					//mused.unite_bits_buffer[i] = (mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8]) & (1 << (i % 8));
 					if(mused.unite_bits_buffer[mused.paste_pointer + y] == 0)
 					{
 						if(mused.show_four_op_menu)
@@ -276,8 +290,6 @@ void paste()
 						}
 					}
 				}
-				
-				//cp_paste_items(&mused.cp, CP_PROGRAM, &mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_program_step / 8], (MUS_PROG_LEN - mused.current_program_step) / 8 + 1, sizeof(mused.song.instrument[mused.current_instrument].program_unite_bits[0]));
 			}
 		}
 		break;

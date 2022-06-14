@@ -402,8 +402,33 @@ void select_all(void *unused1, void *unused2, void *unused3)
 	switch (mused.focus)
 	{
 		case EDITPATTERN:
-			mused.selection.start = 0;
-			mused.selection.end = mused.song.pattern[current_pattern(NULL)].num_steps;
+			//mused.selection.start = mused.song.pattern[current_pattern()].position; //mused.selection.start = 0;
+			//mused.selection.end = mused.song.pattern[current_pattern()].position + mused.song.pattern[current_pattern()].num_steps; //mused.selection.end = mused.song.pattern[current_pattern(NULL)].num_steps;
+			for(int i = 0; i < NUM_SEQUENCES - 1; ++i)
+			{
+				const MusSeqPattern *sp = &mused.song.sequence[mused.current_sequencetrack][i];
+				
+				//debug("start");
+				
+				if((sp + 1)->position + mused.song.pattern[(sp + 1)->pattern].num_steps >= mused.current_patternpos && (sp + 1)->position <= mused.current_patternpos)
+				{
+					//debug("start %d, end %d, seqpos %d, patpos %d", sp->position, sp->position + mused.song.pattern[sp->pattern].num_steps, mused.current_sequencepos, mused.current_patternpos);
+					mused.selection.start = (sp + 1)->position;
+					
+					mused.selection.end = (sp + 1)->position + mused.song.pattern[(sp + 1)->pattern].num_steps;
+					
+					break;
+				}
+				
+				else if(sp->position + mused.song.pattern[sp->pattern].num_steps >= mused.current_patternpos && sp->position <= mused.current_patternpos)
+				{
+					mused.selection.start = sp->position;
+					
+					mused.selection.end = my_min(sp->position + mused.song.pattern[sp->pattern].num_steps, (sp + 1)->position);
+					
+					break;
+				}
+			}
 			break;
 
 		case EDITPROG:

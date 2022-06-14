@@ -58,7 +58,10 @@ void set_edit_buffer(char *buffer, size_t size)
 
 void change_mode(int newmode)
 {
-	debug("Change mode to %d", newmode);
+	if(!(mused.show_four_op_menu) && newmode != EDITINSTRUMENT)
+	{
+		debug("Change mode to %d", newmode);
+	}
 	
 	if (newmode == EDITBUFFER)
 		SDL_StartTextInput();
@@ -107,6 +110,7 @@ void change_mode(int newmode)
 				slider_move_position(&mused.current_sequencetrack, &mused.pattern_horiz_position, &mused.pattern_horiz_slider_param, 0);
 				//slider_move_position(&mused.current_patternstep, &mused.pattern_position, &mused.pattern_slider_param, 0, mused.song.pattern[mused.current_pattern].num_steps);
 			}
+			
 			else
 			{
 				mused.single_pattern_edit = 1;
@@ -117,6 +121,13 @@ void change_mode(int newmode)
 
 	mused.mode = newmode;
 	mused.focus = newmode;
+	
+	if(mused.show_four_op_menu && newmode == EDITINSTRUMENT)
+	{
+		debug("Change mode to %d", EDIT4OP);
+		mused.mode = EDIT4OP;
+		mused.focus = EDIT4OP;
+	}
 
 	if (mused.focus == EDITCLASSIC)
 		mused.focus = EDITPATTERN;
@@ -137,6 +148,7 @@ void clear_pattern(MusPattern *pat)
 
 void clear_pattern_range(MusPattern *pat, int first, int last)
 {
+	//debug("first %d, last %d, pat num steps %d", first, last, pat->num_steps);
 	for (int i = my_max(0, first); i < my_min(pat->num_steps, last); ++i)
 	{
 		pat->step[i].note = MUS_NOTE_NONE;
@@ -501,7 +513,7 @@ int get_patternstep(int abspos, int track)
 
 	for (int i = 0; i < mused.song.num_sequences[track] && sp->position <= abspos; ++i, ++sp)
 	{
-		if (sp->position <= abspos && sp->position + mused.song.pattern[sp->pattern].num_steps > abspos) p = abspos - sp->position;
+		if (sp->position <= abspos && sp->position + mused.song.pattern[sp->pattern].num_steps >= abspos) p = abspos - sp->position;
 	}
 
 	return p;

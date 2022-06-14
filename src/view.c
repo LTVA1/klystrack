@@ -503,11 +503,11 @@ void songinfo3_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 
 	int d;
 
-	d = generic_field(event, &r, EDITSONGINFO, SI_OCTAVE, "OCTAVE","%02X", MAKEPTR(mused.octave), 2);
+	d = generic_field(event, &r, EDITSONGINFO, SI_OCTAVE, "OCTAVE", "%02X", MAKEPTR(mused.octave), 2);
 	songinfo_add_param(d);
 	update_rect(&area, &r);
 
-	d = generic_field(event, &r, EDITSONGINFO, SI_CHANNELS, "CHANLS","%02X", MAKEPTR(mused.song.num_channels), 2);
+	d = generic_field(event, &r, EDITSONGINFO, SI_CHANNELS, "CHANLS", "%02X", MAKEPTR(mused.song.num_channels), 2);
 	songinfo_add_param(d);
 	update_rect(&area, &r);
 }
@@ -816,14 +816,17 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"enable 3CH_EXP mode (independent freq. per op.)",
 					"4-op system algorithm",
 					
+					"4-op master volume",
+					"Use main instrument program to control operators",
+					
 					"base note",
 					"finetune",
 					"lock to base note",
 					
-					"carrier frequency divider",
-					"modulator frequency multiplier",
+					"frequency divider",
+					"frequency multiplier",
 					"detune",
-					"coarse detune (OPM chip only)",
+					"coarse detune (OPM chip only, DT2)",
 					
 					"feedback",
 					"enable SSG-EG",
@@ -935,7 +938,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					snprintf(text, sizeof(text) - 1, "Operator %d %s (%s)", mused.selected_operator, param_desc[mused.fourop_selected_param], mixmodes[mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].mixmode]);
 				else if (mused.fourop_selected_param == FOUROP_SSG_EG_TYPE) //wasn't there
 					snprintf(text, sizeof(text) - 1, "Operator %d %s (%s)", mused.selected_operator, param_desc[mused.fourop_selected_param], ssg_eg_types[mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].ssg_eg_type]);
-				else if (mused.fourop_selected_param == FOUROP_ALG || mused.fourop_selected_param == FOUROP_3CH_EXP_MODE) //wasn't there
+				else if (mused.fourop_selected_param == FOUROP_ALG || mused.fourop_selected_param == FOUROP_3CH_EXP_MODE || mused.fourop_selected_param == FOUROP_USE_MAIN_INST_PROG || mused.fourop_selected_param == FOUROP_MASTER_VOL) //wasn't there
 					snprintf(text, sizeof(text) - 1, "%s", param_desc[mused.fourop_selected_param]);
 				
 				else
@@ -1318,7 +1321,8 @@ static void inst_text(const SDL_Event *e, const SDL_Rect *area, int p, const cha
 	//check_event(e, area, select_instrument_param, (void*)p, 0, 0);
 
 	int d = generic_field(e, area, EDITINSTRUMENT, p, _label, format, value, width);
-	if (d && mused.mode == EDITINSTRUMENT)
+	
+	if (d && (mused.mode == EDITINSTRUMENT || p == P_INSTRUMENT)) //p == P_INSTRUMENT because otherwise it does not work in classic editor (doesn't allow you to change current instrument)
 	{
 		if (p >= 0) mused.selected_param = p;
 		if (p != P_INSTRUMENT) snapshot_cascade(S_T_INSTRUMENT, mused.current_instrument, p);
@@ -1782,6 +1786,16 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 				r.w = 120;
 				
 				four_op_text(event, &r, FOUROP_ALG, "ALGORITHM", "%02d", MAKEPTR(inst->alg), 2);
+				update_rect(&top_view, &r);
+				
+				r.w = 60;
+				
+				four_op_text(event, &r, FOUROP_MASTER_VOL, "VOL", "%02X", MAKEPTR(inst->fm_4op_vol), 2);
+				update_rect(&top_view, &r);
+				
+				r.w = 130;
+				
+				four_op_flags(event, &r, FOUROP_USE_MAIN_INST_PROG, "USE INST. PROG.", &inst->fm_flags, CYD_FM_FOUROP_USE_MAIN_INST_PROG);
 				update_rect(&top_view, &r);
 			}
 		}
