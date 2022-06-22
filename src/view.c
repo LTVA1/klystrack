@@ -1155,7 +1155,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 		MusInstrument *inst = &mused.song.instrument[mused.current_instrument];
 
 		//separator("----program-----");
-
+		
 		int start = mused.program_position;
 
 		int pos = 0, prev_pos = -1;
@@ -1975,7 +1975,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			my_separator(&view, &r);
 			four_op_text(event, &r, FOUROP_VOLUME, "VOL", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].volume), 2);
 			update_rect(&view, &r);
-			four_op_flags(event, &r, FOUROP_RELVOL, "RELATIVE", &inst->ops[mused.selected_operator - 1].flags, MUS_INST_RELATIVE_VOLUME);
+			four_op_flags(event, &r, FOUROP_RELVOL, "RELATIVE", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_RELATIVE_VOLUME);
 			update_rect(&view, &r);
 			four_op_text(event, &r, FOUROP_ATTACK, "ATK", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].adsr.a), 2);
 			update_rect(&view, &r);
@@ -2074,10 +2074,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			switch(inst->alg)
 			{
 				case 1:
-					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 34, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 - 24, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0); //lines between ops
-					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 5, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 + 5, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0);
-					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 24, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 + 34, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0);
-					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 + 53, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 + 60, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0);
+					gfx_line(domain, op_alg_view_x + op_alg_view_w / 2 - 34, op_alg_view_y + op_alg_view_h / 2, op_alg_view_x + op_alg_view_w / 2 + 60, op_alg_view_y + op_alg_view_h / 2, 0x90A7A0);
 					
 					// F  F  F  F
 					// 4--3--2--1--(OUT)
@@ -2493,7 +2490,8 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 
 		//separator("----program-----");
 
-		int start = mused.program_position;
+		//int start = mused.program_position;
+		int start = mused.fourop_program_position[mused.selected_operator - 1];
 
 		int pos = 0, prev_pos = -1;
 		int selection_begin = -1, selection_end = -1;
@@ -2534,7 +2532,12 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 			char box[6], cur = ' ';
 
 			for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
-				if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE) || ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_FM) && (mused.cyd.channel[c].fm.adsr.envelope != 0) && !(mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE))) && (mused.channel[c].flags & MUS_CHN_PROGRAM_RUNNING) && mused.channel[c].program_tick == i) cur = '½'; //where arrow pointing at current instrument program step is drawn
+			{
+				if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].flags & CYD_FM_OP_ENABLE_GATE) && (mused.channel[c].ops[mused.selected_operator - 1].flags & MUS_FM_OP_PROGRAM_RUNNING) && mused.channel[c].ops[mused.selected_operator - 1].program_tick == i) && !(inst->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG)) 
+				{
+					cur = '½'; //where arrow pointing at current instrument (operator) program step is drawn
+				}
+			}
 
 			if (inst->ops[mused.selected_operator - 1].program[i] == MUS_FX_NOP)
 			{
@@ -2606,7 +2609,8 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 
 			if (row.y + row.h < area.y + area.h)
 			{
-				slider_set_params(&mused.four_op_slider_param, 0, MUS_PROG_LEN - 1, start, i, &mused.program_position, 1, SLIDER_VERTICAL, mused.slider_bevel);
+				//slider_set_params(&mused.four_op_slider_param, 0, MUS_PROG_LEN - 1, start, i, &mused.program_position, 1, SLIDER_VERTICAL, mused.slider_bevel);
+				slider_set_params(&mused.four_op_slider_param, 0, MUS_PROG_LEN - 1, start, i, &mused.fourop_program_position[mused.selected_operator - 1], 1, SLIDER_VERTICAL, mused.slider_bevel);
 			}
 
 			prev_pos = pos;
@@ -2852,6 +2856,11 @@ void open_4op(void *unused1, void *unused2, void *unused3)
 	if(mused.song.instrument[mused.current_instrument].alg == 0)
 	{
 		mused.song.instrument[mused.current_instrument].alg = 1;
+	}
+	
+	for(int i = 0; i < CYD_FM_NUM_OPS; ++i)
+	{
+		mused.fourop_program_position[i] = 0;
 	}
 }
 

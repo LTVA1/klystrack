@@ -322,7 +322,7 @@ void enable_channel(void *channel, void *unused1, void *unused2)
 	debug("Toggle chn %d", CASTPTR(int,channel));
 	mused.mus.channel[CASTPTR(int,channel)].flags ^= MUS_CHN_DISABLED;
 
-	set_info_message("%s channel %d", (mused.mus.channel[CASTPTR(int,channel)].flags & MUS_CHN_DISABLED) ? "Muted" : "Unmuted", CASTPTR(int,channel));
+	set_info_message("%s channel %d", (mused.mus.channel[CASTPTR(int, channel)].flags & MUS_CHN_DISABLED) ? "Muted" : "Unmuted", CASTPTR(int,channel));
 }
 
 

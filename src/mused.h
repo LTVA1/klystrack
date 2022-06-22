@@ -148,6 +148,8 @@ typedef struct
 		program_position, current_program_step,
 		edit_reverb_param, selected_wavetable, wavetable_param, songinfo_param,
 		loop_store_length, loop_store_loop, note_jump, wavetable_list_position, wavetable_preview_idx, sequence_digit;
+	
+	int fourop_program_position[CYD_FM_NUM_OPS];
 	int current_sequencetrack;
 	Uint16 time_signature;
 	Clipboard cp;

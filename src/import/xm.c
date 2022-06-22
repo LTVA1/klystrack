@@ -146,7 +146,7 @@ int import_xm(FILE *f)
 		
 		pattern_length[p] = pattern_hdr.num_rows;
 		
-		Uint8 data[256*32*5];
+		Uint8 data[256 * 32 * 5];
 		
 		debug("num_rows = %d", pattern_hdr.num_rows);
 		
@@ -187,6 +187,7 @@ int import_xm(FILE *f)
 					if (flags & 16)
 						param = *ptr++;
 				}
+				
 				else
 				{
 					instrument = *ptr++;
@@ -389,7 +390,7 @@ int import_xm(FILE *f)
 								
 				// from mod.c
 				mused.mus.cyd->wavetable_entries[wt_e].base_note = (MIDDLE_C << 8) - (Sint16)fine;
-				mused.mus.cyd->wavetable_entries[wt_e].sample_rate = 7093789.2/856;
+				mused.mus.cyd->wavetable_entries[wt_e].sample_rate = 7093789.2 / 856;
 				
 				switch (type & 3)
 				{

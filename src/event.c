@@ -2853,21 +2853,32 @@ void edit_program_event(SDL_Event *e)
 				
 				Uint16 *param;
 	
-	if(mused.show_four_op_menu)
-	{
-		param = &inst->ops[mused.selected_operator - 1].program[mused.current_program_step];
-	}
-	
-	else
-	{
-		param = &inst->program[mused.current_program_step];
-	}
+				if(mused.show_four_op_menu)
+				{
+					param = &inst->ops[mused.selected_operator - 1].program[mused.current_program_step];
+				}
+				
+				else
+				{
+					param = &inst->program[mused.current_program_step];
+				}
+				
 				*param = validate_command(*param);
 
 				int steps = 1;
 				if (e->key.keysym.sym == SDLK_PAGEDOWN) steps *= 16;
-
-				slider_move_position(&mused.current_program_step, &mused.program_position, &mused.program_slider_param, steps);
+				
+				if(mused.show_four_op_menu)
+				{
+					slider_move_position(&mused.current_program_step, &mused.fourop_program_position[mused.selected_operator - 1], &mused.four_op_slider_param, steps);
+				}
+				
+				else
+				{
+					slider_move_position(&mused.current_program_step, &mused.program_position, &mused.program_slider_param, steps);
+				}
+				
+				//slider_move_position(&mused.current_program_step, &mused.program_position, &mused.program_slider_param, steps);
 
 				if (e->key.keysym.mod & KMOD_SHIFT)
 				{
@@ -2897,8 +2908,18 @@ void edit_program_event(SDL_Event *e)
 
 				int steps = 1;
 				if (e->key.keysym.sym == SDLK_PAGEUP) steps *= 16;
-
-				slider_move_position(&mused.current_program_step, &mused.program_position, &mused.program_slider_param, -steps);
+				
+				if(mused.show_four_op_menu)
+				{
+					slider_move_position(&mused.current_program_step, &mused.fourop_program_position[mused.selected_operator - 1], &mused.four_op_slider_param, -steps);
+				}
+				
+				else
+				{
+					slider_move_position(&mused.current_program_step, &mused.program_position, &mused.program_slider_param, -steps);
+				}
+				
+				//slider_move_position(&mused.current_program_step, &mused.program_position, &mused.program_slider_param, -steps);
 
 				if (e->key.keysym.mod & KMOD_SHIFT)
 				{
@@ -2965,7 +2986,21 @@ void edit_program_event(SDL_Event *e)
 				snapshot(S_T_INSTRUMENT);
 				if (e->key.keysym.sym == SDLK_BACKSPACE)
 				{
-					if (mused.current_program_step > 0) slider_move_position(&mused.current_program_step, &mused.program_position, &mused.program_slider_param, -1);
+					if (mused.current_program_step > 0) 
+					{
+						if(mused.show_four_op_menu)
+						{
+							slider_move_position(&mused.current_program_step, &mused.fourop_program_position[mused.selected_operator - 1], &mused.four_op_slider_param, -1);
+						}
+						
+						else
+						{
+							slider_move_position(&mused.current_program_step, &mused.program_position, &mused.program_slider_param, -1);
+						}
+						
+						//slider_move_position(&mused.current_program_step, &mused.program_position, &mused.program_slider_param, -1);
+					}
+					
 					else break;
 				}
 

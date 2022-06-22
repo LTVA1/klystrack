@@ -247,7 +247,7 @@ static void pattern_view_registers_map(GfxDomain *dest_surface, const SDL_Rect *
 	{	
 		if((mused.cyd.channel[i].fm.flags & CYD_FM_ENABLE_4OP) && flag == 0)
 		{
-			ch_reg_map_h = 80;
+			ch_reg_map_h = 40; //80
 			flag = 1;
 		}
 		
