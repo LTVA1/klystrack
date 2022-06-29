@@ -505,17 +505,15 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 				{
 					SDL_RWwrite(f, &inst->ops[i].base_note, sizeof(inst->ops[i].base_note), 1);
 					SDL_RWwrite(f, &inst->ops[i].finetune, sizeof(inst->ops[i].finetune), 1);
-					
-					debug("what");
 				}
 				
 				else
 				{
 					SDL_RWwrite(f, &inst->ops[i].harmonic, sizeof(inst->ops[i].harmonic), 1);
 					
-					Uint8 unsigned_detune = (Uint8)(inst->ops[i].detune + 3);
+					Uint8 unsigned_detune = (Uint8)(inst->ops[i].detune + 7);
 					
-					Uint8 temp_detune = ((unsigned_detune << 5) | (inst->ops[i].coarse_detune) << 3);
+					Uint8 temp_detune = ((unsigned_detune << 4) | ((inst->ops[i].coarse_detune) << 2));
 					
 					SDL_RWwrite(f, &temp_detune, sizeof(temp_detune), 1);
 				}
@@ -524,7 +522,7 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 				
 				if(inst->ops[i].cydflags & CYD_FM_OP_ENABLE_SSG_EG)
 				{
-					temp_feedback_ssgeg |= (inst->ops[i].ssg_eg_type << 3);
+					temp_feedback_ssgeg |= (inst->ops[i].ssg_eg_type << 4);
 				}
 				
 				SDL_RWwrite(f, &temp_feedback_ssgeg, sizeof(temp_feedback_ssgeg), 1);
@@ -641,24 +639,16 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 				
 				if (inst->ops[i].cydflags & CYD_FM_OP_ENABLE_WAVE)
 				{
-					/*if(mused.mus.cyd->wavetable_entries[mused.song.instrument[mused.current_instrument].ops[i].wavetable_entry].data != NULL)
+					if(write_wave)
 					{
-						Uint8 temp111 = 0xff;
-						SDL_RWwrite(f, &temp111, sizeof(temp111), 1);
-						
-						debug("save wave 1");
-						write_wavetable_entry(f, &mused.mus.cyd->wavetable_entries[mused.song.instrument[mused.current_instrument].ops[i].wavetable_entry], true);
-						debug("wave saved");
+						Uint8 temp11 = 0xff;
+						SDL_RWwrite(f, &temp11, sizeof(temp11), 1);
 					}
 					
 					else
 					{
 						SDL_RWwrite(f, &inst->ops[i].wavetable_entry, sizeof(inst->ops[i].wavetable_entry), 1);
-					}*/
-					
-					
-						SDL_RWwrite(f, &inst->ops[i].wavetable_entry, sizeof(inst->ops[i].wavetable_entry), 1);
-					
+					}
 				}
 			}
 		}
@@ -688,13 +678,13 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 		}
 	}
 	
-	if(inst->fm_flags & CYD_FM_ENABLE_4OP)
+	if((inst->fm_flags & CYD_FM_ENABLE_4OP) && write_wave)
 	{
 		for(int i = 0; i < CYD_FM_NUM_OPS; ++i)
 		{
 			if (inst->ops[i].cydflags & CYD_FM_OP_ENABLE_WAVE)
 			{
-				//write_wavetable_entry(f, &mused.mus.cyd->wavetable_entries[mused.song.instrument[mused.current_instrument].ops[i].wavetable_entry], true);
+				write_wavetable_entry(f, &mused.mus.cyd->wavetable_entries[mused.song.instrument[mused.current_instrument].ops[i].wavetable_entry], true);
 			}
 		}
 	}

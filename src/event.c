@@ -906,7 +906,7 @@ void four_op_add_param(int a)
 		
 		case FOUROP_DETUNE:
 
-		clamp(i->ops[mused.selected_operator - 1].detune, a, -3, 3);
+		clamp(i->ops[mused.selected_operator - 1].detune, a, -7, 7);
 
 		break;
 		
@@ -1315,7 +1315,7 @@ void four_op_add_param(int a)
 
 		case FOUROP_FEEDBACK:
 
-		clamp(i->ops[mused.selected_operator - 1].feedback, a, 0, 0x7);
+		clamp(i->ops[mused.selected_operator - 1].feedback, a, 0, 0xf);
 
 		break;
 

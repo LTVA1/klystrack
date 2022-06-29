@@ -50,9 +50,14 @@ void copy()
 		break;
 		
 		case EDITINSTRUMENT:
-		case EDIT4OP:
 		{
 			cp_copy(&mused.cp, CP_INSTRUMENT, &mused.song.instrument[mused.current_instrument], sizeof(mused.song.instrument[mused.current_instrument]), 0);
+		}
+		break;
+		
+		case EDIT4OP:
+		{
+			cp_copy(&mused.cp, CP_INSTRUMENT, &mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1], sizeof(mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1]), 0);
 		}
 		break;
 		
@@ -225,13 +230,23 @@ void paste()
 		break;
 	
 		case EDITINSTRUMENT:
-		case EDIT4OP:
 		{
 			if (mused.cp.type == CP_INSTRUMENT)
 			{
 				snapshot(S_T_INSTRUMENT);
 			
 				cp_paste_items(&mused.cp, CP_INSTRUMENT, &mused.song.instrument[mused.current_instrument], 1, sizeof(mused.song.instrument[mused.current_instrument]));
+			}
+		}
+		break;
+		
+		case EDIT4OP:
+		{
+			if (mused.cp.type == CP_INSTRUMENT)
+			{
+				snapshot(S_T_INSTRUMENT);
+			
+				cp_paste_items(&mused.cp, CP_INSTRUMENT, &mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1], 1, sizeof(mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1]));
 			}
 		}
 		break;

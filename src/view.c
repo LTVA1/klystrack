@@ -1702,11 +1702,11 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 
 void draw_op(SDL_Rect* op, int opx, int opy, int op_num, MusInstrument* inst)
 {
-	gfx_line(domain, opx + 1, opy + 2, opx - 2, opy + 2, ((0x90 * inst->ops[op_num].feedback / 7) << 16) + ((0xA7 * inst->ops[op_num].feedback / 7) << 8) + 0xA0 * inst->ops[op_num].feedback / 7); //feedback
-	gfx_line(domain, opx - 2, opy + 2, opx - 2, opy - 2, ((0x90 * inst->ops[op_num].feedback / 7) << 16) + ((0xA7 * inst->ops[op_num].feedback / 7) << 8) + 0xA0 * inst->ops[op_num].feedback / 7);
-	gfx_line(domain, opx - 2, opy - 2, opx + 23, opy - 2, ((0x90 * inst->ops[op_num].feedback / 7) << 16) + ((0xA7 * inst->ops[op_num].feedback / 7) << 8) + 0xA0 * inst->ops[op_num].feedback / 7);
-	gfx_line(domain, opx + 23, opy - 2, opx + 23, opy + 2, ((0x90 * inst->ops[op_num].feedback / 7) << 16) + ((0xA7 * inst->ops[op_num].feedback / 7) << 8) + 0xA0 * inst->ops[op_num].feedback / 7);
-	gfx_line(domain, opx + 23, opy + 2, opx + 20, opy + 2, ((0x90 * inst->ops[op_num].feedback / 7) << 16) + ((0xA7 * inst->ops[op_num].feedback / 7) << 8) + 0xA0 * inst->ops[op_num].feedback / 7);
+	gfx_line(domain, opx + 1, opy + 2, opx - 2, opy + 2, ((0x60 * inst->ops[op_num].feedback / 15 + (inst->ops[op_num].feedback > 0 ? 0x30 : 0)) << 16) + ((0x6E * inst->ops[op_num].feedback / 15 + (inst->ops[op_num].feedback > 0 ? 0x37 : 0)) << 8) + 0x6A * inst->ops[op_num].feedback / 15 + (inst->ops[op_num].feedback > 0 ? 0x35 : 0)); //feedback
+	gfx_line(domain, opx - 2, opy + 2, opx - 2, opy - 2, ((0x60 * inst->ops[op_num].feedback / 15 + (inst->ops[op_num].feedback > 0 ? 0x30 : 0)) << 16) + ((0x6E * inst->ops[op_num].feedback / 15 + (inst->ops[op_num].feedback > 0 ? 0x37 : 0)) << 8) + 0x6A * inst->ops[op_num].feedback / 15 + (inst->ops[op_num].feedback > 0 ? 0x35 : 0));
+	gfx_line(domain, opx - 2, opy - 2, opx + 23, opy - 2, ((0x60 * inst->ops[op_num].feedback / 15 + (inst->ops[op_num].feedback > 0 ? 0x30 : 0)) << 16) + ((0x6E * inst->ops[op_num].feedback / 15 + (inst->ops[op_num].feedback > 0 ? 0x37 : 0)) << 8) + 0x6A * inst->ops[op_num].feedback / 15 + (inst->ops[op_num].feedback > 0 ? 0x35 : 0));
+	gfx_line(domain, opx + 23, opy - 2, opx + 23, opy + 2, ((0x60 * inst->ops[op_num].feedback / 15 + (inst->ops[op_num].feedback > 0 ? 0x30 : 0)) << 16) + ((0x6E * inst->ops[op_num].feedback / 15 + (inst->ops[op_num].feedback > 0 ? 0x37 : 0)) << 8) + 0x6A * inst->ops[op_num].feedback / 15 + (inst->ops[op_num].feedback > 0 ? 0x35 : 0));
+	gfx_line(domain, opx + 23, opy + 2, opx + 20, opy + 2, ((0x60 * inst->ops[op_num].feedback / 15 + (inst->ops[op_num].feedback > 0 ? 0x30 : 0)) << 16) + ((0x6E * inst->ops[op_num].feedback / 15 + (inst->ops[op_num].feedback > 0 ? 0x37 : 0)) << 8) + 0x6A * inst->ops[op_num].feedback / 15 + (inst->ops[op_num].feedback > 0 ? 0x35 : 0));
 	
 	op->x = opx;
 	op->y = opy;
@@ -2533,7 +2533,7 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 
 			for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
 			{
-				if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].flags & CYD_FM_OP_ENABLE_GATE) && (mused.channel[c].ops[mused.selected_operator - 1].flags & MUS_FM_OP_PROGRAM_RUNNING) && mused.channel[c].ops[mused.selected_operator - 1].program_tick == i) && !(inst->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG)) 
+				if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].flags & CYD_FM_OP_ENABLE_GATE) && (mused.channel[c].ops[mused.selected_operator - 1].flags & MUS_FM_OP_PROGRAM_RUNNING) && mused.channel[c].ops[mused.selected_operator - 1].program_tick == i) && !(inst->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG))
 				{
 					cur = '½'; //where arrow pointing at current instrument (operator) program step is drawn
 				}

@@ -535,7 +535,7 @@ void kill_duplicate_wavetables(MusSong *song, CydEngine *cyd) //wasn't there
 					cyd->wavetable_entries[i].base_note == cyd->wavetable_entries[j].base_note && 
 					cyd->wavetable_entries[i].sample_rate != 0 && 
 					cyd->wavetable_entries[i].samples != 0 &&
-					strcmp(song->wavetable_names[j], song->wavetable_names[i]) == 0)
+					(strcmp(song->wavetable_names[j], song->wavetable_names[i]) == 0 || (song->wavetable_names[j] == NULL && song->wavetable_names[i] == 0)))
 				{
 					Uint8 flag = 0;
 					
@@ -559,11 +559,28 @@ void kill_duplicate_wavetables(MusSong *song, CydEngine *cyd) //wasn't there
 							if (song->instrument[h].fm_wave == j)
 								song->instrument[h].fm_wave = i;
 							
+							for(int q = 0; q < CYD_FM_NUM_OPS; ++q)
+							{
+								if (song->instrument[h].ops[q].wavetable_entry == j)
+								song->instrument[h].ops[q].wavetable_entry = i;
+							}
+							
 							for (int p = 0; p < MUS_PROG_LEN; ++p)
 							{
 								if ((song->instrument[h].program[p] & 0x3B00) == 0x3B00 && (song->instrument[h].program[p] & 0x00FF) == j && (song->instrument[h].program[p] & 0xFF00) != 0xFF00)
 								{
 									song->instrument[h].program[p] = 0x3B00 + i;
+								}
+							}
+							
+							for(int q = 0; q < CYD_FM_NUM_OPS; ++q)
+							{
+								for (int p = 0; p < MUS_PROG_LEN; ++p)
+								{
+									if ((song->instrument[h].ops[q].program[p] & 0x3B00) == 0x3B00 && (song->instrument[h].ops[q].program[p] & 0x00FF) == j && (song->instrument[h].ops[q].program[p] & 0xFF00) != 0xFF00)
+									{
+										song->instrument[h].ops[q].program[p] = 0x3B00 + i;
+									}
 								}
 							}
 						}

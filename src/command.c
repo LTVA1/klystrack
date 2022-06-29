@@ -128,13 +128,76 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_CUTOFF_FINE_SET, 0xf000, "Set filter cutoff (fine)", "CutFine", 0, CYD_CUTOFF_MAX - 1},
 	{MUS_FX_PW_FINE_SET, 0xf000, "Set pulse width (fine)", "PWFine", 0, 0xfff}, //wasn't there
 	{MUS_FX_BUZZ_SET_SEMI, 0xff00, "Set buzz semitone", "BuzzSemi", -1, -1},
-	{MUS_FX_FM_SET_MODULATION, 0xff00, "Set FM modulation", "FMMod", 0, 0x7f},
-	{MUS_FX_FM_SET_FEEDBACK, 0xfff0, "Set FM feedback", "FMFB", 0, 7},
-	{MUS_FX_FM_SET_HARMONIC, 0xff00, "Set FM multiplier", "FMMult", 0, 255},
-	{MUS_FX_FM_SET_WAVEFORM, 0xff00, "Set FM waveform", "FMWave", 0, 255},
+	
+	{MUS_FX_SET_ATTACK_RATE, 0xff00, "Set attack rate", "AtkRate", 0, 0x7f},
+	{MUS_FX_SET_DECAY_RATE, 0xff00, "Set decay rate", "DecRate", 0, 0x7f},
+	{MUS_FX_SET_SUSTAIN_LEVEL, 0xff00, "Set sustain level", "SusLev", 0, 0x3f},
+	{MUS_FX_SET_RELEASE_RATE, 0xff00, "Set release rate", "RelRate", 0, 0x7f},
 	
 	{MUS_FX_SET_EXPONENTIALS, 0xfff0, "Set exponential settings", "SetExpSett", 0, 0xf}, //wasn't there
 	{MUS_FX_FM_SET_EXPONENTIALS, 0xfff0, "Set FM modulator exponential settings", "SetFMexpSett", 0, 0xf}, //wasn't there
+	
+	{MUS_FX_FM_SET_MODULATION, 0xff00, "Set FM modulation", "FMMod", 0, 0xff},
+	{MUS_FX_FM_SET_FEEDBACK, 0xfff0, "Set FM feedback", "FMFB", 0, 15},
+	{MUS_FX_FM_SET_HARMONIC, 0xff00, "Set FM multiplier", "FMMult", 0, 255},
+	{MUS_FX_FM_SET_WAVEFORM, 0xff00, "Set FM waveform", "FMWave", 0, 255},
+	
+	{MUS_FX_FM_SET_4OP_ALGORITHM, 0xff00, "Set 4-op FM algorithm", "4opFMalg", 0, 13},
+	{MUS_FX_FM_SET_4OP_MASTER_VOLUME, 0xff00, "Set 4-op FM master volume", "4opFMvol", 0, 255},
+	
+	{MUS_FX_FM_4OP_SET_DETUNE, 0xfff0, "Set 4-op FM operator detune", "4opFMdet", 0, 15},
+	{MUS_FX_FM_4OP_SET_COARSE_DETUNE, 0xfff0, "Set 4-op FM operator coarse detune", "4opFMdet2", 0, 3},
+	
+	{MUS_FX_FM_TRIGGER_OP1_RELEASE, 0xff00, "Trigger FM operator 1 release", "TrigFmOp1rel", 0, 255},
+	{MUS_FX_FM_TRIGGER_OP2_RELEASE, 0xff00, "Trigger FM operator 2 release", "TrigFmOp2rel", 0, 255},
+	{MUS_FX_FM_TRIGGER_OP3_RELEASE, 0xff00, "Trigger FM operator 3 release", "TrigFmOp3rel", 0, 255},
+	{MUS_FX_FM_TRIGGER_OP4_RELEASE, 0xff00, "Trigger FM operator 4 release", "TrigFmOp4rel", 0, 255},
+	
+	{MUS_FX_FM_SET_OP1_ATTACK_RATE, 0xff00, "Set FM operator 1 attack rate", "FmOp1atkRate", 0, 127},
+	{MUS_FX_FM_SET_OP2_ATTACK_RATE, 0xff00, "Set FM operator 2 attack rate", "FmOp2atkRate", 0, 127},
+	{MUS_FX_FM_SET_OP3_ATTACK_RATE, 0xff00, "Set FM operator 3 attack rate", "FmOp3atkRate", 0, 127},
+	{MUS_FX_FM_SET_OP4_ATTACK_RATE, 0xff00, "Set FM operator 4 attack rate", "FmOp4atkRate", 0, 127},
+	
+	{MUS_FX_FM_SET_OP1_DECAY_RATE, 0xff00, "Set FM operator 1 decay rate", "FmOp1decRate", 0, 127},
+	{MUS_FX_FM_SET_OP2_DECAY_RATE, 0xff00, "Set FM operator 2 decay rate", "FmOp2decRate", 0, 127},
+	{MUS_FX_FM_SET_OP3_DECAY_RATE, 0xff00, "Set FM operator 3 decay rate", "FmOp3decRate", 0, 127},
+	{MUS_FX_FM_SET_OP4_DECAY_RATE, 0xff00, "Set FM operator 4 decay rate", "FmOp4decRate", 0, 127},
+	
+	{MUS_FX_FM_SET_OP1_SUSTAIN_LEVEL, 0xff00, "Set FM operator 1 sustain level", "FmOp1susLev", 0, 63},
+	{MUS_FX_FM_SET_OP2_SUSTAIN_LEVEL, 0xff00, "Set FM operator 2 sustain level", "FmOp2susLev", 0, 63},
+	{MUS_FX_FM_SET_OP3_SUSTAIN_LEVEL, 0xff00, "Set FM operator 3 sustain level", "FmOp3susLev", 0, 63},
+	{MUS_FX_FM_SET_OP4_SUSTAIN_LEVEL, 0xff00, "Set FM operator 4 sustain level", "FmOp4susLev", 0, 63},
+	
+	{MUS_FX_FM_SET_OP1_RELEASE_RATE, 0xff00, "Set FM operator 1 release rate", "FmOp1relRate", 0, 127},
+	{MUS_FX_FM_SET_OP2_RELEASE_RATE, 0xff00, "Set FM operator 2 release rate", "FmOp2relRate", 0, 127},
+	{MUS_FX_FM_SET_OP3_RELEASE_RATE, 0xff00, "Set FM operator 3 release rate", "FmOp3relRate", 0, 127},
+	{MUS_FX_FM_SET_OP4_RELEASE_RATE, 0xff00, "Set FM operator 4 release rate", "FmOp4relRate", 0, 127},
+	
+	{MUS_FX_FM_SET_OP1_MULT, 0xff00, "Set FM operator 1 multiplier", "FmOp1Mult", 0, 255},
+	{MUS_FX_FM_SET_OP2_MULT, 0xff00, "Set FM operator 2 multiplier", "FmOp2Mult", 0, 255},
+	{MUS_FX_FM_SET_OP3_MULT, 0xff00, "Set FM operator 3 multiplier", "FmOp3Mult", 0, 255},
+	{MUS_FX_FM_SET_OP4_MULT, 0xff00, "Set FM operator 4 multiplier", "FmOp4Mult", 0, 255},
+	
+	{MUS_FX_FM_SET_OP1_VOL, 0xff00, "Set FM operator 1 volume", "FmOp1Vol", 0, 255},
+	{MUS_FX_FM_SET_OP2_VOL, 0xff00, "Set FM operator 2 volume", "FmOp2Vol", 0, 255},
+	{MUS_FX_FM_SET_OP3_VOL, 0xff00, "Set FM operator 3 volume", "FmOp3Vol", 0, 255},
+	{MUS_FX_FM_SET_OP4_VOL, 0xff00, "Set FM operator 4 volume", "FmOp4Vol", 0, 255},
+	
+	{MUS_FX_FM_SET_OP1_DETUNE, 0xfff0, "Set FM operator 1 detune", "FmOp1Det", 0, 15},
+	{MUS_FX_FM_SET_OP2_DETUNE, 0xfff0, "Set FM operator 2 detune", "FmOp2Det", 0, 15},
+	{MUS_FX_FM_SET_OP3_DETUNE, 0xfff0, "Set FM operator 3 detune", "FmOp3Det", 0, 15},
+	{MUS_FX_FM_SET_OP4_DETUNE, 0xfff0, "Set FM operator 4 detune", "FmOp4Det", 0, 15},
+	
+	{MUS_FX_FM_SET_OP1_COARSE_DETUNE, 0xfff0, "Set FM operator 1 coarse detune", "FmOp1Det2", 0, 3},
+	{MUS_FX_FM_SET_OP2_COARSE_DETUNE, 0xfff0, "Set FM operator 2 coarse detune", "FmOp2Det2", 0, 3},
+	{MUS_FX_FM_SET_OP3_COARSE_DETUNE, 0xfff0, "Set FM operator 3 coarse detune", "FmOp3Det2", 0, 3},
+	{MUS_FX_FM_SET_OP4_COARSE_DETUNE, 0xfff0, "Set FM operator 4 coarse detune", "FmOp4Det2", 0, 3},
+	
+	{MUS_FX_FM_SET_OP1_FEEDBACK, 0xfff0, "Set FM operator 1 feedback", "FmOp1FB", 0, 15},
+	{MUS_FX_FM_SET_OP2_FEEDBACK, 0xfff0, "Set FM operator 2 feedback", "FmOp2FB", 0, 15},
+	{MUS_FX_FM_SET_OP3_FEEDBACK, 0xfff0, "Set FM operator 3 feedback", "FmOp3FB", 0, 15},
+	{MUS_FX_FM_SET_OP4_FEEDBACK, 0xfff0, "Set FM operator 4 feedback", "FmOp4FB", 0, 15},
+	
 	{0, 0, NULL}
 };
 
@@ -217,6 +280,11 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst)
 		{
 			snprintf(text, buffer_size, "%s (Default)\n", name);
 		}
+	}
+	
+	else if ((fi & 0xfff0) == MUS_FX_FM_4OP_SET_DETUNE || (fi & 0xfff0) == MUS_FX_FM_SET_OP1_DETUNE || (fi & 0xfff0) == MUS_FX_FM_SET_OP2_DETUNE || (fi & 0xfff0) == MUS_FX_FM_SET_OP3_DETUNE || (fi & 0xfff0) == MUS_FX_FM_SET_OP4_DETUNE)
+	{
+		snprintf(text, buffer_size, "%s (%+1d)\n", name, my_min(7, my_max((inst & 0xF) - 7, -7)));
 	}
 	
 	else snprintf(text, buffer_size, "%s\n", name);
