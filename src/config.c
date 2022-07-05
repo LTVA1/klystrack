@@ -80,9 +80,9 @@ static const struct { int type; const char *name; void *param; Uint64 mask; } co
 	{ C_BOOL, "show_logo", &mused.flags, SHOW_LOGO }, //wasn't there
 	{ C_BOOL, "show_analyzer", &mused.flags, SHOW_ANALYZER }, //wasn't there
 	{ C_BOOL, "show_oscilloscope_inst_editor", &mused.flags, SHOW_OSCILLOSCOPE_INST_EDITOR }, //wasn't there
-	{ C_BOOL, "show_oscilloscopes_pattern_editor", &mused.flags, SHOW_OSCILLOSCOPES_PATTERN_EDITOR }, //wasn't there
-	{ C_BOOL, "show_oscilloscope_midlines", &mused.flags, SHOW_OSCILLOSCOPE_MIDLINES }, //wasn't there
-	{ C_BOOL, "show_fake_registers_table", &mused.flags, SHOW_REGISTERS_MAP }, //wasn't there
+	{ C_BOOL, "show_oscilloscopes_pattern_editor", &mused.flags2, SHOW_OSCILLOSCOPES_PATTERN_EDITOR }, //wasn't there
+	{ C_BOOL, "show_oscilloscope_midlines", &mused.flags2, SHOW_OSCILLOSCOPE_MIDLINES }, //wasn't there
+	{ C_BOOL, "show_fake_registers_table", &mused.flags2, SHOW_REGISTERS_MAP }, //wasn't there
 	{ C_END }
 };
 

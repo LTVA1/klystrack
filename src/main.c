@@ -235,6 +235,8 @@ int main(int argc, char **argv)
 	debug("Starting %s", VERSION_STRING);
 	
 	mused.output_buffer_counter = 0; //wasn't there
+	mused.flags = 0;
+	mused.flags2 = 0;
 
 	SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_NOPARACHUTE|SDL_INIT_TIMER);
 	atexit(SDL_Quit);
@@ -400,6 +402,11 @@ int main(int argc, char **argv)
 				case SDL_MOUSEMOTION:
 					gfx_convert_mouse_coordinates(domain, &e.motion.x, &e.motion.y);
 					gfx_convert_mouse_coordinates(domain, &e.motion.xrel, &e.motion.yrel);
+					
+					if (mused.mode == MENU)
+					{
+						draw_menu(domain, &e);
+					}
 				break;
 
 				case SDL_MOUSEBUTTONDOWN:

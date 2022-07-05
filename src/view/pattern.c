@@ -1057,7 +1057,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 		}
 		
 		//oscilloscope per track
-		if(mused.flags & SHOW_OSCILLOSCOPES_PATTERN_EDITOR)
+		if(mused.flags2 & SHOW_OSCILLOSCOPES_PATTERN_EDITOR)
 		{
 			gfx_domain_set_clip(dest_surface, &track);
 			
@@ -1073,11 +1073,11 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 
 			int *pointer = &mused.channels_output_buffer_counters[channel];
 			
-			update_oscillscope_view(dest_surface, &area, mused.channels_output_buffers[channel], area.w / 8, pointer, false, (bool)(mused.flags & SHOW_OSCILLOSCOPE_MIDLINES));
+			update_oscillscope_view(dest_surface, &area, mused.channels_output_buffers[channel], area.w / 8, pointer, false, (bool)(mused.flags2 & SHOW_OSCILLOSCOPE_MIDLINES));
 			//void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area, int* sound_buffer, int size, int* buffer_counter, bool is_translucent, bool show_midlines);
 		}
 		
-		if(mused.flags & SHOW_REGISTERS_MAP)
+		if(mused.flags2 & SHOW_REGISTERS_MAP)
 		{
 			registers_map_x_offset = track.x + track.w;
 			registers_map_y_offset = track.y;
@@ -1196,7 +1196,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 		mused.pattern_position = my_max(0, my_min(mused.song.song_length - 1, mused.pattern_position));
 	}
 	
-	if(mused.flags & SHOW_REGISTERS_MAP)
+	if(mused.flags2 & SHOW_REGISTERS_MAP)
 	{
 		SDL_Rect reg_map;
 		copy_rect(&reg_map, dest);

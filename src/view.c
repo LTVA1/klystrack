@@ -1295,7 +1295,7 @@ void oscilloscope_view(GfxDomain *dest_surface, SDL_Rect *dest, const SDL_Event 
 		dest->x -= 10;
 	}
 	
-	if(mused.flags & SHOW_OSCILLOSCOPE_INST_EDITOR)
+	if(mused.flags2 & SHOW_OSCILLOSCOPE_INST_EDITOR)
 	{
 		SDL_Rect area;
 		copy_rect(&area, dest);
