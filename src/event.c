@@ -2108,7 +2108,6 @@ void pattern_event(SDL_Event *e)
 
 		switch (e->key.keysym.sym)
 		{
-
 			case SDLK_RETURN:
 			{
 				if (e->key.keysym.mod & KMOD_CTRL)
