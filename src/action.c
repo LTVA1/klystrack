@@ -270,7 +270,7 @@ void new_song_action(void *unused1, void *unused2, void *unused3)
 {
 	if (confirm(domain, mused.slider_bevel, &mused.largefont, "Clear song and data?"))
 	{
-		stop(0,0,0);
+		stop(0, 0, 0);
 		new_song();
 	}
 }
@@ -558,7 +558,7 @@ void change_channels(void *delta, void *unused1, void *unused2)
 		mused.cyd.n_channels = mused.song.num_channels;
 	}
 	
-	else if (CASTPTR(int,delta) > 0 && mused.song.num_channels < MUS_MAX_CHANNELS)
+	else if (CASTPTR(int, delta) > 0 && mused.song.num_channels < MUS_MAX_CHANNELS)
 	{
 		set_channels(mused.song.num_channels + 1);
 		mused.cyd.n_channels = mused.song.num_channels;

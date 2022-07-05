@@ -226,11 +226,13 @@ void wavetable_chord(void *transpose, void *unused2, void *unused3)
 				
 				invalidate_wavetable_view();
 			}
+			
 			else
 			{
 				set_info_message("Out of memory!");
 			}
 		}
+		
 		else
 		{
 			set_info_message("Resulting wave was too big");

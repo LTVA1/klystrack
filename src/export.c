@@ -42,7 +42,7 @@ bool export_wav(MusSong *song, CydWavetableEntry * entry, FILE *f, int channel)
 	MusEngine mus;
 	CydEngine cyd;
 	
-	cyd_init(&cyd, 44100, song->num_channels); //cyd_init(&cyd, 100000, MUS_MAX_CHANNELS);
+	cyd_init(&cyd, 44100, song->num_channels); //cyd_init(&cyd, 100000, 64);
 	cyd.flags |= CYD_SINGLE_THREAD;
 	mus_init_engine(&mus, &cyd);
 	mus.volume = song->master_volume;
@@ -168,7 +168,7 @@ bool export_wav_hires(MusSong *song, CydWavetableEntry * entry, FILE *f, int cha
 	MusEngine mus;
 	CydEngine cyd;
 	
-	cyd_init(&cyd, 384000, song->num_channels); //cyd_init(&cyd, 100000, MUS_MAX_CHANNELS);
+	cyd_init(&cyd, 384000, song->num_channels); //cyd_init(&cyd, 100000, 64);
 	cyd.flags |= CYD_SINGLE_THREAD;
 	mus_init_engine(&mus, &cyd);
 	mus.volume = song->master_volume;

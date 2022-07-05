@@ -812,8 +812,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 			{
 				static const char * param_desc[] =
 				{
-					
-					"enable 3CH_EXP mode (independent freq. per op.)",
+					"Enable 3CH_EXP mode (independent freq. per op.)",
 					"4-op system algorithm",
 					
 					"4-op master volume",
@@ -2429,7 +2428,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			update_rect(&view2, &r);
 			four_op_text(event, &r, FOUROP_VIBDEPTH,   "VIB.D", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].vibrato_depth), 2);
 			update_rect(&view2, &r);
-			four_op_text(event, &r, FOUROP_VIBSHAPE,   "VIB.SH", "%c", MAKEPTR(inst->ops[mused.selected_operator - 1].vibrato_shape + 0xf4), 1);
+			four_op_text(event, &r, FOUROP_VIBSHAPE,   "VIB.SH", "%c", inst->ops[mused.selected_operator - 1].vibrato_shape < 5 ? MAKEPTR(inst->ops[mused.selected_operator - 1].vibrato_shape + 0xf4) : MAKEPTR(inst->ops[mused.selected_operator - 1].vibrato_shape + 0xed), 1);
 			update_rect(&view2, &r);
 			four_op_text(event, &r, FOUROP_VIBDELAY,   "V.DEL", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].vibrato_delay), 2);
 			update_rect(&view2, &r);
@@ -2437,7 +2436,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			update_rect(&view2, &r);
 			four_op_text(event, &r, FOUROP_PWMDEPTH,   "PWM.D", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].pwm_depth), 2);
 			update_rect(&view2, &r);
-			four_op_text(event, &r, FOUROP_PWMSHAPE,   "PWM.SH", "%c", MAKEPTR(inst->ops[mused.selected_operator - 1].pwm_shape + 0xf4), 1);
+			four_op_text(event, &r, FOUROP_PWMSHAPE,   "PWM.SH", "%c", inst->ops[mused.selected_operator - 1].pwm_shape < 5 ? MAKEPTR(inst->ops[mused.selected_operator - 1].pwm_shape + 0xf4) : MAKEPTR(inst->ops[mused.selected_operator - 1].pwm_shape + 0xed), 1);
 			update_rect(&view2, &r);
 			four_op_text(event, &r, FOUROP_PWMDELAY,   "PWM.DEL", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].pwm_delay), 2); //wasn't there
 			update_rect(&view2, &r);
@@ -2445,7 +2444,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			update_rect(&view2, &r);
 			four_op_text(event, &r, FOUROP_TREMDEPTH,   "TR.D", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].tremolo_depth), 2);
 			update_rect(&view2, &r);
-			four_op_text(event, &r, FOUROP_TREMSHAPE,   "TR.SH", "%c", MAKEPTR(inst->ops[mused.selected_operator - 1].tremolo_shape + 0xf4), 1);
+			four_op_text(event, &r, FOUROP_TREMSHAPE,   "TR.SH", "%c", inst->ops[mused.selected_operator - 1].tremolo_shape < 5 ? MAKEPTR(inst->ops[mused.selected_operator - 1].tremolo_shape + 0xf4) : MAKEPTR(inst->ops[mused.selected_operator - 1].tremolo_shape + 0xed), 1);
 			update_rect(&view2, &r);
 			four_op_text(event, &r, FOUROP_TREMDELAY,   "TR.DEL", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].tremolo_delay), 2);
 			update_rect(&view2, &r);
@@ -2666,7 +2665,7 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 		update_rect(&frame, &r);
 		inst_text(event, &r, P_VIBDEPTH,   "VIB.D", "%02X", MAKEPTR(inst->vibrato_depth), 2);
 		update_rect(&frame, &r);
-		inst_text(event, &r, P_VIBSHAPE,   "VIB.SH", "%c", MAKEPTR(inst->vibrato_shape + 0xf4), 1);
+		inst_text(event, &r, P_VIBSHAPE,   "VIB.SH", "%c", inst->vibrato_shape < 5 ? MAKEPTR(inst->vibrato_shape + 0xf4) : MAKEPTR(inst->vibrato_shape + 0xed), 1);
 		update_rect(&frame, &r);
 		inst_text(event, &r, P_VIBDELAY,   "V.DEL", "%02X", MAKEPTR(inst->vibrato_delay), 2);
 		update_rect(&frame, &r);
@@ -2674,7 +2673,7 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 		update_rect(&frame, &r);
 		inst_text(event, &r, P_PWMDEPTH,   "PWM.D", "%02X", MAKEPTR(inst->pwm_depth), 2);
 		update_rect(&frame, &r);
-		inst_text(event, &r, P_PWMSHAPE,   "PWM.SH", "%c", MAKEPTR(inst->pwm_shape + 0xf4), 1);
+		inst_text(event, &r, P_PWMSHAPE,   "PWM.SH", "%c", inst->pwm_shape < 5 ? MAKEPTR(inst->pwm_shape + 0xf4) : MAKEPTR(inst->pwm_shape + 0xed), 1);
 		update_rect(&frame, &r);
 		inst_text(event, &r, P_PWMDELAY,   "PWM.DEL", "%02X", MAKEPTR(inst->pwm_delay), 2); //wasn't there
 		update_rect(&frame, &r);
@@ -2683,7 +2682,7 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 		update_rect(&frame, &r);
 		inst_text(event, &r, P_TREMDEPTH,   "TR.D", "%02X", MAKEPTR(inst->tremolo_depth), 2);
 		update_rect(&frame, &r);
-		inst_text(event, &r, P_TREMSHAPE,   "TR.SH", "%c", MAKEPTR(inst->tremolo_shape + 0xf4), 1);
+		inst_text(event, &r, P_TREMSHAPE,   "TR.SH", "%c", inst->tremolo_shape < 5 ? MAKEPTR(inst->tremolo_shape + 0xf4) : MAKEPTR(inst->tremolo_shape + 0xed), 1);
 		update_rect(&frame, &r);
 		inst_text(event, &r, P_TREMDELAY,   "TR.DEL", "%02X", MAKEPTR(inst->tremolo_delay), 2);
 		update_rect(&frame, &r);
@@ -2813,7 +2812,7 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 		update_rect(&frame, &r);
 		inst_text(event, &r, P_FM_VIBDEPTH,   "FM VIB.D", "%02X", MAKEPTR(inst->fm_vibrato_depth), 2);
 		update_rect(&frame, &r);
-		inst_text(event, &r, P_FM_VIBSHAPE,   "FM VIB.SH", "%c", MAKEPTR(inst->fm_vibrato_shape + 0xf4), 1);
+		inst_text(event, &r, P_FM_VIBSHAPE,   "FM VIB.SH", "%c", inst->fm_vibrato_shape < 5 ? MAKEPTR(inst->fm_vibrato_shape + 0xf4) : MAKEPTR(inst->fm_vibrato_shape + 0xed), 1);
 		update_rect(&frame, &r);
 		inst_text(event, &r, P_FM_VIBDELAY,   "FM V.DEL", "%02X", MAKEPTR(inst->fm_vibrato_delay), 2);
 		update_rect(&frame, &r);
@@ -2822,7 +2821,7 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 		update_rect(&frame, &r);
 		inst_text(event, &r, P_FM_TREMDEPTH,   "FM TR.D", "%02X", MAKEPTR(inst->fm_tremolo_depth), 2);
 		update_rect(&frame, &r);
-		inst_text(event, &r, P_FM_TREMSHAPE,   "FM TR.SH", "%c", MAKEPTR(inst->fm_tremolo_shape + 0xf4), 1);
+		inst_text(event, &r, P_FM_TREMSHAPE,   "FM TR.SH", "%c", inst->fm_tremolo_shape < 5 ? MAKEPTR(inst->fm_tremolo_shape + 0xf4) : MAKEPTR(inst->fm_tremolo_shape + 0xed), 1);
 		update_rect(&frame, &r);
 		inst_text(event, &r, P_FM_TREMDELAY,   "FM TR.DEL", "%02X", MAKEPTR(inst->fm_tremolo_delay), 2);
 		update_rect(&frame, &r);

@@ -196,6 +196,7 @@ static void update_sample_preview(GfxDomain *dest, const SDL_Rect* area)
 		
 		mused.wavetable_preview = gfx_create_surface(dest, area->w, area->h);	
 	}
+	
 	else if (mused.wavetable_preview_idx == mused.selected_wavetable) return;
 	
 	mused.wavetable_preview_idx = mused.selected_wavetable;
@@ -245,7 +246,6 @@ static void update_sample_preview(GfxDomain *dest, const SDL_Rect* area)
 		}
 		
 		debug("Wavetable item bitmask = %x, lowest bit = %d", mused.wavetable_bits, __builtin_ffs(mused.wavetable_bits) - 1);
-		
 		set_info_message("Sample quality %d bits", 16 - (__builtin_ffs(mused.wavetable_bits) - 1));
 	}
 	

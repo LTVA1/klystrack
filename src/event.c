@@ -35,6 +35,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "mymsg.h"
 #include "command.h"
 
+#include "theme.h"
+
 extern Mused mused;
 
 #define flipbit(val, bit) { val ^= bit; };
@@ -1336,7 +1338,6 @@ void four_op_add_param(int a)
 }
 
 static int note_playing[MUS_MAX_CHANNELS] = {-1};
-
 
 static int find_playing_note(int n)
 {
@@ -3597,7 +3598,6 @@ void wave_add_param(int d)
 
 }
 
-
 void wave_event(SDL_Event *e)
 {
 	switch (e->type)
@@ -3616,6 +3616,39 @@ void wave_event(SDL_Event *e)
 				}
 
 				if (mused.wavetable_param >= W_N_PARAMS) mused.wavetable_param = W_N_PARAMS - 1;
+			}
+			break;
+			
+			case SDLK_DELETE:
+			{
+				char buffer[500];
+				
+				snprintf(buffer, 499, "Delete selected wavetable (%s)?", mused.song.wavetable_names[mused.selected_wavetable]);
+				
+				if (confirm(domain, mused.slider_bevel, &mused.largefont, buffer))
+				{
+					CydWavetableEntry *wave = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+					
+					wave->flags = 0;
+					wave->sample_rate = 0;
+					wave->samples = 0;
+					wave->loop_begin = 0;
+					wave->loop_end = 0;
+					wave->loop_point = 0;
+					wave->base_note = 0;
+					
+					free(wave->data);
+					wave->data = NULL;
+					
+					memset(mused.song.wavetable_names[mused.selected_wavetable], 0, MUS_WAVETABLE_NAME_LEN + 1);
+					
+					if (!(mused.flags & SHOW_WAVEGEN))
+					{
+						SDL_FillRect(mused.wavetable_preview->surface, NULL, SDL_MapRGB(mused.wavetable_preview->surface->format, (colors[COLOR_WAVETABLE_BACKGROUND] >> 16) & 255, (colors[COLOR_WAVETABLE_BACKGROUND] >> 8) & 255, colors[COLOR_WAVETABLE_BACKGROUND] & 255));
+						
+						gfx_update_texture(domain, mused.wavetable_preview);
+					}
+				}
 			}
 			break;
 

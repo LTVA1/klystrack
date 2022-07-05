@@ -89,6 +89,7 @@ Wave * wave_load(FILE *f)
 	{
 		fseek(f, sizeof(Uint32), SEEK_CUR);
 	}
+	
 	else
 	{
 		fseek(f, beginning_of_WAVE + WAVE.c.cksize + 8, SEEK_SET);

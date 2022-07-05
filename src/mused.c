@@ -244,7 +244,7 @@ void default_settings()
 }
 
 
-void init(MusInstrument *instrument, MusPattern *pattern, MusSeqPattern sequence[MUS_MAX_CHANNELS][NUM_SEQUENCES], MusChannel *channel)
+void init(MusInstrument *instrument, MusPattern *pattern, MusSeqPattern **sequence, MusChannel *channel)//void init(MusInstrument *instrument, MusPattern *pattern, MusSeqPattern sequence[MUS_MAX_CHANNELS][NUM_SEQUENCES], MusChannel *channel)
 {
 	memset(&mused, 0, sizeof(mused));
 

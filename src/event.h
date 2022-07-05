@@ -29,6 +29,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "SDL.h"
 #include "gui/slider.h"
 
+#include "../klystron/src/gui/toolutil.h"
+
 void edit_instrument_event(SDL_Event *e);
 void sequence_event(SDL_Event *e);
 void pattern_event(SDL_Event *e);

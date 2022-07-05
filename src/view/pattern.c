@@ -264,7 +264,7 @@ static void pattern_view_registers_map(GfxDomain *dest_surface, const SDL_Rect *
 	
 	for(int i = 0; i < mused.song.num_channels; ++i)
 	{
-		current_registers_row = 0x400 * i;
+		current_registers_row = 0x200 * i;
 		
 		SDL_Rect row = { reg_map->x + cols * col_w, reg_map->y + 6 + spacer + ch_reg_map_h * i1, 200, 6 };
 		
