@@ -105,6 +105,17 @@ void zap_wavetable(void* no_confirm, void* b, void* c)
 	
 	debug("Zap wavetable");
 	
+	for (int i = 0; i < CYD_WAVE_MAX_ENTRIES; ++i)
+	{
+		if(mused.mus.cyd->wavetable_entries[i].data != NULL)
+		{
+			CydWavetableEntry *wave = &mused.mus.cyd->wavetable_entries[i];
+			
+			free(wave->data);
+			wave->data = NULL;
+		}
+	}
+	
 	if (mused.song.wavetable_names)
 	{
 		for (int i = 0; i < CYD_WAVE_MAX_ENTRIES; ++i)

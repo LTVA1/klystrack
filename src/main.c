@@ -54,6 +54,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "theme.h"
 
 #include "view/oscilloscope.h"
+#include "help.h"
 
 #ifdef MIDI
 
@@ -64,6 +65,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 //#define DUMPKEYS
 
 Mused mused;
+
+extern Data data;
 
 /*---*/
 
@@ -237,8 +240,8 @@ int main(int argc, char **argv)
 	mused.output_buffer_counter = 0; //wasn't there
 	mused.flags = 0;
 	mused.flags2 = 0;
-
-	SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_NOPARACHUTE|SDL_INIT_TIMER);
+	
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE | SDL_INIT_TIMER);
 	atexit(SDL_Quit);
 	
 	default_settings();
@@ -348,6 +351,11 @@ int main(int argc, char **argv)
 			{
 				translate_key_event(&e.key);
 			}
+			
+			if(e.type == SDL_MOUSEWHEEL)
+			{
+				//debug("yay");
+			}
 
 			switch (e.type)
 			{
@@ -403,7 +411,7 @@ int main(int argc, char **argv)
 					gfx_convert_mouse_coordinates(domain, &e.motion.x, &e.motion.y);
 					gfx_convert_mouse_coordinates(domain, &e.motion.xrel, &e.motion.yrel);
 					
-					if (mused.mode == MENU)
+					if (mused.mode == MENU) //wasn't there
 					{
 						draw_menu(domain, &e);
 					}
@@ -444,7 +452,7 @@ int main(int argc, char **argv)
 					switch (mused.focus)
 					{
 						case EDITBUFFER:
-						edit_text(&e);
+							edit_text(&e);
 						break;
 					}
 					break;
@@ -525,14 +533,15 @@ int main(int argc, char **argv)
 				case MSG_NOTEOFF:
 				case MSG_PROGRAMCHANGE:
 					note_event(&e);
-					break;
+				break;
+				
 				case MSG_CLOCK:
 				case MSG_START:
 				case MSG_CONTINUE:
 				case MSG_STOP:
 				case MSG_SPP:
 					midi_event(&e);
-					break;
+				break;
 			}
 
 			if (mused.focus == EDITBUFFER && e.type == SDL_KEYDOWN) e.type = SDL_USEREVENT;
@@ -541,7 +550,7 @@ int main(int argc, char **argv)
 
 			// ensure the last event is a mouse click so it gets passed to the draw/event code
 
-			if (e.type == SDL_MOUSEBUTTONDOWN || (e.type == SDL_MOUSEMOTION && e.motion.state))
+			if (e.type == SDL_MOUSEBUTTONDOWN || (e.type == SDL_MOUSEMOTION && e.motion.state) || e.type == SDL_MOUSEWHEEL)
 				break;
 		}
 
@@ -678,7 +687,7 @@ int main(int argc, char **argv)
 		debug("Draw calls per frame: %.1f", draw_calls / total_frames);
 #endif
 
-	debug("klystrack has left the building.");
+	debug("klystrack-plus has left the building.");
 
 	return 0;
 }

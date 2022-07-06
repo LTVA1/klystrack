@@ -25,20 +25,9 @@
 #define LIST_WIDTH data.list_width
 #define BUTTONS 16
 
-static struct
-{
-	int mode;
-	int selected_line;
-	const char *title;
-	SliderParam scrollbar;
-	char **lines;
-	int n_lines;
-	int list_position;
-	int quit;
-	const Font *largefont, *smallfont;
-	GfxSurface *gfx;
-	int elemwidth, list_width;
-} data;
+
+
+Data data;
 
 extern const KeyShortcut shortcuts[];
 
@@ -385,7 +374,7 @@ void help_list_view(GfxDomain *dest_surface, const SDL_Rect *area, const SDL_Eve
 	adjust_rect(&content, 1);
 	copy_rect(&pos, &content);
 	pos.h = data.largefont->h;
-	bevel(dest_surface,area, data.gfx, BEV_FIELD);
+	bevel(dest_surface, area, data.gfx, BEV_FIELD);
 	
 	gfx_domain_set_clip(dest_surface, &content);
 	
@@ -499,7 +488,7 @@ int helpbox(const char *title, GfxDomain *domain, GfxSurface *gfx, const Font *l
 							slider_move_position(&data.selected_line, &data.list_position, &data.scrollbar, items);
 						}
 						break;
-												
+						
 						default: break;
 					}
 				

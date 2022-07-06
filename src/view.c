@@ -1295,7 +1295,7 @@ void oscilloscope_view(GfxDomain *dest_surface, SDL_Rect *dest, const SDL_Event 
 		dest->x -= 10;
 	}
 	
-	if(mused.flags2 & SHOW_OSCILLOSCOPE_INST_EDITOR)
+	if(mused.flags & SHOW_OSCILLOSCOPE_INST_EDITOR)
 	{
 		SDL_Rect area;
 		copy_rect(&area, dest);
@@ -1304,7 +1304,7 @@ void oscilloscope_view(GfxDomain *dest_surface, SDL_Rect *dest, const SDL_Event 
 		
 		int *pointer = &mused.output_buffer_counter;
 		
-		update_oscillscope_view(dest_surface, &area, mused.output_buffer, OSC_SIZE, pointer, true, (bool)(mused.flags & SHOW_OSCILLOSCOPE_MIDLINES));
+		update_oscillscope_view(dest_surface, &area, mused.output_buffer, OSC_SIZE, pointer, true, (bool)(mused.flags2 & SHOW_OSCILLOSCOPE_MIDLINES));
 		//void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area, int* sound_buffer, int size, int* buffer_counter, bool is_translucent, bool show_midlines);
 	}
 }

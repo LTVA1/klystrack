@@ -423,9 +423,27 @@ void wavetable_tools_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 		r.w = temp;
 	}
 	
-	button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "5TH", wavetable_chord, MAKEPTR(5), NULL, NULL);
+	{
+		int temp_x = r.x;
+		int temp = r.w;
+		
+		r.w /= 2;
+		
+		button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "4TH", wavetable_chord, MAKEPTR(4), NULL, NULL);
+		
+		r.x += r.w;
+		
+		button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "5TH", wavetable_chord, MAKEPTR(5), NULL, NULL);
+		
+		r.y += r.h;
+		
+		r.x = temp_x;
+		r.w = temp;
+	}
 	
-	r.y += r.h;
+	//button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "5TH", wavetable_chord, MAKEPTR(5), NULL, NULL);
+	
+	//r.y += r.h;
 	
 	button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "OCTAVE", wavetable_chord, MAKEPTR(12), NULL, NULL);
 	
@@ -495,7 +513,8 @@ void wavegen_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 		{"OPZ  4", {{ {WG_OSC_TRIANGLE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_ABS}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}, {WG_OSC_TRIANGLE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}}, 3}},
 		{"OPZ  6", {{ {WG_OSC_TRIANGLE, WG_OP_MUL, 4, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 128, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_TRIANGLE, WG_OP_MUL, 4, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}}, 4}},
 		{"OPZ  8", {{ {WG_OSC_TRIANGLE, WG_OP_MUL, 4, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS}, {WG_OSC_TRIANGLE, WG_OP_MUL, 4, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}}, 3}},
-		// Yamaha MA series (MA-3 and later chips iirc) and SD-1 (YMF825) waves, mostly modifications of triangle, pulse and saw waves, but also "cropped" OPL3 sines
+		
+		// Yamaha MA series (MA-3 and later chips iirc, aka SMAF) and SD-1 (YMF825) waves, mostly modifications of triangle, pulse and saw waves, but also "cropped" OPL3 sines
 		{"MA   8", {{ {WG_OSC_SINE, WG_OP_ADD, 1, 0, 50, 0x180, 0, 0} }, 1}},
 		{"MA   9", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 0x180, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS} }, 2}},
 		{"MA  10", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 0x180, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, 0} }, 2}},
