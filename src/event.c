@@ -2142,6 +2142,7 @@ void pattern_event(SDL_Event *e)
 				{
 					update_sequence_slider(mused.sequenceview_steps);
 				}
+				
 				else
 				{
 					int steps = 1;

@@ -1720,12 +1720,96 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 		SDL_Rect frame;
 		copy_rect(&frame, dest);
 		
-		bevel(dest_surface, dest, mused.slider_bevel, BEV_MENU);
+		//bevel(dest_surface, dest, mused.slider_bevel, BEV_MENU);
+		
+		
+		#define BEV_SIZE 16
+		#define BORDER 4
+		#define SIZE_MINUS_BORDER (BEV_SIZE - BORDER)
+		
+		/* Center */
+		/*for (int y = BORDER; y < dest->h - BORDER; y += BEV_SIZE / 2)
+		{
+			for (int x = BORDER; x < dest->w - BORDER; x += BEV_SIZE / 2)
+			{
+				SDL_Rect src = { BORDER + BEV_MENU * BEV_SIZE, BORDER, my_min(BEV_SIZE / 2, dest->w - x - BORDER), my_min(BEV_SIZE / 2, dest->h - y - BORDER) };
+				SDL_Rect dest1 = { x + dest->x, y + dest->y, my_min(BEV_SIZE / 2, dest->w - x - BORDER), my_min(BEV_SIZE / 2, dest->h - y - BORDER) };
+				my_BlitSurface(mused.slider_bevel, &src, dest_surface, &dest1);
+			}
+		}*/ //0xBCBCBC
+		
+		//SDL_Rect src = { BORDER + BEV_MENU * BEV_SIZE, BORDER, dest->w - 2 * BORDER, dest->h - 2 * BORDER };
+		SDL_Rect dest1 = { BORDER + dest->x, BORDER + dest->y, dest->w - 2 * BORDER, dest->h - 2 * BORDER };
+		//my_BlitSurface(mused.slider_bevel, &src, dest_surface, &dest1);
+		
+		gfx_rect(dest_surface, &dest1, 0xBCBCBC);
+		
+		/* Sides */
+		for (int y = BORDER; y < dest->h - BORDER; y += BEV_SIZE / 2)
+		{	
+			{
+				SDL_Rect src = { BEV_MENU * BEV_SIZE, BORDER, BORDER, my_min(BEV_SIZE / 2, dest->h - BORDER - y) };
+				SDL_Rect dest1 = { dest->x, y + dest->y, BORDER, my_min(BEV_SIZE / 2, dest->h - BORDER - y) };
+				my_BlitSurface(mused.slider_bevel, &src, dest_surface, &dest1);
+			}
+			
+			{
+				SDL_Rect src = { SIZE_MINUS_BORDER + BEV_MENU * BEV_SIZE, BORDER, BORDER, my_min(BEV_SIZE / 2, dest->h - BORDER - y) };
+				SDL_Rect dest1 = { dest->x + dest->w - BORDER, y + dest->y, BORDER, my_min(BEV_SIZE / 2, dest->h - BORDER - y) };
+				my_BlitSurface(mused.slider_bevel, &src, dest_surface, &dest1);
+			}
+		}
+		
+		for (int x = BORDER; x < dest->w - BORDER; x += BEV_SIZE / 2)
+		{	
+			{
+				SDL_Rect src = { BORDER + BEV_MENU * BEV_SIZE, 0, my_min(BEV_SIZE / 2, dest->w - BORDER - x), BORDER };
+				SDL_Rect dest1 = { dest->x + x, dest->y, my_min(BEV_SIZE / 2, dest->w - BORDER - x), BORDER };
+				my_BlitSurface(mused.slider_bevel, &src, dest_surface, &dest1);
+			}
+			
+			{
+				SDL_Rect src = { BORDER + BEV_MENU * BEV_SIZE, SIZE_MINUS_BORDER, my_min(BEV_SIZE / 2, dest->w - BORDER - x), BORDER };
+				SDL_Rect dest1 = { x + dest->x, dest->y + dest->h - BORDER, my_min(BEV_SIZE / 2, dest->w - BORDER - x), BORDER };
+				my_BlitSurface(mused.slider_bevel, &src, dest_surface, &dest1);
+			}
+		}
+		
+		/* Corners */
+		{
+			SDL_Rect src = { BEV_MENU * BEV_SIZE, 0, BORDER, BORDER };
+			SDL_Rect dest1 = { dest->x, dest->y, BORDER, BORDER };
+			my_BlitSurface(mused.slider_bevel, &src, dest_surface, &dest1);
+		}
+		
+		{
+			SDL_Rect src = { SIZE_MINUS_BORDER + BEV_MENU * BEV_SIZE, 0, BORDER, BORDER };
+			SDL_Rect dest1 = { dest->x + dest->w - BORDER, dest->y, BORDER, BORDER };
+			my_BlitSurface(mused.slider_bevel, &src, dest_surface, &dest1);
+		}
+		
+		{
+			SDL_Rect src = { SIZE_MINUS_BORDER + BEV_MENU * BEV_SIZE, SIZE_MINUS_BORDER, BORDER, BORDER };
+			SDL_Rect dest1 = { dest->x + dest->w - BORDER, dest->y + dest->h - BORDER, BORDER, BORDER };
+			my_BlitSurface(mused.slider_bevel, &src, dest_surface, &dest1);
+		}
+		
+		{
+			SDL_Rect src = { BEV_MENU * BEV_SIZE, SIZE_MINUS_BORDER, BORDER, BORDER };
+			SDL_Rect dest1 = { dest->x, dest->y + dest->h - BORDER, BORDER, BORDER };
+			my_BlitSurface(mused.slider_bevel, &src, dest_surface, &dest1);
+		}
+		
+		
+		
+		
+		
+		
 		
 		frame.h -= 16;
 		frame.y += 16;
 		
-		const char* title = "4-op FM settings";
+		const char* title = "4-OP FM settings";
 		SDL_Rect titlearea, button;
 		copy_rect(&titlearea, dest);
 		
@@ -3540,9 +3624,13 @@ void sequence_spectrum_view(GfxDomain *dest_surface, const SDL_Rect *dest, const
 			s.w = mused.logo->surface->w;
 			my_BlitSurface(mused.logo, &s, dest_surface, &d);
 			gfx_domain_set_clip(domain, NULL);
+			
 			if (check_event(event, &a, NULL, NULL, NULL, NULL))
+			{
 				mused.flags &= ~SHOW_LOGO;
+			}
 		}
+		
 		else
 		{
 			mused.flags &= ~SHOW_LOGO;
