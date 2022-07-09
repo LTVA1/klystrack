@@ -388,7 +388,7 @@ void songinfo1_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 	adjust_rect(&area, 2);
 	SDL_Rect r;
 	copy_rect(&r, &area);
-	r.w = 100-8;
+	r.w = 100; //100 - 8
 
 	if (area.w > r.w)
 	{
@@ -404,7 +404,7 @@ void songinfo1_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 
 	int d;
 
-	d = generic_field(event, &r, EDITSONGINFO, SI_LENGTH, "LEN", "%04X", MAKEPTR(mused.song.song_length), 4);
+	d = generic_field(event, &r, EDITSONGINFO, SI_LENGTH, "LENGTH", "%04X", MAKEPTR(mused.song.song_length), 4);
 	songinfo_add_param(d);
 	update_rect(&area, &r);
 
@@ -431,7 +431,7 @@ void songinfo2_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 	adjust_rect(&area, 2);
 	SDL_Rect r;
 	copy_rect(&r, &area);
-	r.w = 100-8;
+	r.w = 100; //100 - 8
 
 	if (area.w > r.w)
 	{
@@ -467,10 +467,26 @@ void songinfo2_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 	songinfo_add_param(d);
 	update_rect(&area, &r);
 
-	sprintf(speedtext, "%d/%d", mused.time_signature >> 8, mused.time_signature & 0xff);
+	/*sprintf(speedtext, "%d/%d", mused.time_signature >> 8, mused.time_signature & 0xff);
 	d = generic_field(event, &r, EDITSONGINFO, SI_TIME, "TIME","%4s", speedtext, 4);
 	songinfo_add_param(d);
+	update_rect(&area, &r);*/
+	
+	tmp = r.w;
+
+	r.w -= 34; //26
+
+	d = generic_field(event, &r, EDITSONGINFO, SI_TIME1, "TIME","%02X", MAKEPTR(mused.time_signature >> 8), 2);
+	songinfo_add_param(d);
+
+	r.x += r.w;
+	r.w = 34; //26
+
+	d = generic_field(event, &r, EDITSONGINFO, SI_TIME2, "","%02X", MAKEPTR( mused.time_signature & 0xff), 2);
+	songinfo_add_param(d);
 	update_rect(&area, &r);
+
+	r.w = tmp;
 }
 
 
@@ -487,7 +503,7 @@ void songinfo3_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 	adjust_rect(&area, 2);
 	SDL_Rect r;
 	copy_rect(&r, &area);
-	r.w = 100-8;
+	r.w = 100; //100 - 8
 
 	if (area.w > r.w)
 	{
@@ -507,7 +523,7 @@ void songinfo3_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 	songinfo_add_param(d);
 	update_rect(&area, &r);
 
-	d = generic_field(event, &r, EDITSONGINFO, SI_CHANNELS, "CHANLS", "%02X", MAKEPTR(mused.song.num_channels), 2);
+	d = generic_field(event, &r, EDITSONGINFO, SI_CHANNELS, "CHANNELS", "%02X", MAKEPTR(mused.song.num_channels), 2);
 	songinfo_add_param(d);
 	update_rect(&area, &r);
 }
@@ -546,9 +562,9 @@ void playstop_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Even
 	int d;
 
 	if (mused.mus.cyd->flags & CYD_CLIPPING)
-		d = generic_field(event, &r, EDITSONGINFO, SI_MASTERVOL, "\2VOL","%02X", MAKEPTR(mused.song.master_volume), 2);
+		d = generic_field(event, &r, EDITSONGINFO, SI_MASTERVOL, "\2 VOL","%02X", MAKEPTR(mused.song.master_volume), 2);
 	else
-		d = generic_field(event, &r, EDITSONGINFO, SI_MASTERVOL, "\1VOL","%02X", MAKEPTR(mused.song.master_volume), 2);
+		d = generic_field(event, &r, EDITSONGINFO, SI_MASTERVOL, "\1 VOL","%02X", MAKEPTR(mused.song.master_volume), 2);
 	songinfo_add_param(d);
 	update_rect(&area, &r);
 }
@@ -829,7 +845,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					
 					"feedback",
 					"enable SSG-EG",
-					"SSG-EG type",
+					"SSG-EG mode",
 					
 					"drum (short burst of noise in the beginning)",
 					"sync oscillator on keydown",
@@ -1051,7 +1067,30 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 		}
 	}
 
-	console_write(mused.console,text);
+	console_write(mused.console, text);
+	
+	int m = mused.mode >= VIRTUAL_MODE ? mused.prev_mode : mused.mode;
+	
+	if((m == EDITCLASSIC || m == EDITPATTERN || m == EDITSEQUENCE || m == EDITSONGINFO) && (mused.flags2 & SHOW_BPM))
+	{
+		float bpm = (float)3600 / ((float)(mused.song.song_speed + mused.song.song_speed2) / (float)2 / (float)mused.song.song_rate * (float)(mused.time_signature & 0xff) * (float)60);
+		
+		int offset = 8 * 9 - 3 + (bpm >= 10.0 ? 8 : 0) +  (bpm >= 100.0 ? 8 : 0) + (bpm >= 1000.0 ? 8 : 0) + (bpm >= 10000.0 ? 8 : 0) + (bpm >= 100000.0 ? 8 : 0);
+		
+		SDL_Rect bpm_value = { area.w - offset, area.y, offset, area.h };
+		
+		console_set_clip(mused.console, &bpm_value);
+		console_clear(mused.console);
+		console_set_clip(mused.console, &bpm_value);
+		console_set_color(mused.console, colors[COLOR_STATUSBAR_TEXT]);
+		console_clear(mused.console);
+		
+		char bpm_string[30];
+		
+		snprintf(bpm_string, 30, " %0.2f BPM", bpm);
+		
+		console_write(mused.console, bpm_string);
+	}
 
 	SDL_Rect button = { dest->x + area.w + 6, dest->y, dest->h, dest->h };
 
@@ -1071,47 +1110,47 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 		}
 	}*/
 	
-		button_event(domain, event, &button, mused.slider_bevel,
-			(mused.mode != EDITPATTERN) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			(mused.mode != EDITPATTERN) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			DECAL_MODE_PATTERN + EDITPATTERN + (mused.mode == EDITPATTERN ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITPATTERN) ? change_mode_action : NULL, (mused.mode != EDITPATTERN) ? MAKEPTR(EDITPATTERN) : 0, 0, 0);
-		
-		button.x += button.w;
-		
-		button_event(domain, event, &button, mused.slider_bevel,
-			(mused.mode != EDITSEQUENCE) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			(mused.mode != EDITSEQUENCE) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			DECAL_MODE_PATTERN + EDITSEQUENCE + (mused.mode == EDITSEQUENCE ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITSEQUENCE) ? change_mode_action : NULL, (mused.mode != EDITSEQUENCE) ? MAKEPTR(EDITSEQUENCE) : 0, 0, 0);
-		
-		button.x += button.w;
-		
-		button_event(domain, event, &button, mused.slider_bevel,
-			(mused.mode != EDITCLASSIC) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			(mused.mode != EDITCLASSIC) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			DECAL_MODE_PATTERN + EDITCLASSIC + (mused.mode == EDITCLASSIC ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITCLASSIC) ? change_mode_action : NULL, (mused.mode != EDITCLASSIC) ? MAKEPTR(EDITCLASSIC) : 0, 0, 0);
-		
-		button.x += button.w;
-		
-		button_event(domain, event, &button, mused.slider_bevel,
-			(mused.mode != EDITINSTRUMENT && mused.mode != EDIT4OP) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			(mused.mode != EDITINSTRUMENT && mused.mode != EDIT4OP) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			DECAL_MODE_PATTERN + EDITINSTRUMENT + ((mused.mode == EDITINSTRUMENT || mused.mode == EDIT4OP) ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITINSTRUMENT) ? change_mode_action : NULL, (mused.mode != EDITINSTRUMENT) ? MAKEPTR(EDITINSTRUMENT) : 0, 0, 0);
-		
-		button.x += button.w;
-		
-		button_event(domain, event, &button, mused.slider_bevel,
-			(mused.mode != EDITFX) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			(mused.mode != EDITFX) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			DECAL_MODE_PATTERN + EDITFX - 1 + (mused.mode == EDITFX ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITFX) ? change_mode_action : NULL, (mused.mode != EDITFX) ? MAKEPTR(EDITFX) : 0, 0, 0);
-		
-		button.x += button.w;
-		
-		button_event(domain, event, &button, mused.slider_bevel,
-			(mused.mode != EDITWAVETABLE) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			(mused.mode != EDITWAVETABLE) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-			DECAL_MODE_PATTERN + EDITWAVETABLE - 1 + (mused.mode == EDITWAVETABLE ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITWAVETABLE) ? change_mode_action : NULL, (mused.mode != EDITWAVETABLE) ? MAKEPTR(EDITWAVETABLE) : 0, 0, 0);
-		
-		button.x += button.w;
+	button_event(domain, event, &button, mused.slider_bevel,
+		(mused.mode != EDITPATTERN) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+		(mused.mode != EDITPATTERN) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+		DECAL_MODE_PATTERN + EDITPATTERN + (mused.mode == EDITPATTERN ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITPATTERN) ? change_mode_action : NULL, (mused.mode != EDITPATTERN) ? MAKEPTR(EDITPATTERN) : 0, 0, 0);
+	
+	button.x += button.w;
+	
+	button_event(domain, event, &button, mused.slider_bevel,
+		(mused.mode != EDITSEQUENCE) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+		(mused.mode != EDITSEQUENCE) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+		DECAL_MODE_PATTERN + EDITSEQUENCE + (mused.mode == EDITSEQUENCE ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITSEQUENCE) ? change_mode_action : NULL, (mused.mode != EDITSEQUENCE) ? MAKEPTR(EDITSEQUENCE) : 0, 0, 0);
+	
+	button.x += button.w;
+	
+	button_event(domain, event, &button, mused.slider_bevel,
+		(mused.mode != EDITCLASSIC) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+		(mused.mode != EDITCLASSIC) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+		DECAL_MODE_PATTERN + EDITCLASSIC + (mused.mode == EDITCLASSIC ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITCLASSIC) ? change_mode_action : NULL, (mused.mode != EDITCLASSIC) ? MAKEPTR(EDITCLASSIC) : 0, 0, 0);
+	
+	button.x += button.w;
+	
+	button_event(domain, event, &button, mused.slider_bevel,
+		(mused.mode != EDITINSTRUMENT && mused.mode != EDIT4OP) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+		(mused.mode != EDITINSTRUMENT && mused.mode != EDIT4OP) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+		DECAL_MODE_PATTERN + EDITINSTRUMENT + ((mused.mode == EDITINSTRUMENT || mused.mode == EDIT4OP) ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITINSTRUMENT) ? change_mode_action : NULL, (mused.mode != EDITINSTRUMENT) ? MAKEPTR(EDITINSTRUMENT) : 0, 0, 0);
+	
+	button.x += button.w;
+	
+	button_event(domain, event, &button, mused.slider_bevel,
+		(mused.mode != EDITFX) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+		(mused.mode != EDITFX) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+		DECAL_MODE_PATTERN + EDITFX - 1 + (mused.mode == EDITFX ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITFX) ? change_mode_action : NULL, (mused.mode != EDITFX) ? MAKEPTR(EDITFX) : 0, 0, 0);
+	
+	button.x += button.w;
+	
+	button_event(domain, event, &button, mused.slider_bevel,
+		(mused.mode != EDITWAVETABLE) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+		(mused.mode != EDITWAVETABLE) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
+		DECAL_MODE_PATTERN + EDITWAVETABLE - 1 + (mused.mode == EDITWAVETABLE ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITWAVETABLE) ? change_mode_action : NULL, (mused.mode != EDITWAVETABLE) ? MAKEPTR(EDITWAVETABLE) : 0, 0, 0);
+	
+	button.x += button.w;
 }
 
 
@@ -2423,32 +2462,54 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 				break;
 				
 				default: break;
+			} // `\ff` red `\fe` black
+			
+			bool ops_playing[CYD_FM_NUM_OPS] = { 0 };
+			
+			bool should_continue = true;
+			
+			for(int i = 0; (i < mused.song.num_channels) && should_continue; ++i)
+			{
+				if(mused.mus.channel[i].instrument != NULL)
+				{
+					if(mused.mus.channel[i].instrument == inst && (mused.mus.cyd->channel[i].fm.flags & CYD_FM_ENABLE_4OP))
+					{
+						for(int j = 0; j < CYD_FM_NUM_OPS; ++j)
+						{
+							if((mused.mus.cyd->channel[i].fm.ops[j].adsr.envelope > 0 || mused.mus.cyd->channel[i].fm.ops[j].flags & CYD_FM_OP_ENABLE_GATE) && mused.mus.cyd->channel[i].fm.ops[j].adsr.volume > 0)
+							{
+								ops_playing[j] = true;
+								should_continue = false;
+							}
+						}
+					}
+				}
 			}
 			
 			if (button_text_event(dest_surface, event, &but1, mused.slider_bevel, &mused.largefont,
 				(mused.selected_operator != 1) ? BEV_BUTTON : BEV_BUTTON_ACTIVE, 
-				(mused.selected_operator != 1) ? BEV_BUTTON : BEV_BUTTON_ACTIVE, "1", NULL, MAKEPTR(1), 0, 0) & 1)
+				(mused.selected_operator != 1) ? BEV_BUTTON : BEV_BUTTON_ACTIVE, ops_playing[0] ? " 1\xff" : " 1\xfe", NULL, MAKEPTR(1), 0, 0) & 1)
 			{
 				mused.selected_operator = 1;
 			}
 			
 			if (button_text_event(dest_surface, event, &but2, mused.slider_bevel, &mused.largefont,
 				(mused.selected_operator != 2) ? BEV_BUTTON : BEV_BUTTON_ACTIVE, 
-				(mused.selected_operator != 2) ? BEV_BUTTON : BEV_BUTTON_ACTIVE, "2", NULL, MAKEPTR(1), 0, 0) & 1)
+				(mused.selected_operator != 2) ? BEV_BUTTON : BEV_BUTTON_ACTIVE, ops_playing[1] ? " 2\xff" : " 2\xfe", NULL, MAKEPTR(1), 0, 0) & 1)
 			{
 				mused.selected_operator = 2;
 			}
 			
 			if (button_text_event(dest_surface, event, &but3, mused.slider_bevel, &mused.largefont,
 				(mused.selected_operator != 3) ? BEV_BUTTON : BEV_BUTTON_ACTIVE, 
-				(mused.selected_operator != 3) ? BEV_BUTTON : BEV_BUTTON_ACTIVE, "3", NULL, MAKEPTR(1), 0, 0) & 1)
+				(mused.selected_operator != 3) ? BEV_BUTTON : BEV_BUTTON_ACTIVE, ops_playing[2] ? " 3\xff" : " 3\xfe", NULL, MAKEPTR(1), 0, 0) & 1)
 			{
 				mused.selected_operator = 3;
 			}
 			
 			if (button_text_event(dest_surface, event, &but4, mused.slider_bevel, &mused.largefont,
 				(mused.selected_operator != 4) ? BEV_BUTTON : BEV_BUTTON_ACTIVE, 
-				(mused.selected_operator != 4) ? BEV_BUTTON : BEV_BUTTON_ACTIVE, "4", NULL, MAKEPTR(1), 0, 0) & 1)
+				(mused.selected_operator != 4) ? BEV_BUTTON : BEV_BUTTON_ACTIVE, ops_playing[3] ? " 4\xff" : " 4\xfe", NULL, MAKEPTR(1), 0, 0) & 1)
 			{
 				mused.selected_operator = 4;
 			}

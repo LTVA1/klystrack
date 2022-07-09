@@ -3171,6 +3171,8 @@ void set_room_size(int fx, int size, int vol, int dec)
 		mused.song.fx[fx].rvb.tap[i].gain = g;
 		mused.song.fx[fx].rvb.tap[i].flags = e;
 	}
+	
+	mused.song.fx[mused.fx_bus].rvb.taps_quant = CYDRVB_TAPS;
 
 	mus_set_fx(&mused.mus, &mused.song);
 }
@@ -3701,7 +3703,6 @@ void songinfo_add_param(int d)
 
 	switch (mused.songinfo_param)
 	{
-
 		case SI_MASTERVOL:
 			change_master_volume(MAKEPTR(d), 0, 0);
 			break;
@@ -3730,8 +3731,12 @@ void songinfo_add_param(int d)
 			change_song_rate(MAKEPTR(d), 0, 0);
 			break;
 
-		case SI_TIME:
-			change_timesig(MAKEPTR(d), 0, 0);
+		case SI_TIME1:
+			change_timesig(MAKEPTR(d), 1, 0);
+			break;
+			
+		case SI_TIME2:
+			change_timesig(MAKEPTR(d), 2, 0);
 			break;
 
 		case SI_OCTAVE:

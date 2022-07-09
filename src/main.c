@@ -86,13 +86,13 @@ extern const Menu mainmenu[];
 void change_pixel_scale(void *, void*, void*);
 
 #define CLASSIC_PAT (0 / 2 + 20 - 2 - 7)
-#define CLASSIC_SONG_INFO (94)
+#define CLASSIC_SONG_INFO (102)
 #define SONG_INFO1_H (24+10)
 #define SONG_INFO2_H (24+10)
 #define SONG_INFO3_H (15+10)
 #define TOOLBAR_H 12
 #define CLASSIC_SONG_INFO_H (SONG_INFO1_H+SONG_INFO2_H+SONG_INFO3_H+TOOLBAR_H)
-#define TIMER_W (5*7+4)
+#define TIMER_W (8*7+4)
 #define SEQ_VIEW_INFO_H (24+10)
 
 static const View instrument_view_tab[] =

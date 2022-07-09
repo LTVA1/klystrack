@@ -552,15 +552,15 @@ void show_about_box(void *unused1, void *unused2, void *unused3)
 
 void change_channels(void *delta, void *unused1, void *unused2)
 {
-	if (CASTPTR(int, delta) < 0 && mused.song.num_channels > 1)
+	if (CASTPTR(int, delta) < 0 && mused.song.num_channels > abs(CASTPTR(int, delta)))
 	{
-		set_channels(mused.song.num_channels - 1);
+		set_channels(mused.song.num_channels + CASTPTR(int, delta));
 		mused.cyd.n_channels = mused.song.num_channels;
 	}
 	
-	else if (CASTPTR(int, delta) > 0 && mused.song.num_channels < MUS_MAX_CHANNELS)
+	else if (CASTPTR(int, delta) > 0 && mused.song.num_channels + CASTPTR(int, delta) <= MUS_MAX_CHANNELS)
 	{
-		set_channels(mused.song.num_channels + 1);
+		set_channels(mused.song.num_channels + CASTPTR(int, delta));
 		mused.cyd.n_channels = mused.song.num_channels;
 	}
 }
@@ -708,12 +708,14 @@ void load_keymap_action(void *name, void*b, void*c)
 }
 
 
-void change_timesig(void *delta, void *b, void *c)
+void change_timesig(void *delta, void *part, void *c)
 {
 	// http://en.wikipedia.org/wiki/Time_signature says the following signatures are common.
 	// I'm a 4/4 or 3/4 man myself so I'll trust the article :)
+	
+	int parti = CASTPTR(int, part);
 
-	static const Uint16 sigs[] = { 0x0404, 0x0304, 0x0604, 0x0308, 0x0608, 0x0908, 0x0c08 };
+	/*static const Uint16 sigs[] = { 0x0404, 0x0304, 0x0604, 0x0308, 0x0608, 0x0908, 0x0c08 };
 	int i;
 	for (i = 0; i < sizeof(sigs) / sizeof(sigs[0]); ++i)
 	{
@@ -721,11 +723,32 @@ void change_timesig(void *delta, void *b, void *c)
 			break;
 	}
 
-	i += CASTPTR(int,delta);
+	i += CASTPTR(int, delta);
 
 	if (i >= (int)(sizeof(sigs) / sizeof(sigs[0]))) i = 0;
 	if (i < 0) i = sizeof(sigs) / sizeof(sigs[0]) - 1;
-	mused.time_signature = sigs[i];
+	mused.time_signature = sigs[i];*/
+	if(parti == 1)
+	{
+		Uint8 temp = (mused.time_signature & 0xff00) >> 8;
+		
+		if(temp + delta > 0 && temp + delta <= 20)
+		{
+			mused.time_signature &= 0x00ff;
+			mused.time_signature |= (Uint8)(temp + delta) << 8;
+		}
+	}
+	
+	if(parti == 2)
+	{
+		Uint8 temp = mused.time_signature & 0xff;
+		
+		if(temp + delta > 0 && temp + delta <= 20)
+		{
+			mused.time_signature &= 0xff00;
+			mused.time_signature |= (Uint8)(temp + delta);
+		}
+	}
 }
 
 

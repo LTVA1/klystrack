@@ -14,8 +14,8 @@ void timer_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *
 	if (mused.flags & SONG_PLAYING)
 	{
 		Uint64 t = (mused.play_start_at + mused.time_played) / 1000;
-		font_write_args(&mused.smallfont, dest_surface, &field, "%02d:%02d", (int)(t / 60), (int)(t % 60));
+		font_write_args(&mused.smallfont, dest_surface, &field, (((mused.play_start_at + mused.time_played) / 500) & 1) ? "%02d:%02d.%02d" : "%02d %02d.%02d", (int)(t / 60), (int)(t % 60), (int)(((mused.play_start_at + mused.time_played) / 10) % 100));
 	}
 	else
-		font_write(&mused.smallfont, dest_surface, &field, "00:00");
+		font_write(&mused.smallfont, dest_surface, &field, "00:00.00");
 }

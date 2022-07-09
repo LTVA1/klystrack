@@ -157,6 +157,8 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_FM_4OP_SET_DETUNE, 0xfff0, "Set 4-op FM operator detune", "4opFMdet", 0, 15},
 	{MUS_FX_FM_4OP_SET_COARSE_DETUNE, 0xfff0, "Set 4-op FM operator coarse detune", "4opFMdet2", 0, 3},
 	
+	{MUS_FX_FM_4OP_SET_SSG_EG_TYPE, 0xfff0, "Set 4-op FM operator SSG-EG mode", "4opFMssgEgMode", 0, 7},
+	
 	{MUS_FX_FM_TRIGGER_OP1_RELEASE, 0xff00, "Trigger FM operator 1 release", "TrigFmOp1rel", 0, 255},
 	{MUS_FX_FM_TRIGGER_OP2_RELEASE, 0xff00, "Trigger FM operator 2 release", "TrigFmOp2rel", 0, 255},
 	{MUS_FX_FM_TRIGGER_OP3_RELEASE, 0xff00, "Trigger FM operator 3 release", "TrigFmOp3rel", 0, 255},
@@ -207,6 +209,11 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_FM_SET_OP3_FEEDBACK, 0xfff0, "Set FM operator 3 feedback", "FmOp3FB", 0, 15},
 	{MUS_FX_FM_SET_OP4_FEEDBACK, 0xfff0, "Set FM operator 4 feedback", "FmOp4FB", 0, 15},
 	
+	{MUS_FX_FM_SET_OP1_SSG_EG_TYPE, 0xfff0, "Set FM operator 1 SSG-EG mode", "FmOp1ssgEgMode", 0, 7},
+	{MUS_FX_FM_SET_OP2_SSG_EG_TYPE, 0xfff0, "Set FM operator 2 SSG-EG mode", "FmOp2ssgEgMode", 0, 7},
+	{MUS_FX_FM_SET_OP3_SSG_EG_TYPE, 0xfff0, "Set FM operator 3 SSG-EG mode", "FmOp3ssgEgMode", 0, 7},
+	{MUS_FX_FM_SET_OP4_SSG_EG_TYPE, 0xfff0, "Set FM operator 4 SSG-EG mode", "FmOp4ssgEgMode", 0, 7},
+	
 	{0, 0, NULL}
 };
 
@@ -242,6 +249,8 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst)
 
 	const char *name = i->name;
 	const Uint16 fi = i->opcode;
+	
+	static const char * ssg_eg_types[] = { "\\\\\\\\", "\\___", "\\/\\/", "\\\xfd\xfd\xfd", "////", "/\xfd\xfd\xfd", "/\\/\\", "/___" };
 	
 	if ((fi & 0xff00) == MUS_FX_SET_WAVEFORM)
 	{
@@ -307,6 +316,11 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst)
 	else if ((fi & 0xfff0) == MUS_FX_FM_4OP_SET_DETUNE || (fi & 0xfff0) == MUS_FX_FM_SET_OP1_DETUNE || (fi & 0xfff0) == MUS_FX_FM_SET_OP2_DETUNE || (fi & 0xfff0) == MUS_FX_FM_SET_OP3_DETUNE || (fi & 0xfff0) == MUS_FX_FM_SET_OP4_DETUNE)
 	{
 		snprintf(text, buffer_size, "%s (%+1d)\n", name, my_min(7, my_max((inst & 0xF) - 7, -7)));
+	}
+	
+	else if ((fi & 0xfff0) == MUS_FX_FM_SET_OP1_SSG_EG_TYPE || (fi & 0xfff0) == MUS_FX_FM_SET_OP2_SSG_EG_TYPE || (fi & 0xfff0) == MUS_FX_FM_SET_OP3_SSG_EG_TYPE || (fi & 0xfff0) == MUS_FX_FM_SET_OP4_SSG_EG_TYPE || (fi & 0xfff0) == MUS_FX_FM_4OP_SET_SSG_EG_TYPE)
+	{
+		snprintf(text, buffer_size, "%s (%s)\n", name, ssg_eg_types[inst & 0x7]);
 	}
 	
 	else snprintf(text, buffer_size, "%s\n", name);

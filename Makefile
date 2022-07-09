@@ -122,7 +122,7 @@ res/$(1): themes/$(1)/* #themes/$(1)/font/* themes/$(1)/font7x6/* themes/$(1)/ti
 	-$(Q)if test -e themes/$(1)/bevel.*; then cp -f themes/$(1)/bevel.* themetemp.$(1); fi
 	-$(Q)if test -e themes/$(1)/vu.*; then cp -f themes/$(1)/vu.* themetemp.$(1); fi
 	-$(Q)if test -e themes/$(1)/analyzor.*; then cp -f themes/$(1)/analyzor.* themetemp.$(1); fi
-	-$(Q)if test -e themes/$(1)/logo.*; then cp -f themes/$(1)/logo.* themetemp; fi
+	-$(Q)if test -e themes/$(1)/logo.*; then cp -f themes/$(1)/logo.* themetemp.$(1); fi
 	-$(Q)if test -e themes/$(1)/catometer.*; then cp -f themes/$(1)/catometer.* themetemp.$(1); fi
 	-$(Q)if test -e themes/$(1)/cursor.*; then cp -f themes/$(1)/cursor.* themetemp.$(1); fi
 	-$(Q)if test -e themes/$(1)/icon.*; then cp -f themes/$(1)/icon.* themetemp.$(1); fi
@@ -177,13 +177,25 @@ zip: doc/* $(THEMES) $(DLLS) examples/instruments/* examples/songs/* $(DLLS)
 	$(Q)$(MAKE) build CFG=release
 	$(Q)mkdir -p zip/data/res
 	$(Q)mkdir -p zip/data/examples/songs
+	$(Q)mkdir -p zip/data/examples/songs/Imported-XMs
+	$(Q)mkdir -p zip/data/examples/songs/LTVA-examples
 	$(Q)mkdir -p zip/data/examples/songs/n00bstar-examples
+	$(Q)mkdir -p zip/data/examples/songs/System64-examples
 	$(Q)mkdir -p zip/data/examples/instruments
 	$(Q)mkdir -p zip/data/examples/instruments/n00bstar-instruments
+	$(Q)mkdir -p zip/data/examples/instruments/LTVA-instruments
+	$(Q)mkdir -p zip/data/examples/wavegen-patches
+	$(Q)mkdir -p zip/data/examples/wavegen-patches/LTVA-examples
 	$(Q)cp examples/songs/*.kt zip/data/examples/songs
 	$(Q)cp examples/songs/n00bstar-examples/*.kt zip/data/examples/songs/n00bstar-examples
+	$(Q)cp examples/songs/Imported-XMs/*.kt zip/data/examples/songs/Imported-XMs
+	$(Q)cp examples/songs/LTVA-examples/*.kt zip/data/examples/songs/LTVA-examples
+	$(Q)cp examples/songs/System64-examples/*.kt zip/data/examples/songs/System64-examples
 	$(Q)cp examples/instruments/*.ki zip/data/examples/instruments
 	$(Q)cp examples/instruments/n00bstar-instruments/*.ki zip/data/examples/instruments/n00bstar-instruments
+	$(Q)cp examples/instruments/LTVA-instruments/*.ki zip/data/examples/instruments/LTVA-instruments
+	$(Q)cp examples/wavegen-patches/*.kw zip/data/examples/wavegen-patches
+	$(Q)cp examples/wavegen-patches/LTVA-examples/*.kw zip/data/examples/wavegen-patches/LTVA-examples
 	$(Q)cp res/* zip/data/res
 	$(Q)mkdir -p zip/data/key
 	$(Q)cp key/* zip/data/key

@@ -79,7 +79,7 @@ void zap_fx(void* no_confirm, void* b, void* c) //get default fx
 		{
 			mused.song.fx[fx].rvb.tap[i].delay = i * 120 + 50; //here you rule taps
 			mused.song.fx[fx].rvb.tap[i].gain = (i + 1) * -10; //mused.song.fx[fx].rvb.tap[i].gain = (i + 1) * -30;
-			mused.song.fx[fx].rvb.tap[i].panning = CYD_PAN_CENTER;
+			mused.song.fx[fx].rvb.tap[i].panning = CYD_PAN_CENTER; //mused.song.fx[fx].rvb.tap[i].panning = CYD_PAN_CENTER;
 			mused.song.fx[fx].rvb.tap[i].flags = 1;
 		}
 		

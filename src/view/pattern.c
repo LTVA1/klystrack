@@ -414,6 +414,7 @@ static void pattern_view_registers_map(GfxDomain *dest_surface, const SDL_Rect *
 		current_registers[7] |= (((mused.cyd.channel[i].fm.flags & CYD_FM_ENABLE_EXPONENTIAL_VOLUME) ? 1 : 0) << 6);
 		current_registers[7] |= (((mused.cyd.channel[i].fm.flags & CYD_FM_ENABLE_EXPONENTIAL_ATTACK) ? 1 : 0) << 5);
 		current_registers[7] |= (((mused.cyd.channel[i].fm.flags & CYD_FM_ENABLE_EXPONENTIAL_DECAY) ? 1 : 0) << 4);
+		
 		if(mused.cyd.channel[i].flags & CYD_CHN_ENABLE_FM)
 		{
 			current_registers[7] |= ((mused.cyd.channel[i].true_freq + (((mused.cyd.channel[i].fm.fm_base_note - mused.cyd.channel[i].fm.fm_carrier_base_note) << 8) + mused.cyd.channel[i].fm.fm_finetune + mused.cyd.channel[i].fm.fm_vib == 0 ? 0 : get_freq(((mused.cyd.channel[i].fm.fm_base_note - mused.cyd.channel[i].fm.fm_carrier_base_note) << 8) + mused.cyd.channel[i].fm.fm_finetune + mused.cyd.channel[i].fm.fm_vib) - get_freq(0))) >> 16) & 0xf;
