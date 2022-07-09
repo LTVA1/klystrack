@@ -646,9 +646,6 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 		narrow_w = w;
 	}
 	
-	
-	
-	
 	int last_visible = mused.pattern_horiz_position;
 	int sum_width = 0;
 	
@@ -657,8 +654,6 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 		sum_width += (i == mused.current_sequencetrack) ? mused.widths[i][0] : mused.widths[i][1];
 	}
 	
-	
-	
 	//                                                                                                                 my_min(mused.song.num_channels, last_visible - 1) - 1
 	slider_set_params(&mused.pattern_horiz_slider_param, 0, mused.song.num_channels - 1, mused.pattern_horiz_position, my_min(mused.song.num_channels, last_visible - 1) - 1, &mused.pattern_horiz_position, 1, SLIDER_HORIZONTAL, mused.slider_bevel); //slider_set_params(&mused.pattern_horiz_slider_param, 0, mused.song.num_channels - 1, mused.pattern_horiz_position, my_min(mused.song.num_channels, mused.pattern_horiz_position + 1 + (dest->w - w) / narrow_w) - 1, &mused.pattern_horiz_position, 1, SLIDER_HORIZONTAL, mused.slider_bevel);
 	
@@ -666,6 +661,15 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 	
 	int registers_map_x_offset = 0;
 	int registers_map_y_offset = 0;
+	
+	int pixel_offset = 0;
+	
+	if((mused.flags & SONG_PLAYING) && (mused.flags2 & SMOOTH_SCROLL))
+	{
+		pixel_offset = (Uint32)mused.mus.song_counter * (Uint32)8 / (((Uint32)mused.mus.song_position & (Uint32)1) ? (Uint32)mused.song.song_speed2 : (Uint32)mused.song.song_speed) - ((Uint32)mused.draw_passes_since_song_start == (Uint32)0 ? (Uint32)0 : ((Uint32)mused.draw_passes_since_song_start < (Uint32)4 ? (Uint32)mused.draw_passes_since_song_start : (Uint32)4));
+		
+		if(mused.draw_passes_since_song_start < 5) mused.draw_passes_since_song_start++;
+	}
 	
 	for (int channel = mused.pattern_horiz_position; channel < mused.song.num_channels && x < dest->w; x += ((channel == mused.current_sequencetrack) ? mused.widths[channel][0] : mused.widths[channel][1]), ++channel) //for (int channel = mused.pattern_horiz_position; channel < mused.song.num_channels && x < dest->w; x += ((channel == mused.current_sequencetrack) ? w : narrow_w), ++channel)
 	{
@@ -683,13 +687,16 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 		header.h = HEADER_HEIGHT;
 		header.w -= 2;
 		
-		pattern_view_header(dest_surface, &header, event, channel);
-				
+		//pattern_view_header(dest_surface, &header, event, channel);
+		
 		track.h -= HEADER_HEIGHT;
 		track.y += HEADER_HEIGHT + 1;
 		
-		bevelex(dest_surface, &track, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL|BEV_F_DISABLE_CENTER);
+		//bevelex(dest_surface, &track, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL|BEV_F_DISABLE_CENTER);
 		adjust_rect(&track, 3);
+		
+		track.y -= 8;
+		track.h += 8;
 		
 		for (int i = 0; i < mused.song.num_sequences[channel]; ++i, ++sp)
 		{
@@ -700,9 +707,15 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 			if (sp->position + len <= top) continue;
 			
 			if (i < mused.song.num_sequences[channel] - 1)
+			{
 				len = my_min(len, (sp + 1)->position - sp->position);
+			}
 			
-			SDL_Rect pat = { track.x, (sp->position - top) * height + track.y, ((channel == mused.current_sequencetrack) ? mused.widths[channel][0] : mused.widths[channel][1]), len * height }; //SDL_Rect pat = { track.x, (sp->position - top) * height + track.y, ((channel == mused.current_sequencetrack) ? w : narrow_w), len * height };
+			SDL_Rect pat = { track.x, (sp->position - top) * height + track.y - pixel_offset + 8, ((channel == mused.current_sequencetrack) ? mused.widths[channel][0] : mused.widths[channel][1]), len * height }; //SDL_Rect pat = { track.x, (sp->position - top) * height + track.y, ((channel == mused.current_sequencetrack) ? w : narrow_w), len * height };
+			
+			//track.y -= 8;
+			//track.h += 8;
+			
 			SDL_Rect text;
 			copy_rect(&text, &pat);
 			clip_rect(&pat, &track);
@@ -1046,6 +1059,30 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 			//debug("big loop finished");
 		}
 		
+		//track.y += 8;
+		//track.h -= 8;
+		
+		SDL_Rect mask;
+		
+		copy_rect(&mask, &header);
+		mask.h += 2;
+		gfx_domain_set_clip(dest_surface, &mask);
+		gfx_rect(dest_surface, &mask, colors[COLOR_OF_BACKGROUND]);
+		//gfx_domain_set_clip(dest_surface, &mask);
+		//SDL_FillRect(dest_surface, &mask, colors[COLOR_OF_BACKGROUND]);
+		gfx_domain_set_clip(dest_surface, &header);
+		
+		track.x -= 3;
+		track.y += HEADER_HEIGHT - 7;
+		track.h += 6;
+		track.w += 6;
+		gfx_domain_set_clip(dest_surface, &track);
+		bevelex(dest_surface, &track, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL|BEV_F_DISABLE_CENTER);
+		adjust_rect(&track, 3);
+		
+		gfx_domain_set_clip(dest_surface, &header);
+		pattern_view_header(dest_surface, &header, event, channel);
+		
 		if ((mused.flags & SONG_PLAYING) && !(mused.flags & DISABLE_VU_METERS))
 		{
 			gfx_domain_set_clip(dest_surface, &track);
@@ -1144,7 +1181,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 				}
 				
 				SDL_Rect selection = { dest->x + narrow_width2 + 2 * char_width + SPACER, 
-					row.y + height * (mused.selection.start - mused.pattern_position), mused.widths[mused.current_sequencetrack][0] - (2 * char_width + SPACER), height * (mused.selection.end - mused.selection.start)}; //SDL_Rect selection = { dest->x + narrow_w * (mused.current_sequencetrack - mused.pattern_horiz_position) + 2 * char_width + SPACER, row.y + height * (mused.selection.start - mused.pattern_position), w - (2 * char_width + SPACER), height * (mused.selection.end - mused.selection.start)};
+					row.y + height * (mused.selection.start - mused.pattern_position) - pixel_offset, mused.widths[mused.current_sequencetrack][0] - (2 * char_width + SPACER), height * (mused.selection.end - mused.selection.start)}; //SDL_Rect selection = { dest->x + narrow_w * (mused.current_sequencetrack - mused.pattern_horiz_position) + 2 * char_width + SPACER, row.y + height * (mused.selection.start - mused.pattern_position), w - (2 * char_width + SPACER), height * (mused.selection.end - mused.selection.start)};
 					
 				adjust_rect(&selection, -3);
 				selection.h += 2;
@@ -1220,6 +1257,63 @@ static void pattern_view_stepcounter(GfxDomain *dest_surface, const SDL_Rect *de
 	copy_rect(&content, dest);
 	
 	SDL_Rect header, frame, compact;
+	
+	content.y += HEADER_HEIGHT;
+	content.h -= HEADER_HEIGHT;
+	copy_rect(&frame, &content);
+	
+	int pixel_offset = 0;
+	
+	if((mused.flags & SONG_PLAYING) && (mused.flags2 & SMOOTH_SCROLL))
+	{
+		pixel_offset = (Uint32)mused.mus.song_counter * (Uint32)8 / (((Uint32)mused.mus.song_position & (Uint32)1) ? (Uint32)mused.song.song_speed2 : (Uint32)mused.song.song_speed) - ((Uint32)mused.draw_passes_since_song_start == (Uint32)0 ? (Uint32)0 : ((Uint32)mused.draw_passes_since_song_start < (Uint32)4 ? (Uint32)mused.draw_passes_since_song_start : (Uint32)4));
+	}
+	
+	content.y -= pixel_offset;
+	content.y -= 8;
+	content.h += 8;
+	
+	adjust_rect(&content, 2);
+	console_set_clip(mused.console, &content);
+	console_clear(mused.console);
+	
+	adjust_rect(&content, 2);
+	console_set_clip(mused.console, &content);
+	console_set_background(mused.console, 0);
+	
+	int start = mused.pattern_position - dest->h / mused.console->font.h / 2;
+	
+	int y = 0;
+	
+	for (int row = start - 1; y < content.h; ++row, y += mused.console->font.h)
+	{
+		if (mused.pattern_position == row)
+		{
+			SDL_Rect row = { content.x - 2, content.y + y - 1 + pixel_offset, content.w + 4, mused.console->font.h + 1};
+			bevelex(dest_surface, &row, mused.slider_bevel, BEV_SELECTED_PATTERN_ROW, BEV_F_STRETCH_ALL);
+		}
+	}
+	
+	y = 0;
+	
+	for (int row = start - 1; y < content.h; ++row, y += mused.console->font.h)
+	{
+		if (row < 0 || row >= mused.song.song_length)
+		{
+			console_set_color(mused.console, colors[COLOR_PATTERN_DISABLED]);
+		}
+		
+		else
+		{
+			console_set_color(mused.console, ((row == mused.pattern_position) ? colors[COLOR_PATTERN_SELECTED] : timesig(row, colors[COLOR_PATTERN_BAR], colors[COLOR_PATTERN_BEAT], colors[COLOR_PATTERN_NORMAL])));
+		}
+		
+		if (mused.flags & SHOW_DECIMALS)
+			console_write_args(mused.console, "%04d\n", (row + 10000) % 10000); // so we don't get negative numbers
+		else //console_write_args(mused.console, "%03d\n", (row + 1000) % 1000);
+			console_write_args(mused.console, "%04X\n", row & 0xffff); //console_write_args(mused.console, "%03X\n", row & 0xfff);
+	}
+	
 	copy_rect(&header, dest);
 	header.h = HEADER_HEIGHT;
 	header.w -= 2;
@@ -1242,46 +1336,6 @@ static void pattern_view_stepcounter(GfxDomain *dest_surface, const SDL_Rect *de
                 !(mused.flags & EXPAND_ONLY_CURRENT_TRACK) ? BEV_BUTTON : BEV_BUTTON_ACTIVE, 
                 !(mused.flags & EXPAND_ONLY_CURRENT_TRACK) ? BEV_BUTTON : BEV_BUTTON_ACTIVE, 
                 (mused.flags & EXPAND_ONLY_CURRENT_TRACK) ? DECAL_FOCUS_SELETED : DECAL_FOCUS, flip_bit_action, &mused.flags, MAKEPTR(EXPAND_ONLY_CURRENT_TRACK), 0);
-	
-	content.y += HEADER_HEIGHT;
-	content.h -= HEADER_HEIGHT;
-	copy_rect(&frame, &content);
-	
-	adjust_rect(&content, 2);
-	console_set_clip(mused.console, &content);
-	console_clear(mused.console);
-	
-	adjust_rect(&content, 2);
-	console_set_clip(mused.console, &content);
-	console_set_background(mused.console, 0);
-	
-	int start = mused.pattern_position - dest->h / mused.console->font.h / 2;
-	
-	int y = 0;
-	
-	for (int row = start; y < content.h; ++row, y += mused.console->font.h)
-	{
-		if (mused.pattern_position == row)
-		{
-			SDL_Rect row = { content.x - 2, content.y + y - 1, content.w + 4, mused.console->font.h + 1};
-			bevelex(dest_surface, &row, mused.slider_bevel, BEV_SELECTED_PATTERN_ROW, BEV_F_STRETCH_ALL);
-		}
-		
-		if (row < 0 || row >= mused.song.song_length)
-		{
-			console_set_color(mused.console, colors[COLOR_PATTERN_DISABLED]);
-		}
-		
-		else
-		{
-			console_set_color(mused.console, ((row == mused.pattern_position) ? colors[COLOR_PATTERN_SELECTED] : timesig(row, colors[COLOR_PATTERN_BAR], colors[COLOR_PATTERN_BEAT], colors[COLOR_PATTERN_NORMAL])));
-		}
-		
-		if (SHOW_DECIMALS & mused.flags)
-			console_write_args(mused.console, "%04d\n", (row + 10000) % 10000); // so we don't get negative numbers
-		else //console_write_args(mused.console, "%03d\n", (row + 1000) % 1000);
-			console_write_args(mused.console, "%04X\n", row & 0xffff); //console_write_args(mused.console, "%03X\n", row & 0xfff);
-	}
 	
 	bevelex(dest_surface, &frame, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL|BEV_F_DISABLE_CENTER);
 	

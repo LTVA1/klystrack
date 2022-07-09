@@ -196,6 +196,8 @@ void play(void *from_cursor, void *unused1, void *unused2)
 	mus_set_song(&mused.mus, &mused.song, pos);
 	mused.flags |= SONG_PLAYING;
 	if (mused.flags & STOP_EDIT_ON_PLAY) mused.flags &= ~EDIT_MODE;
+	
+	mused.draw_passes_since_song_start = 0;
 }
 
 

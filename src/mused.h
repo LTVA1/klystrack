@@ -112,6 +112,7 @@ enum
 	SHOW_OSCILLOSCOPE_MIDLINES = 2,
 	SHOW_REGISTERS_MAP = 4,
 	SHOW_BPM = 8,
+	SMOOTH_SCROLL = 8,
 };
 
 //#define SHOW_OSCILLOSCOPES_PATTERN_EDITOR ((Uint64)65536 << 16)
@@ -267,6 +268,8 @@ typedef struct
 	} game;*/
 	
 	bool show_four_op_menu;
+	
+	Sint8 draw_passes_since_song_start;
 } Mused;
 
 extern Mused mused;
