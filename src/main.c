@@ -251,6 +251,7 @@ int main(int argc, char **argv)
 	domain = gfx_create_domain(VERSION_STRING, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | ((mused.flags & WINDOW_MAXIMIZED) ? SDL_WINDOW_MAXIMIZED : 0), mused.window_w, mused.window_h, mused.pixel_scale);
 	
 	domain->fps = 30;
+	//domain->fps = mused.fps;
 	domain->scale = mused.pixel_scale;
 	domain->window_min_w = 320;
 	domain->window_min_h = 240;
@@ -272,6 +273,8 @@ int main(int argc, char **argv)
 	init(instrument, pattern, sequence, channel);
 	
 	load_config(".klystrack", true); //was `load_config(TOSTRING(CONFIG_PATH), true);`
+	
+	domain->fps = my_min(abs(mused.fps), 60);
 
 	post_config_load();
 

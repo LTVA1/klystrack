@@ -37,7 +37,9 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_NOP, 0xffff, "No operation", "Nop", 0, 0},
 	{MUS_FX_JUMP, 0xff00, "Goto", NULL, -1, -1},
 	{MUS_FX_LABEL, 0xff00, "Loop begin", "Begin", 0, 0},
-	{MUS_FX_LOOP, 0xff00, "Loop end", "Loop", -1, -1},	
+	{MUS_FX_LOOP, 0xff00, "Loop end", "Loop", -1, -1},
+	{MUS_FX_RELEASE_POINT, 0xff00, "Program jumps here when release is triggered", "\xf9 Release", 0, 0},
+	
 	{MUS_FX_ARPEGGIO, 0xff00, "Set arpeggio note", "Arp", -1, -1},
 	{MUS_FX_SET_NOISE_CONSTANT_PITCH, 0xff00, "Set noise note in \"LOCK NOISE PITCH\" mode", "NoiPitNote", 0, FREQ_TAB_SIZE - 1}, //wasn't there
 	{MUS_FX_ARPEGGIO_ABS, 0xff00, "Set absolute arpeggio note", "AbsArp", 0, FREQ_TAB_SIZE - 1},
@@ -157,7 +159,7 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_FM_4OP_SET_DETUNE, 0xfff0, "Set 4-op FM operator detune", "4opFMdet", 0, 15},
 	{MUS_FX_FM_4OP_SET_COARSE_DETUNE, 0xfff0, "Set 4-op FM operator coarse detune", "4opFMdet2", 0, 3},
 	
-	{MUS_FX_FM_4OP_SET_SSG_EG_TYPE, 0xfff0, "Set 4-op FM operator SSG-EG mode", "4opFMssgEgMode", 0, 7},
+	{MUS_FX_FM_4OP_SET_SSG_EG_TYPE, 0xfff0, "Set 4-op FM operator SSG-EG mode", "4opFMssgEgMode", 0, 0xf},
 	
 	{MUS_FX_FM_TRIGGER_OP1_RELEASE, 0xff00, "Trigger FM operator 1 release", "TrigFmOp1rel", 0, 255},
 	{MUS_FX_FM_TRIGGER_OP2_RELEASE, 0xff00, "Trigger FM operator 2 release", "TrigFmOp2rel", 0, 255},
@@ -209,10 +211,10 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_FM_SET_OP3_FEEDBACK, 0xfff0, "Set FM operator 3 feedback", "FmOp3FB", 0, 15},
 	{MUS_FX_FM_SET_OP4_FEEDBACK, 0xfff0, "Set FM operator 4 feedback", "FmOp4FB", 0, 15},
 	
-	{MUS_FX_FM_SET_OP1_SSG_EG_TYPE, 0xfff0, "Set FM operator 1 SSG-EG mode", "FmOp1ssgEgMode", 0, 7},
-	{MUS_FX_FM_SET_OP2_SSG_EG_TYPE, 0xfff0, "Set FM operator 2 SSG-EG mode", "FmOp2ssgEgMode", 0, 7},
-	{MUS_FX_FM_SET_OP3_SSG_EG_TYPE, 0xfff0, "Set FM operator 3 SSG-EG mode", "FmOp3ssgEgMode", 0, 7},
-	{MUS_FX_FM_SET_OP4_SSG_EG_TYPE, 0xfff0, "Set FM operator 4 SSG-EG mode", "FmOp4ssgEgMode", 0, 7},
+	{MUS_FX_FM_SET_OP1_SSG_EG_TYPE, 0xfff0, "Set FM operator 1 SSG-EG mode", "FmOp1ssgEgMode", 0, 0xf},
+	{MUS_FX_FM_SET_OP2_SSG_EG_TYPE, 0xfff0, "Set FM operator 2 SSG-EG mode", "FmOp2ssgEgMode", 0, 0xf},
+	{MUS_FX_FM_SET_OP3_SSG_EG_TYPE, 0xfff0, "Set FM operator 3 SSG-EG mode", "FmOp3ssgEgMode", 0, 0xf},
+	{MUS_FX_FM_SET_OP4_SSG_EG_TYPE, 0xfff0, "Set FM operator 4 SSG-EG mode", "FmOp4ssgEgMode", 0, 0xf},
 	
 	{0, 0, NULL}
 };
@@ -320,7 +322,7 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst)
 	
 	else if ((fi & 0xfff0) == MUS_FX_FM_SET_OP1_SSG_EG_TYPE || (fi & 0xfff0) == MUS_FX_FM_SET_OP2_SSG_EG_TYPE || (fi & 0xfff0) == MUS_FX_FM_SET_OP3_SSG_EG_TYPE || (fi & 0xfff0) == MUS_FX_FM_SET_OP4_SSG_EG_TYPE || (fi & 0xfff0) == MUS_FX_FM_4OP_SET_SSG_EG_TYPE)
 	{
-		snprintf(text, buffer_size, "%s (%s)\n", name, ssg_eg_types[inst & 0x7]);
+		snprintf(text, buffer_size, "%s (%s%s)\n", name, (inst & 8) ? "Enabled, " : "Disabled, ", ssg_eg_types[inst & 0x7]);
 	}
 	
 	else snprintf(text, buffer_size, "%s\n", name);

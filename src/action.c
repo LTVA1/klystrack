@@ -786,6 +786,8 @@ void export_wav_action(void *a, void*b, void*c)
 		
 		mused.song.flags &= ~MUS_NO_REPEAT; //wasn't there
 	}
+	
+	mused.song.flags &= ~MUS_NO_REPEAT; //wasn't there
 }
 
 void export_hires_wav_action(void *a, void*b, void*c)
@@ -820,6 +822,8 @@ void export_hires_wav_action(void *a, void*b, void*c)
 		
 		mused.song.flags &= ~MUS_NO_REPEAT; //wasn't there
 	}
+	
+	mused.song.flags &= ~MUS_NO_REPEAT; //wasn't there
 }
 
 
@@ -966,6 +970,8 @@ void export_channels_action(void *a, void*b, void*c)
 		
 		mused.song.flags &= ~MUS_NO_REPEAT; //wasn't there
 	}
+	
+	mused.song.flags &= ~MUS_NO_REPEAT; //wasn't there
 }
 
 

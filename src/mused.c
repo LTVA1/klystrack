@@ -254,6 +254,9 @@ void init(MusInstrument *instrument, MusPattern *pattern, MusSeqPattern **sequen
 
 	mused.flags = MULTICHANNEL_PREVIEW|ANIMATE_CURSOR|EDIT_MODE|SHOW_LOGO|FOLLOW_PLAY_POSITION|
 		MULTIKEY_JAMMING|START_WITH_TEMPLATE|EDIT_SEQUENCE_DIGITS;
+	
+	mused.fps = 30;
+	
 
 	// Rendering to the intermediary texture is disabled by default on Linux systems
 	// as it causes flashing of screen

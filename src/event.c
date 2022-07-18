@@ -1387,7 +1387,38 @@ static void play_the_jams(int sym, int chn, int state)
 	if (sym == SDLK_SPACE && state == 0)
 	{
 		for (int i = 0; i < MUS_MAX_CHANNELS; ++i)
+		{
 			cyd_enable_gate(mused.mus.cyd, &mused.mus.cyd->channel[i], 0);
+			
+			int chan = i;
+			
+			if(mused.mus.channel[chan].instrument != NULL)
+			{
+				for(int j = 0; j < MUS_PROG_LEN; ++j)
+				{
+					if((mused.mus.channel[chan].instrument->program[j] & 0xff00) == MUS_FX_RELEASE_POINT)
+					{
+						mused.mus.channel[chan].program_tick = j + 1;
+						break;
+					}
+				}
+				
+				if(!(mused.mus.channel[chan].instrument->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG) && (mused.mus.channel[chan].instrument->fm_flags & CYD_FM_ENABLE_4OP))
+				{
+					for(int j = 0; j < CYD_FM_NUM_OPS; ++j)
+					{
+						for(int k = 0; k < MUS_PROG_LEN; ++k)
+						{
+							if((mused.mus.channel[chan].instrument->ops[j].program[k] & 0xff00) == MUS_FX_RELEASE_POINT)
+							{
+								mused.mus.channel[chan].ops[j].program_tick = k + 1;
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	else
@@ -1431,7 +1462,38 @@ static void wave_the_jams(int sym)
 	if (sym == SDLK_SPACE)
 	{
 		for (int i = 0; i < MUS_MAX_CHANNELS; ++i)
+		{
 			cyd_enable_gate(mused.mus.cyd, &mused.mus.cyd->channel[i], 0);
+		
+			int chan = i;
+			
+			if(mused.mus.channel[chan].instrument != NULL)
+			{
+				for(int j = 0; j < MUS_PROG_LEN; ++j)
+				{
+					if((mused.mus.channel[chan].instrument->program[j] & 0xff00) == MUS_FX_RELEASE_POINT)
+					{
+						mused.mus.channel[chan].program_tick = j + 1;
+						break;
+					}
+				}
+				
+				if(!(mused.mus.channel[chan].instrument->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG) && (mused.mus.channel[chan].instrument->fm_flags & CYD_FM_ENABLE_4OP))
+				{
+					for(int j = 0; j < CYD_FM_NUM_OPS; ++j)
+					{
+						for(int k = 0; k < MUS_PROG_LEN; ++k)
+						{
+							if((mused.mus.channel[chan].instrument->ops[j].program[k] & 0xff00) == MUS_FX_RELEASE_POINT)
+							{
+								mused.mus.channel[chan].ops[j].program_tick = k + 1;
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	else

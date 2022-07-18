@@ -270,6 +270,7 @@ typedef struct
 	bool show_four_op_menu;
 	
 	Sint8 draw_passes_since_song_start;
+	Sint16 fps;
 } Mused;
 
 extern Mused mused;

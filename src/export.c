@@ -156,7 +156,7 @@ abort:;
 	
 	cyd_deinit(&cyd);
 	
-	//song->flags &= ~MUS_NO_REPEAT;
+	song->flags &= ~MUS_NO_REPEAT;
 	
 	return success;
 }
