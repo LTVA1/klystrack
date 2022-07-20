@@ -963,6 +963,8 @@ void export_channels_action(void *a, void*b, void*c)
 
 			if (f)
 			{
+				mused.song.flags |= MUS_NO_REPEAT;
+				
 				export_wav(&mused.song, mused.mus.cyd->wavetable_entries, f, i);
 				// f is closed inside of export_wav (inside of ww_finish)
 			}
