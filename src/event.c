@@ -918,6 +918,17 @@ void four_op_add_param(int a)
 
 		break;
 		
+		case FOUROP_HARMONIC_CARRIER:
+		{
+			Uint8 carrier = (i->ops[mused.selected_operator - 1].harmonic >> 4);
+			Uint8 modulator = i->ops[mused.selected_operator - 1].harmonic & 0xf;
+
+			clamp(carrier, a, 0, 15);
+
+			i->ops[mused.selected_operator - 1].harmonic = carrier << 4 | modulator;
+		}
+		break;
+		
 		case FOUROP_HARMONIC_MODULATOR:
 		{
 			Uint8 carrier = (i->ops[mused.selected_operator - 1].harmonic >> 4);
@@ -1321,17 +1332,6 @@ void four_op_add_param(int a)
 
 		break;
 
-		case FOUROP_HARMONIC_CARRIER:
-		{
-			Uint8 carrier = (i->ops[mused.selected_operator - 1].harmonic >> 4);
-			Uint8 modulator = i->ops[mused.selected_operator - 1].harmonic & 0xf;
-
-			clamp(carrier, a, 0, 15);
-
-			i->ops[mused.selected_operator - 1].harmonic = carrier << 4 | modulator;
-		}
-		break;
-
 		default:
 		break;
 	}
@@ -1603,9 +1603,9 @@ void edit_fourop_event(SDL_Event *e)
 			{
 				++mused.fourop_selected_param;
 				
-				if(!(mused.song.instrument[mused.current_instrument].fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) && mused.fourop_selected_param > FOUROP_USE_MAIN_INST_PROG && mused.fourop_selected_param < FOUROP_HARMONIC_MODULATOR)
+				if(!(mused.song.instrument[mused.current_instrument].fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) && mused.fourop_selected_param > FOUROP_USE_MAIN_INST_PROG && mused.fourop_selected_param < FOUROP_HARMONIC_CARRIER)
 				{
-					mused.fourop_selected_param = FOUROP_HARMONIC_MODULATOR;
+					mused.fourop_selected_param = FOUROP_HARMONIC_CARRIER;
 				}
 				
 				if((mused.song.instrument[mused.current_instrument].fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) && mused.fourop_selected_param > FOUROP_LOCKNOTE && mused.fourop_selected_param < FOUROP_FEEDBACK)
@@ -1629,7 +1629,7 @@ void edit_fourop_event(SDL_Event *e)
 			{
 				--mused.fourop_selected_param;
 				
-				if(!(mused.song.instrument[mused.current_instrument].fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) && mused.fourop_selected_param > FOUROP_USE_MAIN_INST_PROG && mused.fourop_selected_param < FOUROP_HARMONIC_MODULATOR)
+				if(!(mused.song.instrument[mused.current_instrument].fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) && mused.fourop_selected_param > FOUROP_USE_MAIN_INST_PROG && mused.fourop_selected_param < FOUROP_HARMONIC_CARRIER)
 				{
 					mused.fourop_selected_param = FOUROP_USE_MAIN_INST_PROG;
 				}

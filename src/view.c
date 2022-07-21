@@ -741,8 +741,8 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Enable FM modulator envelope key scaling", //wasn't there
 					"FM modulator envelope key scaling level", //wasn't there
 					"FM feedback",
-					"FM carrier multiplier",
-					"FM modulator multiplier",
+					"FM modulator frequency divider",
+					"FM modulator frequency multiplier",
 					"FM modulator base note", //wasn't there
 					"FM modulator finetune", //wasn't there
 					"FM frequency multiplier mapping", //wasn't there
@@ -1969,15 +1969,21 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 					SDL_Rect note;
 					copy_rect(&note, &view);
 
-					note.w = note.w / 3 - 2;
+					note.w = note.w / 3 - 2 - 15;
 					note.h = 10;
-
-					four_op_text(event, &note, FOUROP_HARMONIC_MODULATOR, "MUL", "%01X", MAKEPTR(inst->ops[mused.selected_operator - 1].harmonic), 1);
-					note.x += note.w + 1;
-					note.w += 6;
-					four_op_text(event, &note, FOUROP_DETUNE, "DT1", "%+1d", MAKEPTR(inst->ops[mused.selected_operator - 1].detune), 2);
-					note.x += note.w + 1;
-					note.w -= 6;
+					
+					four_op_text(event, &note, FOUROP_HARMONIC_CARRIER, "M", "%01X", MAKEPTR(inst->ops[mused.selected_operator - 1].harmonic >> 4), 1);
+					
+					note.w -= 10;
+					note.x += note.w + 12;
+					
+					four_op_text(event, &note, FOUROP_HARMONIC_MODULATOR, "", "%01X", MAKEPTR(inst->ops[mused.selected_operator - 1].harmonic & 15), 1);
+					note.x += note.w + 2;
+					note.w += 12 + 6;
+					//note.w += 6;
+					four_op_text(event, &note, FOUROP_DETUNE, "D", "%+1d", MAKEPTR(inst->ops[mused.selected_operator - 1].detune), 2);
+					note.x += note.w + 2;
+					note.w += 6 + 1;
 					four_op_text(event, &note, FOUROP_COARSE_DETUNE, "DT2", "%01d", MAKEPTR(inst->ops[mused.selected_operator - 1].coarse_detune), 1);
 				}
 				
