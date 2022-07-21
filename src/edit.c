@@ -362,11 +362,46 @@ void transpose_note_data(void *semitones, void *unused1, void *unused2)
 	{
 		if (pat->step[i].note != MUS_NOTE_NONE)
 		{
-			int semi = CASTPTR(int,semitones);
+			int semi = CASTPTR(int, semitones);
 			int note = (int)pat->step[i].note + semi;
 
-			if (note >= 0 && note < 12 * 8)
+			if (note >= 0 && note < 12 * 10)
+			{
 				pat->step[i].note = note;
+			}
+		}
+	}
+}
+
+
+void transpose_song_data(void *semitones, void *unused1, void *unused2)
+{
+	if (mused.focus != EDITPATTERN)
+    return;
+	
+	for(int p = 0; p < 256; ++p)
+	{
+		MusPattern *pat = &mused.song.pattern[p];
+
+		if (pat != NULL)
+		{
+			snapshot(S_T_PATTERN);
+
+			debug("Transposing pattern %d", p);
+
+			for (int i = 0; i < pat->num_steps; ++i)
+			{
+				if (pat->step[i].note != MUS_NOTE_NONE)
+				{
+					int semi = CASTPTR(int, semitones);
+					int note = (int)pat->step[i].note + semi;
+
+					if (note >= 0 && note < 12 * 10)
+					{
+						pat->step[i].note = note;
+					}
+				}
+			}
 		}
 	}
 }

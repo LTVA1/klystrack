@@ -88,6 +88,12 @@ const KeyShortcut shortcuts[] =
 	{ KMOD_SHIFT, SDLK_KP_MINUS, transpose_note_data, (void*)-1, 0, 0, "Transpose selection down (semitone)" },
 	{ KMOD_CTRL|KMOD_SHIFT, SDLK_KP_PLUS, transpose_note_data, (void*)+12, 0, 0, "Transpose selection up (octave)" },
 	{ KMOD_CTRL|KMOD_SHIFT, SDLK_KP_MINUS, transpose_note_data, (void*)-12, 0, 0, "Transpose selection down (octave)" },
+	
+	{ KMOD_ALT|KMOD_SHIFT, SDLK_KP_PLUS, transpose_song_data, (void*)+1, 0, 0, "Transpose song up (semitone)" }, //wasn't there
+	{ KMOD_ALT|KMOD_SHIFT, SDLK_KP_MINUS, transpose_song_data, (void*)-1, 0, 0, "Transpose song down (semitone)" },
+	{ KMOD_CTRL|KMOD_ALT|KMOD_SHIFT, SDLK_KP_PLUS, transpose_song_data, (void*)+12, 0, 0, "Transpose song up (octave)" },
+	{ KMOD_CTRL|KMOD_ALT|KMOD_SHIFT, SDLK_KP_MINUS, transpose_song_data, (void*)-12, 0, 0, "Transpose song down (octave)" },
+	
 	{ KMOD_ALT, SDLK_s, split_pattern, 0, 0, 0, "Split pattern at cursor position" },
 	{ KMOD_CTRL, SDLK_m, unmute_all_action, 0, 0, 0, "Unmute all channels" },
 	{ KMOD_CTRL|KMOD_SHIFT, SDLK_m, solo_channel, 0, 0, 0, "Solo current channel" },

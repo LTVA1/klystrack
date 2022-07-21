@@ -55,6 +55,9 @@ void expand_pattern(void *factor, void *, void *);
 void shrink_pattern(void *factor, void *, void *);
 void interpolate(void *, void *, void *);
 void transpose_note_data(void *semitones, void *unused1, void *unused2);
+
+void transpose_song_data(void *semitones, void *unused1, void *unused2); //wasn't there
+
 void split_pattern(void *unused1, void *unused2, void *unused3);
 
 #endif
