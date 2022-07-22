@@ -531,7 +531,6 @@ void optimize_patterns_brute(MusSong *song) //wasn't there
 }
 
 
-
 void optimize_unused_instruments(MusSong *song)
 {
 	int removed = 0;

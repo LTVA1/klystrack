@@ -671,6 +671,67 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 		if(mused.draw_passes_since_song_start < 5) mused.draw_passes_since_song_start++;
 	}
 	
+	if (mused.focus == EDITPATTERN)
+	{
+		int x = 2 + 2 * char_width + SPACER;
+		for (int param = 0; param < mused.current_patternx; ++param)
+		{
+			if (viscol(param)) 
+			{
+				x += (param > 0 && pattern_params[param].margin ? SPACER : 0) + pattern_params[param].w * char_width;
+			}
+		}
+		
+		if (pattern_params[mused.current_patternx].margin) x += SPACER;
+		
+		int cursor_width = 0;
+		int q = 0;
+		
+		while(dest->w <= cursor_width + mused.widths[mused.pattern_horiz_position + q][1])
+		{
+			cursor_width += mused.widths[mused.pattern_horiz_position + q][1];
+			q++;
+		}
+			
+		
+		if (mused.current_sequencetrack >= mused.pattern_horiz_position && mused.current_sequencetrack <= my_min(mused.song.num_channels, mused.pattern_horiz_position + 1 + dest->w - cursor_width) - 1) //if (mused.current_sequencetrack >= mused.pattern_horiz_position && mused.current_sequencetrack <= my_min(mused.song.num_channels, mused.pattern_horiz_position + 1 + (dest->w - w) / narrow_w) - 1)
+		{
+			int narrow_width = 0;
+			
+			for(int i = mused.pattern_horiz_position; i < mused.current_sequencetrack; ++i)
+			{
+				narrow_width += mused.widths[i][1];
+			}
+			
+			SDL_Rect cursor = { 1 + dest->x + narrow_width + x, row.y, pattern_params[mused.current_patternx].w * char_width, row.h}; //SDL_Rect cursor = { 1 + dest->x + narrow_w * (mused.current_sequencetrack - mused.pattern_horiz_position) + x, row.y, pattern_params[mused.current_patternx].w * char_width, row.h};
+			
+			//debug("draws from here %d", mused.pattern_horiz_position);
+			
+			adjust_rect(&cursor, -2);
+			set_cursor(&cursor);
+		}
+		
+		if (mused.selection.start != mused.selection.end)
+		{
+			if (mused.selection.start <= bottom && mused.selection.end >= top)
+			{
+				int narrow_width2 = 0;
+				
+				for(int i = mused.pattern_horiz_position; i < mused.current_sequencetrack; ++i)
+				{
+					narrow_width2 += mused.widths[i][1];
+				}
+				
+				SDL_Rect selection = { dest->x + narrow_width2 + 2 * char_width + SPACER, 
+					row.y + height * (mused.selection.start - mused.pattern_position) - pixel_offset, mused.widths[mused.current_sequencetrack][0] - (2 * char_width + SPACER), height * (mused.selection.end - mused.selection.start)}; //SDL_Rect selection = { dest->x + narrow_w * (mused.current_sequencetrack - mused.pattern_horiz_position) + 2 * char_width + SPACER, row.y + height * (mused.selection.start - mused.pattern_position), w - (2 * char_width + SPACER), height * (mused.selection.end - mused.selection.start)};
+					
+				adjust_rect(&selection, -3);
+				selection.h += 2;
+				bevel(dest_surface, &selection, mused.slider_bevel, BEV_SELECTION);
+			}
+		}
+	}
+	
 	for (int channel = mused.pattern_horiz_position; channel < mused.song.num_channels && x < dest->w; x += ((channel == mused.current_sequencetrack) ? mused.widths[channel][0] : mused.widths[channel][1]), ++channel) //for (int channel = mused.pattern_horiz_position; channel < mused.song.num_channels && x < dest->w; x += ((channel == mused.current_sequencetrack) ? w : narrow_w), ++channel)
 	{
 		const MusSeqPattern *sp = &mused.song.sequence[channel][0];
@@ -1129,66 +1190,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 	adjust_rect(&pat, 2);
 	gfx_domain_set_clip(dest_surface, &pat);
 	
-	if (mused.focus == EDITPATTERN)
-	{
-		int x = 2 + 2 * char_width + SPACER;
-		for (int param = 0; param < mused.current_patternx; ++param)
-		{
-			if (viscol(param)) 
-			{
-				x += (param > 0 && pattern_params[param].margin ? SPACER : 0) + pattern_params[param].w * char_width;
-			}
-		}
-		
-		if (pattern_params[mused.current_patternx].margin) x += SPACER;
-		
-		int cursor_width = 0;
-		int q = 0;
-		
-		while(dest->w <= cursor_width + mused.widths[mused.pattern_horiz_position + q][1])
-		{
-			cursor_width += mused.widths[mused.pattern_horiz_position + q][1];
-			q++;
-		}
-			
-		
-		if (mused.current_sequencetrack >= mused.pattern_horiz_position && mused.current_sequencetrack <= my_min(mused.song.num_channels, mused.pattern_horiz_position + 1 + dest->w - cursor_width) - 1) //if (mused.current_sequencetrack >= mused.pattern_horiz_position && mused.current_sequencetrack <= my_min(mused.song.num_channels, mused.pattern_horiz_position + 1 + (dest->w - w) / narrow_w) - 1)
-		{
-			int narrow_width = 0;
-			
-			for(int i = mused.pattern_horiz_position; i < mused.current_sequencetrack; ++i)
-			{
-				narrow_width += mused.widths[i][1];
-			}
-			
-			SDL_Rect cursor = { 1 + dest->x + narrow_width + x, row.y, pattern_params[mused.current_patternx].w * char_width, row.h}; //SDL_Rect cursor = { 1 + dest->x + narrow_w * (mused.current_sequencetrack - mused.pattern_horiz_position) + x, row.y, pattern_params[mused.current_patternx].w * char_width, row.h};
-			
-			//debug("draws from here %d", mused.pattern_horiz_position);
-			
-			adjust_rect(&cursor, -2);
-			set_cursor(&cursor);
-		}
-		
-		if (mused.selection.start != mused.selection.end)
-		{
-			if (mused.selection.start <= bottom && mused.selection.end >= top)
-			{
-				int narrow_width2 = 0;
-				
-				for(int i = mused.pattern_horiz_position; i < mused.current_sequencetrack; ++i)
-				{
-					narrow_width2 += mused.widths[i][1];
-				}
-				
-				SDL_Rect selection = { dest->x + narrow_width2 + 2 * char_width + SPACER, 
-					row.y + height * (mused.selection.start - mused.pattern_position) - pixel_offset, mused.widths[mused.current_sequencetrack][0] - (2 * char_width + SPACER), height * (mused.selection.end - mused.selection.start)}; //SDL_Rect selection = { dest->x + narrow_w * (mused.current_sequencetrack - mused.pattern_horiz_position) + 2 * char_width + SPACER, row.y + height * (mused.selection.start - mused.pattern_position), w - (2 * char_width + SPACER), height * (mused.selection.end - mused.selection.start)};
-					
-				adjust_rect(&selection, -3);
-				selection.h += 2;
-				bevel(dest_surface, &selection, mused.slider_bevel, BEV_SELECTION);
-			}
-		}
-	}
+	
 	
 	gfx_domain_set_clip(dest_surface, NULL);
 	
