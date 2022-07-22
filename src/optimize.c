@@ -164,12 +164,35 @@ bool is_wavetable_used(const MusSong *song, int wavetable)
 			return true;
 		}
 		
+		if(song->instrument[i].fm_flags & CYD_FM_ENABLE_4OP)
+		{
+			for(int j = 0; j < CYD_FM_NUM_OPS; ++j)
+			{
+				if (song->instrument[i].ops[j].wavetable_entry == wavetable)
+				{
+					debug("Wavetable %x used by instrument %x FM operator %x", wavetable, i, j);
+					return true;
+				}
+				
+				for (int p = 0; p < MUS_PROG_LEN; ++p)
+				{
+					if ((song->instrument[i].ops[j].program[p] & 0xffff) == (MUS_FX_SET_WAVETABLE_ITEM | wavetable))
+					{
+						debug("Wavetable %x used by instrument %x FM operator %x program (step %d)", wavetable, i, j, p);
+						return true;
+					}
+				}
+			}
+		}
+		
 		for (int p = 0; p < MUS_PROG_LEN; ++p)
+		{
 			if ((song->instrument[i].program[p] & 0xffff) == (MUS_FX_SET_WAVETABLE_ITEM | wavetable))
 			{
 				debug("Wavetable %x used by instrument %x program (step %d)", wavetable, i, p);
 				return true;
 			}
+		}
 	}
 	
 	for (int p = 0; p < song->num_patterns; ++p)
@@ -200,17 +223,45 @@ static void remove_wavetable(MusSong *song, CydEngine *cyd, int wavetable)
 		if (song->instrument[i].wavetable_entry > wavetable)
 			song->instrument[i].wavetable_entry--;
 		
-		if (song->instrument[i].fm_wave == wavetable)
+		if (song->instrument[i].fm_wave > wavetable)
 			song->instrument[i].fm_wave--;
 		
+		if(song->instrument[i].fm_flags & CYD_FM_ENABLE_4OP)
+		{
+			for(int j = 0; j < CYD_FM_NUM_OPS; ++j)
+			{
+				if (song->instrument[i].ops[j].wavetable_entry > wavetable)
+				{
+					song->instrument[i].ops[j].wavetable_entry--;
+				}
+				
+				for (int p = 0; p < MUS_PROG_LEN; ++p)
+				{
+					if ((song->instrument[i].ops[j].program[p] & 0xff00) == MUS_FX_SET_WAVETABLE_ITEM)
+					{
+						Uint8 param = song->instrument[i].ops[j].program[p] & 0xff;
+				
+						if (param > wavetable)
+						{
+							song->instrument[i].ops[j].program[p] = MUS_FX_SET_WAVETABLE_ITEM | (param - 1);
+						}
+					}
+				}
+			}
+		}
+		
 		for (int p = 0; p < MUS_PROG_LEN; ++p)
+		{
 			if ((song->instrument[i].program[p] & 0xff00) == MUS_FX_SET_WAVETABLE_ITEM)
 			{
 				Uint8 param = song->instrument[i].program[p] & 0xff;
 				
 				if (param > wavetable)
-					song->instrument[i].program[p] = (song->instrument[i].program[p] & 0x8000) | MUS_FX_SET_WAVETABLE_ITEM | (param - 1);
+				{
+					song->instrument[i].program[p] = MUS_FX_SET_WAVETABLE_ITEM | (param - 1);
+				}
 			}
+		}
 	}
 	
 	for (int p = 0; p < song->num_patterns; ++p)
