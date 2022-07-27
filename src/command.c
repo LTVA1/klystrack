@@ -320,9 +320,35 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst)
 		snprintf(text, buffer_size, "%s (%+1d)\n", name, my_min(7, my_max((inst & 0xF) - 7, -7)));
 	}
 	
+	#define envelope_length(slope) (slope!=0?(float)(((slope) * (slope) * 256 / (ENVELOPE_SCALE * ENVELOPE_SCALE))) / ((float)CYD_BASE_FREQ / 1000.0f) :0.0f)
+	
+	else if ((fi & 0xff00) == MUS_FX_SET_ATTACK_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP1_ATTACK_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP2_ATTACK_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP3_ATTACK_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP4_ATTACK_RATE || (fi & 0xff00) == MUS_FX_SET_DECAY_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP1_DECAY_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP2_DECAY_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP3_DECAY_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP4_DECAY_RATE || (fi & 0xff00) == MUS_FX_SET_RELEASE_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP1_RELEASE_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP2_RELEASE_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP3_RELEASE_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP4_RELEASE_RATE)
+	{
+		snprintf(text, buffer_size, "%s (%s %.1f ms)", name, (inst & 0x40) ? "Global," : "Local,", envelope_length((inst & 0x3f)));
+	}
+	
+	else if ((fi & 0xff00) == MUS_FX_SET_SUSTAIN_LEVEL || (fi & 0xff00) == MUS_FX_FM_SET_OP1_SUSTAIN_LEVEL || (fi & 0xff00) == MUS_FX_FM_SET_OP2_SUSTAIN_LEVEL || (fi & 0xff00) == MUS_FX_FM_SET_OP3_SUSTAIN_LEVEL || (fi & 0xff00) == MUS_FX_FM_SET_OP4_SUSTAIN_LEVEL)
+	{
+		snprintf(text, buffer_size, "%s (%s)", name, (inst & 0x20) ? "Global" : "Local");
+	}
+	
 	else if ((fi & 0xfff0) == MUS_FX_FM_SET_OP1_SSG_EG_TYPE || (fi & 0xfff0) == MUS_FX_FM_SET_OP2_SSG_EG_TYPE || (fi & 0xfff0) == MUS_FX_FM_SET_OP3_SSG_EG_TYPE || (fi & 0xfff0) == MUS_FX_FM_SET_OP4_SSG_EG_TYPE || (fi & 0xfff0) == MUS_FX_FM_4OP_SET_SSG_EG_TYPE)
 	{
 		snprintf(text, buffer_size, "%s (%s%s)\n", name, (inst & 8) ? "Enabled, " : "Disabled, ", ssg_eg_types[inst & 0x7]);
+	}
+	
+	else if ((fi & 0xff00) == MUS_FX_SET_PANNING)
+	{
+		char tmp[4] = "\xfa\xf9";
+		
+		bool is_max_pan = (inst & 0xff) == CYD_PAN_CENTER;
+		
+		if ((inst & 0xff) != CYD_PAN_CENTER && (inst & 0xff) != CYD_PAN_CENTER - 1)
+		{
+			snprintf(tmp, sizeof(tmp), "%c%X", (inst & 0xff) < CYD_PAN_CENTER ? '\xf9' : '\xfa', (inst & 0xff) < CYD_PAN_CENTER ? 0x7f - (inst & 0xff) : (inst & 0xff) - 0x80);
+		}
+		
+		snprintf(text, buffer_size, "%s (%s)\n", name, ((inst & 0xff) == CYD_PAN_CENTER || (inst & 0xff) == CYD_PAN_CENTER - 1) ? "Center" : tmp);
 	}
 	
 	else snprintf(text, buffer_size, "%s\n", name);

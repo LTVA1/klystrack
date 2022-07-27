@@ -196,7 +196,7 @@ void pattern_view_header(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 				
 		vol.x += vol.w + 1;
 		
-		char tmp[4]="\xfa\xf9";
+		char tmp[4] = "\xfa\xf9";
 		
 		bool is_max_pan = mused.song.default_panning[channel] == 127;
 		if (mused.song.default_panning[channel])

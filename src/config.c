@@ -58,6 +58,7 @@ static const struct { int type; const char *name; void *param; Uint64 mask; } co
 	{ C_BOOL, "multikey_jamming", &mused.flags, MULTIKEY_JAMMING },
 	{ C_BOOL, "animate_cursor", &mused.flags, ANIMATE_CURSOR },
 	{ C_BOOL, "hide_zeros", &mused.flags, HIDE_ZEROS },
+	{ C_BOOL, "show_flats_instead_of_sharps", &mused.flags2, SHOW_FLATS_INSTEAD_OF_SHARPS },
 	{ C_BOOL, "protracker_delete", &mused.flags, DELETE_EMPTIES },
 	{ C_INT, "visible_columns", &mused.visible_columns },
 	{ C_BOOL, "show_decimals", &mused.flags, SHOW_DECIMALS },

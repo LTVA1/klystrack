@@ -194,7 +194,12 @@ char * notename(int note)
 	{
 		"C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "B-"
 	};
-	sprintf(buffer, "%s%d", notename[note % 12], note / 12);
+	
+	static const char * notename_flats[] =
+	{
+		"C-", "Db", "D-", "Eb", "E-", "F-", "Gb", "G-", "Ab", "A-", "Bb", "B-"
+	};
+	sprintf(buffer, "%s%d", (mused.flags2 & SHOW_FLATS_INSTEAD_OF_SHARPS) ? notename_flats[note % 12] : notename[note % 12], note / 12);
 	return buffer;
 }
 
