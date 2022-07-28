@@ -890,8 +890,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 					{
 						case PED_NOTE:
 							{
-							const char *note = (s->note < MUS_NOTE_NONE) 
-								? ((s->note == MUS_NOTE_RELEASE) ? "\x08\x09\x0b" : notename(s->note)) : "---";
+							const char *note = ((s->note == MUS_NOTE_CUT) ? "OFF" : ((s->note < MUS_NOTE_NONE) ? ((s->note == MUS_NOTE_RELEASE) ? "\x08\x09\x0b" : notename(s->note)) : "---"));
 								
 							if (sp->position + step != mused.pattern_position)
 								console_set_color(mused.console, diszero(mused.song.pattern[sp->pattern].step[step].note != MUS_NOTE_NONE, color));
