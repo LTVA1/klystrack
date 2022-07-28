@@ -3240,6 +3240,8 @@ void set_room_size(int fx, int size, int vol, int dec)
 		mused.song.fx[fx].rvb.tap[i].delay = p;
 		mused.song.fx[fx].rvb.tap[i].gain = g;
 		mused.song.fx[fx].rvb.tap[i].flags = e;
+		
+		mused.song.fx[fx].rvb.tap[i].panning = CYD_PAN_CENTER;
 	}
 	
 	mused.song.fx[mused.fx_bus].rvb.taps_quant = CYDRVB_TAPS;

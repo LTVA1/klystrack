@@ -176,18 +176,30 @@ bool export_wav_hires(MusSong *song, CydWavetableEntry * entry, FILE *f, int cha
 {
 	bool success = false;
 	
-	MusEngine mus;
-	CydEngine cyd;
+	/*MusEngine mus;
+	CydEngine cyd;*/
 	
-	cyd_init(&cyd, 384000, song->num_channels); //cyd_init(&cyd, 100000, 64);
-	cyd.flags |= CYD_SINGLE_THREAD;
-	mus_init_engine(&mus, &cyd);
-	mus.volume = song->master_volume;
-	mus_set_fx(&mus, song);
-	CydWavetableEntry * prev_entry = cyd.wavetable_entries; // save entries so they can be free'd
-	cyd.wavetable_entries = entry;
-	cyd_set_callback(&cyd, mus_advance_tick, &mus, song->song_rate);
-	mus_set_song(&mus, song, 0);
+	MusEngine* mus = (MusEngine*)malloc(sizeof(MusEngine));
+	CydEngine* cyd = (CydEngine*)malloc(sizeof(CydEngine));
+	
+	if(mus == NULL || cyd == NULL)
+	{
+		return success;
+	}
+	
+	cyd_init(cyd, 384000, song->num_channels); //cyd_init(&cyd, 100000, 64);
+	
+	cyd->flags |= CYD_SINGLE_THREAD;
+	mus_init_engine(mus, cyd);
+	mus->volume = song->master_volume;
+	
+	mus_set_fx(mus, song);
+	
+	CydWavetableEntry * prev_entry = cyd->wavetable_entries; // save entries so they can be free'd
+	cyd->wavetable_entries = entry;
+	cyd_set_callback(cyd, mus_advance_tick, mus, song->song_rate);
+	
+	mus_set_song(mus, song, 0);
 	//song->flags |= MUS_NO_REPEAT;
 	
 	if (channel >= 0)
@@ -195,15 +207,15 @@ bool export_wav_hires(MusSong *song, CydWavetableEntry * entry, FILE *f, int cha
 		// if channel is positive then only export that channel (mute other chans)
 		
 		for (int i = 0; i < MUS_MAX_CHANNELS; ++i)
-			mus.channel[i].flags |= MUS_CHN_DISABLED;
+			mus->channel[i].flags |= MUS_CHN_DISABLED;
 		
-		mus.channel[channel].flags &= ~MUS_CHN_DISABLED;
+		mus->channel[channel].flags &= ~MUS_CHN_DISABLED;
 	}
 	
 	else
 	{
 		for (int i = 0; i < MUS_MAX_CHANNELS; ++i)
-			mus.channel[i].flags &= ~MUS_CHN_DISABLED;
+			mus->channel[i].flags &= ~MUS_CHN_DISABLED;
 	}
 	
 	const int channels = 2;
@@ -211,7 +223,7 @@ bool export_wav_hires(MusSong *song, CydWavetableEntry * entry, FILE *f, int cha
 	
 	int last_percentage = -1;
 	
-	WaveWriter *ww = ww_create(f, cyd.sample_rate, 2);
+	WaveWriter *ww = ww_create(f, cyd->sample_rate, 2);
 
 	/*int array[2] = { 1, 2 }; 
 	int value = 69; 
@@ -220,20 +232,22 @@ bool export_wav_hires(MusSong *song, CydWavetableEntry * entry, FILE *f, int cha
 
 	for (;;)
 	{
+		//debug("before memset");
+		
 		memset(buffer, 0, sizeof(buffer)); // Zero the input to cyd
 		
 		//debug("Successful memset");
 		
-		cyd_output_buffer_stereo(&cyd, (Uint8*)buffer, sizeof(buffer));
+		cyd_output_buffer_stereo(cyd, (Uint8*)buffer, sizeof(buffer));
 		
 		//debug("Successful cyd_output_buffer_stereo"); //wasn't there
 		
-		if (cyd.samples_output > 0)
-			ww_write(ww, buffer, cyd.samples_output);
+		if (cyd->samples_output > 0)
+			ww_write(ww, buffer, cyd->samples_output);
 		
 		//debug("Successful ww_write and song pos is %d", mus.song_position);
 		
-		if (mus.song_position >= song->song_length)
+		if (mus->song_position >= song->song_length)
 		{
 			debug("finished");
 			//mus.song_position = -1;
@@ -242,7 +256,7 @@ bool export_wav_hires(MusSong *song, CydWavetableEntry * entry, FILE *f, int cha
 		
 		if (song->song_length != 0)
 		{
-			int percentage = (mus.song_position + (channel == -1 ? 0 : (channel * song->song_length))) * 100 / (song->song_length * (channel == -1 ? 1 : song->num_channels));
+			int percentage = (mus->song_position + (channel == -1 ? 0 : (channel * song->song_length))) * 100 / (song->song_length * (channel == -1 ? 1 : song->num_channels));
 			
 			if (percentage > last_percentage)
 			{
@@ -289,11 +303,14 @@ abort:;
 	
 	ww_finish(ww);
 	
-	cyd.wavetable_entries = prev_entry;
+	cyd->wavetable_entries = prev_entry;
 	
-	cyd_deinit(&cyd);
+	cyd_deinit(cyd);
 	
-	//song->flags &= ~MUS_NO_REPEAT;
+	song->flags &= ~MUS_NO_REPEAT;
+	
+	free(cyd);
+	free(mus);
 	
 	return success;
 }
