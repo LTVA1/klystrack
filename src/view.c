@@ -737,7 +737,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Tremolo delay", //wasn't there
 					"Program period",
 					"Don't restart program on keydown",
-					"Enable multi oscillator (play 2- or 3-note chords by adding 00XX command in pattern)",
+					"Enable multi oscillator (play 2- or 3-note chords by using 00XY command in pattern)",
 					"Save vibrato, PWM and tremolo settings", //wasn't there
 					"FM enable",
 					"FM modulation",
