@@ -37,4 +37,6 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst);
 Uint16 validate_command(Uint16 command);
 const InstructionDesc* list_all_commands();
 
+Uint16 get_instruction_mask(Uint16 command);
+
 #endif

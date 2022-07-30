@@ -233,6 +233,20 @@ const InstructionDesc * get_instruction_desc(Uint16 command)
 }
 
 
+Uint16 get_instruction_mask(Uint16 command)
+{
+	for (int i = 0; instruction_desc[i].name != NULL; ++i)
+	{
+		if (instruction_desc[i].opcode == (command & instruction_desc[i].mask))
+		{
+			return instruction_desc[i].mask;
+		}
+	}
+	
+	return false;
+}
+
+
 bool is_valid_command(Uint16 command)
 {
 	return get_instruction_desc(command) != NULL;

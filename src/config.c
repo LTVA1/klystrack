@@ -87,6 +87,7 @@ static const struct { int type; const char *name; void *param; Uint64 mask; } co
 	{ C_BOOL, "show_fake_registers_table", &mused.flags2, SHOW_REGISTERS_MAP }, //wasn't there
 	{ C_BOOL, "show_bpm_count", &mused.flags2, SHOW_BPM }, //wasn't there
 	{ C_BOOL, "smooth_scroll", &mused.flags2, SMOOTH_SCROLL },
+	{ C_BOOL, "highlight_commands", &mused.flags2, HIGHLIGHT_COMMANDS },
 	{ C_END }
 };
 

@@ -979,7 +979,24 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 						case PED_COMMAND4:
 						
 							if (sp->position + step != mused.pattern_position)
+							{
 								console_set_color(mused.console, diszero(s->command[0] != 0, color));
+							}
+							
+							if(mused.flags2 & HIGHLIGHT_COMMANDS)
+							{
+								if((~(get_instruction_mask(s->command[0])) & (0xf << ((PED_COMMAND4 - param) * 4))) && s->command[0] != 0 && is_valid_command(s->command[0]))
+								{
+									Uint32 highlight_color = ((color & 0xff) * 1 / 2) + (((((color >> 8) & 0xff) * 1 / 2) & 0xff) << 8) + 0xff0000;//my_min(0xff0000, (((((color >> 16) & 0xff) * 7 / 4) & 0xff) << 16));
+									
+									if((sp->position + step) == mused.pattern_position)
+									{
+										highlight_color = 0x00ee00;
+									}
+									
+									console_set_color(mused.console, diszero(s->command[0] != 0, highlight_color));
+								}
+							}
 							
 							if ((mused.flags & HIDE_ZEROS) && s->command[0] == 0)
 								font_write_args(&mused.console->font, dest_surface, &pos, "-");
@@ -995,6 +1012,21 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 							if (sp->position + step != mused.pattern_position)
 								console_set_color(mused.console, diszero(s->command[1] != 0, color));
 							
+							if(mused.flags2 & HIGHLIGHT_COMMANDS)
+							{
+								if((~(get_instruction_mask(s->command[1])) & (0xf << ((PED_COMMAND4 - param) * 4))) && s->command[1] != 0 && is_valid_command(s->command[1]))
+								{
+									Uint32 highlight_color = ((color & 0xff) * 1 / 2) + (((((color >> 8) & 0xff) * 1 / 2) & 0xff) << 8) + 0xff0000;//my_min(0xff0000, (((((color >> 16) & 0xff) * 7 / 4) & 0xff) << 16));
+									
+									if((sp->position + step) == mused.pattern_position)
+									{
+										highlight_color = 0x00ee00;
+									}
+									
+									console_set_color(mused.console, diszero(s->command[1] != 0, highlight_color));
+								}
+							}
+							
 							if ((mused.flags & HIDE_ZEROS) && s->command[1] == 0)
 								font_write_args(&mused.console->font, dest_surface, &pos, "-");
 							else
@@ -1008,6 +1040,21 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 						
 							if (sp->position + step != mused.pattern_position)
 								console_set_color(mused.console, diszero(s->command[2] != 0, color));
+							
+							if(mused.flags2 & HIGHLIGHT_COMMANDS)
+							{
+								if((~(get_instruction_mask(s->command[2])) & (0xf << ((PED_COMMAND4 - param) * 4))) && s->command[2] != 0 && is_valid_command(s->command[2]))
+								{
+									Uint32 highlight_color = ((color & 0xff) * 1 / 2) + (((((color >> 8) & 0xff) * 1 / 2) & 0xff) << 8) + 0xff0000;//my_min(0xff0000, (((((color >> 16) & 0xff) * 7 / 4) & 0xff) << 16));
+									
+									if((sp->position + step) == mused.pattern_position)
+									{
+										highlight_color = 0x00ee00;
+									}
+									
+									console_set_color(mused.console, diszero(s->command[2] != 0, highlight_color));
+								}
+							}
 							
 							if ((mused.flags & HIDE_ZEROS) && s->command[2] == 0)
 								font_write_args(&mused.console->font, dest_surface, &pos, "-");
@@ -1023,6 +1070,21 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 							if (sp->position + step != mused.pattern_position)
 								console_set_color(mused.console, diszero(s->command[3] != 0, color));
 							
+							if(mused.flags2 & HIGHLIGHT_COMMANDS)
+							{
+								if((~(get_instruction_mask(s->command[3])) & (0xf << ((PED_COMMAND4 - param) * 4))) && s->command[3] != 0 && is_valid_command(s->command[3]))
+								{
+									Uint32 highlight_color = ((color & 0xff) * 1 / 2) + (((((color >> 8) & 0xff) * 1 / 2) & 0xff) << 8) + 0xff0000;//my_min(0xff0000, (((((color >> 16) & 0xff) * 7 / 4) & 0xff) << 16));
+									
+									if((sp->position + step) == mused.pattern_position)
+									{
+										highlight_color = 0x00ee00;
+									}
+									
+									console_set_color(mused.console, diszero(s->command[3] != 0, highlight_color));
+								}
+							}
+							
 							if ((mused.flags & HIDE_ZEROS) && s->command[3] == 0)
 								font_write_args(&mused.console->font, dest_surface, &pos, "-");
 							else
@@ -1036,6 +1098,21 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 						
 							if (sp->position + step != mused.pattern_position)
 								console_set_color(mused.console, diszero(s->command[4] != 0, color));
+							
+							if(mused.flags2 & HIGHLIGHT_COMMANDS)
+							{
+								if((~(get_instruction_mask(s->command[4])) & (0xf << ((PED_COMMAND4 - param) * 4))) && s->command[4] != 0 && is_valid_command(s->command[4]))
+								{
+									Uint32 highlight_color = ((color & 0xff) * 1 / 2) + (((((color >> 8) & 0xff) * 1 / 2) & 0xff) << 8) + 0xff0000;//my_min(0xff0000, (((((color >> 16) & 0xff) * 7 / 4) & 0xff) << 16));
+									
+									if((sp->position + step) == mused.pattern_position)
+									{
+										highlight_color = 0x00ee00;
+									}
+									
+									console_set_color(mused.console, diszero(s->command[4] != 0, highlight_color));
+								}
+							}
 							
 							if ((mused.flags & HIDE_ZEROS) && s->command[4] == 0)
 								font_write_args(&mused.console->font, dest_surface, &pos, "-");
@@ -1051,6 +1128,21 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 							if (sp->position + step != mused.pattern_position)
 								console_set_color(mused.console, diszero(s->command[5] != 0, color));
 							
+							if(mused.flags2 & HIGHLIGHT_COMMANDS)
+							{
+								if((~(get_instruction_mask(s->command[5])) & (0xf << ((PED_COMMAND4 - param) * 4))) && s->command[5] != 0 && is_valid_command(s->command[5]))
+								{
+									Uint32 highlight_color = ((color & 0xff) * 1 / 2) + (((((color >> 8) & 0xff) * 1 / 2) & 0xff) << 8) + 0xff0000;//my_min(0xff0000, (((((color >> 16) & 0xff) * 7 / 4) & 0xff) << 16));
+									
+									if((sp->position + step) == mused.pattern_position)
+									{
+										highlight_color = 0x00ee00;
+									}
+									
+									console_set_color(mused.console, diszero(s->command[5] != 0, highlight_color));
+								}
+							}
+							
 							if ((mused.flags & HIDE_ZEROS) && s->command[5] == 0)
 								font_write_args(&mused.console->font, dest_surface, &pos, "-");
 							else
@@ -1065,6 +1157,21 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 							if (sp->position + step != mused.pattern_position)
 								console_set_color(mused.console, diszero(s->command[6] != 0, color));
 							
+							if(mused.flags2 & HIGHLIGHT_COMMANDS)
+							{
+								if((~(get_instruction_mask(s->command[6])) & (0xf << ((PED_COMMAND4 - param) * 4))) && s->command[6] != 0 && is_valid_command(s->command[6]))
+								{
+									Uint32 highlight_color = ((color & 0xff) * 1 / 2) + (((((color >> 8) & 0xff) * 1 / 2) & 0xff) << 8) + 0xff0000;//my_min(0xff0000, (((((color >> 16) & 0xff) * 7 / 4) & 0xff) << 16));
+									
+									if((sp->position + step) == mused.pattern_position)
+									{
+										highlight_color = 0x00ee00;
+									}
+									
+									console_set_color(mused.console, diszero(s->command[6] != 0, highlight_color));
+								}
+							}
+							
 							if ((mused.flags & HIDE_ZEROS) && s->command[6] == 0)
 								font_write_args(&mused.console->font, dest_surface, &pos, "-");
 							else
@@ -1078,6 +1185,21 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 						
 							if (sp->position + step != mused.pattern_position)
 								console_set_color(mused.console, diszero(s->command[7] != 0, color));
+							
+							if(mused.flags2 & HIGHLIGHT_COMMANDS)
+							{
+								if((~(get_instruction_mask(s->command[7])) & (0xf << ((PED_COMMAND4 - param) * 4))) && s->command[7] != 0 && is_valid_command(s->command[7]))
+								{
+									Uint32 highlight_color = ((color & 0xff) * 1 / 2) + (((((color >> 8) & 0xff) * 1 / 2) & 0xff) << 8) + 0xff0000;//my_min(0xff0000, (((((color >> 16) & 0xff) * 7 / 4) & 0xff) << 16));
+									
+									if((sp->position + step) == mused.pattern_position)
+									{
+										highlight_color = 0x00ee00;
+									}
+									
+									console_set_color(mused.console, diszero(s->command[7] != 0, highlight_color));
+								}
+							}
 							
 							if ((mused.flags & HIDE_ZEROS) && s->command[7] == 0)
 								font_write_args(&mused.console->font, dest_surface, &pos, "-");
