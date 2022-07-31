@@ -1058,11 +1058,40 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 							sprintf(text, "Volume (%+.1f dB)", percent_to_dB((float)vol / MAX_VOLUME));
 					}
 					
+					else if (mused.current_patternx == PED_NOTE)
+					{
+						Uint8 note = mused.song.pattern[current_pattern()].step[current_patternstep()].note;
+
+						switch(note)
+						{
+							case MUS_NOTE_RELEASE:
+							{
+								sprintf(text, "Trigger release"); break;
+							}
+							
+							case MUS_NOTE_CUT:
+							{
+								sprintf(text, "Note cut"); break;
+							}
+							
+							case MUS_NOTE_MACRO_RELEASE:
+							{
+								sprintf(text, "Trigger instrument macro(s) release"); break;
+							}
+							
+							default:
+							{
+								sprintf(text, "Note"); break;
+							}
+						}
+					}
+					
 					else
 					{
 						static const char *pattern_txt[] =
 						{
-							"Note", "Instrument", "Instrument", "", "", "Legato", "Slide", "Vibrato", "Tremolo"
+							//"Note", "Instrument", "Instrument", "", "", "Legato", "Slide", "Vibrato", "Tremolo"
+							"", "Instrument", "Instrument", "", "", "Legato", "Slide", "Vibrato", "Tremolo"
 						};
 
 						strcpy(text, pattern_txt[mused.current_patternx]);

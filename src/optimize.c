@@ -421,12 +421,7 @@ void optimize_patterns_brute(MusSong *song) //wasn't there
 		{
 			for(int j = 0; j < song->pattern[i].num_steps; j++)
 			{
-				if(song->pattern[i].step[j].volume == 0x80)
-				{
-					song->pattern[i].step[j].volume = MUS_NOTE_NO_VOLUME;
-				}
-				
-				if(song->pattern[i].step[j].note == MUS_NOTE_RELEASE)
+				if(song->pattern[i].step[j].note == MUS_NOTE_RELEASE || song->pattern[i].step[j].note == MUS_NOTE_CUT || song->pattern[i].step[j].note == MUS_NOTE_MACRO_RELEASE)
 				{
 					song->pattern[i].step[j].instrument = MUS_NOTE_NO_INSTRUMENT;
 				}

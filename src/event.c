@@ -2638,16 +2638,21 @@ void pattern_event(SDL_Event *e)
 							update_pattern_slider(mused.note_jump);
 						}
 						
-						else if (e->key.keysym.sym == SDLK_1 || e->key.keysym.sym == SDLK_BACKQUOTE)
+						else if (e->key.keysym.sym == SDLK_1 || e->key.keysym.sym == SDLK_BACKQUOTE || e->key.keysym.sym == SDLK_EQUALS)
 						{
 							if(e->key.keysym.sym == SDLK_BACKQUOTE)
 							{
 								mused.song.pattern[current_pattern()].step[current_patternstep()].note = MUS_NOTE_CUT;
 							}
 							
-							else
+							if(e->key.keysym.sym == SDLK_1)
 							{
 								mused.song.pattern[current_pattern()].step[current_patternstep()].note = MUS_NOTE_RELEASE;
+							}
+							
+							if(e->key.keysym.sym == SDLK_EQUALS)
+							{
+								mused.song.pattern[current_pattern()].step[current_patternstep()].note = MUS_NOTE_MACRO_RELEASE;
 							}
 
 							snapshot(S_T_PATTERN);

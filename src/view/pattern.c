@@ -890,12 +890,40 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 					{
 						case PED_NOTE:
 							{
-							const char *note = ((s->note == MUS_NOTE_CUT) ? "OFF" : ((s->note < MUS_NOTE_NONE) ? ((s->note == MUS_NOTE_RELEASE) ? "\x08\x09\x0b" : notename(s->note)) : "---"));
+								char note[5];
 								
-							if (sp->position + step != mused.pattern_position)
-								console_set_color(mused.console, diszero(mused.song.pattern[sp->pattern].step[step].note != MUS_NOTE_NONE, color));
+								switch(s->note)
+								{
+									case MUS_NOTE_CUT:
+									{
+										snprintf(note, sizeof(note), "%s", "OFF"); break;
+									}
+									
+									case MUS_NOTE_RELEASE:
+									{
+										snprintf(note, sizeof(note), "%s", "\x08\x09\x0b"); break;
+									}
+									
+									case MUS_NOTE_MACRO_RELEASE:
+									{
+										snprintf(note, sizeof(note), "%s", "M\x08\x0b"); break;
+									}
+									
+									case MUS_NOTE_NONE:
+									{
+										snprintf(note, sizeof(note), "%s", "---"); break;
+									}
+									
+									default:
+									{
+										snprintf(note, sizeof(note), "%s", notename(s->note)); break;
+									}
+								}
 								
-							font_write(&mused.console->font, dest_surface, &pos, note);
+								if (sp->position + step != mused.pattern_position)
+									console_set_color(mused.console, diszero(mused.song.pattern[sp->pattern].step[step].note != MUS_NOTE_NONE, color));
+									
+								font_write(&mused.console->font, dest_surface, &pos, note);
 							}
 							break;
 						
