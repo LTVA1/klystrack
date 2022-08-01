@@ -450,8 +450,6 @@ void songinfo2_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 	r.h = 10;
 	console_set_clip(mused.console, &area);
 
-	char speedtext[10];
-
 	int d, tmp = r.w;
 
 	r.w -= 34; //26
@@ -471,11 +469,6 @@ void songinfo2_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 	d = generic_field(event, &r, EDITSONGINFO, SI_RATE, "RATE", "%5d", MAKEPTR(mused.song.song_rate), 5);
 	songinfo_add_param(d);
 	update_rect(&area, &r);
-
-	/*sprintf(speedtext, "%d/%d", mused.time_signature >> 8, mused.time_signature & 0xff);
-	d = generic_field(event, &r, EDITSONGINFO, SI_TIME, "TIME","%4s", speedtext, 4);
-	songinfo_add_param(d);
-	update_rect(&area, &r);*/
 	
 	tmp = r.w;
 
@@ -1915,7 +1908,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 		
 		gfx_rect(dest_surface, &frame, 0x0);
 		
-		SDL_Rect top_view, view, view2, oscilloscopes_view, op_alg_view, op_osc_view, program_view, slider;
+		SDL_Rect top_view, view, view2, op_alg_view, program_view, slider;
 			
 		{
 			SDL_Rect r;
@@ -2642,15 +2635,6 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			
 			four_op_text(event, &r, FOUROP_TRIG_DELAY, "TRIG.DEL.", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].trigger_delay), 2);
 			update_rect(&view2, &r);
-		}
-		
-		//========================================================================
-		
-		{
-			slider.x = frame_x + VIEW_WIDTH + (frame_w - VIEW_WIDTH - SCROLLBAR_W);
-			slider.y = frame_y + TOP_VIEW_H + ALG_VIEW_H;
-			slider.h = frame_h - ALG_VIEW_H - TOP_VIEW_H;
-			slider.w = SCROLLBAR_W;
 		}
 	}
 }

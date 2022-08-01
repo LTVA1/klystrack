@@ -37,6 +37,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include <stdbool.h>
 #include "sequence.h"
 
+#include "../command.h"
+
 #define HEADER_HEIGHT 12 //was 12
 
 const struct { bool margin; int w; int id; } pattern_params[] =
