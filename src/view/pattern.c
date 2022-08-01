@@ -1042,7 +1042,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 							
 							if(mused.flags2 & HIGHLIGHT_COMMANDS)
 							{
-								if((~(get_instruction_mask(s->command[1])) & (0xf << ((PED_COMMAND4 - param) * 4))) && s->command[1] != 0 && is_valid_command(s->command[1]))
+								if((~(get_instruction_mask(s->command[1])) & (0xf << ((PED_COMMAND24 - param) * 4))) && s->command[1] != 0 && is_valid_command(s->command[1]))
 								{
 									Uint32 highlight_color = ((color & 0xff) * 1 / 2) + (((((color >> 8) & 0xff) * 1 / 2) & 0xff) << 8) + 0xff0000;//my_min(0xff0000, (((((color >> 16) & 0xff) * 7 / 4) & 0xff) << 16));
 									
@@ -1071,7 +1071,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 							
 							if(mused.flags2 & HIGHLIGHT_COMMANDS)
 							{
-								if((~(get_instruction_mask(s->command[2])) & (0xf << ((PED_COMMAND4 - param) * 4))) && s->command[2] != 0 && is_valid_command(s->command[2]))
+								if((~(get_instruction_mask(s->command[2])) & (0xf << ((PED_COMMAND34 - param) * 4))) && s->command[2] != 0 && is_valid_command(s->command[2]))
 								{
 									Uint32 highlight_color = ((color & 0xff) * 1 / 2) + (((((color >> 8) & 0xff) * 1 / 2) & 0xff) << 8) + 0xff0000;//my_min(0xff0000, (((((color >> 16) & 0xff) * 7 / 4) & 0xff) << 16));
 									
@@ -1100,7 +1100,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 							
 							if(mused.flags2 & HIGHLIGHT_COMMANDS)
 							{
-								if((~(get_instruction_mask(s->command[3])) & (0xf << ((PED_COMMAND4 - param) * 4))) && s->command[3] != 0 && is_valid_command(s->command[3]))
+								if((~(get_instruction_mask(s->command[3])) & (0xf << ((PED_COMMAND44 - param) * 4))) && s->command[3] != 0 && is_valid_command(s->command[3]))
 								{
 									Uint32 highlight_color = ((color & 0xff) * 1 / 2) + (((((color >> 8) & 0xff) * 1 / 2) & 0xff) << 8) + 0xff0000;//my_min(0xff0000, (((((color >> 16) & 0xff) * 7 / 4) & 0xff) << 16));
 									
@@ -1129,7 +1129,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 							
 							if(mused.flags2 & HIGHLIGHT_COMMANDS)
 							{
-								if((~(get_instruction_mask(s->command[4])) & (0xf << ((PED_COMMAND4 - param) * 4))) && s->command[4] != 0 && is_valid_command(s->command[4]))
+								if((~(get_instruction_mask(s->command[4])) & (0xf << ((PED_COMMAND54 - param) * 4))) && s->command[4] != 0 && is_valid_command(s->command[4]))
 								{
 									Uint32 highlight_color = ((color & 0xff) * 1 / 2) + (((((color >> 8) & 0xff) * 1 / 2) & 0xff) << 8) + 0xff0000;//my_min(0xff0000, (((((color >> 16) & 0xff) * 7 / 4) & 0xff) << 16));
 									
@@ -1158,7 +1158,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 							
 							if(mused.flags2 & HIGHLIGHT_COMMANDS)
 							{
-								if((~(get_instruction_mask(s->command[5])) & (0xf << ((PED_COMMAND4 - param) * 4))) && s->command[5] != 0 && is_valid_command(s->command[5]))
+								if((~(get_instruction_mask(s->command[5])) & (0xf << ((PED_COMMAND64 - param) * 4))) && s->command[5] != 0 && is_valid_command(s->command[5]))
 								{
 									Uint32 highlight_color = ((color & 0xff) * 1 / 2) + (((((color >> 8) & 0xff) * 1 / 2) & 0xff) << 8) + 0xff0000;//my_min(0xff0000, (((((color >> 16) & 0xff) * 7 / 4) & 0xff) << 16));
 									
@@ -1187,7 +1187,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 							
 							if(mused.flags2 & HIGHLIGHT_COMMANDS)
 							{
-								if((~(get_instruction_mask(s->command[6])) & (0xf << ((PED_COMMAND4 - param) * 4))) && s->command[6] != 0 && is_valid_command(s->command[6]))
+								if((~(get_instruction_mask(s->command[6])) & (0xf << ((PED_COMMAND74 - param) * 4))) && s->command[6] != 0 && is_valid_command(s->command[6]))
 								{
 									Uint32 highlight_color = ((color & 0xff) * 1 / 2) + (((((color >> 8) & 0xff) * 1 / 2) & 0xff) << 8) + 0xff0000;//my_min(0xff0000, (((((color >> 16) & 0xff) * 7 / 4) & 0xff) << 16));
 									
@@ -1216,7 +1216,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 							
 							if(mused.flags2 & HIGHLIGHT_COMMANDS)
 							{
-								if((~(get_instruction_mask(s->command[7])) & (0xf << ((PED_COMMAND4 - param) * 4))) && s->command[7] != 0 && is_valid_command(s->command[7]))
+								if((~(get_instruction_mask(s->command[7])) & (0xf << ((PED_COMMAND84 - param) * 4))) && s->command[7] != 0 && is_valid_command(s->command[7]))
 								{
 									Uint32 highlight_color = ((color & 0xff) * 1 / 2) + (((((color >> 8) & 0xff) * 1 / 2) & 0xff) << 8) + 0xff0000;//my_min(0xff0000, (((((color >> 16) & 0xff) * 7 / 4) & 0xff) << 16));
 									
