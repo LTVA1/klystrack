@@ -325,11 +325,11 @@ static void pattern_view_registers_map(GfxDomain *dest_surface, const SDL_Rect *
 		current_registers[0] |= (((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_EXPONENTIAL_VOLUME) ? 1 : 0) << 6);
 		current_registers[0] |= (((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_EXPONENTIAL_ATTACK) ? 1 : 0) << 5);
 		current_registers[0] |= (((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_EXPONENTIAL_DECAY) ? 1 : 0) << 4);
-		current_registers[0] |= ((mused.cyd.channel[i].true_freq) >> 16) & 0xf;
+		current_registers[0] |= ((mused.cyd.channel[i].true_freq / 16) >> 16) & 0xf;
 		
-		current_registers[1] |= ((mused.cyd.channel[i].true_freq & 0xff00) >> 8);
+		current_registers[1] |= (((mused.cyd.channel[i].true_freq / 16) & 0xff00) >> 8);
 		
-		current_registers[2] |= mused.cyd.channel[i].true_freq & 0xff;
+		current_registers[2] |= (mused.cyd.channel[i].true_freq / 16) & 0xff;
 		
 		for(int k = 0; k < CYD_WAVE_MAX_ENTRIES; ++k)
 		{
@@ -397,9 +397,9 @@ static void pattern_view_registers_map(GfxDomain *dest_surface, const SDL_Rect *
 			current_registers[i] = 0;
 		}
 		
-		current_registers[0] |= (mused.cyd.channel[i].subosc[0].buzz_detune_freq >> 8);
+		current_registers[0] |= ((mused.cyd.channel[i].subosc[0].buzz_detune_freq / 16) >> 8);
 		
-		current_registers[1] |= mused.cyd.channel[i].subosc[0].buzz_detune_freq & 0xff;
+		current_registers[1] |= (mused.cyd.channel[i].subosc[0].buzz_detune_freq / 16) & 0xff;
 		
 		current_registers[2] |= mused.cyd.channel[i].ring_mod;
 		
@@ -419,7 +419,7 @@ static void pattern_view_registers_map(GfxDomain *dest_surface, const SDL_Rect *
 		
 		if(mused.cyd.channel[i].flags & CYD_CHN_ENABLE_FM)
 		{
-			current_registers[7] |= ((mused.cyd.channel[i].true_freq + (((mused.cyd.channel[i].fm.fm_base_note - mused.cyd.channel[i].fm.fm_carrier_base_note) << 8) + mused.cyd.channel[i].fm.fm_finetune + mused.cyd.channel[i].fm.fm_vib == 0 ? 0 : get_freq(((mused.cyd.channel[i].fm.fm_base_note - mused.cyd.channel[i].fm.fm_carrier_base_note) << 8) + mused.cyd.channel[i].fm.fm_finetune + mused.cyd.channel[i].fm.fm_vib) - get_freq(0))) >> 16) & 0xf;
+			current_registers[7] |= ((mused.cyd.channel[i].true_freq / 16 + (((mused.cyd.channel[i].fm.fm_base_note - mused.cyd.channel[i].fm.fm_carrier_base_note) << 8) + mused.cyd.channel[i].fm.fm_finetune + mused.cyd.channel[i].fm.fm_vib == 0 ? 0 : get_freq(((mused.cyd.channel[i].fm.fm_base_note - mused.cyd.channel[i].fm.fm_carrier_base_note) << 8) + mused.cyd.channel[i].fm.fm_finetune + mused.cyd.channel[i].fm.fm_vib) / 16 - get_freq(0) / 16)) >> 16) & 0xf;
 		}
 		
 		font_write_args(&mused.tinyfont, dest_surface, &row3, "#%04X: #%02X #%02X #%02X #%02X #%02X #%02X #%02X #%02X", current_registers_row, current_registers[0], current_registers[1], 
@@ -436,9 +436,9 @@ static void pattern_view_registers_map(GfxDomain *dest_surface, const SDL_Rect *
 		
 		if(mused.cyd.channel[i].flags & CYD_CHN_ENABLE_FM)
 		{
-			current_registers[0] |= (((mused.cyd.channel[i].true_freq + (((mused.cyd.channel[i].fm.fm_base_note - mused.cyd.channel[i].fm.fm_carrier_base_note) << 8) + mused.cyd.channel[i].fm.fm_finetune + mused.cyd.channel[i].fm.fm_vib == 0 ? 0 : get_freq(((mused.cyd.channel[i].fm.fm_base_note - mused.cyd.channel[i].fm.fm_carrier_base_note) << 8) + mused.cyd.channel[i].fm.fm_finetune + mused.cyd.channel[i].fm.fm_vib) - get_freq(0))) & 0xff00) >> 8);
+			current_registers[0] |= (((mused.cyd.channel[i].true_freq / 16 + (((mused.cyd.channel[i].fm.fm_base_note - mused.cyd.channel[i].fm.fm_carrier_base_note) << 8) + mused.cyd.channel[i].fm.fm_finetune + mused.cyd.channel[i].fm.fm_vib == 0 ? 0 : get_freq(((mused.cyd.channel[i].fm.fm_base_note - mused.cyd.channel[i].fm.fm_carrier_base_note) << 8) + mused.cyd.channel[i].fm.fm_finetune + mused.cyd.channel[i].fm.fm_vib) / 16 - get_freq(0) / 16)) & 0xff00) >> 8);
 			
-			current_registers[1] |= (mused.cyd.channel[i].true_freq + (((mused.cyd.channel[i].fm.fm_base_note - mused.cyd.channel[i].fm.fm_carrier_base_note) << 8) + mused.cyd.channel[i].fm.fm_finetune + mused.cyd.channel[i].fm.fm_vib == 0 ? 0 : get_freq(((mused.cyd.channel[i].fm.fm_base_note - mused.cyd.channel[i].fm.fm_carrier_base_note) << 8) + mused.cyd.channel[i].fm.fm_finetune + mused.cyd.channel[i].fm.fm_vib) - get_freq(0))) & 0xff;
+			current_registers[1] |= (mused.cyd.channel[i].true_freq / 16 + (((mused.cyd.channel[i].fm.fm_base_note - mused.cyd.channel[i].fm.fm_carrier_base_note) << 8) + mused.cyd.channel[i].fm.fm_finetune + mused.cyd.channel[i].fm.fm_vib == 0 ? 0 : get_freq(((mused.cyd.channel[i].fm.fm_base_note - mused.cyd.channel[i].fm.fm_carrier_base_note) << 8) + mused.cyd.channel[i].fm.fm_finetune + mused.cyd.channel[i].fm.fm_vib) / 16 - get_freq(0) / 16)) & 0xff;
 		}
 		
 		for(int k = 0; k < CYD_WAVE_MAX_ENTRIES; ++k)

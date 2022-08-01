@@ -23,7 +23,7 @@ void wavetable_drop_lowest_bit(void *unused1, void *unused2, void *unused3)
 	if (w->samples > 0)
 	{
 		int d = 0;
-				
+		
 		for (; d < w->samples; ++d)
 		{
 			w->data[d] &= mask;
@@ -36,7 +36,7 @@ void wavetable_drop_lowest_bit(void *unused1, void *unused2, void *unused3)
 void wavetable_halve_samplerate(void *unused1, void *unused2, void *unused3)
 {
 	snapshot(S_T_WAVE_DATA);
-		
+	
 	CydWavetableEntry *w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
 	
 	if (w->samples > 0)

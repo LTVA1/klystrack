@@ -131,7 +131,7 @@ void change_octave(void *delta, void *unused1, void *unused2)
 {
 	mused.octave += CASTPTR(int,delta);
 	if (mused.octave > 9) mused.octave = 9;
-	else if (mused.octave < 0) mused.octave = 0;
+	else if (mused.octave < -5) mused.octave = -5;
 }
 
 

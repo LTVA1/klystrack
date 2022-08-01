@@ -199,7 +199,27 @@ char * notename(int note)
 	{
 		"C-", "Db", "D-", "Eb", "E-", "F-", "Gb", "G-", "Ab", "A-", "Bb", "B-"
 	};
-	sprintf(buffer, "%s%d", (mused.flags2 & SHOW_FLATS_INSTEAD_OF_SHARPS) ? notename_flats[note % 12] : notename[note % 12], note / 12);
+	
+	static const char * notename_negative[] =
+	{
+		"c_", "c#", "d_", "d#", "e_", "f_", "f#", "f_", "g#", "a_", "a#", "b_"
+	};
+	
+	static const char * notename_negative_flats[] =
+	{
+		"c_", "db", "d_", "eb", "e_", "f_", "gb", "g_", "ab", "a_", "bb", "b_"
+	};
+	
+	if(note < C_ZERO)
+	{
+		sprintf(buffer, "%s%d", (mused.flags2 & SHOW_FLATS_INSTEAD_OF_SHARPS) ? notename_negative_flats[note % 12] : notename_negative[note % 12], note >= C_ZERO ? (note - C_ZERO) / 12 : (C_ZERO - note) / 12);
+	}
+	
+	else
+	{
+		sprintf(buffer, "%s%d", (mused.flags2 & SHOW_FLATS_INSTEAD_OF_SHARPS) ? notename_flats[note % 12] : notename[note % 12], note >= C_ZERO ? (note - C_ZERO) / 12 : (C_ZERO - note) / 12);
+	}
+	
 	return buffer;
 }
 
@@ -517,7 +537,7 @@ void songinfo3_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 
 	int d;
 
-	d = generic_field(event, &r, EDITSONGINFO, SI_OCTAVE, "OCTAVE", "%02X", MAKEPTR(mused.octave), 2);
+	d = generic_field(event, &r, EDITSONGINFO, SI_OCTAVE, "OCTAVE", mused.octave == 0 ? "%02X" : (mused.octave < 0 ? "-%1d" : "%02X"), MAKEPTR(mused.octave < 0 ? abs(mused.octave) : mused.octave), 2);
 	songinfo_add_param(d);
 	update_rect(&area, &r);
 

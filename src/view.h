@@ -30,6 +30,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 #include "view/oscilloscope.h" //wasn't there
 
+#include "../klystron/src/snd/freqs.h"
+
 #define PLAYSTOP_INFO_W 78
 #define SCROLLBAR 10
 

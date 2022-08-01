@@ -89,10 +89,11 @@ int find_note(int sym, int oct)
 	SDLK_i, SDLK_9, SDLK_o, SDLK_0, SDLK_p, -1};
 
 	int n = 0;
+	
 	for (const int *i = keys; *i != -1; ++i, ++n)
 	{
 		if (*i == sym)
-			return n + oct*12;
+			return n + (oct + 5) * 12;
 	}
 
 	return -1;
@@ -1424,6 +1425,7 @@ static void play_the_jams(int sym, int chn, int state)
 	else
 	{
 		int note = find_note(sym, mused.octave);
+		
 		if (note != -1)
 		{
 			if (mused.flags & MULTIKEY_JAMMING)
@@ -1453,7 +1455,6 @@ static void play_the_jams(int sym, int chn, int state)
 			}
 		}
 	}
-
 }
 
 
@@ -3714,7 +3715,7 @@ void wave_event(SDL_Event *e)
 					wave->loop_begin = 0;
 					wave->loop_end = 0;
 					wave->loop_point = 0;
-					wave->base_note = 0;
+					wave->base_note = C_ZERO;
 					
 					free(wave->data);
 					wave->data = NULL;
