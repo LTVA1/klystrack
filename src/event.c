@@ -2890,14 +2890,14 @@ void edit_program_event(SDL_Event *e)
 				
 				if(mused.show_four_op_menu)
 				{
-					if ((mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_program_step] & 0xf000) != 0xf000)
+					if ((mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_program_step] & 0xf000) != 0xf000 && (mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[my_min(mused.current_program_step + 1, MUS_PROG_LEN)] & 0xff00) != MUS_FX_JUMP)
 						//mused.song.instrument[mused.current_instrument].program[mused.current_program_step] ^= 0x8000; //old command mused.song.instrument[mused.current_instrument].program[mused.current_program_step] ^= 0x8000;
 						mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[mused.current_program_step / 8] ^= (1 << (mused.current_program_step & 7));
 				}
 				
 				else
 				{
-					if ((mused.song.instrument[mused.current_instrument].program[mused.current_program_step] & 0xf000) != 0xf000)
+					if ((mused.song.instrument[mused.current_instrument].program[mused.current_program_step] & 0xf000) != 0xf000 && (mused.song.instrument[mused.current_instrument].program[my_min(mused.current_program_step + 1, MUS_PROG_LEN)] & 0xff00) != MUS_FX_JUMP)
 						//mused.song.instrument[mused.current_instrument].program[mused.current_program_step] ^= 0x8000; //old command mused.song.instrument[mused.current_instrument].program[mused.current_program_step] ^= 0x8000;
 						mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_program_step / 8] ^= (1 << (mused.current_program_step & 7));
 				}
