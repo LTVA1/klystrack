@@ -1229,7 +1229,7 @@ static void write_command(const SDL_Event *event, const char *text, int cmd_idx,
 		{
 			Uint16 command = (char_to_hex(text[0]) << 12) + (char_to_hex(text[1]) << 8) + (char_to_hex(text[2]) << 4) + char_to_hex(text[3]);
 			
-			if((~(get_instruction_mask(command))) & (0xf << ((3 - i) * 4)) && command != 0 && is_valid_command(command) && (command & 0xff00) != MUS_FX_LABEL && (command & 0xff00) != MUS_FX_RELEASE_POINT && command != MUS_FX_END)
+			if(((~(get_instruction_mask(command))) & (0xf << ((3 - i) * 4))) && is_valid_command(command) && text[0] != '.' && (command & 0xff00) != MUS_FX_LABEL && (command & 0xff00) != MUS_FX_RELEASE_POINT && command != MUS_FX_END)
 			{
 				Uint32 color = init_color;
 				Uint32 highlight_color = ((color & 0xff) * 1 / 2) + (((((color >> 8) & 0xff) * 1 / 2) & 0xff) << 8) + 0xff0000;//my_min(0xff0000, (((((color >> 16) & 0xff) * 7 / 4) & 0xff) << 16));

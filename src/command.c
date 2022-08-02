@@ -83,7 +83,7 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_SET_RINGSRC, 0xff00, "Set ring modulation source (FF=off)", "SetRingSrc", 0, 0xff},
 	{MUS_FX_SET_SYNCSRC, 0xff00, "Set sync source (FF=off)", "SetSyncSrc", 0, 0xff},
 	{MUS_FX_SET_DOWNSAMPLE, 0xff00, "Set downsample", "SetDnSmp", 0, 0xff},
-	{MUS_FX_SET_SPEED, 0xff00, "Set speed", "Speed", -1, -1},
+	{MUS_FX_SET_SPEED, 0xff00, "Set speed (program period in instrument program)", "ProgPeriod", -1, -1},
 	{MUS_FX_SET_SPEED1, 0xff00, "Set speed 1 (00-FF)", "Speed1Full", -1, -1}, //wasn't there
 	{MUS_FX_SET_SPEED2, 0xff00, "Set speed 2 (00-FF)", "Speed2Full", -1, -1}, //wasn't there
 	{MUS_FX_SET_RATE, 0xff00, "Set rate lower byte", "RateLowByte", -1, -1},
