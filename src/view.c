@@ -1200,14 +1200,54 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 	button.x += button.w;
 }
 
+Uint32 char_to_hex(char c)
+{
+	const char numbers[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+	
+	for(int i = 0; i < 16; ++i)
+	{
+		if(c == numbers[i])
+		{
+			return i;
+		}
+	}
+	
+	return 0;
+}
 
 static void write_command(const SDL_Event *event, const char *text, int cmd_idx, int cur_idx)
 {
 	int i = 0;
+	
+	Uint32 init_color = mused.console->current_color;
 
 	for (const char *c = text; *c; ++c, ++i)
 	{
 		const SDL_Rect *r;
+		
+		if(mused.flags2 & HIGHLIGHT_COMMANDS)
+		{
+			Uint16 command = (char_to_hex(text[0]) << 12) + (char_to_hex(text[1]) << 8) + (char_to_hex(text[2]) << 4) + char_to_hex(text[3]);
+			
+			if((~(get_instruction_mask(command))) & (0xf << ((3 - i) * 4)) && command != 0 && is_valid_command(command) && (command & 0xff00) != MUS_FX_LABEL && (command & 0xff00) != MUS_FX_RELEASE_POINT && command != MUS_FX_END)
+			{
+				Uint32 color = init_color;
+				Uint32 highlight_color = ((color & 0xff) * 1 / 2) + (((((color >> 8) & 0xff) * 1 / 2) & 0xff) << 8) + 0xff0000;//my_min(0xff0000, (((((color >> 16) & 0xff) * 7 / 4) & 0xff) << 16));
+				
+				if(cmd_idx == cur_idx && mused.focus == (mused.show_four_op_menu ? EDITPROG4OP : EDITPROG))
+				{
+					highlight_color = 0x00ee00;
+				}
+				
+				console_set_color(mused.console, highlight_color);
+			}
+			
+			else
+			{
+				console_set_color(mused.console, init_color);
+			}
+		}
+		
 		check_event(event, r = console_write_args(mused.console, "%c", *c),
 			select_program_step, MAKEPTR(cmd_idx), MAKEPTR(i), 0);
 
@@ -1219,6 +1259,8 @@ static void write_command(const SDL_Event *event, const char *text, int cmd_idx,
 			set_cursor(&cur);
 		}
 	}
+	
+	console_set_color(mused.console, init_color);
 }
 
 
