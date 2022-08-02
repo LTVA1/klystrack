@@ -533,12 +533,29 @@ void optimize_unused_instruments(MusSong *song)
 	debug("Kill unused instruments");
 	
 	for (int i = 0; i < song->num_instruments; ++i)
+	{
 		if (!is_instrument_used(song, i))
 		{
 			remove_instrument(song, i);
 			++removed;
 		}
-		
+	}
+	
+	if (confirm(domain, mused.slider_bevel, &mused.largefont, "Move instruments to their topmost positions (no undo)?\nThis may take a while"))
+	{
+		for(int k = 0; k < NUM_INSTRUMENTS / 8; ++k)
+		{
+			for (int i = 0; i < song->num_instruments; ++i)
+			{
+				if (!is_instrument_used(song, i))
+				{
+					remove_instrument(song, i);
+					//++removed;
+				}
+			}
+		}
+	}
+	
 	set_info_message("Removed %d unused instruments", removed);
 }
 

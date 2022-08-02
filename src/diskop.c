@@ -989,6 +989,7 @@ int save_song_inner(SDL_RWops *f, SongStats *stats)
 		//optimize_song(&mused.song); //wasn't there
 		
 		int maxpat = -1;
+		
 		for (int c = 0; c < mused.song.num_channels; ++c)
 		{
 			for (int i = 0; i < mused.song.num_sequences[c]; ++i)
