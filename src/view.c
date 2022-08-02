@@ -212,12 +212,12 @@ char * notename(int note)
 	
 	if(note < C_ZERO)
 	{
-		sprintf(buffer, "%s%d", (mused.flags2 & SHOW_FLATS_INSTEAD_OF_SHARPS) ? notename_negative_flats[note % 12] : notename_negative[note % 12], note >= C_ZERO ? (note - C_ZERO) / 12 : (C_ZERO - note) / 12);
+		sprintf(buffer, "%s%d", (mused.flags2 & SHOW_FLATS_INSTEAD_OF_SHARPS) ? notename_negative_flats[note % 12] : notename_negative[note % 12], (C_ZERO - note + 11) / 12);
 	}
 	
 	else
 	{
-		sprintf(buffer, "%s%d", (mused.flags2 & SHOW_FLATS_INSTEAD_OF_SHARPS) ? notename_flats[note % 12] : notename[note % 12], note >= C_ZERO ? (note - C_ZERO) / 12 : (C_ZERO - note) / 12);
+		sprintf(buffer, "%s%d", (mused.flags2 & SHOW_FLATS_INSTEAD_OF_SHARPS) ? notename_flats[note % 12] : notename[note % 12], (note - C_ZERO) / 12);
 	}
 	
 	return buffer;

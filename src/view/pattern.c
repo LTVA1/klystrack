@@ -1278,6 +1278,8 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 		
 		copy_rect(&mask, &header);
 		mask.h += 2;
+		mask.w -= 1;
+		mask.x += 1;
 		gfx_domain_set_clip(dest_surface, &mask);
 		gfx_rect(dest_surface, &mask, colors[COLOR_OF_BACKGROUND]);
 		//gfx_domain_set_clip(dest_surface, &mask);
