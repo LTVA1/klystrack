@@ -3222,7 +3222,7 @@ void set_room_size(int fx, int size, int vol, int dec)
 
 	int low = CYDRVB_LOW_LIMIT + 300; // +30 dB
 
-	for (int i = 0; i < CYDRVB_TAPS;++i)
+	for (int i = 0; i < mused.song.fx[mused.fx_bus].rvb.taps_quant; ++i)
 	{
 		int p, g, e = 1;
 
@@ -3233,7 +3233,7 @@ void set_room_size(int fx, int size, int vol, int dec)
 		}
 		else
 		{
-			p = rnd(i * ms / CYDRVB_TAPS, (i + 1) * ms / CYDRVB_TAPS) + min_delay;
+			p = rnd(i * ms / mused.song.fx[mused.fx_bus].rvb.taps_quant, (i + 1) * ms / mused.song.fx[mused.fx_bus].rvb.taps_quant) + min_delay;
 			g = low - low * pow(1.0 - (double)my_min(p, ms - 1) / ms, (double)dec / 3) * vol / 16;
 		}
 
@@ -3250,7 +3250,7 @@ void set_room_size(int fx, int size, int vol, int dec)
 		mused.song.fx[fx].rvb.tap[i].panning = CYD_PAN_CENTER;
 	}
 	
-	mused.song.fx[mused.fx_bus].rvb.taps_quant = CYDRVB_TAPS;
+	//mused.song.fx[mused.fx_bus].rvb.taps_quant = CYDRVB_TAPS;
 
 	mus_set_fx(&mused.mus, &mused.song);
 }
