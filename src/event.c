@@ -1651,8 +1651,7 @@ void edit_fourop_event(SDL_Event *e)
 				four_op_add_param(+1);
 			}
 			break;
-
-
+			
 			case SDLK_LEFT:
 			{
 				four_op_add_param(-1);
@@ -1669,7 +1668,7 @@ void edit_fourop_event(SDL_Event *e)
 		break;
 
 		case SDL_KEYUP:
-
+		
 			play_the_jams(e->key.keysym.sym, -1, 0);
 
 		break;
