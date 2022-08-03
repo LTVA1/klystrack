@@ -202,12 +202,12 @@ char * notename(int note)
 	
 	static const char * notename_negative[] =
 	{
-		"c_", "c#", "d_", "d#", "e_", "f_", "f#", "f_", "g#", "a_", "a#", "b_"
+		"c_", "c+", "d_", "d+", "e_", "f_", "f+", "f_", "g+", "a_", "a+", "b_"
 	};
 	
 	static const char * notename_negative_flats[] =
 	{
-		"c_", "db", "d_", "eb", "e_", "f_", "gb", "g_", "ab", "a_", "bb", "b_"
+		"c_", "d\xc", "d_", "e\xc", "e_", "f_", "g\xc", "g_", "a\xc", "a_", "b\xc", "b_"
 	};
 	
 	if(note < C_ZERO)
