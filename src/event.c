@@ -2414,12 +2414,12 @@ void pattern_event(SDL_Event *e)
 			{
 				if (e->key.keysym.mod & KMOD_CTRL)
 				{
-						int x = mused.current_patternx;
+					int x = mused.current_patternx;
 
-						switch_track(+1);
+					switch_track(+1);
 
-						if (e->key.keysym.mod & KMOD_SHIFT)
-							mused.current_patternx = my_max(x, x);
+					if (e->key.keysym.mod & KMOD_SHIFT)
+						mused.current_patternx = my_max(x, x);
 				}
 				
 				else

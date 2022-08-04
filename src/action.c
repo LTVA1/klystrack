@@ -75,9 +75,9 @@ void select_sequence_position(void *channel, void *position, void* unused)
 
 void select_pattern_param(void *id, void *position, void *track)
 {
-	mused.current_patternx = CASTPTR(int,id);
-	mused.current_sequencetrack = CASTPTR(int,track);
-	mused.pattern_position = mused.current_sequencepos = CASTPTR(int,position);
+	mused.current_patternx = CASTPTR(int, id);
+	mused.current_sequencetrack = CASTPTR(int, track);
+	mused.pattern_position = mused.current_sequencepos = CASTPTR(int, position);
 
 	mused.focus = EDITPATTERN;
 
@@ -87,7 +87,7 @@ void select_pattern_param(void *id, void *position, void *track)
 
 void select_instrument_page(void *page, void *unused1, void *unused2)
 {
-	mused.instrument_page = CASTPTR(int,page) * 10;
+	mused.instrument_page = CASTPTR(int, page) * 10;
 	set_info_message("Selected instrument bank %d-%d", mused.instrument_page, mused.instrument_page + 9);
 }
 

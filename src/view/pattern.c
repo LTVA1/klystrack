@@ -666,7 +666,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 	
 	int pixel_offset = 0;
 	
-	if((mused.flags & SONG_PLAYING) && (mused.flags2 & SMOOTH_SCROLL))
+	if((mused.flags & SONG_PLAYING) && (mused.flags2 & SMOOTH_SCROLL) && (mused.flags & FOLLOW_PLAY_POSITION))
 	{
 		pixel_offset = (Uint32)mused.mus.song_counter * (Uint32)8 / (((Uint32)mused.mus.song_position & (Uint32)1) ? (Uint32)mused.song.song_speed2 : (Uint32)mused.song.song_speed) - ((Uint32)mused.draw_passes_since_song_start == (Uint32)0 ? (Uint32)0 : ((Uint32)mused.draw_passes_since_song_start < (Uint32)4 ? (Uint32)mused.draw_passes_since_song_start : (Uint32)4));
 		
@@ -694,7 +694,6 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 			cursor_width += mused.widths[mused.pattern_horiz_position + q][1];
 			q++;
 		}
-			
 		
 		if (mused.current_sequencetrack >= mused.pattern_horiz_position && mused.current_sequencetrack <= my_min(mused.song.num_channels, mused.pattern_horiz_position + 1 + dest->w - cursor_width) - 1) //if (mused.current_sequencetrack >= mused.pattern_horiz_position && mused.current_sequencetrack <= my_min(mused.song.num_channels, mused.pattern_horiz_position + 1 + (dest->w - w) / narrow_w) - 1)
 		{
@@ -1254,11 +1253,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 					
 					if (channel != mused.current_sequencetrack && (mused.flags & EXPAND_ONLY_CURRENT_TRACK))
 						break;
-					
-					//debug("%d", param);
 				}
-				
-				//debug("loop finished");
 			}
 			
 			if ((mused.flags & SONG_PLAYING) && !(mused.flags & FOLLOW_PLAY_POSITION))
@@ -1267,12 +1262,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 				SDL_Rect pos = { track.x, (mused.stat_song_position - top) * height + track.y - 1, ((channel == mused.current_sequencetrack) ? w : narrow_w), 2 };
 				bevel(dest_surface, &pos, mused.slider_bevel, BEV_SEQUENCE_PLAY_POS);
 			}
-			
-			//debug("big loop finished");
 		}
-		
-		//track.y += 8;
-		//track.h -= 8;
 		
 		SDL_Rect mask;
 		
@@ -1282,8 +1272,6 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 		mask.x += 1;
 		gfx_domain_set_clip(dest_surface, &mask);
 		gfx_rect(dest_surface, &mask, colors[COLOR_OF_BACKGROUND]);
-		//gfx_domain_set_clip(dest_surface, &mask);
-		//SDL_FillRect(dest_surface, &mask, colors[COLOR_OF_BACKGROUND]);
 		gfx_domain_set_clip(dest_surface, &header);
 		
 		track.x -= 3;
@@ -1419,7 +1407,7 @@ static void pattern_view_stepcounter(GfxDomain *dest_surface, const SDL_Rect *de
 	
 	int pixel_offset = 0;
 	
-	if((mused.flags & SONG_PLAYING) && (mused.flags2 & SMOOTH_SCROLL))
+	if((mused.flags & SONG_PLAYING) && (mused.flags2 & SMOOTH_SCROLL) && (mused.flags & FOLLOW_PLAY_POSITION))
 	{
 		pixel_offset = (Uint32)mused.mus.song_counter * (Uint32)8 / (((Uint32)mused.mus.song_position & (Uint32)1) ? (Uint32)mused.song.song_speed2 : (Uint32)mused.song.song_speed) - ((Uint32)mused.draw_passes_since_song_start == (Uint32)0 ? (Uint32)0 : ((Uint32)mused.draw_passes_since_song_start < (Uint32)4 ? (Uint32)mused.draw_passes_since_song_start : (Uint32)4));
 	}

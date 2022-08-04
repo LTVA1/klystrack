@@ -1490,7 +1490,6 @@ void oscilloscope_view(GfxDomain *dest_surface, SDL_Rect *dest, const SDL_Event 
 		int *pointer = &mused.output_buffer_counter;
 		
 		update_oscillscope_view(dest_surface, &area, mused.output_buffer, OSC_SIZE, pointer, true, (bool)(mused.flags2 & SHOW_OSCILLOSCOPE_MIDLINES));
-		//void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area, int* sound_buffer, int size, int* buffer_counter, bool is_translucent, bool show_midlines);
 	}
 }
 
@@ -1513,14 +1512,6 @@ static void inst_text(const SDL_Event *e, const SDL_Rect *area, int p, const cha
 		if (d < 0) instrument_add_param(-1);
 		else if (d > 0) instrument_add_param(1);
 	}
-
-	/*if (p == mused.selected_param && mused.focus == EDITINSTRUMENT)
-	{
-		SDL_Rect r;
-		copy_rect(&r, area);
-		adjust_rect(&r, -1);
-		bevel(domain,&r, mused.slider_bevel, BEV_CURSOR);
-	}*/
 }
 
 static void four_op_flags(const SDL_Event *e, const SDL_Rect *_area, int p, const char *label, Uint32 *flags, Uint32 mask)
@@ -1531,8 +1522,6 @@ static void four_op_flags(const SDL_Event *e, const SDL_Rect *_area, int p, cons
 
 static void four_op_text(const SDL_Event *e, const SDL_Rect *area, int p, const char *_label, const char *format, void *value, int width)
 {
-	//check_event(e, area, select_instrument_param, (void*)p, 0, 0);
-
 	int d = generic_field(e, area, EDIT4OP, p, _label, format, value, width);
 	if (d && mused.mode == EDIT4OP)
 	{
@@ -1541,14 +1530,6 @@ static void four_op_text(const SDL_Event *e, const SDL_Rect *area, int p, const 
 		if (d < 0) four_op_add_param(-1);
 		else if (d > 0) four_op_add_param(1);
 	}
-
-	/*if (p == mused.selected_param && mused.focus == EDITINSTRUMENT)
-	{
-		SDL_Rect r;
-		copy_rect(&r, area);
-		adjust_rect(&r, -1);
-		bevel(domain,&r, mused.slider_bevel, BEV_CURSOR);
-	}*/
 }
 
 
@@ -1905,27 +1886,11 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 		SDL_Rect frame;
 		copy_rect(&frame, dest);
 		
-		//bevel(dest_surface, dest, mused.slider_bevel, BEV_MENU);
-		
-		
 		#define BEV_SIZE 16
 		#define BORDER 4
 		#define SIZE_MINUS_BORDER (BEV_SIZE - BORDER)
 		
-		/* Center */
-		/*for (int y = BORDER; y < dest->h - BORDER; y += BEV_SIZE / 2)
-		{
-			for (int x = BORDER; x < dest->w - BORDER; x += BEV_SIZE / 2)
-			{
-				SDL_Rect src = { BORDER + BEV_MENU * BEV_SIZE, BORDER, my_min(BEV_SIZE / 2, dest->w - x - BORDER), my_min(BEV_SIZE / 2, dest->h - y - BORDER) };
-				SDL_Rect dest1 = { x + dest->x, y + dest->y, my_min(BEV_SIZE / 2, dest->w - x - BORDER), my_min(BEV_SIZE / 2, dest->h - y - BORDER) };
-				my_BlitSurface(mused.slider_bevel, &src, dest_surface, &dest1);
-			}
-		}*/ //0xBCBCBC
-		
-		//SDL_Rect src = { BORDER + BEV_MENU * BEV_SIZE, BORDER, dest->w - 2 * BORDER, dest->h - 2 * BORDER };
 		SDL_Rect dest1 = { BORDER + dest->x, BORDER + dest->y, dest->w - 2 * BORDER, dest->h - 2 * BORDER };
-		//my_BlitSurface(mused.slider_bevel, &src, dest_surface, &dest1);
 		
 		gfx_rect(dest_surface, &dest1, 0xBCBCBC);
 		
@@ -1984,12 +1949,6 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			SDL_Rect dest1 = { dest->x, dest->y + dest->h - BORDER, BORDER, BORDER };
 			my_BlitSurface(mused.slider_bevel, &src, dest_surface, &dest1);
 		}
-		
-		
-		
-		
-		
-		
 		
 		frame.h -= 16;
 		frame.y += 16;
@@ -2774,10 +2733,7 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 		console_set_clip(mused.console, &area);
 
 		MusInstrument *inst = &mused.song.instrument[mused.current_instrument];
-
-		//separator("----program-----");
-
-		//int start = mused.program_position;
+		
 		int start = mused.fourop_program_position[mused.selected_operator - 1];
 
 		int pos = 0, prev_pos = -1;
@@ -2928,16 +2884,6 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 				console_write_args(mused.console, "NOI %s", notename(inst->ops[mused.selected_operator - 1].program[i] & 0xff));
 			}
 			
-			//old command
-			/*else if ((inst->program[i] & 0x7f00) == MUS_FX_ARPEGGIO || (inst->program[i] & 0x7f00) == MUS_FX_ARPEGGIO_ABS)
-			{
-				if ((inst->program[i] & 0xff) != 0xf0 && (inst->program[i] & 0xff) != 0xf1)
-					console_write_args(mused.console, "%s", notename(((inst->program[i] & 0x7f00) == MUS_FX_ARPEGGIO_ABS ? 0 : inst->base_note) + (inst->program[i] & 0xff)));
-				else
-					console_write_args(mused.console, "EXT%x", inst->program[i] & 0x0f);
-			}*/
-			
-			
 			else if (inst->ops[mused.selected_operator - 1].program[i] != MUS_FX_NOP)
 			{
 				const InstructionDesc *d = get_instruction_desc(inst->ops[mused.selected_operator - 1].program[i]);
@@ -2982,7 +2928,7 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 		}
 	}
 }
-		
+
 
 void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
@@ -3068,9 +3014,6 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 
 		inst_text(event, &r, P_FM_HARMONIC_MODULATOR, "", "%01X", MAKEPTR(inst->fm_harmonic & 15), 1);
 		update_rect(&frame, &r);
-		//r.w = tmp;
-		
-		
 		
 		r.w = 72; //wasn't there
 
@@ -3081,21 +3024,15 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 		inst_text(event, &r, P_FM_FINETUNE, "", "%+4d", MAKEPTR(inst->fm_finetune), 4);
 		update_rect(&frame, &r);
 		
-		
-		
 		r.w = init_width / 2 - 2;
 		
 		r.x = r.x - 124 + init_width / 2;
-		
 		
 		const char* freq_luts[] = { "OPL", "OPN" };
 		
 		inst_text(event, &r, P_FM_FREQ_LUT, "FREQ. TABLE", "%s", (char*)freq_luts[inst->fm_freq_LUT], 3);
 		update_rect(&frame, &r);
 		
-		//r.x -= init_width / 2;
-		
-		//r.y += 10;
 		r.w = tmp;
 		
 		inst_text(event, &r, P_FM_ATTACK, "ATK", "%02X", MAKEPTR(inst->fm_adsr.a), 2);
@@ -3106,9 +3043,6 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 		update_rect(&frame, &r);
 		inst_text(event, &r, P_FM_RELEASE, "REL", "%02X", MAKEPTR(inst->fm_adsr.r), 2);
 		update_rect(&frame, &r);
-		
-		
-		
 		
 		int temp = r.w;
 		r.w = 82;
@@ -3134,9 +3068,6 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 		update_rect(&frame, &r);
 		
 		r.w = temp;
-		
-		
-		
 		
 		inst_text(event, &r, P_FM_ENV_START, "E.START", "%02X", MAKEPTR(inst->fm_attack_start), 2);
 		update_rect(&frame, &r);
@@ -3169,10 +3100,6 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 		update_rect(&frame, &r);
 		inst_text(event, &r, P_FM_TREMDELAY,   "FM TR.DEL", "%02X", MAKEPTR(inst->fm_tremolo_delay), 2);
 		update_rect(&frame, &r);
-		
-		//r.y += 10; //wasn't there
-		//r.x -= frame.w / 2 + 82;
-		//r.w = 70;
 		
 		inst_flags(event, &r, P_FM_ADDITIVE, "ADDITIVE", &inst->fm_flags, CYD_FM_ENABLE_ADDITIVE);
 		update_rect(&frame, &r);
@@ -3222,12 +3149,7 @@ void instrument_list(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 
 		int y = area.y;
 
-		//separator("----instruments----");
-
 		int start = mused.instrument_list_position;
-
-		/*if (start > NUM_INSTRUMENTS - rows ) start = NUM_INSTRUMENTS - rows;
-		if (start < 0 ) start = 0;*/
 
 		for (int i = start; i < NUM_INSTRUMENTS && y < area.h + area.y; ++i, y += mused.console->font.h)
 		{
@@ -3264,24 +3186,14 @@ void instrument_list(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 
 static void fx_text(const SDL_Event *e, const SDL_Rect *area, int p, const char *_label, const char *format, void *value, int width)
 {
-	//check_event(e, area, select_instrument_param, (void*)p, 0, 0);
-
 	int d = generic_field(e, area, EDITFX, p, _label, format, value, width);
 	if (d)
 	{
 		if (p >= 0) mused.selected_param = p;
 		if (p != R_FX_BUS) snapshot_cascade(S_T_FX, mused.fx_bus, p);
 		if (d < 0) mused.fx_bus = my_max(0, mused.fx_bus - 1);
-		else if (d >0) mused.fx_bus = my_min(CYD_MAX_FX_CHANNELS -1, mused.fx_bus + 1);
+		else if (d > 0) mused.fx_bus = my_min(CYD_MAX_FX_CHANNELS - 1, mused.fx_bus + 1);
 	}
-
-	/*if (p == mused.selected_param && mused.focus == EDITINSTRUMENT)
-	{
-		SDL_Rect r;
-		copy_rect(&r, area);
-		adjust_rect(&r, -1);
-		bevel(domain,&r, mused.slider_bevel, BEV_CURSOR);
-	}*/
 }
 
 
@@ -3485,7 +3397,6 @@ void fx_reverb_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 
 	int mx, my;
 	
-	
 	if (mused.mode == EDITFX && (SDL_GetMouseState(&mx, &my) & SDL_BUTTON(1)))
 	{
 		mx /= mused.pixel_scale;
@@ -3507,6 +3418,7 @@ void fx_reverb_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 					else if (mused.song.fx[mused.fx_bus].rvb.tap[mused.fx_tap].gain < CYDRVB_LOW_LIMIT)
 						mused.song.fx[mused.fx_bus].rvb.tap[mused.fx_tap].gain = CYDRVB_LOW_LIMIT;
 				}
+				
 				else
 				{
 					mused.song.fx[mused.fx_bus].rvb.tap[mused.fx_tap].panning += (my - mused.fx_room_prev_y) * CYD_PAN_RIGHT / area.h;
@@ -3523,6 +3435,7 @@ void fx_reverb_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 			mused.fx_room_prev_y = my;
 		}
 	}
+	
 	else
 	{
 		mused.fx_room_prev_x = -1;
