@@ -2875,7 +2875,7 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 				}
 				
 				write_command(event, box, i, mused.current_program_step, pointing_at_command || highlight_united);
-				check_event(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7)))) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
+				check_event(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
 					select_program_step, MAKEPTR(i), 0, 0);
 			}
 			
@@ -2906,7 +2906,7 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 				}
 				
 				write_command(event, box, i, mused.current_program_step, pointing_at_command || highlight_united);
-				check_event(event, console_write_args(mused.console, "%c ", ((inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7)))) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
+				check_event(event, console_write_args(mused.console, "%c ", ((inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
 					select_program_step, MAKEPTR(i), 0, 0);
 			}
 
