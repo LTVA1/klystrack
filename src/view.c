@@ -1092,6 +1092,11 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 								sprintf(text, "Trigger instrument macro(s) release"); break;
 							}
 							
+							case MUS_NOTE_RELEASE_WITHOUT_MACRO:
+							{
+								sprintf(text, "Trigger only instrument note (without macro(s)) release"); break;
+							}
+							
 							default:
 							{
 								sprintf(text, "Note"); break;

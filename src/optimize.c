@@ -130,7 +130,7 @@ bool is_instrument_used(const MusSong *song, int instrument)
 }
 
 
-static void remove_instrument(MusSong *song, int instrument)
+void remove_instrument(MusSong *song, int instrument)
 {
 	for (int p = 0; p < song->num_patterns; ++p)
 	{
@@ -421,7 +421,7 @@ void optimize_patterns_brute(MusSong *song) //wasn't there
 		{
 			for(int j = 0; j < song->pattern[i].num_steps; j++)
 			{
-				if(song->pattern[i].step[j].note == MUS_NOTE_RELEASE || song->pattern[i].step[j].note == MUS_NOTE_CUT || song->pattern[i].step[j].note == MUS_NOTE_MACRO_RELEASE)
+				if(song->pattern[i].step[j].note == MUS_NOTE_RELEASE || song->pattern[i].step[j].note == MUS_NOTE_CUT || song->pattern[i].step[j].note == MUS_NOTE_MACRO_RELEASE || song->pattern[i].step[j].note == MUS_NOTE_RELEASE_WITHOUT_MACRO)
 				{
 					song->pattern[i].step[j].instrument = MUS_NOTE_NO_INSTRUMENT;
 				}

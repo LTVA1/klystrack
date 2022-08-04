@@ -91,6 +91,7 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_LOOP_PATTERN, 0xff00, "Loop pattern", "PatLoop", -1, -1},
 	{MUS_FX_SKIP_PATTERN, 0xff00, "Skip pattern", "PatSkip", -1, -1},
 	{MUS_FX_TRIGGER_RELEASE, 0xff00, "Trigger release", "Release", 0, 0xff},
+	{MUS_FX_TRIGGER_MACRO_RELEASE, 0xff00, "Trigger macro release", "ProgRelease", 0, 0xff},
 	{MUS_FX_TRIGGER_CARRIER_RELEASE, 0xff00, "Trigger FM carrier release", "FMcarRelease", 0, 0xff}, //wasn't there
 	{MUS_FX_TRIGGER_FM_RELEASE, 0xff00, "Trigger FM modulator release", "FMmodRelease", 0, 0xff}, //wasn't there
 	{MUS_FX_RESTART_PROGRAM, 0xff00, "Restart program", "Restart", 0, 0},

@@ -910,6 +910,11 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 										snprintf(note, sizeof(note), "%s", "M\x08\x0b"); break;
 									}
 									
+									case MUS_NOTE_RELEASE_WITHOUT_MACRO:
+									{
+										snprintf(note, sizeof(note), "%s", "N\x08\x0b"); break;
+									}
+									
 									case MUS_NOTE_NONE:
 									{
 										snprintf(note, sizeof(note), "%s", "---"); break;

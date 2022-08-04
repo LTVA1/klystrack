@@ -1538,6 +1538,7 @@ void edit_instrument_event(SDL_Event *e)
 				{
 					if (mused.selected_param >= P_PARAMS) mused.selected_param = P_PARAMS - 1;
 				}
+				
 				else
 				{
 					if (mused.selected_param >= P_NAME) mused.selected_param = P_NAME;
@@ -1553,7 +1554,31 @@ void edit_instrument_event(SDL_Event *e)
 			}
 			break;
 
-
+			case SDLK_DELETE:
+			{
+				char buffer[500];
+				
+				snprintf(buffer, 499, "Delete selected instrument (%s)?", mused.song.instrument[mused.current_instrument].name);
+				
+				if (confirm(domain, mused.slider_bevel, &mused.largefont, buffer))
+				{
+					MusSong* song = &mused.song;
+					
+					for (int p = 0; p < song->num_patterns; ++p)
+					{
+						for (int i = 0; i < song->pattern[p].num_steps; ++i)
+						{
+							if (song->pattern[p].step[i].instrument == mused.current_instrument)
+							{
+								song->pattern[p].step[i].instrument = MUS_NOTE_NO_INSTRUMENT;
+							}
+						}
+					}
+					
+					remove_instrument(&mused.song, mused.current_instrument);
+				}
+			}
+			break;
 
 			case SDLK_RIGHT:
 			{
@@ -2638,7 +2663,7 @@ void pattern_event(SDL_Event *e)
 							update_pattern_slider(mused.note_jump);
 						}
 						
-						else if (e->key.keysym.sym == SDLK_1 || e->key.keysym.sym == SDLK_BACKQUOTE || e->key.keysym.sym == SDLK_EQUALS)
+						else if (e->key.keysym.sym == SDLK_1 || e->key.keysym.sym == SDLK_BACKQUOTE || e->key.keysym.sym == SDLK_EQUALS || e->key.keysym.sym == SDLK_MINUS)
 						{
 							if(e->key.keysym.sym == SDLK_BACKQUOTE)
 							{
@@ -2653,6 +2678,11 @@ void pattern_event(SDL_Event *e)
 							if(e->key.keysym.sym == SDLK_EQUALS)
 							{
 								mused.song.pattern[current_pattern()].step[current_patternstep()].note = MUS_NOTE_MACRO_RELEASE;
+							}
+							
+							if(e->key.keysym.sym == SDLK_MINUS)
+							{
+								mused.song.pattern[current_pattern()].step[current_patternstep()].note = MUS_NOTE_RELEASE_WITHOUT_MACRO;
 							}
 
 							snapshot(S_T_PATTERN);

@@ -28,6 +28,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 #include "SDL.h"
 #include "gui/slider.h"
+#include "optimize.h"
 
 #include "../klystron/src/gui/toolutil.h"
 
