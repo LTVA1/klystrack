@@ -1215,7 +1215,7 @@ Uint32 char_to_hex(char c)
 	return 0;
 }
 
-static void write_command(const SDL_Event *event, const char *text, int cmd_idx, int cur_idx)
+static void write_command(const SDL_Event *event, const char *text, int cmd_idx, int cur_idx, bool highlight_cursor)
 {
 	int i = 0;
 	
@@ -1237,6 +1237,11 @@ static void write_command(const SDL_Event *event, const char *text, int cmd_idx,
 				if(cmd_idx == cur_idx && mused.focus == (mused.show_four_op_menu ? EDITPROG4OP : EDITPROG))
 				{
 					highlight_color = 0x00ee00;
+				}
+				
+				if(highlight_cursor)
+				{
+					highlight_color = 0x00dddd;
 				}
 				
 				console_set_color(mused.console, highlight_color);
@@ -1302,7 +1307,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 
 			if (mused.current_program_step == i && mused.focus == EDITPROG)
 			{
-				bevel(domain,&row, mused.slider_bevel, BEV_SELECTED_PATTERN_ROW);
+				bevel(domain, &row, mused.slider_bevel, BEV_SELECTED_PATTERN_ROW);
 				console_set_color(mused.console, colors[COLOR_PROGRAM_SELECTED]);
 			}
 			
@@ -1320,9 +1325,17 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 			}
 
 			char box[6], cur = ' ';
-
+			
+			bool pointing_at_command = false;
+			
 			for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
-				if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE) || ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_FM) && (mused.cyd.channel[c].fm.adsr.envelope != 0) && !(mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE))) && (mused.channel[c].flags & MUS_CHN_PROGRAM_RUNNING) && mused.channel[c].program_tick == i) cur = '½'; //where arrow pointing at current instrument program step is drawn
+			{
+				if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE) || ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_FM) && (mused.cyd.channel[c].fm.adsr.envelope != 0) && !(mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE))) && (mused.channel[c].flags & MUS_CHN_PROGRAM_RUNNING) && mused.channel[c].program_tick == i)
+				{
+					cur = '½'; //where arrow pointing at current instrument program step is drawn
+					pointing_at_command = true;
+				}
+			}
 
 			if (inst->program[i] == MUS_FX_NOP)
 			{
@@ -1333,13 +1346,44 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 			{
 				sprintf(box, "%04X", inst->program[i]); //old command sprintf(box, "%04X", ((inst->program[i] & 0xf000) != 0xf000) ? (inst->program[i] & 0x7fff) : inst->program[i]);
 			}
+			
+			Uint32 temp_color = mused.console->current_color;
+			Uint32 highlight_color;
+			
+			if((inst->program[mused.current_program_step] & 0xff00) == MUS_FX_JUMP && (mused.flags2 & HIGHLIGHT_COMMANDS) && (inst->program[mused.current_program_step] & 0xff) == i && mused.focus == EDITPROG)
+			{
+				highlight_color = 0x00ee00;
+				console_set_color(mused.console, highlight_color);
+			}
 
 			if (pos == prev_pos)
 			{
 				check_event(event, console_write_args(mused.console, "%02X%c   ", i, cur),
 					select_program_step, MAKEPTR(i), 0, 0);
-				write_command(event, box, i, mused.current_program_step);
-				check_event(event, console_write_args(mused.console, "%c ", (!(inst->program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
+				
+				if(mused.flags2 & HIGHLIGHT_COMMANDS)
+				{
+					console_set_color(mused.console, temp_color);
+				}
+				
+				bool highlight_united = false;
+				
+				if((inst->program_unite_bits[(i) / 8] & (1 << ((i) & 7))) || (inst->program_unite_bits[my_max(i - 1, 0) / 8] & (1 << (my_max(i - 1, 0) & 7))))
+				{
+					for(int q = i; (inst->program_unite_bits[q / 8] & (1 << (q & 7))) || (inst->program_unite_bits[my_max(q - 1, 0) / 8] & (1 << (my_max(q - 1, 0) & 7))); --q)
+					{
+						for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
+						{
+							if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE) || ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_FM) && (mused.cyd.channel[c].fm.adsr.envelope != 0) && !(mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE))) && (mused.channel[c].flags & MUS_CHN_PROGRAM_RUNNING) && mused.channel[c].program_tick == q)
+							{
+								highlight_united = true;
+							}
+						}
+					}
+				}
+				
+				write_command(event, box, i, mused.current_program_step, pointing_at_command || highlight_united);
+				check_event(event, console_write_args(mused.console, "%c ", (!(inst->program_unite_bits[i / 8] & (1 << (i & 7)))) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
 					select_program_step, MAKEPTR(i), 0, 0);
 			}
 			
@@ -1347,8 +1391,31 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 			{
 				check_event(event, console_write_args(mused.console, "%02X%c%02X ", i, cur, pos),
 					select_program_step, MAKEPTR(i), 0, 0);
-				write_command(event, box, i, mused.current_program_step);
-				check_event(event, console_write_args(mused.console, "%c ", ((inst->program_unite_bits[i / 8] & (1 << (i & 7))) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
+				
+				if(mused.flags2 & HIGHLIGHT_COMMANDS)
+				{
+					console_set_color(mused.console, temp_color);
+				}
+				
+				bool highlight_united = false;
+				
+				if((inst->program_unite_bits[(i) / 8] & (1 << ((i) & 7))) || (inst->program_unite_bits[my_max(i - 1, 0) / 8] & (1 << (my_max(i - 1, 0) & 7))))
+				{
+					for(int q = i; (inst->program_unite_bits[q / 8] & (1 << (q & 7))); --q)
+					{
+						for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
+						{
+							if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE) || ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_FM) && (mused.cyd.channel[c].fm.adsr.envelope != 0) && !(mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE))) && (mused.channel[c].flags & MUS_CHN_PROGRAM_RUNNING) && mused.channel[c].program_tick == q)
+							{
+								highlight_united = true;
+								
+							}
+						}
+					}
+				}
+				
+				write_command(event, box, i, mused.current_program_step, pointing_at_command || highlight_united);
+				check_event(event, console_write_args(mused.console, "%c ", ((inst->program_unite_bits[i / 8] & (1 << (i & 7)))) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
 					select_program_step, MAKEPTR(i), 0, 0);
 			}
 
@@ -1364,18 +1431,8 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 			
 			else if ((inst->program[i] & 0xff00) == MUS_FX_SET_NOISE_CONSTANT_PITCH)
 			{
-				console_write_args(mused.console, "%s", notename(inst->program[i] & 0xff));
+				console_write_args(mused.console, "NOI %s", notename(inst->program[i] & 0xff));
 			}
-			
-			//old command
-			/*else if ((inst->program[i] & 0x7f00) == MUS_FX_ARPEGGIO || (inst->program[i] & 0x7f00) == MUS_FX_ARPEGGIO_ABS)
-			{
-				if ((inst->program[i] & 0xff) != 0xf0 && (inst->program[i] & 0xff) != 0xf1)
-					console_write_args(mused.console, "%s", notename(((inst->program[i] & 0x7f00) == MUS_FX_ARPEGGIO_ABS ? 0 : inst->base_note) + (inst->program[i] & 0xff)));
-				else
-					console_write_args(mused.console, "EXT%x", inst->program[i] & 0x0f);
-			}*/
-			
 			
 			else if (inst->program[i] != MUS_FX_NOP)
 			{
@@ -2760,6 +2817,7 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 			}
 
 			char box[6], cur = ' ';
+			bool pointing_at_command = false;
 
 			for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
 			{
@@ -2767,6 +2825,7 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 				//if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].flags & CYD_FM_OP_ENABLE_GATE) && (mused.channel[c].ops[mused.selected_operator - 1].flags & MUS_FM_OP_PROGRAM_RUNNING) && mused.channel[c].ops[mused.selected_operator - 1].program_tick == i) && !(inst->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG))
 				{
 					cur = '½'; //where arrow pointing at current instrument (operator) program step is drawn
+					pointing_at_command = true;
 				}
 			}
 
@@ -2779,13 +2838,44 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 			{
 				sprintf(box, "%04X", inst->ops[mused.selected_operator - 1].program[i]); //old command sprintf(box, "%04X", ((inst->program[i] & 0xf000) != 0xf000) ? (inst->program[i] & 0x7fff) : inst->program[i]);
 			}
+			
+			Uint32 temp_color = mused.console->current_color;
+			Uint32 highlight_color;
+			
+			if((inst->ops[mused.selected_operator - 1].program[mused.current_program_step] & 0xff00) == MUS_FX_JUMP && (mused.flags2 & HIGHLIGHT_COMMANDS) && (inst->ops[mused.selected_operator - 1].program[mused.current_program_step] & 0xff) == i && mused.focus == EDITPROG4OP)
+			{
+				highlight_color = 0x00ee00;
+				console_set_color(mused.console, highlight_color);
+			}
 
 			if (pos == prev_pos)
 			{
 				check_event(event, console_write_args(mused.console, "%02X%c   ", i, cur),
 					select_program_step, MAKEPTR(i), 0, 0);
-				write_command(event, box, i, mused.current_program_step);
-				check_event(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[i] & 0xf000) == 0xf000) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
+				
+				if(mused.flags2 & HIGHLIGHT_COMMANDS)
+				{
+					console_set_color(mused.console, temp_color);
+				}
+				
+				bool highlight_united = false;
+				
+				if((inst->ops[mused.selected_operator - 1].program_unite_bits[(i) / 8] & (1 << ((i) & 7))) || (inst->ops[mused.selected_operator - 1].program_unite_bits[my_max(i - 1, 0) / 8] & (1 << (my_max(i - 1, 0) & 7))))
+				{
+					for(int q = i; (inst->ops[mused.selected_operator - 1].program_unite_bits[q / 8] & (1 << (q & 7))) || (inst->ops[mused.selected_operator - 1].program_unite_bits[my_max(q - 1, 0) / 8] & (1 << (my_max(q - 1, 0) & 7))); --q)
+					{
+						for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
+						{
+							if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].adsr.envelope > 0) && (mused.channel[c].ops[mused.selected_operator - 1].flags & MUS_FM_OP_PROGRAM_RUNNING) && mused.channel[c].ops[mused.selected_operator - 1].program_tick == q) && !(inst->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG))
+							{
+								highlight_united = true;
+							}
+						}
+					}
+				}
+				
+				write_command(event, box, i, mused.current_program_step, pointing_at_command || highlight_united);
+				check_event(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7)))) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
 					select_program_step, MAKEPTR(i), 0, 0);
 			}
 			
@@ -2793,8 +2883,30 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 			{
 				check_event(event, console_write_args(mused.console, "%02X%c%02X ", i, cur, pos),
 					select_program_step, MAKEPTR(i), 0, 0);
-				write_command(event, box, i, mused.current_program_step);
-				check_event(event, console_write_args(mused.console, "%c ", ((inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) && (inst->ops[mused.selected_operator - 1].program[i] & 0xf000) != 0xf000) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
+				
+				if(mused.flags2 & HIGHLIGHT_COMMANDS)
+				{
+					console_set_color(mused.console, temp_color);
+				}
+				
+				bool highlight_united = false;
+				
+				if((inst->ops[mused.selected_operator - 1].program_unite_bits[(i) / 8] & (1 << ((i) & 7))) || (inst->ops[mused.selected_operator - 1].program_unite_bits[my_max(i - 1, 0) / 8] & (1 << (my_max(i - 1, 0) & 7))))
+				{
+					for(int q = i; (inst->ops[mused.selected_operator - 1].program_unite_bits[q / 8] & (1 << (q & 7))); --q)
+					{
+						for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
+						{
+							if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].adsr.envelope > 0) && (mused.channel[c].ops[mused.selected_operator - 1].flags & MUS_FM_OP_PROGRAM_RUNNING) && mused.channel[c].ops[mused.selected_operator - 1].program_tick == q) && !(inst->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG))
+							{
+								highlight_united = true;
+							}
+						}
+					}
+				}
+				
+				write_command(event, box, i, mused.current_program_step, pointing_at_command || highlight_united);
+				check_event(event, console_write_args(mused.console, "%c ", ((inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7)))) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
 					select_program_step, MAKEPTR(i), 0, 0);
 			}
 
@@ -2813,7 +2925,7 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 			
 			else if ((inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_SET_NOISE_CONSTANT_PITCH)
 			{
-				console_write_args(mused.console, "%s", notename(inst->ops[mused.selected_operator - 1].program[i] & 0xff));
+				console_write_args(mused.console, "NOI %s", notename(inst->ops[mused.selected_operator - 1].program[i] & 0xff));
 			}
 			
 			//old command
