@@ -3007,7 +3007,7 @@ void edit_program_event(SDL_Event *e)
 			case SDLK_INSERT:
 			{
 				snapshot(S_T_INSTRUMENT);
-				for (int i = MUS_PROG_LEN-1; i > mused.current_program_step; --i)
+				for (int i = MUS_PROG_LEN - 1; i > mused.current_program_step; --i)
 				{
 					if(mused.show_four_op_menu)
 					{
@@ -3024,6 +3024,8 @@ void edit_program_event(SDL_Event *e)
 						{
 							mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[i / 8] |= (1 << (i & 7));
 						}
+						
+						mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[(i - 1) / 8] &= ~(1 << ((i - 1) & 7));
 					}
 					
 					else
@@ -3041,6 +3043,8 @@ void edit_program_event(SDL_Event *e)
 						{
 							mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] |= (1 << (i & 7));
 						}
+						
+						mused.song.instrument[mused.current_instrument].program_unite_bits[(i - 1) / 8] &= ~(1 << ((i - 1) & 7));
 					}
 				}
 				

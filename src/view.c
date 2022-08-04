@@ -1361,22 +1361,23 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 				check_event(event, console_write_args(mused.console, "%02X%c   ", i, cur),
 					select_program_step, MAKEPTR(i), 0, 0);
 				
+				bool highlight_united = false;
+				
 				if(mused.flags2 & HIGHLIGHT_COMMANDS)
 				{
 					console_set_color(mused.console, temp_color);
-				}
-				
-				bool highlight_united = false;
-				
-				if((inst->program_unite_bits[(i) / 8] & (1 << ((i) & 7))) || (inst->program_unite_bits[my_max(i - 1, 0) / 8] & (1 << (my_max(i - 1, 0) & 7))))
-				{
-					for(int q = i; (inst->program_unite_bits[q / 8] & (1 << (q & 7))) || (inst->program_unite_bits[my_max(q - 1, 0) / 8] & (1 << (my_max(q - 1, 0) & 7))); --q)
+					
+					if((inst->program_unite_bits[my_max(i - 1, 0) / 8] & (1 << (my_max(i - 1, 0) & 7))))
 					{
-						for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
+						for(int q = i - 1; ((inst->program_unite_bits[my_max(q, 0) / 8] & (1 << (my_max(q, 0) & 7)))) && (q >= 0); --q)
 						{
-							if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE) || ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_FM) && (mused.cyd.channel[c].fm.adsr.envelope != 0) && !(mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE))) && (mused.channel[c].flags & MUS_CHN_PROGRAM_RUNNING) && mused.channel[c].program_tick == q)
+							for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
 							{
-								highlight_united = true;
+								if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE) || ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_FM) && (mused.cyd.channel[c].fm.adsr.envelope != 0) && !(mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE))) && (mused.channel[c].flags & MUS_CHN_PROGRAM_RUNNING) && mused.channel[c].program_tick == q)
+								{
+									highlight_united = true;
+									break;
+								}
 							}
 						}
 					}
@@ -1392,23 +1393,22 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 				check_event(event, console_write_args(mused.console, "%02X%c%02X ", i, cur, pos),
 					select_program_step, MAKEPTR(i), 0, 0);
 				
+				bool highlight_united = false;
+				
 				if(mused.flags2 & HIGHLIGHT_COMMANDS)
 				{
 					console_set_color(mused.console, temp_color);
-				}
-				
-				bool highlight_united = false;
-				
-				if((inst->program_unite_bits[(i) / 8] & (1 << ((i) & 7))) || (inst->program_unite_bits[my_max(i - 1, 0) / 8] & (1 << (my_max(i - 1, 0) & 7))))
-				{
-					for(int q = i; (inst->program_unite_bits[q / 8] & (1 << (q & 7))); --q)
+					
+					if(inst->program_unite_bits[(i) / 8] & (1 << ((i) & 7)))
 					{
-						for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
+						for(int q = i; (inst->program_unite_bits[q / 8] & (1 << (q & 7))) && (q >= 0); --q)
 						{
-							if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE) || ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_FM) && (mused.cyd.channel[c].fm.adsr.envelope != 0) && !(mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE))) && (mused.channel[c].flags & MUS_CHN_PROGRAM_RUNNING) && mused.channel[c].program_tick == q)
+							for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
 							{
-								highlight_united = true;
-								
+								if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE) || ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_FM) && (mused.cyd.channel[c].fm.adsr.envelope != 0) && !(mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE))) && (mused.channel[c].flags & MUS_CHN_PROGRAM_RUNNING) && mused.channel[c].program_tick == q)
+								{
+									highlight_united = true;
+								}
 							}
 						}
 					}
@@ -2853,29 +2853,29 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 				check_event(event, console_write_args(mused.console, "%02X%c   ", i, cur),
 					select_program_step, MAKEPTR(i), 0, 0);
 				
+				bool highlight_united = false;
+				
 				if(mused.flags2 & HIGHLIGHT_COMMANDS)
 				{
 					console_set_color(mused.console, temp_color);
-				}
-				
-				bool highlight_united = false;
-				
-				if((inst->ops[mused.selected_operator - 1].program_unite_bits[(i) / 8] & (1 << ((i) & 7))) || (inst->ops[mused.selected_operator - 1].program_unite_bits[my_max(i - 1, 0) / 8] & (1 << (my_max(i - 1, 0) & 7))))
-				{
-					for(int q = i; (inst->ops[mused.selected_operator - 1].program_unite_bits[q / 8] & (1 << (q & 7))) || (inst->ops[mused.selected_operator - 1].program_unite_bits[my_max(q - 1, 0) / 8] & (1 << (my_max(q - 1, 0) & 7))); --q)
+					
+					if((inst->ops[mused.selected_operator - 1].program_unite_bits[my_max(i - 1, 0) / 8] & (1 << (my_max(i - 1, 0) & 7))))
 					{
-						for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
+						for(int q = i - 1; ((inst->ops[mused.selected_operator - 1].program_unite_bits[my_max(q, 0) / 8] & (1 << (my_max(q, 0) & 7)))) && (q >= 0); --q)
 						{
-							if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].adsr.envelope > 0) && (mused.channel[c].ops[mused.selected_operator - 1].flags & MUS_FM_OP_PROGRAM_RUNNING) && mused.channel[c].ops[mused.selected_operator - 1].program_tick == q) && !(inst->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG))
+							for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
 							{
-								highlight_united = true;
+								if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].adsr.envelope > 0) && (mused.channel[c].ops[mused.selected_operator - 1].flags & MUS_FM_OP_PROGRAM_RUNNING) && mused.channel[c].ops[mused.selected_operator - 1].program_tick == q) && !(inst->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG))
+								{
+									highlight_united = true;
+								}
 							}
 						}
 					}
 				}
 				
 				write_command(event, box, i, mused.current_program_step, pointing_at_command || highlight_united);
-				check_event(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
+				check_event(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[i] & 0xf000) == 0xf000) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
 					select_program_step, MAKEPTR(i), 0, 0);
 			}
 			
@@ -2884,29 +2884,29 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 				check_event(event, console_write_args(mused.console, "%02X%c%02X ", i, cur, pos),
 					select_program_step, MAKEPTR(i), 0, 0);
 				
+				bool highlight_united = false;
+				
 				if(mused.flags2 & HIGHLIGHT_COMMANDS)
 				{
 					console_set_color(mused.console, temp_color);
-				}
-				
-				bool highlight_united = false;
-				
-				if((inst->ops[mused.selected_operator - 1].program_unite_bits[(i) / 8] & (1 << ((i) & 7))) || (inst->ops[mused.selected_operator - 1].program_unite_bits[my_max(i - 1, 0) / 8] & (1 << (my_max(i - 1, 0) & 7))))
-				{
-					for(int q = i; (inst->ops[mused.selected_operator - 1].program_unite_bits[q / 8] & (1 << (q & 7))); --q)
+					
+					if((inst->ops[mused.selected_operator - 1].program_unite_bits[(i) / 8] & (1 << ((i) & 7))) || (inst->ops[mused.selected_operator - 1].program_unite_bits[my_max(i - 1, 0) / 8] & (1 << (my_max(i - 1, 0) & 7))))
 					{
-						for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
+						for(int q = i; (inst->ops[mused.selected_operator - 1].program_unite_bits[q / 8] & (1 << (q & 7))) && (q >= 0); --q)
 						{
-							if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].adsr.envelope > 0) && (mused.channel[c].ops[mused.selected_operator - 1].flags & MUS_FM_OP_PROGRAM_RUNNING) && mused.channel[c].ops[mused.selected_operator - 1].program_tick == q) && !(inst->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG))
+							for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
 							{
-								highlight_united = true;
+								if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].adsr.envelope > 0) && (mused.channel[c].ops[mused.selected_operator - 1].flags & MUS_FM_OP_PROGRAM_RUNNING) && mused.channel[c].ops[mused.selected_operator - 1].program_tick == q) && !(inst->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG))
+								{
+									highlight_united = true;
+								}
 							}
 						}
 					}
 				}
 				
 				write_command(event, box, i, mused.current_program_step, pointing_at_command || highlight_united);
-				check_event(event, console_write_args(mused.console, "%c ", ((inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
+				check_event(event, console_write_args(mused.console, "%c ", ((inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) && (inst->ops[mused.selected_operator - 1].program[i] & 0xf000) != 0xf000) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
 					select_program_step, MAKEPTR(i), 0, 0);
 			}
 
