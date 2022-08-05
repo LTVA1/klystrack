@@ -1145,22 +1145,6 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 	}
 
 	SDL_Rect button = { dest->x + area.w + 6, dest->y, dest->h, dest->h };
-
-	/*for (int i = 0; i < N_VIEWS; ++i)
-	{
-		if(!(mused.show_four_op_menu))
-		{
-			if(i != EDIT4OP)
-			{
-				button_event(domain, event, &button, mused.slider_bevel,
-					(mused.mode != ((i > EDITINSTRUMENT) ? (i - 1) : i)) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-					(mused.mode != ((i > EDITINSTRUMENT) ? (i - 1) : i)) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
-					DECAL_MODE_PATTERN + ((i > EDITINSTRUMENT) ? (i - 1) : i) + (mused.mode == ((i > EDITINSTRUMENT) ? (i - 1) : i) ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != ((i > EDITINSTRUMENT) ? (i - 1) : i)) ? change_mode_action : NULL, (mused.mode != ((i > EDITINSTRUMENT) ? (i - 1) : i)) ? MAKEPTR(((i > EDITINSTRUMENT) ? (i - 1) : i)) : 0, 0, 0);
-
-				button.x += button.w;
-			}
-		}
-	}*/
 	
 	button_event(domain, event, &button, mused.slider_bevel,
 		(mused.mode != EDITPATTERN) ? BEV_BUTTON : BEV_BUTTON_ACTIVE,
