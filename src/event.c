@@ -402,6 +402,12 @@ void instrument_add_param(int a)
 		
 		break;
 		
+		case P_SINE:
+		
+		flipbit(i->cydflags, CYD_CHN_ENABLE_SINE);
+		
+		break;
+		
 		case P_FIX_NOISE_PITCH:
 		
 		flipbit(i->cydflags, CYD_CHN_ENABLE_FIXED_NOISE_PITCH);
@@ -1037,6 +1043,12 @@ void four_op_add_param(int a)
 		case FOUROP_METAL:
 
 		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_METAL);
+
+		break;
+		
+		case FOUROP_SINE:
+
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_SINE);
 
 		break;
 		

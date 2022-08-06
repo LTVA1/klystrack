@@ -272,8 +272,8 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst)
 	if ((fi & 0xff00) == MUS_FX_SET_WAVEFORM)
 	{
 		if (inst & 0xff)
-			snprintf(text, buffer_size, "%s (%s%s%s%s%s%s)\n", name, (inst & MUS_FX_WAVE_NOISE) ? "N" : "", (inst & MUS_FX_WAVE_SAW) ? "S" : "", (inst & MUS_FX_WAVE_TRIANGLE) ? "T" : "", 
-				(inst & MUS_FX_WAVE_PULSE) ? "P" : "", (inst & MUS_FX_WAVE_LFSR) ? "L" : "", (inst & MUS_FX_WAVE_WAVE) ? "W" : "");
+			snprintf(text, buffer_size, "%s (%s%s%s%s%s%s%s)\n", name, (inst & MUS_FX_WAVE_NOISE) ? "N" : "", (inst & MUS_FX_WAVE_SAW) ? "S" : "", (inst & MUS_FX_WAVE_TRIANGLE) ? "T" : "", 
+				(inst & MUS_FX_WAVE_PULSE) ? "P" : "", (inst & MUS_FX_WAVE_LFSR) ? "L" : "", (inst & MUS_FX_WAVE_WAVE) ? "W" : "", (inst & MUS_FX_WAVE_SINE) ? (((inst & (MUS_FX_WAVE_WAVE|MUS_FX_WAVE_NOISE|MUS_FX_WAVE_SAW|MUS_FX_WAVE_TRIANGLE|MUS_FX_WAVE_PULSE|MUS_FX_WAVE_LFSR|MUS_FX_WAVE_WAVE)) ? " Sine" : "Sine")) : "");
 		else
 			snprintf(text, buffer_size, "%s (None)\n", name);
 	}

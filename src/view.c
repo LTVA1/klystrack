@@ -698,6 +698,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"LFSR enable",
 					"LFSR type",
 					"Quarter frequency",
+					"Sine wave", //wasn't there
 					"Lock noise pitch", //wasn't there
 					"Constant noise note", //wasn't there
 					"Enable 1-bit noise (as on NES/Gameboy)", //wasn't there
@@ -879,6 +880,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"noise",
 					"metallic noise (shortens noise cycle)",
 					"quarter frequency",
+					"sine wave", //wasn't there
 					"lock noise pitch", //wasn't there
 					"constant noise note", //wasn't there
 					"enable 1-bit noise (as on NES/Gameboy)", //wasn't there
@@ -1703,8 +1705,12 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 			r.w = frame.w / 3 - 2;
 			inst_flags(event, &r, P_1_4TH, "1/4TH", &inst->flags, MUS_INST_QUARTER_FREQ);
 			update_rect(&frame, &r);
-
-
+			
+			r.w = frame.w;
+			
+			inst_flags(event, &r, P_SINE, "ENABLE SINE WAVE", &inst->cydflags, CYD_CHN_ENABLE_SINE);
+			update_rect(&frame, &r);
+			
 			r.w = frame.w / 2 + 26;
 			
 			inst_flags(event, &r, P_FIX_NOISE_PITCH, "LOCK NOI PIT", &inst->cydflags, CYD_CHN_ENABLE_FIXED_NOISE_PITCH);
@@ -1716,7 +1722,7 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 			npitch.w = frame.w / 3 - 6;
 			npitch.h = 10;
 			npitch.x += frame.w / 2 + 28;
-			npitch.y += 87;
+			npitch.y += 87 + 10;
 			
 			inst_text(event, &npitch, P_FIXED_NOISE_BASE_NOTE, "", "%s", notename(inst->noise_note), 3);
 			//update_rect(&npitch, &r);
@@ -2139,6 +2145,11 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 				r.w = view.w / 3;
 				four_op_flags(event, &r, FOUROP_METAL, "METAL", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_METAL);
 				update_rect(&view, &r);
+				
+				r.w = view.w;
+			
+				four_op_flags(event, &r, FOUROP_SINE, "ENABLE SINE WAVE", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_SINE);
+				update_rect(&view, &r);
 
 				r.w = view.w / 2 + 26;
 				
@@ -2151,7 +2162,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 				npitch.w = view.w / 3 - 6;
 				npitch.h = 10;
 				npitch.x += view.w / 2 + 28;
-				npitch.y += 87;
+				npitch.y += 87 + 10;
 				
 				four_op_text(event, &npitch, FOUROP_FIXED_NOISE_BASE_NOTE, "", "%s", notename(inst->ops[mused.selected_operator - 1].noise_note), 3);
 				

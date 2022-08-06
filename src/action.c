@@ -409,7 +409,6 @@ void select_all(void *unused1, void *unused2, void *unused3)
 			for(int i = 0; i < NUM_SEQUENCES - 1; ++i)
 			{
 				const MusSeqPattern *sp = &mused.song.sequence[mused.current_sequencetrack][i];
-				
 				//debug("start");
 				
 				if((sp + 1)->position + mused.song.pattern[(sp + 1)->pattern].num_steps >= mused.current_patternpos && (sp + 1)->position <= mused.current_patternpos)
@@ -427,6 +426,7 @@ void select_all(void *unused1, void *unused2, void *unused3)
 					mused.selection.start = sp->position;
 					
 					mused.selection.end = my_min(sp->position + mused.song.pattern[sp->pattern].num_steps, (sp + 1)->position);
+					//mused.selection.end = sp->position + mused.song.pattern[sp->pattern].num_steps;
 					
 					break;
 				}

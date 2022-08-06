@@ -29,7 +29,7 @@ A fork of klystrack chiptune tracker. A bit outdated but very good and comprehen
 - MIDI input support
 - `.mptm` import (OpenMPT file)
 - [`.fur`](https://github.com/tildearrow/furnace) import. I love how this tracker also uses 16-bit commands (and will probably steal some algorithms from it). Deflemask killer.
-- Custom envelope for instruments and thus more precise `.xm` (and maybe other formats) import
+- Custom envelope for instruments and thus more precise `.xm` (and maybe other formats) import. Maybe make Yamaha FM chips (YM2612 envelope, `TL-AR-D1R-TL1-D2R-RR` style) envelope as separate option.
 
 
 Below are links related to original klystrack. You will not find my releases there. Instead check releases of my fork. 
