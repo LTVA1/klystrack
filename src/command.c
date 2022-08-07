@@ -41,6 +41,8 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_RELEASE_POINT, 0xff00, "Program jumps here when release is triggered", "\xf9 Release", 0, 0},
 	
 	{MUS_FX_ARPEGGIO, 0xff00, "Set arpeggio note", "Arp", -1, -1},
+	{MUS_FX_SET_2ND_ARP_NOTE, 0xff00, "Set 2nd arpeggio note (for multiosc)", "Arp2nd", -1, -1},
+	{MUS_FX_SET_3RD_ARP_NOTE, 0xff00, "Set 3rd arpeggio note (for multiosc)", "Arp3rd", -1, -1},
 	{MUS_FX_SET_NOISE_CONSTANT_PITCH, 0xff00, "Set noise note in \"LOCK NOISE PITCH\" mode", "NoiPitNote", 0, FREQ_TAB_SIZE - 1}, //wasn't there
 	{MUS_FX_ARPEGGIO_ABS, 0xff00, "Set absolute arpeggio note", "AbsArp", 0, FREQ_TAB_SIZE - 1},
 	{MUS_FX_SET_EXT_ARP, 0xff00, "Set external arpeggio notes", "ExtArp", -1, -1},

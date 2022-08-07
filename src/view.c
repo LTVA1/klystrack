@@ -1420,6 +1420,11 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 					console_write_args(mused.console, "EXT%x", inst->program[i] & 0x0f);
 			}
 			
+			else if ((inst->program[i] & 0xff00) == MUS_FX_SET_2ND_ARP_NOTE || (inst->program[i] & 0xff00) == MUS_FX_SET_3RD_ARP_NOTE)
+			{
+				console_write_args(mused.console, "%s", notename(inst->base_note + (inst->program[i] & 0xff)));
+			}
+			
 			else if ((inst->program[i] & 0xff00) == MUS_FX_SET_NOISE_CONSTANT_PITCH)
 			{
 				console_write_args(mused.console, "NOI %s", notename(inst->program[i] & 0xff));
@@ -2874,9 +2879,14 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 			else if ((inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_ARPEGGIO || (inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_ARPEGGIO_ABS)
 			{
 				if ((inst->ops[mused.selected_operator - 1].program[i] & 0xff) != 0xf0 && (inst->ops[mused.selected_operator - 1].program[i] & 0xff) != 0xf1)
-					console_write_args(mused.console, "%s", notename(((inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_ARPEGGIO_ABS ? 0 : inst->base_note) + (inst->ops[mused.selected_operator - 1].program[i] & 0xff)));
+					console_write_args(mused.console, "%s", notename(((inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_ARPEGGIO_ABS ? 0 : ((inst->fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) ? inst->ops[mused.selected_operator - 1].base_note : inst->base_note)) + (inst->ops[mused.selected_operator - 1].program[i] & 0xff)));
 				else
 					console_write_args(mused.console, "EXT%x", inst->ops[mused.selected_operator - 1].program[i] & 0x0f);
+			}
+			
+			else if ((inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_SET_2ND_ARP_NOTE || (inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_SET_3RD_ARP_NOTE)
+			{
+				console_write_args(mused.console, "%s", notename(((inst->fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) ? inst->ops[mused.selected_operator - 1].base_note : inst->base_note) + (inst->ops[mused.selected_operator - 1].program[i] & 0xff)));
 			}
 			
 			else if ((inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_SET_NOISE_CONSTANT_PITCH)
