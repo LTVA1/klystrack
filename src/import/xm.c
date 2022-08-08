@@ -201,7 +201,7 @@ int import_xm(FILE *f)
 				step->ctrl = 0;
 				
 				if (note != 0 && note != 97)
-					step->note = note - 1;
+					step->note = (note - 1) + 12 * 5;
 				else if (note == 97)
 					step->note = MUS_NOTE_RELEASE;
 				else
@@ -360,6 +360,7 @@ int import_xm(FILE *f)
 					
 					cyd_wave_entry_init(&mused.mus.cyd->wavetable_entries[wt_e], smp, first_length / 2, CYD_WAVE_TYPE_SINT16, 1, 1, 1);
 				}
+				
 				else
 				{
 					debug("8-bit sample");
@@ -406,6 +407,7 @@ int import_xm(FILE *f)
 			
 			fseek(f, total_length - first_length, SEEK_CUR);
 		}
+		
 		else 
 		{
 			fseek(f, si + instrument_hdr.size, SEEK_SET);

@@ -360,7 +360,7 @@ int import_hubbard(FILE *f)
 		
 		for (int s = 0; s < hub->pattern[i].length; ++s)
 		{
-			mused.song.pattern[i].step[pos].note = hub->pattern[i].note[s].note;
+			mused.song.pattern[i].step[pos].note = hub->pattern[i].note[s].note + 12 * 5;
 			
 			if (hub->pattern[i].note[s].instrument != 0xff)
 				mused.song.pattern[i].step[pos].instrument = hub->pattern[i].note[s].instrument;

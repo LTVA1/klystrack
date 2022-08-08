@@ -303,7 +303,7 @@ int import_ahx(FILE *f)
 			Uint8 command = (step >> 8) & 0xf;
 			Uint8 data = step & 0xff;
 
-			mused.song.pattern[pat].step[s].note = note ? (note - 1) : MUS_NOTE_NONE;
+			mused.song.pattern[pat].step[s].note = note ? (note - 1 + 12 * 5) : MUS_NOTE_NONE;
 			mused.song.pattern[pat].step[s].instrument = instrument ? instrument - 1 : MUS_NOTE_NO_INSTRUMENT;
 			mused.song.pattern[pat].step[s].ctrl = 0;
 			mused.song.pattern[pat].step[s].command[0] = find_command_ahx(command, data, &mused.song.pattern[pat].step[s].ctrl);
@@ -471,7 +471,7 @@ int import_ahx(FILE *f)
 
 					n = my_max(0, my_min(n, FREQ_TAB_SIZE - 1));
 
-					if (pidx < MUS_PROG_LEN - 1) i->program[pidx] = (fixed_note ? MUS_FX_ARPEGGIO_ABS : MUS_FX_ARPEGGIO) | ((n) & 0xff);
+					if (pidx < MUS_PROG_LEN - 1) i->program[pidx] = (fixed_note ? MUS_FX_ARPEGGIO_ABS : MUS_FX_ARPEGGIO) | ((fixed_note ? (n + 12 * 5) : n) & 0xff);
 				}
 
 				if (fx1 == 0x5 && fx2 != 0x0)
@@ -491,7 +491,8 @@ int import_ahx(FILE *f)
 				{
 					if ((wave || note) && pidx < MUS_PROG_LEN - 1)
 					{
-						i->program[pidx] |= 0x8000;
+						//i->program[pidx] |= 0x8000;
+						i->program_unite_bits[pidx / 8] |= (1 << (pidx & 7));
 						++pidx;
 					}
 
@@ -502,7 +503,7 @@ int import_ahx(FILE *f)
 				{
 					if ((wave || note || (fx1 || data1)) && pidx < MUS_PROG_LEN - 1)
 					{
-						i->program[pidx] |= 0x8000;
+						i->program_unite_bits[pidx / 8] |= (1 << (pidx & 7));
 						++pidx;
 					}
 
@@ -522,7 +523,7 @@ int import_ahx(FILE *f)
 
 		if (!(has_4xx & 0xf0))
 		{
-			i->cutoff = 2047; // no modulation set so disable
+			i->cutoff = 4096; // no modulation set so disable
 		}
 
 		i->program[pidx] = MUS_FX_END;

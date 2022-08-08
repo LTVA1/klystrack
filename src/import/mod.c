@@ -212,7 +212,7 @@ int import_mod(FILE *f)
 				fread(&inst, 1, sizeof(inst), f);
 				fread(&param, 1, sizeof(param), f);
 				
-				mused.song.pattern[pat].step[s].note = find_note(SDL_SwapBE16(period) & 0xfff);
+				mused.song.pattern[pat].step[s].note = find_note(SDL_SwapBE16(period) & 0xfff) + 12 * 5;
 				mused.song.pattern[pat].step[s].instrument = ((inst >> 4) | ((SDL_SwapBE16(period) & 0xf000) >> 8)) - 1;
 				mused.song.pattern[pat].step[s].volume = MUS_NOTE_NO_VOLUME;
 				
