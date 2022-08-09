@@ -78,8 +78,9 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_SET_ENV_KSL_LEVEL, 0xff00, "Set envelope key scaling level", "EnvKslLev", 0, 0xff}, //wasn't there
 	{MUS_FX_SET_FM_ENV_KSL_LEVEL, 0xff00, "Set FM modulator envelope key scaling level", "EnvKslFMlev", 0, 0xff}, //wasn't there
 	{MUS_FX_SET_WAVEFORM, 0xff00, "Set waveform", "Waveform", 0, 0xff},
-	{MUS_FX_SET_NOISE_MODE, 0xfff0, "Set noise mode", "NoiMode", 0, 0x7}, //wasn't there
-	{MUS_FX_OSC_MIX, 0xfff0, "Set oscillators' mix mode", "OscMix", 0, 4}, //wasn't there
+	{MUS_FX_EXT_SET_NOISE_MODE, 0xfff0, "Set noise mode", "NoiMode", 0, 0x7}, //wasn't there
+	{MUS_FX_EXT_OSC_MIX, 0xfff0, "Set oscillators' mix mode", "OscMix", 0, 4}, //wasn't there
+	{MUS_FX_EXT_SINE_ACC_SHIFT, 0xfff0, "Set sine wave phase shift", "SinePhaseShift", 0, 0xF}, //wasn't there
 	{MUS_FX_SET_WAVETABLE_ITEM, 0xff00, "Set wavetable item", "Wavetable", 0, CYD_WAVE_MAX_ENTRIES - 1},
 	{MUS_FX_SET_FXBUS, 0xff00, "Set FX bus", "SetFxBus", 0, CYD_MAX_FX_CHANNELS - 1},
 	{MUS_FX_SET_RINGSRC, 0xff00, "Set ring modulation source (FF=off)", "SetRingSrc", 0, 0xff},
@@ -306,7 +307,7 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst)
 		snprintf(text, buffer_size, "%s (%+.1f dB)\n", name, percent_to_dB((float)(inst & 0xff) / MAX_VOLUME));
 	}
 	
-	else if ((fi & 0xfff0) == MUS_FX_SET_NOISE_MODE)
+	else if ((fi & 0xfff0) == MUS_FX_EXT_SET_NOISE_MODE)
 	{
 		if (inst & 0xf)
 		{
