@@ -699,6 +699,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"LFSR type",
 					"Quarter frequency",
 					"Sine wave", //wasn't there
+					"Sine wave phase shift", //wasn't there
 					"Lock noise pitch", //wasn't there
 					"Constant noise note", //wasn't there
 					"Enable 1-bit noise (as on NES/Gameboy)", //wasn't there
@@ -881,6 +882,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"metallic noise (shortens noise cycle)",
 					"quarter frequency",
 					"sine wave", //wasn't there
+					"sine wave phase shift", //wasn't there
 					"lock noise pitch", //wasn't there
 					"constant noise note", //wasn't there
 					"enable 1-bit noise (as on NES/Gameboy)", //wasn't there
@@ -1677,9 +1679,14 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 			update_rect(&frame, &r);
 			inst_flags(event, &r, P_SETCUTOFF, "SET CUT", &inst->flags, MUS_INST_SET_CUTOFF);
 			update_rect(&frame, &r);
-
-			inst_text(event, &r, P_SLIDESPEED, "SLIDE", "%02X", MAKEPTR(inst->slide_speed), 2);
+			
+			int tmp = r.w;
+			r.w += 10;
+			
+			inst_text(event, &r, P_SLIDESPEED, "SLIDE", "%03X", MAKEPTR(inst->slide_speed), 3);
 			update_rect(&frame, &r);
+			
+			r.w = tmp;
 		}
 
 		{
@@ -1711,9 +1718,14 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 			inst_flags(event, &r, P_1_4TH, "1/4TH", &inst->flags, MUS_INST_QUARTER_FREQ);
 			update_rect(&frame, &r);
 			
-			r.w = frame.w;
+			r.w = frame.w / 3 - 5;
 			
-			inst_flags(event, &r, P_SINE, "ENABLE SINE WAVE", &inst->cydflags, CYD_CHN_ENABLE_SINE);
+			inst_flags(event, &r, P_SINE, "SINE", &inst->cydflags, CYD_CHN_ENABLE_SINE);
+			update_rect(&frame, &r);
+			
+			r.w = frame.w * 2 / 3 - 1;
+			
+			inst_text(event, &r, P_SINE_PHASE_SHIFT, "PH. SHIFT", "%X", MAKEPTR(inst->sine_acc_shift), 1);
 			update_rect(&frame, &r);
 			
 			r.w = frame.w / 2 + 26;
@@ -2125,9 +2137,14 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 				update_rect(&view, &r);
 				four_op_flags(event, &r, FOUROP_SETCUTOFF, "SET CUT", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_SET_CUTOFF);
 				update_rect(&view, &r);
+				
+				int tmp = r.w;
+				r.w += 10;
 
-				four_op_text(event, &r, FOUROP_SLIDESPEED, "SLIDE", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].slide_speed), 2);
+				four_op_text(event, &r, FOUROP_SLIDESPEED, "SLIDE", "%03X", MAKEPTR(inst->ops[mused.selected_operator - 1].slide_speed), 3);
 				update_rect(&view, &r);
+				
+				r.w = tmp;
 			}
 			
 			{
@@ -2151,9 +2168,14 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 				four_op_flags(event, &r, FOUROP_METAL, "METAL", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_METAL);
 				update_rect(&view, &r);
 				
-				r.w = view.w;
+				r.w = view.w / 3 - 5;
 			
-				four_op_flags(event, &r, FOUROP_SINE, "ENABLE SINE WAVE", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_SINE);
+				four_op_flags(event, &r, FOUROP_SINE, "SINE", &inst->ops[mused.selected_operator - 1].cydflags, CYD_CHN_ENABLE_SINE);
+				update_rect(&view, &r);
+				
+				r.w = view.w * 2 / 3 - 2;
+				
+				four_op_text(event, &r, FOUROP_SINE_PHASE_SHIFT, "PH. SHIFT", "%X", MAKEPTR(inst->ops[mused.selected_operator - 1].sine_acc_shift), 1);
 				update_rect(&view, &r);
 
 				r.w = view.w / 2 + 26;

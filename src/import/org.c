@@ -244,7 +244,7 @@ int import_org(FILE *f)
 				
 				if (note[n] != 255)
 				{
-					step->note = note[n] + 12;
+					step->note = note[n] + 12 + 12 * 5;
 					step->instrument = real_channels;
 				}
 				

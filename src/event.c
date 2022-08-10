@@ -408,6 +408,12 @@ void instrument_add_param(int a)
 		
 		break;
 		
+		case P_SINE_PHASE_SHIFT:
+
+		clamp(i->sine_acc_shift, a, 0, 0xf);
+
+		break;
+		
 		case P_FIX_NOISE_PITCH:
 		
 		flipbit(i->cydflags, CYD_CHN_ENABLE_FIXED_NOISE_PITCH);
@@ -428,7 +434,7 @@ void instrument_add_param(int a)
 
 		case P_SLIDESPEED:
 
-		clamp(i->slide_speed, a, 0, 0xff);
+		clamp(i->slide_speed, a, 0, 0xfff);
 
 		break;
 		
@@ -1052,6 +1058,12 @@ void four_op_add_param(int a)
 
 		break;
 		
+		case FOUROP_SINE_PHASE_SHIFT: //wasn't there
+		
+		clamp(i->ops[mused.selected_operator - 1].sine_acc_shift, a, 0, 0xf);
+
+		break;
+		
 		case FOUROP_OSCMIXMODE: //wasn't there
 		
 		clamp(i->ops[mused.selected_operator - 1].mixmode, a, 0, 4);
@@ -1171,7 +1183,7 @@ void four_op_add_param(int a)
 
 		case FOUROP_SLIDESPEED:
 
-		clamp(i->ops[mused.selected_operator - 1].slide_speed, a, 0, 0xff);
+		clamp(i->ops[mused.selected_operator - 1].slide_speed, a, 0, 0xfff);
 
 		break;
 		

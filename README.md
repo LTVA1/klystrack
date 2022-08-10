@@ -24,6 +24,7 @@ A fork of klystrack chiptune tracker. A bit outdated but very good and comprehen
 - `.dmf` import (probably steal algorithm from… [you know](https://github.com/tildearrow/furnace))
 - `.a2m` (Adlib Tracker II) file import
 - `.s3m` (Schism Tracker) file import
+- `.it` (Impulse Tracker) file import
 - `.MED` (OctaMED tracker) file import
 - `.mid`/`.midi` file import along with some kind of klystrack own file for creating instrument banks
 - MIDI input support

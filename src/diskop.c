@@ -376,7 +376,10 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 		SDL_RWwrite(f, &inst->tremolo_delay, sizeof(inst->tremolo_delay), 1);
 	}
 	
-	SDL_RWwrite(f, &inst->slide_speed, sizeof(inst->slide_speed), 1);
+	Uint16 temp_sl_sp = inst->slide_speed | ((inst->sine_acc_shift) << 12);
+	FIX_ENDIAN(temp_sl_sp);
+	SDL_RWwrite(f, &temp_sl_sp, sizeof(temp_sl_sp), 1);
+	
 	SDL_RWwrite(f, &inst->base_note, sizeof(inst->base_note), 1);
 	SDL_RWwrite(f, &inst->finetune, sizeof(inst->finetune), 1);
 
@@ -499,7 +502,9 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 				FIX_ENDIAN(temp32);
 				SDL_RWwrite(f, &temp32, sizeof(temp32), 1);
 				
-				SDL_RWwrite(f, &inst->ops[i].slide_speed, sizeof(inst->ops[i].slide_speed), 1);
+				Uint16 temp_sl_sp_op = inst->ops[i].slide_speed | ((inst->ops[i].sine_acc_shift) << 12);
+				FIX_ENDIAN(temp_sl_sp_op);
+				SDL_RWwrite(f, &temp_sl_sp_op, sizeof(temp_sl_sp_op), 1);
 				
 				if(inst->fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE)
 				{
