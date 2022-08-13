@@ -553,7 +553,7 @@ int main(int argc, char **argv)
 
 			// ensure the last event is a mouse click so it gets passed to the draw/event code
 
-			if (e.type == SDL_MOUSEBUTTONDOWN || (e.type == SDL_MOUSEMOTION && e.motion.state) || e.type == SDL_MOUSEWHEEL)
+			if (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP || (e.type == SDL_MOUSEMOTION && e.motion.state) || e.type == SDL_MOUSEWHEEL)
 				break;
 		}
 

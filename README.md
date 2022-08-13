@@ -23,6 +23,7 @@ A fork of klystrack chiptune tracker. A bit outdated but very good and comprehen
 - FamiTracker files import (`.ftm`, `.0cc`, `.dnm`, `.eft` and others, one song at a time)
 - `.dmf` import (probably steal algorithm from… [you know](https://github.com/tildearrow/furnace))
 - `.a2m` (Adlib Tracker II) file import
+- `.rmt` (Raster Music Tracker) file import
 - `.s3m` (Schism Tracker) file import
 - `.it` (Impulse Tracker) file import
 - `.MED` (OctaMED tracker) file import

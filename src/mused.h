@@ -47,6 +47,8 @@ enum
 	EDITPROG,
 	EDITPROG4OP,
 	EDITSONGINFO,
+	
+	EDITSONGMESSAGE,
 	/* Virtual modes, i.e. what are not modes itself but should be considered happening "inside" prev_mode */
 	EDITBUFFER,
 	MENU

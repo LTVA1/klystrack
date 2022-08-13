@@ -3214,7 +3214,6 @@ void edit_program_event(SDL_Event *e)
 			case SDLK_RIGHT:
 			{
 				clamp(mused.editpos, +1, 0, 3);
-
 			}
 			break;
 
@@ -3240,9 +3239,9 @@ void edit_program_event(SDL_Event *e)
 		break;
 
 		case SDL_KEYUP:
-
+			
 			play_the_jams(e->key.keysym.sym, -1, 0);
-
+			
 		break;
 	}
 }
