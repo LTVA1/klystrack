@@ -1248,10 +1248,11 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 					copy_rect(&tmp, &pos);
 					clip_rect(&tmp, &track);
 					
-					//if (sp && event->type == SDL_MOUSEBUTTONDOWN)
-					if (sp && event->type == SDL_MOUSEBUTTONUP)
+					if (sp && event->type == SDL_MOUSEBUTTONDOWN)
+					//if (sp && event->type == SDL_MOUSEBUTTONUP)
 					{
-						check_event_mousebuttonup(event, &tmp, select_pattern_param, MAKEPTR(param), MAKEPTR(sp->position + step), MAKEPTR(channel));
+						//check_event_mousebuttonup(event, &tmp, select_pattern_param, MAKEPTR(param), MAKEPTR(sp->position + step), MAKEPTR(channel));
+						check_event(event, &tmp, select_pattern_param, MAKEPTR(param), MAKEPTR(sp->position + step), MAKEPTR(channel));
 						set_repeat_timer(NULL); // ugh
 					}
 					

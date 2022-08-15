@@ -159,6 +159,8 @@ static const InstructionDesc instruction_desc[] =
 	
 	{MUS_FX_FM_SET_4OP_ALGORITHM, 0xff00, "Set 4-op FM algorithm", "4opFMalg", 0, 13},
 	{MUS_FX_FM_SET_4OP_MASTER_VOLUME, 0xff00, "Set 4-op FM master volume", "4opFMvol", 0, 255},
+	{MUS_FX_FM_4OP_MASTER_FADE_VOLUME_UP, 0xfff0, "4-op FM master volume up", "4opFMvolUp", 0, 0xf},
+	{MUS_FX_FM_4OP_MASTER_FADE_VOLUME_DOWN, 0xfff0, "4-op FM master volume down", "4opFMvolDown", 0, 0xf},
 	
 	{MUS_FX_FM_4OP_SET_DETUNE, 0xfff0, "Set 4-op FM operator detune", "4opFMdet", 0, 15},
 	{MUS_FX_FM_4OP_SET_COARSE_DETUNE, 0xfff0, "Set 4-op FM operator coarse detune", "4opFMdet2", 0, 3},
