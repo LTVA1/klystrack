@@ -3865,6 +3865,7 @@ void sequence_spectrum_view(GfxDomain *dest_surface, const SDL_Rect *dest, const
 
 		gfx_domain_set_clip(domain, NULL);
 	}
+	
 	else
 	{
 		sequence_view2(dest_surface, dest, event, param);

@@ -29,7 +29,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "snd/music.h"
 #include <stdbool.h>
 
-void optimize_duplicate_patterns(MusSong *song);
+void optimize_duplicate_patterns(MusSong *song, bool message_if_nothing_changed);
 void optimize_song(MusSong *song);
 bool is_pattern_empty(const MusPattern *a);
 bool is_pattern_equal(const MusPattern *a, const MusPattern *b);

@@ -3478,8 +3478,14 @@ void fx_add_param(int d)
 		
 		case R_NUM_TAPS: //wasn't there
 		{
-			clamp(mused.song.fx[mused.fx_bus].rvb.taps_quant, d * 1, 0, CYDRVB_TAPS);
-			mus_set_fx(&mused.mus, &mused.song);
+			int temp = (int)mused.song.fx[mused.fx_bus].rvb.taps_quant + (int)d;
+			
+			if(temp >= 0)
+			{
+				clamp(mused.song.fx[mused.fx_bus].rvb.taps_quant, d * 1, 0, CYDRVB_TAPS);
+				mused.song.fx[mused.fx_bus].rvb.tap[mused.song.fx[mused.fx_bus].rvb.taps_quant - 1].panning = CYD_PAN_CENTER;
+				mus_set_fx(&mused.mus, &mused.song);
+			}
 		}
 		break;
 

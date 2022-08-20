@@ -70,6 +70,7 @@ bool is_pattern_equal(const MusPattern *a, const MusPattern *b)
 		return false;
 		
 	for (int i = 0; i < a->num_steps; ++i)
+	{
 		if (a->step[i].note != b->step[i].note 
 			|| a->step[i].instrument != b->step[i].instrument
 			|| a->step[i].volume != b->step[i].volume
@@ -86,6 +87,7 @@ bool is_pattern_equal(const MusPattern *a, const MusPattern *b)
 				}
 			}
 		}
+	}
 
 	return true;
 }
@@ -320,7 +322,7 @@ static void remove_pattern(MusSong *song, int p)
 }
 
 
-void optimize_duplicate_patterns(MusSong *song)
+void optimize_duplicate_patterns(MusSong *song, bool message_if_nothing_changed)
 {
 	debug("Kill unused patterns");
 	
@@ -350,7 +352,10 @@ void optimize_duplicate_patterns(MusSong *song)
 			++a;
 	}
 	
-	set_info_message("Reduced number of patterns from %d to %d", orig_count, song->num_patterns);
+	if((orig_count == song->num_patterns && message_if_nothing_changed) || (!(message_if_nothing_changed) && orig_count != song->num_patterns))
+	{
+		set_info_message("Reduced number of patterns from %d to %d", orig_count, song->num_patterns);
+	}
 	
 	song->num_patterns = NUM_PATTERNS;
 }
@@ -390,7 +395,7 @@ void kill_empty_patterns(MusSong *song, void* no_confirm) //wasn't there
 		}
 	}
 	
-	optimize_duplicate_patterns(song);
+	optimize_duplicate_patterns(song, true);
 	
 	/*for (int a = 0; a < song->num_patterns; )
 	{	
@@ -684,7 +689,7 @@ void optimize_song(MusSong *song)
 	
 	kill_empty_patterns(&mused.song, NULL); //wasn't there
 	
-	optimize_duplicate_patterns(song);	
+	optimize_duplicate_patterns(song, true);	
 	optimize_unused_instruments(&mused.song);
 	optimize_unused_wavetables(&mused.song, &mused.cyd);
 	
@@ -695,7 +700,7 @@ void optimize_song(MusSong *song)
 
 void optimize_patterns_action(void *unused1, void *unused2, void *unused3)
 {
-	optimize_duplicate_patterns(&mused.song);
+	optimize_duplicate_patterns(&mused.song, true);
 }
 
 void optimize_empty_patterns_action(void *no_confirm, void *unused2, void *unused3) //wasn't there

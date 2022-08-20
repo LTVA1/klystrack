@@ -644,16 +644,7 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 				
 				if (inst->ops[i].cydflags & CYD_FM_OP_ENABLE_WAVE)
 				{
-					if(write_wave)
-					{
-						Uint8 temp11 = 0xff;
-						SDL_RWwrite(f, &temp11, sizeof(temp11), 1);
-					}
-					
-					else
-					{
-						SDL_RWwrite(f, &inst->ops[i].wavetable_entry, sizeof(inst->ops[i].wavetable_entry), 1);
-					}
+					SDL_RWwrite(f, &inst->ops[i].wavetable_entry, sizeof(inst->ops[i].wavetable_entry), 1);
 				}
 			}
 		}
@@ -672,12 +663,13 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 
 	if (write_wave)
 	{
+		if((inst->cydflags & CYD_CHN_ENABLE_WAVE) || ((inst->fm_flags & CYD_FM_ENABLE_WAVE) && (inst->wavetable_entry == inst->fm_wave)))
 		write_wavetable_entry(f, write_wave, true);
 	}
 	
 	if (write_wave_fm)
 	{
-		if (inst->wavetable_entry != inst->fm_wave)
+		if (inst->wavetable_entry != inst->fm_wave && (inst->fm_flags & CYD_FM_ENABLE_WAVE))
 		{
 			write_wavetable_entry(f, write_wave_fm, true);
 		}
@@ -685,11 +677,37 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 	
 	if((inst->fm_flags & CYD_FM_ENABLE_4OP) && write_wave)
 	{
+		Uint8 wave_entries[CYD_FM_NUM_OPS] = { 0xFF };
+		
+		for(int i = 0; i < CYD_FM_NUM_OPS; ++i)
+		{
+			if(inst->ops[i].cydflags & CYD_FM_OP_ENABLE_WAVE)
+			{
+				wave_entries[i] = inst->ops[i].wavetable_entry;
+			}
+		}
+		
 		for(int i = 0; i < CYD_FM_NUM_OPS; ++i)
 		{
 			if (inst->ops[i].cydflags & CYD_FM_OP_ENABLE_WAVE)
 			{
-				write_wavetable_entry(f, &mused.mus.cyd->wavetable_entries[mused.song.instrument[mused.current_instrument].ops[i].wavetable_entry], true);
+				bool need_write_wave = true;
+				
+				for(int j = 0; j < i; ++j)
+				{
+					if(wave_entries[j] == wave_entries[i] && wave_entries[i] != 0xff && wave_entries[j] != 0xff && (inst->ops[j].cydflags & CYD_FM_OP_ENABLE_WAVE))
+					{
+						need_write_wave = false;
+						goto end;
+					}
+				}
+				
+				end:;
+				
+				if(need_write_wave)
+				{
+					write_wavetable_entry(f, &mused.mus.cyd->wavetable_entries[inst->ops[i].wavetable_entry], true);
+				}
 			}
 		}
 	}
@@ -1057,7 +1075,17 @@ int save_song_inner(SDL_RWops *f, SongStats *stats)
 	
 	Uint32 temp32 = mused.song.flags;
 	
-	temp32 |= MUS_8_BIT_PATTERN_INDEX | MUS_PATTERNS_NO_COMPRESSION | MUS_SEQ_NO_COMPRESSION;
+	if(mused.song.num_patterns <= 0xff)
+	{
+		temp32 |= MUS_8_BIT_PATTERN_INDEX;
+	}
+	
+	else
+	{
+		temp32 &= ~MUS_8_BIT_PATTERN_INDEX;
+	}
+	
+	temp32 |= MUS_PATTERNS_NO_COMPRESSION | MUS_SEQ_NO_COMPRESSION;
 	temp32 &= ~MUS_NO_REPEAT; //just in case
 	
 	if(mused.song.song_rate > 255)
@@ -1132,12 +1160,22 @@ int save_song_inner(SDL_RWops *f, SongStats *stats)
 
 			used_pattern[mused.song.sequence[i][s].pattern] = true;
 
-			/*temp16 = mused.song.sequence[i][s].pattern;
-			FIX_ENDIAN(temp16);
-			SDL_RWwrite(f, &temp16, 1, sizeof(temp16));*/
+			//temp16 = mused.song.sequence[i][s].pattern;
+			//FIX_ENDIAN(temp16);
+			//SDL_RWwrite(f, &temp16, 1, sizeof(temp16));
 			
-			Uint8 temp = (Uint8)(mused.song.sequence[i][s].pattern & 0xFF);
-			SDL_RWwrite(f, &temp, 1, sizeof(temp));
+			if(temp32 & MUS_8_BIT_PATTERN_INDEX)
+			{
+				Uint8 temp = (Uint8)(mused.song.sequence[i][s].pattern & 0xFF);
+				SDL_RWwrite(f, &temp, 1, sizeof(temp));
+			}
+			
+			else
+			{
+				temp16 = mused.song.sequence[i][s].pattern;
+				FIX_ENDIAN(temp16);
+				SDL_RWwrite(f, &temp16, 1, sizeof(temp16));
+			}
 			
 			SDL_RWwrite(f, &mused.song.sequence[i][s].note_offset, 1, sizeof(mused.song.sequence[i][s].note_offset));
 		}

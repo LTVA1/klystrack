@@ -1248,7 +1248,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 					copy_rect(&tmp, &pos);
 					clip_rect(&tmp, &track);
 					
-					if (sp && event->type == SDL_MOUSEBUTTONDOWN)
+					if (sp && event->type == SDL_MOUSEBUTTONDOWN && tmp.y - header.y > HEADER_HEIGHT + 3) //so we do not process the topmost row which is hidden under header and is there for smooth scroll (so rows disappear upper then pattern edge where they are still visible)
 					//if (sp && event->type == SDL_MOUSEBUTTONUP)
 					{
 						//check_event_mousebuttonup(event, &tmp, select_pattern_param, MAKEPTR(param), MAKEPTR(sp->position + step), MAKEPTR(channel));

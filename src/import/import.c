@@ -78,6 +78,7 @@ void import_module(void *type, void* unused1, void* unused2)
 		case IMPORT_XM: r = import_xm(f); break;
 		case IMPORT_ORG: r = import_org(f); break;
 		case IMPORT_HUBBARD: r = import_hubbard(f); break;
+		//others will be there I promise
 	}
 	
 	if (CASTPTR(int, type) != IMPORT_HUBBARD)
@@ -93,6 +94,7 @@ void import_module(void *type, void* unused1, void* unused2)
 			optimize_song(&mused.song);
 		}
 	}
+	
 	else
 	{
 		optimize_song(&mused.song);

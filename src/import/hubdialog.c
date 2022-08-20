@@ -181,7 +181,7 @@ int hub_view(hubbard_t *hub)
 						if (data.selected_file != -1) data.picked_file = &data.files[data.selected_file];
 						else goto enter_pressed;
 						break;*/
-												
+						
 						default: break;
 					}
 				

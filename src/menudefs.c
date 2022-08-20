@@ -163,17 +163,35 @@ const Menu prefsmenu[] =
 	{ 0, NULL, NULL }
 };
 
+static const Menu importmenu[];
+
+static const Menu import_famitracker_menu[] =
+{
+	{ 0, importmenu, "Import .FTM", NULL, import_module, MAKEPTR(IMPORT_FTM) },
+	{ 0, importmenu, "Import .0CC", NULL, import_module, MAKEPTR(IMPORT_0CC) },
+	{ 0, importmenu, "Import .DNM", NULL, import_module, MAKEPTR(IMPORT_DNM) },
+	{ 0, importmenu, "Import .EFT", NULL, import_module, MAKEPTR(IMPORT_EFT) },
+	{ 0, NULL, NULL }
+};
 
 static const Menu importmenu[] =
 {
 	{ 0, filemenu, "Import .MOD", NULL, import_module, MAKEPTR(IMPORT_MOD) },
+	//{ 0, filemenu, "Import .MED (OctaMED)", NULL, import_module, MAKEPTR(IMPORT_MED) },
+	//{ 0, filemenu, "Import .S3M", NULL, import_module, MAKEPTR(IMPORT_S3M) },
 	{ 0, filemenu, "Import .AHX", NULL, import_module, MAKEPTR(IMPORT_AHX) },
 	{ 0, filemenu, "Import .XM", NULL, import_module, MAKEPTR(IMPORT_XM) },
+	//{ 0, filemenu, "Import .IT", NULL, import_module, MAKEPTR(IMPORT_IT) },
+	//{ 0, filemenu, "Import .MPTM", NULL, import_module, MAKEPTR(IMPORT_MPTM) },
 	{ 0, filemenu, "Import .ORG", NULL, import_module, MAKEPTR(IMPORT_ORG) },
 	{ 0, filemenu, "Import .SID (Rob Hubbard)", NULL, import_module, MAKEPTR(IMPORT_HUBBARD) },
+	//{ 0, filemenu, "Import FamiTracker", import_famitracker_menu },
+	//{ 0, filemenu, "Import .DMF", NULL, import_module, MAKEPTR(IMPORT_DMF) },
+	//{ 0, filemenu, "Import .FUR", NULL, import_module, MAKEPTR(IMPORT_FUR) },
+	//{ 0, filemenu, "Import .A2M (Adlib Tracker II)", NULL, import_module, MAKEPTR(IMPORT_A2M) },
+	//{ 0, filemenu, "Import .RMT (Raster Music Tracker)", NULL, import_module, MAKEPTR(IMPORT_RMT) },
 	{ 0, NULL, NULL }
 };
-
 
 static const Menu instmenu[] =
 {
