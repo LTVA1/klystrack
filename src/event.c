@@ -894,6 +894,12 @@ void four_op_add_param(int a)
 
 		break;
 		
+		case FOUROP_BYPASS_MAIN_INST_FILTER:
+
+		flipbit(i->fm_flags, CYD_FM_FOUROP_BYPASS_MAIN_INST_FILTER);
+
+		break;
+		
 		case FOUROP_ENABLE_SSG_EG:
 
 		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_SSG_EG);
@@ -1653,7 +1659,7 @@ void edit_fourop_event(SDL_Event *e)
 			{
 				++mused.fourop_selected_param;
 				
-				if(!(mused.song.instrument[mused.current_instrument].fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) && mused.fourop_selected_param > FOUROP_USE_MAIN_INST_PROG && mused.fourop_selected_param < FOUROP_HARMONIC_CARRIER)
+				if(!(mused.song.instrument[mused.current_instrument].fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) && mused.fourop_selected_param > FOUROP_BYPASS_MAIN_INST_FILTER && mused.fourop_selected_param < FOUROP_HARMONIC_CARRIER)
 				{
 					mused.fourop_selected_param = FOUROP_HARMONIC_CARRIER;
 				}
@@ -1679,9 +1685,9 @@ void edit_fourop_event(SDL_Event *e)
 			{
 				--mused.fourop_selected_param;
 				
-				if(!(mused.song.instrument[mused.current_instrument].fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) && mused.fourop_selected_param > FOUROP_USE_MAIN_INST_PROG && mused.fourop_selected_param < FOUROP_HARMONIC_CARRIER)
+				if(!(mused.song.instrument[mused.current_instrument].fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) && mused.fourop_selected_param > FOUROP_BYPASS_MAIN_INST_FILTER && mused.fourop_selected_param < FOUROP_HARMONIC_CARRIER)
 				{
-					mused.fourop_selected_param = FOUROP_USE_MAIN_INST_PROG;
+					mused.fourop_selected_param = FOUROP_BYPASS_MAIN_INST_FILTER;
 				}
 				
 				if((mused.song.instrument[mused.current_instrument].fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) && mused.fourop_selected_param > FOUROP_LOCKNOTE && mused.fourop_selected_param < FOUROP_FEEDBACK)
@@ -1804,7 +1810,7 @@ void add_sequence(int channel, int position, int pattern, int offset)
 }
 
 
-Uint8 get_pattern_at(int channel, int position)
+Uint16 get_pattern_at(int channel, int position)
 {
 	for (int i = 0; i < mused.song.num_sequences[channel]; ++i)
 		if (mused.song.sequence[channel][i].position == position)
@@ -2085,14 +2091,29 @@ void sequence_event(SDL_Event *e)
 				{
 					change_seq_steps((void *)1, 0, 0);
 				}
+				
 				else
 				{
 					if (mused.flags & EDIT_SEQUENCE_DIGITS)
 					{
-						if (mused.sequence_digit < 1)
+						Uint16 p = get_pattern_at(mused.current_sequencetrack, mused.current_sequencepos);
+						
+						if(p < 0x100)
 						{
-							++mused.sequence_digit;
-							break;
+							if (mused.sequence_digit < 1)
+							{
+								++mused.sequence_digit;
+								break;
+							}
+						}
+						
+						else
+						{
+							if (mused.sequence_digit < 2)
+							{
+								++mused.sequence_digit;
+								break;
+							}
 						}
 					}
 
@@ -2112,6 +2133,7 @@ void sequence_event(SDL_Event *e)
 				{
 					change_seq_steps((void *)-1, 0, 0);
 				}
+				
 				else
 				{
 					if (mused.flags & EDIT_SEQUENCE_DIGITS)
@@ -2143,12 +2165,39 @@ void sequence_event(SDL_Event *e)
 					{
 						snapshot(S_T_SEQUENCE);
 
-						Uint8 p = get_pattern_at(mused.current_sequencetrack, mused.current_sequencepos);
-
-						if (mused.sequence_digit == 0)
-							p = (p & (0x0f)) | (k << 4);
+						Uint16 p = get_pattern_at(mused.current_sequencetrack, mused.current_sequencepos);
+						
+						if(p < 0x100)
+						{
+							if (mused.sequence_digit == 0)
+								p = (p & (0x0f)) | (k << 4);
+							else
+								p = (p & (0xf0)) | k;
+						}
+						
 						else
-							p = (p & (0xf0)) | k;
+						{
+							switch(mused.sequence_digit)
+							{
+								case 0:
+								{
+									p = (p & (0x0ff)) | (k << 8);
+									break;
+								}
+								
+								case 1:
+								{
+									p = (p & (0xf0f)) | (k << 4);
+									break;
+								}
+								
+								case 2:
+								{
+									p = (p & (0xff0)) | k;
+									break;
+								}
+							}
+						}
 
 						add_sequence(mused.current_sequencetrack, mused.current_sequencepos, p, 0);
 

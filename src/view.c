@@ -795,8 +795,9 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"bitwise AND",
 					"sum of oscillators' signals",
 					"bitwise OR",
-					"C64 8580 SID combined waves",
-					"exclusive OR"
+					"C64 8580 SID combined waves bitwise ANDed with other signals",
+					"bitwise exclusive OR",
+					//"multiplication of oscillators' signals",
 				};
 				
 				static const char * filter_types[] =
@@ -853,6 +854,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					
 					"4-op master volume",
 					"Use main instrument program to control operators",
+					"4-op output bypasses main instrument filter",
 					
 					"base note",
 					"finetune",
@@ -937,8 +939,9 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"bitwise AND",
 					"sum of oscillators' signals",
 					"bitwise OR",
-					"C64 8580 SID combined waves",
-					"exclusive OR"
+					"C64 8580 SID combined waves bitwise ANDed with other signals",
+					"bitwise exclusive OR",
+					//"multiplication of oscillators' signals",
 				};
 				
 				static const char * filter_types[] =
@@ -975,7 +978,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					snprintf(text, sizeof(text) - 1, "Operator %d %s (%s)", mused.selected_operator, param_desc[mused.fourop_selected_param], mixmodes[mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].mixmode]);
 				else if (mused.fourop_selected_param == FOUROP_SSG_EG_TYPE) //wasn't there
 					snprintf(text, sizeof(text) - 1, "Operator %d %s (%s)", mused.selected_operator, param_desc[mused.fourop_selected_param], ssg_eg_types[mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].ssg_eg_type]);
-				else if (mused.fourop_selected_param == FOUROP_ALG || mused.fourop_selected_param == FOUROP_3CH_EXP_MODE || mused.fourop_selected_param == FOUROP_USE_MAIN_INST_PROG || mused.fourop_selected_param == FOUROP_MASTER_VOL) //wasn't there
+				else if (mused.fourop_selected_param == FOUROP_ALG || mused.fourop_selected_param == FOUROP_3CH_EXP_MODE || mused.fourop_selected_param == FOUROP_USE_MAIN_INST_PROG || mused.fourop_selected_param == FOUROP_MASTER_VOL || mused.fourop_selected_param == FOUROP_BYPASS_MAIN_INST_FILTER) //wasn't there
 					snprintf(text, sizeof(text) - 1, "%s", param_desc[mused.fourop_selected_param]);
 				
 				else
@@ -1343,7 +1346,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 			Uint32 temp_color = mused.console->current_color;
 			Uint32 highlight_color;
 			
-			if((inst->program[mused.current_program_step] & 0xff00) == MUS_FX_JUMP && (mused.flags2 & HIGHLIGHT_COMMANDS) && (inst->program[mused.current_program_step] & 0xff) == i && mused.focus == EDITPROG)
+			if((inst->program[mused.current_program_step] & 0xff00) == MUS_FX_JUMP && inst->program[mused.current_program_step] != MUS_FX_NOP && (mused.flags2 & HIGHLIGHT_COMMANDS) && (inst->program[mused.current_program_step] & 0xff) == i && mused.focus == EDITPROG)
 			{
 				highlight_color = 0x00ee00;
 				console_set_color(mused.console, highlight_color);
@@ -2032,9 +2035,14 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 				four_op_text(event, &r, FOUROP_MASTER_VOL, "VOL", "%02X", MAKEPTR(inst->fm_4op_vol), 2);
 				update_rect(&top_view, &r);
 				
-				r.w = 130;
+				r.w = 125;
 				
 				four_op_flags(event, &r, FOUROP_USE_MAIN_INST_PROG, "USE INST. PROG.", &inst->fm_flags, CYD_FM_FOUROP_USE_MAIN_INST_PROG);
+				update_rect(&top_view, &r);
+				
+				r.w = 125;
+				
+				four_op_flags(event, &r, FOUROP_BYPASS_MAIN_INST_FILTER, "BYP.INST.FILT.", &inst->fm_flags, CYD_FM_FOUROP_BYPASS_MAIN_INST_FILTER);
 				update_rect(&top_view, &r);
 			}
 		}
@@ -2825,7 +2833,7 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 			Uint32 temp_color = mused.console->current_color;
 			Uint32 highlight_color;
 			
-			if((inst->ops[mused.selected_operator - 1].program[mused.current_program_step] & 0xff00) == MUS_FX_JUMP && (mused.flags2 & HIGHLIGHT_COMMANDS) && (inst->ops[mused.selected_operator - 1].program[mused.current_program_step] & 0xff) == i && mused.focus == EDITPROG4OP)
+			if((inst->ops[mused.selected_operator - 1].program[mused.current_program_step] & 0xff00) == MUS_FX_JUMP && inst->ops[mused.selected_operator - 1].program[mused.current_program_step] != MUS_FX_NOP && (mused.flags2 & HIGHLIGHT_COMMANDS) && (inst->ops[mused.selected_operator - 1].program[mused.current_program_step] & 0xff) == i && mused.focus == EDITPROG4OP)
 			{
 				highlight_color = 0x00ee00;
 				console_set_color(mused.console, highlight_color);
