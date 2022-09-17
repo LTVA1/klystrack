@@ -516,7 +516,12 @@ int get_patternstep(int abspos, int track)
 
 	for (int i = 0; i < mused.song.num_sequences[track] && sp->position <= abspos; ++i, ++sp)
 	{
-		if (sp->position <= abspos && sp->position + mused.song.pattern[sp->pattern].num_steps >= abspos) p = abspos - sp->position;
+		if (sp->position <= abspos && sp->position + mused.song.pattern[sp->pattern].num_steps >= abspos) 
+		{
+			p = abspos - sp->position;
+			//debug("sp->pattern %d", sp->pattern);
+			//return p;
+		}
 	}
 
 	return p;

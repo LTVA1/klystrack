@@ -142,10 +142,18 @@ void delete()
 	{
 		case EDITPATTERN:
 		snapshot(S_T_PATTERN);
+		
 		if (mused.selection.start == mused.selection.end)
+		{
+			//debug("if (mused.selection.start == mused.selection.end)");
 			clear_pattern(&mused.song.pattern[current_pattern()]);
+		}
+		
 		else
+		{
+			//debug("else, pattern %d, start step %d, end step %d, selection start %d, selection end %d", get_pattern(mused.selection.start, mused.current_sequencetrack), get_patternstep(mused.selection.start, mused.current_sequencetrack), get_patternstep(mused.selection.end, mused.current_sequencetrack), mused.selection.start, mused.selection.end);
 			clear_pattern_range(&mused.song.pattern[get_pattern(mused.selection.start, mused.current_sequencetrack)], get_patternstep(mused.selection.start, mused.current_sequencetrack), get_patternstep(mused.selection.end, mused.current_sequencetrack));
+		}
 		
 		break;
 		
