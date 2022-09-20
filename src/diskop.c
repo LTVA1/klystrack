@@ -635,6 +635,12 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 				
 				SDL_RWwrite(f, &inst->ops[i].trigger_delay, sizeof(inst->ops[i].trigger_delay), 1);
 				
+				if(inst->ops[i].cydflags & CYD_FM_OP_ENABLE_CSM_TIMER)
+				{
+					SDL_RWwrite(f, &inst->ops[i].CSM_timer_note, sizeof(inst->ops[i].CSM_timer_note), 1);
+					SDL_RWwrite(f, &inst->ops[i].CSM_timer_finetune, sizeof(inst->ops[i].CSM_timer_finetune), 1);
+				}
+				
 				if(inst->ops[i].cydflags & CYD_FM_OP_ENABLE_FILTER)
 				{
 					temp16 = inst->ops[i].cutoff | (inst->ops[i].resonance << 12);

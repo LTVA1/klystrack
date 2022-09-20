@@ -380,6 +380,8 @@ void deinit()
 	if (mused.mouse_cursor_surface) gfx_free_surface(mused.mouse_cursor_surface);
 	if (mused.mouse_cursor) SDL_FreeCursor(mused.mouse_cursor);
 	if (mused.icon_surface) gfx_free_surface(mused.icon_surface);
+	
+	if (mused.MIKEYCHAD_logic_icons) gfx_free_surface(mused.MIKEYCHAD_logic_icons);
 
 	font_destroy(&mused.smallfont);
 	font_destroy(&mused.largefont);

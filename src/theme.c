@@ -293,6 +293,60 @@ void load_theme(const char *name)
 	char fullpath[3000] = {0};
 
 	snprintf(fullpath, sizeof(fullpath) - 1, "%s/res/%s", query_resource_directory(), tmpname);
+	
+	
+	
+	
+	/*debug("Loading MIKEYCHAD icons start");
+	
+	if (strcmp(name, "Default") == 0)
+	{
+		char MIKEYCHAD_path[3000] = {0};
+		
+		snprintf(MIKEYCHAD_path, sizeof(MIKEYCHAD_path) - 1, "%s/res/MIKEYCHAD/logic_icons.png", query_resource_directory());
+		
+		debug("fullpath %s", MIKEYCHAD_path);
+		
+		SDL_Surface* loaded = NULL;
+
+		loaded = IMG_Load(MIKEYCHAD_path, 1);
+		
+		debug("loaded %08X", loaded);
+
+		if (loaded->format == NULL)
+		{
+			debug("Loading MIKEYCHAD icons falied");
+			goto proceed;
+		}
+		
+		mused.MIKEYCHAD_logic_icons = calloc(1, sizeof(GfxSurface));
+		
+		Uint32 c = SDL_MapRGB(loaded->format, 255, 0, 255);
+		
+		Uint8 r, g, b;
+		SDL_GetRGB(c, loaded->format, &r, &g, &b);
+
+		if (r == 255 && g == 0 && b == 255)
+		{
+			SDL_SetColorKey(loaded, SDL_TRUE, c);
+		}
+
+	#ifdef USESDL_GPU
+		SDL_Surface *conv = SDL_ConvertSurfaceFormat(loaded, SDL_PIXELFORMAT_ARGB8888, 0);
+		SDL_FreeSurface(loaded);
+		loaded = conv;
+	#endif
+		
+		mused.MIKEYCHAD_logic_icons->surface = loaded;
+		
+		gfx_update_texture(domain, mused.MIKEYCHAD_logic_icons);
+		
+		proceed:;
+	}*/
+	
+	
+	
+	
 
 	debug("Loading theme '%s'", fullpath);
 
@@ -453,6 +507,7 @@ void load_theme(const char *name)
 
 		debug("Theme opened ok");
 	}
+	
 	else
 	{
 		warning("Theme loading failed");

@@ -932,6 +932,9 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"don't restart program on keydown",
 					"save vibrato, PWM and tremolo settings", //wasn't there
 					"trigger delay (in ticks)",
+					"enable CSM timer (phase reset, envelope reset to release)",
+					"CSM timer note",
+					"CSM timer finetune",
 				};
 				
 				static const char * mixmodes[] =
@@ -2748,6 +2751,22 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			
 			four_op_text(event, &r, FOUROP_TRIG_DELAY, "TRIG.DEL.", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].trigger_delay), 2);
 			update_rect(&view2, &r);
+			
+			r.w = 80;
+			
+			four_op_flags(event, &r, FOUROP_ENABLE_CSM_TIMER, "CSM TIMER", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_CSM_TIMER);
+			update_rect(&view2, &r);
+			
+			SDL_Rect note;
+			copy_rect(&note, &r);
+
+			note.w = 40;
+			note.h = 10;
+
+			four_op_text(event, &note, FOUROP_CSM_TIMER_NOTE, "", "%s", notename(inst->ops[mused.selected_operator - 1].CSM_timer_note), 3);
+			note.x += note.w + 2;
+			note.w += 8;
+			four_op_text(event, &note, FOUROP_CSM_TIMER_FINETUNE, "", "%+4d", MAKEPTR(inst->ops[mused.selected_operator - 1].CSM_timer_finetune), 4);
 		}
 	}
 }

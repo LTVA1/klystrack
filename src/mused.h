@@ -196,6 +196,8 @@ typedef struct
 	GfxSurface *mouse_cursor_surface;
 	GfxSurface *icon_surface;
 	
+	GfxSurface *MIKEYCHAD_logic_icons; //for XOR, XNOR, NAND, NOR elements custom icons
+	
 	/* for menu */
 	Font menufont, menufont_selected, headerfont, headerfont_selected, shortcutfont, shortcutfont_selected, buttonfont;
 	

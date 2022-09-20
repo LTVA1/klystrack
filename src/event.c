@@ -853,8 +853,9 @@ void four_op_add_param(int a)
 	{
 		switch (mused.fourop_selected_param)
 		{
-			case FOUROP_BASENOTE: a *= 12; break;
-			case FOUROP_FIXED_NOISE_BASE_NOTE: a *= 12; break;
+			case FOUROP_BASENOTE: 
+			case FOUROP_FIXED_NOISE_BASE_NOTE: 
+			case FOUROP_CSM_TIMER_NOTE: a *= 12; break;
 			
 			default: a *= 16; break;
 		}
@@ -1311,7 +1312,7 @@ void four_op_add_param(int a)
 		{
 			int x = (Uint8)(i->ops[mused.selected_operator - 1].ring_mod + 1);
 			clamp(x, a, 0, MUS_MAX_CHANNELS);
-			i->ops[mused.selected_operator - 1].ring_mod = x-1;
+			i->ops[mused.selected_operator - 1].ring_mod = x - 1;
 		}
 		break;
 
@@ -1354,6 +1355,24 @@ void four_op_add_param(int a)
 		case FOUROP_TRIG_DELAY:
 
 		clamp(i->ops[mused.selected_operator - 1].trigger_delay, a, 0, 0xFF);
+
+		break;
+		
+		case FOUROP_ENABLE_CSM_TIMER:
+
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_CSM_TIMER);
+
+		break;
+		
+		case FOUROP_CSM_TIMER_NOTE:
+		
+		clamp(i->ops[mused.selected_operator - 1].CSM_timer_note, a, 0, FREQ_TAB_SIZE - 1);
+
+		break;
+		
+		case FOUROP_CSM_TIMER_FINETUNE:
+		
+		clamp(i->ops[mused.selected_operator - 1].CSM_timer_finetune, a, -128, 127);
 
 		break;
 
