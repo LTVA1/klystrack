@@ -297,28 +297,34 @@ void load_theme(const char *name)
 	
 	
 	
-	/*debug("Loading MIKEYCHAD icons start");
 	
-	if (strcmp(name, "Default") == 0)
+	
+	/*if (strcmp(name, "Default") == 0)
 	{
 		char MIKEYCHAD_path[3000] = {0};
 		
 		snprintf(MIKEYCHAD_path, sizeof(MIKEYCHAD_path) - 1, "%s/res/MIKEYCHAD/logic_icons.png", query_resource_directory());
 		
-		debug("fullpath %s", MIKEYCHAD_path);
-		
 		SDL_Surface* loaded = NULL;
 
 		loaded = IMG_Load(MIKEYCHAD_path, 1);
-		
-		debug("loaded %08X", loaded);
 
-		if (loaded->format == NULL)
+		if(loaded == NULL)
 		{
-			debug("Loading MIKEYCHAD icons falied");
+			debug("Could not load MIKEYCHAD icons");
 			goto proceed;
 		}
 		
+		else
+		{
+			debug("Loading MIKEYCHAD icons successful");
+		}
+		
+		if(mused.MIKEYCHAD_logic_icons)
+		{
+			SDL_FreeSurface(mused.MIKEYCHAD_logic_icons);
+		}
+			
 		mused.MIKEYCHAD_logic_icons = calloc(1, sizeof(GfxSurface));
 		
 		Uint32 c = SDL_MapRGB(loaded->format, 255, 0, 255);
