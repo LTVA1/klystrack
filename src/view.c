@@ -935,6 +935,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"enable CSM timer (phase reset, envelope reset to release)",
 					"CSM timer note",
 					"CSM timer finetune",
+					"make CSM timer note dependent on FM op note",
 				};
 				
 				static const char * mixmodes[] =
@@ -2767,6 +2768,13 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			note.x += note.w + 2;
 			note.w += 8;
 			four_op_text(event, &note, FOUROP_CSM_TIMER_FINETUNE, "", "%+4d", MAKEPTR(inst->ops[mused.selected_operator - 1].CSM_timer_finetune), 4);
+			
+			r.w = 122;
+			r.x -= 84;
+			r.y += 10;
+			
+			four_op_flags(event, &r, FOUROP_LINK_CSM_TIMER_NOTE, "LINK TO OP NOTE", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_LINK_CSM_TIMER_NOTE);
+			update_rect(&view2, &r);
 		}
 	}
 }

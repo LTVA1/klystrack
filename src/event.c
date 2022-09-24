@@ -1375,6 +1375,12 @@ void four_op_add_param(int a)
 		clamp(i->ops[mused.selected_operator - 1].CSM_timer_finetune, a, -128, 127);
 
 		break;
+		
+		case FOUROP_LINK_CSM_TIMER_NOTE:
+		
+		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_FM_OP_LINK_CSM_TIMER_NOTE);
+
+		break;
 
 		case FOUROP_FEEDBACK:
 
