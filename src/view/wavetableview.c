@@ -508,6 +508,22 @@ void wavegen_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 		{"OPL3 5", {{ {WG_OSC_SINE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 2, 0, 50, 255, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS} }, 3}},
 		{"OPL3 6", {{ {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}}, 1}},
 		{"OPL3 7", {{ {WG_OSC_EXP, WG_OP_MUL, 1, 0, 50, 255, 0, 0}}, 1}},
+		
+		//because why not?
+		{"OPL2 0 cub.sin", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, 0}, {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, 0}, {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, 0} }, 3}},
+		{"OPL2 1 cub.sin", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS} }, 4}},
+		{"OPL2 2 cub.sin", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, 0} }, 4}},
+		{"OPL2 3 cub.sin", {{ {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SINE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_ABS}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, 0} }, 5}},
+		{"OPL3 4 cub.sin", {{ {WG_OSC_SINE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SINE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SINE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS} }, 4}},
+		{"OPL3 5 cub.sin", {{ {WG_OSC_SINE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SINE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SINE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 2, 0, 50, 255, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS} }, 5}},
+		
+		{"OPL2 0 cub.tri", {{ {WG_OSC_TRIANGLE, WG_OP_MUL, 1, 0, 50, 255, 0, 0}, {WG_OSC_TRIANGLE, WG_OP_MUL, 1, 0, 50, 255, 0, 0}, {WG_OSC_TRIANGLE, WG_OP_MUL, 1, 0, 50, 255, 0, 0} }, 3}},
+		{"OPL2 1 cub.tri", {{ {WG_OSC_TRIANGLE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_TRIANGLE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_TRIANGLE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS} }, 4}},
+		{"OPL2 2 cub.tri", {{ {WG_OSC_TRIANGLE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_TRIANGLE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_TRIANGLE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, 0} }, 4}},
+		{"OPL2 3 cub.tri", {{ {WG_OSC_TRIANGLE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_TRIANGLE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_TRIANGLE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_ABS}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, 0} }, 5}},
+		{"OPL3 4 cub.tri", {{ {WG_OSC_TRIANGLE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_TRIANGLE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_TRIANGLE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS} }, 4}},
+		{"OPL3 5 cub.tri", {{ {WG_OSC_TRIANGLE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_TRIANGLE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_TRIANGLE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 2, 0, 50, 255, 0, 0}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS} }, 5}},
+		
 		// Yamaha OPZ waves, you can found them in synths like DX-11
 		{"OPZ  2", {{ {WG_OSC_TRIANGLE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, 0}, {WG_OSC_TRIANGLE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}}, 3}},
 		{"OPZ  4", {{ {WG_OSC_TRIANGLE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_ABS}, {WG_OSC_SQUARE, WG_OP_MUL, 1, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}, {WG_OSC_TRIANGLE, WG_OP_MUL, 2, 0, 50, 255, 0, WG_OSC_FLAG_ABS | WG_OSC_FLAG_NEG}}, 3}},
@@ -547,7 +563,7 @@ void wavegen_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 		button_text_event(domain, event, &button, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "LOAD", wavegen_preset, &presets[mused.selected_wg_preset], &mused.wgset, NULL);
 	}
 	
-	if ((d = generic_field(event, &r, EDITWAVETABLE, -1, "", "%s", (char*)presets[mused.selected_wg_preset].name, 10)) != 0)
+	if ((d = generic_field(event, &r, EDITWAVETABLE, -1, "", "%s", (char*)presets[mused.selected_wg_preset].name, 14)) != 0)
 	{
 		mused.selected_wg_preset += d;
 		
