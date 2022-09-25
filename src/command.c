@@ -43,6 +43,12 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_ARPEGGIO, 0xff00, "Set arpeggio note", "Arp", -1, -1},
 	{MUS_FX_SET_2ND_ARP_NOTE, 0xff00, "Set 2nd arpeggio note (for multiosc)", "Arp2nd", -1, -1},
 	{MUS_FX_SET_3RD_ARP_NOTE, 0xff00, "Set 3rd arpeggio note (for multiosc)", "Arp3rd", -1, -1},
+	
+	{MUS_FX_SET_CSM_TIMER_NOTE, 0xff00, "Set CSM timer note", "CSMnote", -1, -1},
+	{MUS_FX_SET_CSM_TIMER_FINETUNE, 0xff00, "Set CSM timer finetune", "CSMfine", -1, -1},
+	{MUS_FX_CSM_TIMER_PORTA_UP, 0xff00, "CSM timer portamento up", "CSMportUp", -1, -1},
+	{MUS_FX_CSM_TIMER_PORTA_DN, 0xff00, "CSM timer portamento down", "CSMportDn", -1, -1},
+	
 	{MUS_FX_SET_NOISE_CONSTANT_PITCH, 0xff00, "Set noise note in \"LOCK NOISE PITCH\" mode", "NoiPitNote", 0, FREQ_TAB_SIZE - 1}, //wasn't there
 	{MUS_FX_ARPEGGIO_ABS, 0xff00, "Set absolute arpeggio note", "AbsArp", 0, FREQ_TAB_SIZE - 1},
 	{MUS_FX_SET_EXT_ARP, 0xff00, "Set external arpeggio notes", "ExtArp", -1, -1},
@@ -355,6 +361,16 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst)
 	else if ((fi & 0xfff0) == MUS_FX_FM_SET_OP1_SSG_EG_TYPE || (fi & 0xfff0) == MUS_FX_FM_SET_OP2_SSG_EG_TYPE || (fi & 0xfff0) == MUS_FX_FM_SET_OP3_SSG_EG_TYPE || (fi & 0xfff0) == MUS_FX_FM_SET_OP4_SSG_EG_TYPE || (fi & 0xfff0) == MUS_FX_FM_4OP_SET_SSG_EG_TYPE)
 	{
 		snprintf(text, buffer_size, "%s (%s%s)\n", name, (inst & 8) ? "Enabled, " : "Disabled, ", ssg_eg_types[inst & 0x7]);
+	}
+	
+	else if ((fi & 0xff00) == MUS_FX_SET_CSM_TIMER_NOTE)
+	{
+		snprintf(text, buffer_size, "%s (%s)", name, notename((inst & 0xff)));
+	}
+	
+	else if ((fi & 0xff00) == MUS_FX_SET_CSM_TIMER_FINETUNE)
+	{
+		snprintf(text, buffer_size, "%s (+%d)", name, (inst & 0xff));
 	}
 	
 	else if ((fi & 0xff00) == MUS_FX_SET_PANNING)
