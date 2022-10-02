@@ -49,6 +49,10 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_CSM_TIMER_PORTA_UP, 0xff00, "CSM timer portamento up", "CSMportUp", -1, -1},
 	{MUS_FX_CSM_TIMER_PORTA_DN, 0xff00, "CSM timer portamento down", "CSMportDn", -1, -1},
 	
+	/*{MUS_FX_SET_FREQUENCY_LOWER_BYTE, 0xff00, "Set frequency lower  byte (0x0000FF)", "FreqLowByte", -1, -1},
+	{MUS_FX_SET_FREQUENCY_LOWER_BYTE, 0xff00, "Set frequency middle byte (0x00FF00)", "FreqMidByte", -1, -1},
+	{MUS_FX_SET_FREQUENCY_LOWER_BYTE, 0xff00, "Set frequency higher byte (0xFF0000)", "FreqHighByte", -1, -1},*/
+	
 	{MUS_FX_SET_NOISE_CONSTANT_PITCH, 0xff00, "Set noise note in \"LOCK NOISE PITCH\" mode", "NoiPitNote", 0, FREQ_TAB_SIZE - 1}, //wasn't there
 	{MUS_FX_ARPEGGIO_ABS, 0xff00, "Set absolute arpeggio note", "AbsArp", 0, FREQ_TAB_SIZE - 1},
 	{MUS_FX_SET_EXT_ARP, 0xff00, "Set external arpeggio notes", "ExtArp", -1, -1},
