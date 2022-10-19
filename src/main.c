@@ -348,6 +348,11 @@ int main(int argc, char **argv)
 		SDL_Event e = { 0 };
 		int got_event = 0, menu_closed = 0;
 		
+		if(mused.frames_since_menu_close < 4)
+		{
+			mused.frames_since_menu_close++;
+		}
+		
 		while (SDL_PollEvent(&e))
 		{
 			if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP)

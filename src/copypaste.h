@@ -30,6 +30,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 typedef struct
 {
 	int start, end, keydown;
+	int patternx_start, patternx_end;
 } Selection;
 
 

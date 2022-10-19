@@ -279,6 +279,8 @@ typedef struct
 	
 	Sint8 draw_passes_since_song_start;
 	Sint16 fps;
+	
+	Uint8 frames_since_menu_close;
 } Mused;
 
 extern Mused mused;

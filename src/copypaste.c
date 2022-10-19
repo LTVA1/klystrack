@@ -126,6 +126,15 @@ void copy()
 			cp_copy_items(&mused.cp, CP_SEQUENCE, &mused.song.sequence[mused.current_sequencetrack][first], last-first+1, sizeof(mused.song.sequence[mused.current_sequencetrack][0]), mused.selection.start);
 		}
 		break;
+		
+		case EDITWAVETABLE:
+		{
+			if(mused.flags & SHOW_WAVEGEN)
+			{
+				cp_copy(&mused.cp, CP_WAVE, &mused.wgset.chain[mused.selected_wg_osc], sizeof(mused.wgset.chain[mused.selected_wg_osc]), 0);
+			}
+		}
+		break;
 	}
 }
 
@@ -313,6 +322,16 @@ void paste()
 						}
 					}
 				}
+			}
+		}
+		break;
+		
+		case EDITWAVETABLE:
+		{
+			//cp_copy(&mused.cp, CP_WAVE, &mused.wgset.chain[mused.selected_wg_osc], sizeof(mused.wgset.chain[mused.selected_wg_osc]), 0);
+			if(mused.flags & SHOW_WAVEGEN)
+			{
+				cp_paste_items(&mused.cp, CP_WAVE, &mused.wgset.chain[mused.selected_wg_osc], 1, sizeof(mused.wgset.chain[mused.selected_wg_osc]));
 			}
 		}
 		break;

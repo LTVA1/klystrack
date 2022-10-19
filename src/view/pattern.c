@@ -1248,11 +1248,11 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 					copy_rect(&tmp, &pos);
 					clip_rect(&tmp, &track);
 					
-					if (sp && event->type == SDL_MOUSEBUTTONDOWN && tmp.y - header.y > HEADER_HEIGHT + 3) //so we do not process the topmost row which is hidden under header and is there for smooth scroll (so rows disappear upper then pattern edge where they are still visible)
-					//if (sp && event->type == SDL_MOUSEBUTTONUP)
+					//if (sp && event->type == SDL_MOUSEBUTTONDOWN && tmp.y - header.y > HEADER_HEIGHT + 3) //so we do not process the topmost row which is hidden under header and is there for smooth scroll (so rows disappear upper then pattern edge where they are still visible)
+					if (sp && event->type == SDL_MOUSEBUTTONUP && tmp.y - header.y > HEADER_HEIGHT + 3 && mused.frames_since_menu_close > 1)
 					{
-						//check_event_mousebuttonup(event, &tmp, select_pattern_param, MAKEPTR(param), MAKEPTR(sp->position + step), MAKEPTR(channel));
-						check_event(event, &tmp, select_pattern_param, MAKEPTR(param), MAKEPTR(sp->position + step), MAKEPTR(channel));
+						check_event_mousebuttonup(event, &tmp, select_pattern_param, MAKEPTR(param), MAKEPTR(sp->position + step), MAKEPTR(channel)); //change focus row and column on mouse button down (preparing for mouse drag selection)
+						//check_event(event, &tmp, select_pattern_param, MAKEPTR(param), MAKEPTR(sp->position + step), MAKEPTR(channel));
 						set_repeat_timer(NULL); // ugh
 					}
 					
