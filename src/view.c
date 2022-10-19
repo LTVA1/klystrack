@@ -1283,20 +1283,20 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 		adjust_rect(&area, 1);
 		area.w = 4000;
 		console_set_clip(mused.console, &area);
-
+		
 		MusInstrument *inst = &mused.song.instrument[mused.current_instrument];
-
+		
 		//separator("----program-----");
 		
 		int start = mused.program_position;
-
+		
 		int pos = 0, prev_pos = -1;
 		int selection_begin = -1, selection_end = -1;
-
+		
 		for (int i = 0; i < start; ++i)
 		{
 			prev_pos = pos;
-			if (!(inst->program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->program[i] & 0xf000) == 0xf000) ++pos; //old command if (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ++pos;
+			if (!(inst->program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->program[i] & 0xff00) == MUS_FX_JUMP || (inst->program[i] & 0xff00) == MUS_FX_LABEL || (inst->program[i] & 0xff00) == MUS_FX_LOOP) ++pos; //old command if (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ++pos;
 		}
 
 		gfx_domain_set_clip(domain, &clip);
@@ -1312,18 +1312,18 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 			}
 			
 			else
-				console_set_color(mused.console,pos & 1 ? colors[COLOR_PROGRAM_ODD] : colors[COLOR_PROGRAM_EVEN]);
-
+				console_set_color(mused.console, pos & 1 ? colors[COLOR_PROGRAM_ODD] : colors[COLOR_PROGRAM_EVEN]);
+			
 			if (i <= mused.selection.start)
 			{
 				selection_begin = row.y;
 			}
-
+			
 			if (i < mused.selection.end)
 			{
 				selection_end = row.y + row.h + 1;
 			}
-
+			
 			char box[6], cur = ' ';
 			
 			bool pointing_at_command = false;
@@ -1336,7 +1336,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 					pointing_at_command = true;
 				}
 			}
-
+			
 			if (inst->program[i] == MUS_FX_NOP)
 			{
 				strcpy(box, "....");
@@ -1454,7 +1454,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 
 			prev_pos = pos;
 
-			if (!(inst->program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->program[i] & 0xf000) == 0xf000) ++pos;
+			if (!(inst->program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->program[i] & 0xff00) == MUS_FX_JUMP || (inst->program[i] & 0xff00) == MUS_FX_LABEL || (inst->program[i] & 0xff00) == MUS_FX_LOOP) ++pos;
 		}
 
 		if (mused.focus == EDITPROG && mused.selection.start != mused.selection.end
@@ -2804,7 +2804,7 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 		for (int i = 0; i < start; ++i)
 		{
 			prev_pos = pos;
-			if (!(inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[i] & 0xf000) == 0xf000) ++pos; //old command if (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ++pos;
+			if (!(inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_JUMP || (inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_LABEL || (inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_LOOP) ++pos; //old command if (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ++pos;
 		}
 
 		gfx_domain_set_clip(domain, &clip);
