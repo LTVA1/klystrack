@@ -627,27 +627,28 @@ void join_paste()
 							s[i].volume |= (cp_step[i].volume & 0x0f);
 						}
 						
-						if(mused.cp.patternx_start <= 5 && mused.cp.patternx_end >= 5 && cp_step[i].ctrl != 0)
+						if(mused.cp.patternx_start <= 5 && mused.cp.patternx_end >= 9 && cp_step[i].ctrl != 0)
 						{
 							s[i].ctrl = 0;
+						}
+						
+						if(mused.cp.patternx_start <= 5 && mused.cp.patternx_end >= 5 && cp_step[i].ctrl != 0)
+						{
 							s[i].ctrl |= (cp_step[i].ctrl & 0b0001);
 						}
 						
 						if(mused.cp.patternx_start <= 6 && mused.cp.patternx_end >= 6 && cp_step[i].ctrl != 0)
 						{
-							s[i].ctrl = 0;
 							s[i].ctrl |= (cp_step[i].ctrl & 0b0010);
 						}
 						
 						if(mused.cp.patternx_start <= 7 && mused.cp.patternx_end >= 7 && cp_step[i].ctrl != 0)
 						{
-							s[i].ctrl = 0;
 							s[i].ctrl |= (cp_step[i].ctrl & 0b0100);
 						}
 						
 						if(mused.cp.patternx_start <= 8 && mused.cp.patternx_end >= 8 && cp_step[i].ctrl != 0)
 						{
-							s[i].ctrl = 0;
 							s[i].ctrl |= (cp_step[i].ctrl & 0b1000);
 						}
 						

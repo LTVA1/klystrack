@@ -30,7 +30,7 @@ make -j10
 - `.dmf` import (probably steal algorithm from… [you know](https://github.com/tildearrow/furnace))
 - `.a2m` (Adlib Tracker II) file import
 - `.rmt` (Raster Music Tracker) file import
-- `.s3m` (Schism Tracker) file import
+- `.s3m` (Scream Tracker III) file import
 - `.it` (Impulse Tracker) file import
 - `.MED` (OctaMED tracker) file import
 - `.mid`/`.midi` file import along with some kind of klystrack own file for creating instrument banks

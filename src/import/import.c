@@ -58,8 +58,8 @@ void import_module(void *type, void* unused1, void* unused2)
 		if (!r) return;
 	}
 	
-	static const char *mod_name[] = {"a Protracker", "an AHX", "a FastTracker II", "a Cave Story", "a Rob Hubbard"};
-	static const char *mod_ext[] = {"mod", "ahx", "xm", "org", "sid"};
+	static const char *mod_name[] = {"a Protracker", "an OctaMED", "a Scream Tracker III", "an AHX", "a FastTracker II", "an Impulse Tracker", "an OpenMPT", "a Cave Story", "a Rob Hubbard", "a FamiTracker", "a 0CC-FamiTracker", "a Dn-FamiTracker", "an E-FamiTracker", "a DefleMask", "a Furnace", "an Adlib Tracker II", "a Raster Music Tracker"};
+	static const char *mod_ext[] = {"mod", "med", "s3m", "ahx", "xm", "it", "mptm", "org", "sid", "ftm", "0cc", "dnm", "eft", "dmf", "fur", "a2m", "rmt"};
 	
 	char buffer[100];
 	snprintf(buffer, sizeof(buffer), "Import %s song", mod_name[CASTPTR(int, type)]);
@@ -91,7 +91,8 @@ void import_module(void *type, void* unused1, void* unused2)
 		
 		else
 		{
-			optimize_song(&mused.song);
+			kill_empty_patterns(&mused.song, NULL); //wasn't there
+			optimize_duplicate_patterns(&mused.song, true);
 		}
 	}
 	
