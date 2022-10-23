@@ -40,13 +40,26 @@ void copy()
 	switch (mused.focus)
 	{
 		case EDITPATTERN:
-		
-		if (mused.selection.start == mused.selection.end && get_current_pattern())
-			cp_copy_items(&mused.cp, CP_PATTERN, get_current_pattern()->step, sizeof(MusStep), get_current_pattern()->num_steps, mused.selection.start);
-		else if (get_pattern(mused.selection.start, mused.current_sequencetrack) != -1)
-			cp_copy_items(&mused.cp, CP_PATTERNSEGMENT, &mused.song.pattern[get_pattern(mused.selection.start, mused.current_sequencetrack)].step[get_patternstep(mused.selection.start, mused.current_sequencetrack)], sizeof(MusStep), 
-				mused.selection.end-mused.selection.start, mused.selection.start);
-		
+		{
+			if (mused.selection.start == mused.selection.end && get_current_pattern())
+			{
+				cp_copy_items(&mused.cp, CP_PATTERN, get_current_pattern()->step, sizeof(MusStep), get_current_pattern()->num_steps, mused.selection.start);
+			}
+			
+			else if (get_pattern(mused.selection.start, mused.current_sequencetrack) != -1)
+			{
+				cp_copy_items(&mused.cp, CP_PATTERNSEGMENT, &mused.song.pattern[get_pattern(mused.selection.start, mused.current_sequencetrack)].step[get_patternstep(mused.selection.start, mused.current_sequencetrack)], sizeof(MusStep), 
+					mused.selection.end - mused.selection.start, mused.selection.start);
+				
+				//a hack -- we copy all columns no matter which are selected, but we keep the information of what columns were selected
+				//in paste() and join_paste() we account for what columns were selected
+				
+				mused.cp.patternx_start = mused.selection.patternx_start;
+				mused.cp.patternx_end = mused.selection.patternx_end;
+				
+				mused.cp.pattern_length = mused.selection.end - mused.selection.start;
+			}
+		}
 		break;
 		
 		case EDITINSTRUMENT:
@@ -218,7 +231,7 @@ void paste()
 			
 			for (int i = 0; i < items; ++i)
 			{
-				add_sequence(mused.current_sequencetrack, ((MusSeqPattern*)mused.cp.data)[i].position-mused.cp.position+mused.current_sequencepos, ((MusSeqPattern*)mused.cp.data)[i].pattern, ((MusSeqPattern*)mused.cp.data)[i].note_offset);
+				add_sequence(mused.current_sequencetrack, ((MusSeqPattern*)mused.cp.data)[i].position - mused.cp.position + mused.current_sequencepos, ((MusSeqPattern*)mused.cp.data)[i].pattern, ((MusSeqPattern*)mused.cp.data)[i].note_offset);
 			}
 		}
 		break;
@@ -236,12 +249,110 @@ void paste()
 				resize_pattern(&mused.song.pattern[current_pattern()], items);
 				cp_paste_items(&mused.cp, CP_PATTERN, mused.song.pattern[current_pattern()].step, items, sizeof(mused.song.pattern[current_pattern()].step[0]));
 			}
+			
 			else if (mused.cp.type == CP_PATTERNSEGMENT && (current_pattern() != -1))
 			{
 				debug("paste to pattern %d", current_pattern());
 				snapshot(S_T_PATTERN);
-				cp_paste_items(&mused.cp, CP_PATTERNSEGMENT, &mused.song.pattern[current_pattern()].step[current_patternstep()], mused.song.pattern[current_pattern()].num_steps-current_patternstep(), 
-					sizeof(mused.song.pattern[current_pattern()].step[0]));
+				
+				//cp_paste_items(&mused.cp, CP_PATTERNSEGMENT, &mused.song.pattern[current_pattern()].step[current_patternstep()], mused.song.pattern[current_pattern()].num_steps - current_patternstep(), sizeof(mused.song.pattern[current_pattern()].step[0]));
+				
+				if(mused.cp.data != NULL)
+				{
+					MusStep* s = &mused.song.pattern[current_pattern()].step[current_patternstep()];
+					
+					MusStep* cp_step = (MusStep*)mused.cp.data;
+					
+					for(int i = 0; i < mused.cp.pattern_length && i + current_patternstep() < mused.song.pattern[current_pattern()].num_steps; ++i) //erase
+					{
+						s[i].note = MUS_NOTE_NONE;
+						s[i].instrument = MUS_NOTE_NO_INSTRUMENT;
+						s[i].volume = MUS_NOTE_NO_VOLUME;
+						s[i].ctrl = 0;
+						
+						for(int j = 0; j < MUS_MAX_COMMANDS; ++j)
+						{
+							s[i].command[j] = 0;
+						}
+					}
+					
+					for(int i = 0; i < mused.cp.pattern_length && i + current_patternstep() < mused.song.pattern[current_pattern()].num_steps; ++i) //paste
+					{
+						if(mused.cp.patternx_start == 0 && mused.cp.patternx_end >= 0)
+						{
+							s[i].note = cp_step[i].note;
+						}
+						
+						if(mused.cp.patternx_start <= 1 && mused.cp.patternx_end >= 1)
+						{
+							s[i].instrument &= 0x0f;
+							s[i].instrument |= (cp_step[i].instrument & 0xf0);
+						}
+						
+						if(mused.cp.patternx_start <= 2 && mused.cp.patternx_end >= 2)
+						{
+							s[i].instrument &= 0xf0;
+							s[i].instrument |= (cp_step[i].instrument & 0x0f);
+						}
+						
+						if(mused.cp.patternx_start <= 3 && mused.cp.patternx_end >= 3)
+						{
+							s[i].volume &= 0x0f;
+							s[i].volume |= (cp_step[i].volume & 0xf0);
+						}
+						
+						if(mused.cp.patternx_start <= 4 && mused.cp.patternx_end >= 4)
+						{
+							s[i].volume &= 0xf0;
+							s[i].volume |= (cp_step[i].volume & 0x0f);
+						}
+						
+						
+						
+						if(mused.cp.patternx_start <= 5 && mused.cp.patternx_end >= 5)
+						{
+							s[i].ctrl |= (cp_step[i].ctrl & 0b0001);
+						}
+						
+						if(mused.cp.patternx_start <= 6 && mused.cp.patternx_end >= 6)
+						{
+							s[i].ctrl |= (cp_step[i].ctrl & 0b0010);
+						}
+						
+						if(mused.cp.patternx_start <= 7 && mused.cp.patternx_end >= 7)
+						{
+							s[i].ctrl |= (cp_step[i].ctrl & 0b0100);
+						}
+						
+						if(mused.cp.patternx_start <= 8 && mused.cp.patternx_end >= 8)
+						{
+							s[i].ctrl |= (cp_step[i].ctrl & 0b1000);
+						}
+						
+						for(int j = 0; j < MUS_MAX_COMMANDS; ++j)
+						{
+							if(mused.cp.patternx_start <= 9 + j * 4 && mused.cp.patternx_end >= 9 + j * 4)
+							{
+								s[i].command[j] |= (cp_step[i].command[j] & (Uint16)0xf000);
+							}
+							
+							if(mused.cp.patternx_start <= 10 + j * 4 && mused.cp.patternx_end >= 10 + j * 4)
+							{
+								s[i].command[j] |= (cp_step[i].command[j] & 0x0f00);
+							}
+							
+							if(mused.cp.patternx_start <= 11 + j * 4 && mused.cp.patternx_end >= 11 + j * 4)
+							{
+								s[i].command[j] |= (cp_step[i].command[j] & 0x00f0);
+							}
+							
+							if(mused.cp.patternx_start <= 12 + j * 4 && mused.cp.patternx_end >= 12 + j * 4)
+							{
+								s[i].command[j] |= (cp_step[i].command[j] & 0x000f);
+							}
+						}
+					}
+				}
 			}
 		}
 		break;
@@ -368,7 +479,7 @@ void join_paste()
 			
 			if (items < 1) break;
 			
-			if (mused.cp.type == CP_PATTERNSEGMENT || mused.cp.type == CP_PATTERN)
+			if (mused.cp.type == CP_PATTERN)
 			{
 				snapshot(S_T_PATTERN);
 				
@@ -402,6 +513,104 @@ void join_paste()
 						d->ctrl = s->ctrl;
 				}
 			}
+			
+			if(mused.cp.type == CP_PATTERNSEGMENT)
+			{
+				snapshot(S_T_PATTERN);
+				
+				if(mused.cp.data != NULL)
+				{
+					MusStep* s = &mused.song.pattern[current_pattern()].step[current_patternstep()];
+					
+					MusStep* cp_step = (MusStep*)mused.cp.data;
+					
+					for(int i = 0; i < mused.cp.pattern_length && i + current_patternstep() < mused.song.pattern[current_pattern()].num_steps; ++i) //paste
+					{
+						if(mused.cp.patternx_start == 0 && mused.cp.patternx_end >= 0 && cp_step[i].note != MUS_NOTE_NONE)
+						{
+							s[i].note = cp_step[i].note;
+						}
+						
+						if(mused.cp.patternx_start <= 1 && mused.cp.patternx_end >= 1 && cp_step[i].instrument != MUS_NOTE_NO_INSTRUMENT)
+						{
+							s[i].instrument &= 0x0f;
+							s[i].instrument |= (cp_step[i].instrument & 0xf0);
+						}
+						
+						if(mused.cp.patternx_start <= 2 && mused.cp.patternx_end >= 2 && cp_step[i].instrument != MUS_NOTE_NO_INSTRUMENT)
+						{
+							s[i].instrument &= 0xf0;
+							s[i].instrument |= (cp_step[i].instrument & 0x0f);
+						}
+						
+						if(mused.cp.patternx_start <= 3 && mused.cp.patternx_end >= 3 && cp_step[i].volume != MUS_NOTE_NO_VOLUME)
+						{
+							s[i].volume &= 0x0f;
+							s[i].volume |= (cp_step[i].volume & 0xf0);
+						}
+						
+						if(mused.cp.patternx_start <= 4 && mused.cp.patternx_end >= 4 && cp_step[i].volume != MUS_NOTE_NO_VOLUME)
+						{
+							s[i].volume &= 0xf0;
+							s[i].volume |= (cp_step[i].volume & 0x0f);
+						}
+						
+						
+						if(cp_step[i].ctrl != 0)
+						{
+							s[i].ctrl = 0;
+						}
+						
+						if(mused.cp.patternx_start <= 5 && mused.cp.patternx_end >= 5 && cp_step[i].ctrl != 0)
+						{
+							s[i].ctrl |= (cp_step[i].ctrl & 0b0001);
+						}
+						
+						if(mused.cp.patternx_start <= 6 && mused.cp.patternx_end >= 6 && cp_step[i].ctrl != 0)
+						{
+							s[i].ctrl |= (cp_step[i].ctrl & 0b0010);
+						}
+						
+						if(mused.cp.patternx_start <= 7 && mused.cp.patternx_end >= 7 && cp_step[i].ctrl != 0)
+						{
+							s[i].ctrl |= (cp_step[i].ctrl & 0b0100);
+						}
+						
+						if(mused.cp.patternx_start <= 8 && mused.cp.patternx_end >= 8 && cp_step[i].ctrl != 0)
+						{
+							s[i].ctrl |= (cp_step[i].ctrl & 0b1000);
+						}
+						
+						for(int j = 0; j < MUS_MAX_COMMANDS; ++j)
+						{
+							if(cp_step[i].command[j] != 0)
+							{
+								s[i].command[j] = 0;
+								
+								if(mused.cp.patternx_start <= 9 + j * 4 && mused.cp.patternx_end >= 9 + j * 4)
+								{
+									s[i].command[j] |= (cp_step[i].command[j] & (Uint16)0xf000);
+								}
+								
+								if(mused.cp.patternx_start <= 10 + j * 4 && mused.cp.patternx_end >= 10 + j * 4)
+								{
+									s[i].command[j] |= (cp_step[i].command[j] & 0x0f00);
+								}
+								
+								if(mused.cp.patternx_start <= 11 + j * 4 && mused.cp.patternx_end >= 11 + j * 4)
+								{
+									s[i].command[j] |= (cp_step[i].command[j] & 0x00f0);
+								}
+								
+								if(mused.cp.patternx_start <= 12 + j * 4 && mused.cp.patternx_end >= 12 + j * 4)
+								{
+									s[i].command[j] |= (cp_step[i].command[j] & 0x000f);
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 		break;
 	}
@@ -429,13 +638,19 @@ void select_range(int position)
 		
 		mused.selection.end = position + extra; // so we can select the last row (can't move the cursor one element after the last)
 	}
+	
 	else
+	{
 		mused.selection.end = position;
+	}
 		
 	if (mused.selection.end < mused.selection.start)
 	{
 		swap(mused.selection.start, mused.selection.end);
 	}
+	
+	mused.selection.patternx_start = 0;
+	mused.selection.patternx_end = 1 + 2 + 2 + 4 + ((mused.song.pattern[current_pattern_for_channel(mused.current_sequencetrack)].command_columns + 1) * 4) - 1; //so we do as in mouse drag selection but like if we selected all pattern columns (selecting note, instrument, volume, control bits and all visible commands)
 	
 	debug("Selected from %d-%d", mused.selection.start, mused.selection.end);
 }

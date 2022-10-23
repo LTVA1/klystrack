@@ -35,6 +35,9 @@ typedef struct
 	void *data;
 	size_t size;
 	int position;
+	
+	int patternx_start, patternx_end; //for mouse drag selection
+	int pattern_length;
 } Clipboard;
 
 #include "mused.h"

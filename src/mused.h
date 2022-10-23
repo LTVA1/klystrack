@@ -281,6 +281,7 @@ typedef struct
 	Sint16 fps;
 	
 	Uint8 frames_since_menu_close;
+	bool jump_in_pattern; //after mouse drag selection ends we don't need the cursor to jump to the end
 } Mused;
 
 extern Mused mused;
