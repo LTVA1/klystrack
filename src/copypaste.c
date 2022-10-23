@@ -285,25 +285,61 @@ void paste()
 						
 						if(mused.cp.patternx_start <= 1 && mused.cp.patternx_end >= 1)
 						{
-							s[i].instrument &= 0x0f;
+							if(s[i].instrument == MUS_NOTE_NO_INSTRUMENT)
+							{
+								s[i].instrument = 0;
+							}
+							
+							else
+							{
+								s[i].instrument &= 0x0f;
+							}
+							
 							s[i].instrument |= (cp_step[i].instrument & 0xf0);
 						}
 						
 						if(mused.cp.patternx_start <= 2 && mused.cp.patternx_end >= 2)
 						{
-							s[i].instrument &= 0xf0;
+							if(s[i].instrument == MUS_NOTE_NO_INSTRUMENT)
+							{
+								s[i].instrument = 0;
+							}
+							
+							else
+							{
+								s[i].instrument &= 0xf0;
+							}
+							
 							s[i].instrument |= (cp_step[i].instrument & 0x0f);
 						}
 						
 						if(mused.cp.patternx_start <= 3 && mused.cp.patternx_end >= 3)
 						{
-							s[i].volume &= 0x0f;
+							if(s[i].volume == MUS_NOTE_NO_VOLUME)
+							{
+								s[i].volume = 0;
+							}
+							
+							else
+							{
+								s[i].volume &= 0x0f;
+							}
+							
 							s[i].volume |= (cp_step[i].volume & 0xf0);
 						}
 						
 						if(mused.cp.patternx_start <= 4 && mused.cp.patternx_end >= 4)
 						{
-							s[i].volume &= 0xf0;
+							if(s[i].volume == MUS_NOTE_NO_VOLUME)
+							{
+								s[i].volume = 0;
+							}
+							
+							else
+							{
+								s[i].volume &= 0xf0;
+							}
+							
 							s[i].volume |= (cp_step[i].volume & 0x0f);
 						}
 						
@@ -533,25 +569,61 @@ void join_paste()
 						
 						if(mused.cp.patternx_start <= 1 && mused.cp.patternx_end >= 1 && cp_step[i].instrument != MUS_NOTE_NO_INSTRUMENT)
 						{
-							s[i].instrument &= 0x0f;
+							if(s[i].instrument == MUS_NOTE_NO_INSTRUMENT)
+							{
+								s[i].instrument = 0;
+							}
+							
+							else
+							{
+								s[i].instrument &= 0x0f;
+							}
+							
 							s[i].instrument |= (cp_step[i].instrument & 0xf0);
 						}
 						
 						if(mused.cp.patternx_start <= 2 && mused.cp.patternx_end >= 2 && cp_step[i].instrument != MUS_NOTE_NO_INSTRUMENT)
 						{
-							s[i].instrument &= 0xf0;
+							if(s[i].instrument == MUS_NOTE_NO_INSTRUMENT)
+							{
+								s[i].instrument = 0;
+							}
+							
+							else
+							{
+								s[i].instrument &= 0xf0;
+							}
+							
 							s[i].instrument |= (cp_step[i].instrument & 0x0f);
 						}
 						
 						if(mused.cp.patternx_start <= 3 && mused.cp.patternx_end >= 3 && cp_step[i].volume != MUS_NOTE_NO_VOLUME)
 						{
-							s[i].volume &= 0x0f;
+							if(s[i].volume == MUS_NOTE_NO_VOLUME)
+							{
+								s[i].volume = 0;
+							}
+							
+							else
+							{
+								s[i].volume &= 0x0f;
+							}
+							
 							s[i].volume |= (cp_step[i].volume & 0xf0);
 						}
 						
 						if(mused.cp.patternx_start <= 4 && mused.cp.patternx_end >= 4 && cp_step[i].volume != MUS_NOTE_NO_VOLUME)
 						{
-							s[i].volume &= 0xf0;
+							if(s[i].volume == MUS_NOTE_NO_VOLUME)
+							{
+								s[i].volume = 0;
+							}
+							
+							else
+							{
+								s[i].volume &= 0xf0;
+							}
+							
 							s[i].volume |= (cp_step[i].volume & 0x0f);
 						}
 						
