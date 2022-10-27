@@ -9,8 +9,8 @@
 
 Uint32 pattern_color[16] = 
 { 
-	RGB(255,255,255), RGB(255,0,0), RGB(255,130,0), RGB(223,227,0), RGB(130,255,0), RGB(0,255, 0), RGB(0, 227, 130), RGB(0, 255,255), RGB(0,130,255),
-	RGB(0,0,255), RGB(130,0,255), RGB(255,0,255), RGB(239,0,130), RGB(196,196,196), RGB(130,130,130), RGB(85,85,85)
+	RGB(255, 255, 255), RGB(255, 0, 0), RGB(255, 130, 0), RGB(223, 227, 0), RGB(130, 255, 0), RGB(0, 255, 0), RGB(0, 227, 130), RGB(0, 255, 255), RGB(0, 130, 255),
+	RGB(0, 0, 255), RGB(130, 0, 255), RGB(255, 0, 255), RGB(239, 0, 130), RGB(196, 196, 196), RGB(130, 130, 130), RGB(85, 85, 85)
 };
 
 void sequence_view_inner(GfxDomain *dest_surface, const SDL_Rect *_dest, const SDL_Event *event)
@@ -98,13 +98,80 @@ void sequence_view_inner(GfxDomain *dest_surface, const SDL_Rect *_dest, const S
 		
 		int y = dest.y;
 		
-		for (int i = top; i < bottom; i += mused.sequenceview_steps, y+=height)
+		for (int i = top; i < bottom; i += mused.sequenceview_steps, y += height)
 		{
 			SDL_Rect pos = { dest.x + x, y, w, height };
 			
 			clip_rect(&pos, &dest);
 			
-			check_event(event, &pos, select_sequence_position, MAKEPTR(channel), MAKEPTR(i), 0);
+			//check_event(event, &pos, select_sequence_position, MAKEPTR(channel), MAKEPTR(i), 0); //sequence editor position selection
+			
+			if(mused.selection.drag_selection_sequence)
+			{
+				int mouse_x, mouse_y;
+				
+				Uint32 buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+				gfx_convert_mouse_coordinates(domain, &mouse_x, &mouse_y);
+				
+				if ((mouse_x >= pos.x) && (mouse_y >= pos.y) && (mouse_x <= pos.x + pos.w) && (mouse_y < pos.y + pos.h))
+				{
+					if(mused.selection.prev_start != i)
+					{
+						if(mused.selection.channel == channel)
+						{
+							mused.selection.start = mused.selection.prev_start;
+							mused.selection.end = i;
+						}
+						
+						if(mused.selection.start > mused.selection.end)
+						{
+							int temp = mused.selection.start;
+							mused.selection.start = mused.selection.end;
+							mused.selection.end = temp;
+						}
+					}
+				}
+				
+				if(event->type == SDL_MOUSEBUTTONUP)
+				{
+					mused.selection.drag_selection_sequence = false;
+					
+					if(mused.selection.start != mused.selection.end)
+					{
+						mused.jump_in_sequence = false;
+					}
+				}
+			}
+			
+			if(check_event(event, &pos, NULL, NULL, NULL, NULL))
+			{
+				if(!(mused.selection.drag_selection_sequence) && (mused.selection.start == mused.selection.end))
+				{
+					mused.selection.prev_start = mused.current_sequencepos;
+					mused.selection.drag_selection_sequence = true;
+					mused.selection.channel = channel;
+				}
+				
+				if(!(mused.selection.drag_selection_sequence) && (mused.selection.start != mused.selection.end))
+				{
+					mused.selection.drag_selection_sequence = false;
+					mused.jump_in_sequence = true;
+					mused.selection.start = mused.selection.end = -1;
+				}
+			}
+			
+			if (event->type == SDL_MOUSEBUTTONUP)
+			{
+				if(mused.jump_in_sequence)
+				{
+					check_event_mousebuttonup(event, &pos, select_sequence_position, MAKEPTR(channel), MAKEPTR(i), 0);
+				}
+				
+				if(check_event_mousebuttonup(event, &pos, NULL, NULL, NULL, NULL))
+				{
+					mused.jump_in_sequence = true;
+				}
+			}
 		}
 	}
 	
@@ -185,6 +252,21 @@ void sequence_view_inner(GfxDomain *dest_surface, const SDL_Rect *_dest, const S
 		}
 		
 		mused.sequence_position = my_max(0, my_min(mused.song.song_length - mused.sequenceview_steps, mused.sequence_position)); //orig
+	}
+	
+	if (event->type == SDL_MOUSEWHEEL && mused.focus == EDITSEQUENCE)
+	{
+		if (event->wheel.y > 0)
+		{
+			mused.sequence_position -= mused.sequenceview_steps;
+		}
+		
+		else
+		{
+			mused.sequence_position += mused.sequenceview_steps;
+		}
+		
+		mused.sequence_position = my_max(0, my_min(mused.song.song_length - mused.sequenceview_steps * 7, mused.sequence_position));
 	}
 	
 	//mused.sequence_position = my_max(0, my_min(mused.song.song_length - mused.sequenceview_steps, mused.sequence_position));

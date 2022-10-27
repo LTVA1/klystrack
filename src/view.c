@@ -120,6 +120,7 @@ void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain,
 
 		memcpy(&mused.console->clip, &area, sizeof(view->position));
 		int iter = 0;
+		
 		do
 		{
 			event_hit = 0;
@@ -135,7 +136,11 @@ void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain,
 					//if((mused.show_four_op_menu) || (!(mused.show_four_op_menu) && (m != 3 || m != 4) && i != 11))
 					{
 						mused.focus = view->focus;
-						clear_selection(0,0,0);
+						
+						if(!(mused.selection.drag_selection_program_4op))
+						{
+							clear_selection(0, 0, 0);
+						}
 					}
 				}
 				
@@ -159,7 +164,11 @@ void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain,
 					}
 					
 					mused.focus = view->focus;
-					clear_selection(0,0,0);
+					
+					if(!(mused.selection.drag_selection_program_4op))
+					{
+						clear_selection(0, 0, 0);
+					}
 				}
 			}
 		}
@@ -1253,8 +1262,25 @@ static void write_command(const SDL_Event *event, const char *text, int cmd_idx,
 			}
 		}
 		
-		check_event(event, r = console_write_args(mused.console, "%c", *c),
-			select_program_step, MAKEPTR(cmd_idx), MAKEPTR(i), 0);
+		if(mused.focus != EDITPROG)
+		{
+			mused.jump_in_program = true;
+		}
+		
+		if(mused.focus != EDITPROG4OP)
+		{
+			mused.jump_in_program_4op = true;
+		}
+		
+		if(mused.jump_in_program && mused.jump_in_program_4op)
+		{
+			check_event(event, r = console_write_args(mused.console, "%c", *c), select_program_step, MAKEPTR(cmd_idx), MAKEPTR(i), 0);
+		}
+		
+		else
+		{
+			check_event(event, r = console_write_args(mused.console, "%c", *c), NULL, NULL, NULL, NULL);
+		}
 
 		if (mused.focus == (mused.show_four_op_menu ? EDITPROG4OP : EDITPROG) && mused.editpos == i && cmd_idx == cur_idx)
 		{
@@ -1271,8 +1297,12 @@ static void write_command(const SDL_Event *event, const char *text, int cmd_idx,
 
 void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
+	//debug("program_view");
+	
 	if(!(mused.show_four_op_menu) || ((mused.focus != EDIT4OP) && (mused.focus != EDITPROG4OP)))
 	{
+		//debug("program_view");
+		
 		SDL_Rect area, clip;
 		copy_rect(&area, dest);
 		console_set_clip(mused.console, &area);
@@ -1304,6 +1334,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 		for (int i = start, s = 0, y = 0; i < MUS_PROG_LEN && y < area.h; ++i, ++s, y += mused.console->font.h)
 		{
 			SDL_Rect row = { area.x - 1, area.y + y - 1, area.w + 2, mused.console->font.h + 1};
+			SDL_Rect row1 = { row.x + 8 * 6, row.y, 8 * 5, row.h};
 
 			if (mused.current_program_step == i && mused.focus == EDITPROG)
 			{
@@ -1314,12 +1345,12 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 			else
 				console_set_color(mused.console, pos & 1 ? colors[COLOR_PROGRAM_ODD] : colors[COLOR_PROGRAM_EVEN]);
 			
-			if (i <= mused.selection.start)
+			if (i == mused.selection.start)
 			{
 				selection_begin = row.y;
 			}
 			
-			if (i < mused.selection.end)
+			if (i == mused.selection.end - 1)
 			{
 				selection_end = row.y + row.h + 1;
 			}
@@ -1358,8 +1389,15 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 
 			if (pos == prev_pos)
 			{
-				check_event(event, console_write_args(mused.console, "%02X%c   ", i, cur),
-					select_program_step, MAKEPTR(i), 0, 0);
+				if(mused.jump_in_program)
+				{
+					check_event_mousebuttonup(event, console_write_args(mused.console, "%02X%c   ", i, cur), select_program_step, MAKEPTR(i), 0, 0);
+				}
+				
+				else
+				{
+					check_event_mousebuttonup(event, console_write_args(mused.console, "%02X%c   ", i, cur), NULL, NULL, NULL, NULL);
+				}
 				
 				bool highlight_united = false;
 				
@@ -1384,14 +1422,30 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 				}
 				
 				write_command(event, box, i, mused.current_program_step, pointing_at_command || highlight_united);
-				check_event(event, console_write_args(mused.console, "%c ", (!(inst->program_unite_bits[i / 8] & (1 << (i & 7)))) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
-					select_program_step, MAKEPTR(i), 0, 0);
+				
+				if(mused.jump_in_program)
+				{
+					check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", (!(inst->program_unite_bits[i / 8] & (1 << (i & 7)))) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
+						select_program_step, MAKEPTR(i), 0, 0);
+				}
+				
+				else
+				{
+					check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", (!(inst->program_unite_bits[i / 8] & (1 << (i & 7)))) ? '´' : '|'), NULL, NULL, NULL, NULL);
+				}
 			}
 			
 			else
 			{
-				check_event(event, console_write_args(mused.console, "%02X%c%02X ", i, cur, pos),
-					select_program_step, MAKEPTR(i), 0, 0);
+				if(mused.jump_in_program)
+				{
+					check_event_mousebuttonup(event, console_write_args(mused.console, "%02X%c%02X ", i, cur, pos), select_program_step, MAKEPTR(i), 0, 0);
+				}
+				
+				else
+				{
+					check_event_mousebuttonup(event, console_write_args(mused.console, "%02X%c%02X ", i, cur, pos), NULL, NULL, NULL, NULL);
+				}
 				
 				bool highlight_united = false;
 				
@@ -1415,8 +1469,67 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 				}
 				
 				write_command(event, box, i, mused.current_program_step, pointing_at_command || highlight_united);
-				check_event(event, console_write_args(mused.console, "%c ", ((inst->program_unite_bits[i / 8] & (1 << (i & 7)))) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
-					select_program_step, MAKEPTR(i), 0, 0);
+				
+				if(mused.jump_in_program)
+				{
+					check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", ((inst->program_unite_bits[i / 8] & (1 << (i & 7)))) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
+						select_program_step, MAKEPTR(i), 0, 0);
+				}
+				
+				else
+				{
+					check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", ((inst->program_unite_bits[i / 8] & (1 << (i & 7)))) ? '`' : ' '), NULL, NULL, NULL, NULL);
+				}
+			}
+			
+			if(mused.selection.drag_selection_program)
+			{
+				int mouse_x, mouse_y;
+				
+				Uint32 buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+				gfx_convert_mouse_coordinates(domain, &mouse_x, &mouse_y);
+				
+				if ((mouse_x >= row1.x) && (mouse_y >= row1.y) && (mouse_x <= row1.x + row1.w) && (mouse_y < row1.y + row1.h))
+				{
+					if(mused.selection.prev_start != i)
+					{
+						mused.selection.start = mused.selection.prev_start;
+						mused.selection.end = i;
+						
+						if(mused.selection.start > mused.selection.end)
+						{
+							int temp = mused.selection.start;
+							mused.selection.start = mused.selection.end;
+							mused.selection.end = temp;
+						}
+					}
+				}
+				
+				if(event->type == SDL_MOUSEBUTTONUP)
+				{
+					mused.selection.drag_selection_program = false;
+					
+					if(mused.selection.start != mused.selection.end)
+					{
+						mused.jump_in_program = false;
+					}
+				}
+			}
+			
+			if(check_event(event, &row1, NULL, NULL, NULL, NULL))
+			{
+				if(!(mused.selection.drag_selection_program) && (mused.selection.start == mused.selection.end))
+				{
+					mused.selection.prev_start = mused.current_program_step;
+					mused.selection.drag_selection_program = true;
+				}
+				
+				if(!(mused.selection.drag_selection_program) && (mused.selection.start != mused.selection.end))
+				{
+					mused.selection.drag_selection_program = false;
+					mused.jump_in_program = true;
+					mused.selection.start = mused.selection.end = -1;
+				}
 			}
 
 			if (!is_valid_command(inst->program[i]))
@@ -1458,22 +1571,40 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 		}
 
 		if (mused.focus == EDITPROG && mused.selection.start != mused.selection.end
-			&& !(mused.selection.start > mused.program_slider_param.visible_last || mused.selection.end <= mused.program_slider_param.visible_first))
+			&& !(mused.selection.start > mused.program_slider_param.visible_last || mused.selection.end <= mused.program_slider_param.visible_first) && mused.selection.start >= 0 && selection_begin >= 0 && selection_end >= 0)
 		{
 			if (selection_begin == -1) selection_begin = area.y - 8;
 			if (selection_end == -1) selection_end = area.y + area.h + 8;
 
 			if (selection_begin > selection_end) swap(selection_begin, selection_end);
 
-			SDL_Rect selection = { area.x, selection_begin - 1, area.w, selection_end - selection_begin + 1 };
+			SDL_Rect selection = { area.x + 8 * 6 - 3, selection_begin - 1, 8 * 4 + 5 + 5, selection_end - selection_begin + 1 };
 			adjust_rect(&selection, -3);
 			bevel(domain, &selection, mused.slider_bevel, BEV_SELECTION);
 		}
 
 		gfx_domain_set_clip(domain, NULL);
 
-		if (mused.focus == EDITPROG)
-			check_mouse_wheel_event(event, dest, &mused.program_slider_param);
+		//if (mused.focus == EDITPROG)
+			//check_mouse_wheel_event(event, dest, &mused.program_slider_param);
+		
+		if (event->type == SDL_MOUSEWHEEL && mused.focus == EDITPROG)
+		{
+			if (event->wheel.y > 0)
+			{
+				mused.program_position -= 2;
+				mused.program_slider_param.position -= 2;
+			}
+			
+			else
+			{
+				mused.program_position += 2;
+				mused.program_slider_param.position += 2;
+			}
+			
+			mused.program_position = my_max(0, my_min(MUS_PROG_LEN - area.h / 8, mused.program_position));
+			mused.program_slider_param.position = my_max(0, my_min(MUS_PROG_LEN - area.h / 8, mused.program_slider_param.position));
+		}
 	}
 }
 
@@ -2781,8 +2912,12 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 
 void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
+	//debug("four_op_program_view");
+	
 	if(mused.show_four_op_menu)
 	{
+		//debug("four_op_program_view");
+		
 		SDL_Rect area, clip;
 		copy_rect(&area, dest);
 		console_set_clip(mused.console, &area);
@@ -2812,6 +2947,7 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 		for (int i = start, s = 0, y = 0; i < MUS_PROG_LEN && y < area.h; ++i, ++s, y += mused.console->font.h)
 		{
 			SDL_Rect row = { area.x - 1, area.y + y - 1, area.w + 2, mused.console->font.h + 1};
+			SDL_Rect row1 = { row.x + 8 * 6, row.y, 8 * 5, row.h};
 
 			if (mused.current_program_step == i && mused.focus == EDITPROG4OP)
 			{
@@ -2824,14 +2960,18 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 				console_set_color(mused.console, pos & 1 ? colors[COLOR_PROGRAM_ODD] : colors[COLOR_PROGRAM_EVEN]);
 			}
 
-			if (i <= mused.selection.start)
+			if (i == mused.selection.start)
 			{
 				selection_begin = row.y;
+				
+				//debug("sel beg");
 			}
 
-			if (i < mused.selection.end)
+			if (i == mused.selection.end - 1)
 			{
 				selection_end = row.y + row.h + 1;
+				
+				//debug("sel end");
 			}
 
 			char box[6], cur = ' ';
@@ -2868,8 +3008,15 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 
 			if (pos == prev_pos)
 			{
-				check_event(event, console_write_args(mused.console, "%02X%c   ", i, cur),
-					select_program_step, MAKEPTR(i), 0, 0);
+				if(mused.jump_in_program_4op)
+				{
+					check_event_mousebuttonup(event, console_write_args(mused.console, "%02X%c   ", i, cur), select_program_step, MAKEPTR(i), 0, 0);
+				}
+				
+				else
+				{
+					check_event_mousebuttonup(event, console_write_args(mused.console, "%02X%c   ", i, cur), NULL, 0, 0, 0);
+				}
 				
 				bool highlight_united = false;
 				
@@ -2893,14 +3040,31 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 				}
 				
 				write_command(event, box, i, mused.current_program_step, pointing_at_command || highlight_united);
-				check_event(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[i] & 0xf000) == 0xf000) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
-					select_program_step, MAKEPTR(i), 0, 0);
+				
+				if(mused.jump_in_program_4op)
+				{
+					check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[i] & 0xf000) == 0xf000) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
+						select_program_step, MAKEPTR(i), 0, 0);
+				}
+				
+				else
+				{
+					check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[i] & 0xf000) == 0xf000) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
+						NULL, 0, 0, 0);
+				}
 			}
 			
 			else
 			{
-				check_event(event, console_write_args(mused.console, "%02X%c%02X ", i, cur, pos),
-					select_program_step, MAKEPTR(i), 0, 0);
+				if(mused.jump_in_program_4op)
+				{
+					check_event_mousebuttonup(event, console_write_args(mused.console, "%02X%c%02X ", i, cur, pos), select_program_step, MAKEPTR(i), 0, 0);
+				}
+				
+				else
+				{
+					check_event_mousebuttonup(event, console_write_args(mused.console, "%02X%c%02X ", i, cur, pos), NULL, 0, 0, 0);
+				}
 				
 				bool highlight_united = false;
 				
@@ -2924,8 +3088,68 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 				}
 				
 				write_command(event, box, i, mused.current_program_step, pointing_at_command || highlight_united);
-				check_event(event, console_write_args(mused.console, "%c ", ((inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) && (inst->ops[mused.selected_operator - 1].program[i] & 0xf000) != 0xf000) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
-					select_program_step, MAKEPTR(i), 0, 0);
+				
+				if(mused.jump_in_program_4op)
+				{
+					check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", ((inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) && (inst->ops[mused.selected_operator - 1].program[i] & 0xf000) != 0xf000) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
+						select_program_step, MAKEPTR(i), 0, 0);
+				}
+				
+				else
+				{
+					check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", ((inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) && (inst->ops[mused.selected_operator - 1].program[i] & 0xf000) != 0xf000) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
+						NULL, 0, 0, 0);
+				}
+			}
+			
+			if(mused.selection.drag_selection_program_4op)
+			{
+				int mouse_x, mouse_y;
+				
+				Uint32 buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+				gfx_convert_mouse_coordinates(domain, &mouse_x, &mouse_y);
+				
+				if ((mouse_x >= row1.x) && (mouse_y >= row1.y) && (mouse_x <= row1.x + row1.w) && (mouse_y < row1.y + row1.h))
+				{
+					if(mused.selection.prev_start != i)
+					{
+						mused.selection.start = mused.selection.prev_start;
+						mused.selection.end = i;
+						
+						if(mused.selection.start > mused.selection.end)
+						{
+							int temp = mused.selection.start;
+							mused.selection.start = mused.selection.end;
+							mused.selection.end = temp;
+						}
+					}
+				}
+				
+				if(event->type == SDL_MOUSEBUTTONUP)
+				{
+					mused.selection.drag_selection_program_4op = false;
+					
+					if(mused.selection.start != mused.selection.end)
+					{
+						mused.jump_in_program_4op = false;
+					}
+				}
+			}
+			
+			if(check_event(event, &row1, NULL, NULL, NULL, NULL))
+			{
+				if(!(mused.selection.drag_selection_program_4op) && (mused.selection.start == mused.selection.end))
+				{
+					mused.selection.prev_start = mused.current_program_step;
+					mused.selection.drag_selection_program_4op = true;
+				}
+				
+				if(!(mused.selection.drag_selection_program_4op) && (mused.selection.start != mused.selection.end))
+				{
+					mused.selection.drag_selection_program_4op = false;
+					mused.jump_in_program_4op = true;
+					mused.selection.start = mused.selection.end = -1;
+				}
 			}
 
 			if (!is_valid_command(inst->ops[mused.selected_operator - 1].program[i]))
@@ -2975,14 +3199,11 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 		}
 
 		if (mused.focus == EDITPROG4OP && mused.selection.start != mused.selection.end
-			&& !(mused.selection.start > mused.four_op_slider_param.visible_last || mused.selection.end <= mused.four_op_slider_param.visible_first))
+			&& !(mused.selection.start > mused.four_op_slider_param.visible_last || mused.selection.end <= mused.four_op_slider_param.visible_first) && mused.selection.start >= 0 && selection_begin >= 0 && selection_end >= 0)
 		{
-			if (selection_begin == -1) selection_begin = area.y - 8;
-			if (selection_end == -1) selection_end = area.y + area.h + 8;
-
 			if (selection_begin > selection_end) swap(selection_begin, selection_end);
 
-			SDL_Rect selection = { area.x, selection_begin - 1, area.w, selection_end - selection_begin + 1 };
+			SDL_Rect selection = { area.x + 8 * 6 - 3, selection_begin - 1, 8 * 4 + 5 + 5, selection_end - selection_begin + 1 };
 			adjust_rect(&selection, -3);
 			bevel(domain, &selection, mused.slider_bevel, BEV_SELECTION);
 		}
@@ -2991,7 +3212,25 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 		
 		if (mused.focus == EDITPROG4OP)
 		{
-			check_mouse_wheel_event(event, dest, &mused.four_op_slider_param);
+			//check_mouse_wheel_event(event, dest, &mused.four_op_slider_param);
+			
+			if (event->type == SDL_MOUSEWHEEL)
+			{
+				if (event->wheel.y > 0)
+				{
+					mused.fourop_program_position[mused.selected_operator - 1] -= 2;
+					mused.four_op_slider_param.position -= 2;
+				}
+				
+				else
+				{
+					mused.fourop_program_position[mused.selected_operator - 1] += 2;
+					mused.four_op_slider_param.position += 2;
+				}
+				
+				mused.fourop_program_position[mused.selected_operator - 1] = my_max(0, my_min(MUS_PROG_LEN - area.h / 8, mused.fourop_program_position[mused.selected_operator - 1]));
+				mused.four_op_slider_param.position = my_max(0, my_min(MUS_PROG_LEN - area.h / 8, mused.four_op_slider_param.position));
+			}
 		}
 	}
 }

@@ -37,6 +37,9 @@ typedef struct
 	int patternx_start, patternx_end;
 	
 	bool drag_selection; //if we are in mouse drag selection mode
+	bool drag_selection_sequence;
+	bool drag_selection_program;
+	bool drag_selection_program_4op;
 	
 	int prev_start, prev_end, prev_patternx_start, prev_patternx_end; //so when we drag outside of our rect we start the selection, otherwise do nothing
 	int channel;

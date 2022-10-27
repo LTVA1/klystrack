@@ -263,7 +263,7 @@ void select_instrument_param(void *idx, void *unused1, void *unused2)
 
 void select_program_step(void *idx, void *digit, void *unused2)
 {
-	mused.current_program_step = CASTPTR(int,idx);
+	mused.current_program_step = CASTPTR(int, idx);
 	mused.editpos = CASTPTR(int, digit);
 }
 
@@ -449,8 +449,8 @@ void select_all(void *unused1, void *unused2, void *unused3)
 
 void clear_selection(void *unused1, void *unused2, void *unused3)
 {
-	mused.selection.start = 0;
-	mused.selection.end = 0;
+	mused.selection.start = -1;
+	mused.selection.end = -1;
 }
 
 

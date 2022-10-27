@@ -164,6 +164,7 @@ typedef struct
 		loop_store_length, loop_store_loop, note_jump, wavetable_list_position, wavetable_preview_idx, sequence_digit;
 	
 	int fourop_program_position[CYD_FM_NUM_OPS];
+	
 	int current_sequencetrack;
 	Uint16 time_signature;
 	Clipboard cp;
@@ -282,6 +283,9 @@ typedef struct
 	
 	Uint8 frames_since_menu_close;
 	bool jump_in_pattern; //after mouse drag selection ends we don't need the cursor to jump to the end
+	bool jump_in_sequence;
+	bool jump_in_program;
+	bool jump_in_program_4op;
 } Mused;
 
 extern Mused mused;

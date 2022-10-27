@@ -1394,13 +1394,13 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 							{
 								mused.selection.drag_selection = false;
 								mused.jump_in_pattern = true;
-								mused.selection.start = mused.selection.end = mused.selection.patternx_start = mused.selection.patternx_end = 0;
+								mused.selection.start = mused.selection.end = mused.selection.patternx_start = mused.selection.patternx_end = -1;
 							}
 						}
 					}
 					
 					//if (sp && event->type == SDL_MOUSEBUTTONDOWN && tmp.y - header.y > HEADER_HEIGHT + 3) //so we do not process the topmost row which is hidden under header and is there for smooth scroll (so rows disappear upper then pattern edge where they are still visible)
-					if (sp && event->type == SDL_MOUSEBUTTONUP && tmp.y - header.y > HEADER_HEIGHT + 3 && mused.frames_since_menu_close > 1)
+					if (sp && event->type == SDL_MOUSEBUTTONUP && tmp.y - header.y > HEADER_HEIGHT + 3 && mused.frames_since_menu_close > 3)
 					{
 						if(mused.jump_in_pattern)
 						{
