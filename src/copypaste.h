@@ -44,6 +44,8 @@ typedef struct
 	int prev_start, prev_end, prev_patternx_start, prev_patternx_end; //so when we drag outside of our rect we start the selection, otherwise do nothing
 	int channel;
 	
+	int prev_name_index;
+	
 } Selection;
 
 

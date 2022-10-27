@@ -28,10 +28,12 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "mused.h"
 #include "event.h"
 
+#include "theme.h"
+
 #define swap(a,b) { a ^= b; b ^= a; a ^= b; }
 
-
 extern Mused mused;
+extern Uint32 colors[];
 
 void copy()
 {
@@ -144,7 +146,14 @@ void copy()
 		{
 			if(mused.flags & SHOW_WAVEGEN)
 			{
-				cp_copy(&mused.cp, CP_WAVE, &mused.wgset.chain[mused.selected_wg_osc], sizeof(mused.wgset.chain[mused.selected_wg_osc]), 0);
+				cp_copy(&mused.cp, CP_WAVEGEN, &mused.wgset.chain[mused.selected_wg_osc], sizeof(mused.wgset.chain[mused.selected_wg_osc]), 0);
+			}
+			
+			else
+			{
+				cp_copy(&mused.cp, CP_WAVETABLE, &mused.mus.cyd->wavetable_entries[mused.selected_wavetable], sizeof(mused.mus.cyd->wavetable_entries[mused.selected_wavetable]), 0);
+				
+				mused.selection.prev_name_index = mused.selected_wavetable;
 			}
 		}
 		break;
@@ -475,10 +484,40 @@ void paste()
 		
 		case EDITWAVETABLE:
 		{
-			//cp_copy(&mused.cp, CP_WAVE, &mused.wgset.chain[mused.selected_wg_osc], sizeof(mused.wgset.chain[mused.selected_wg_osc]), 0);
+			//cp_copy(&mused.cp, CP_WAVEGEN, &mused.wgset.chain[mused.selected_wg_osc], sizeof(mused.wgset.chain[mused.selected_wg_osc]), 0);
 			if(mused.flags & SHOW_WAVEGEN)
 			{
-				cp_paste_items(&mused.cp, CP_WAVE, &mused.wgset.chain[mused.selected_wg_osc], 1, sizeof(mused.wgset.chain[mused.selected_wg_osc]));
+				cp_paste_items(&mused.cp, CP_WAVEGEN, &mused.wgset.chain[mused.selected_wg_osc], 1, sizeof(mused.wgset.chain[mused.selected_wg_osc]));
+			}
+			
+			else
+			{
+				if(mused.selection.prev_name_index != mused.selected_wavetable)
+				{
+					if(mused.mus.cyd->wavetable_entries[mused.selected_wavetable].data)
+					{
+						free(mused.mus.cyd->wavetable_entries[mused.selected_wavetable].data);
+					}
+					
+					cp_paste_items(&mused.cp, CP_WAVETABLE, &mused.mus.cyd->wavetable_entries[mused.selected_wavetable], 1, sizeof(mused.mus.cyd->wavetable_entries[mused.selected_wavetable]));
+					
+					memset(mused.song.wavetable_names[mused.selected_wavetable], 0, MUS_WAVETABLE_NAME_LEN + 1);
+					
+					memcpy(mused.song.wavetable_names[mused.selected_wavetable], mused.song.wavetable_names[mused.selection.prev_name_index], MUS_WAVETABLE_NAME_LEN + 1);
+					
+					CydWavetableEntry *wave = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+					
+					Sint16* old_data = wave->data;
+					
+					if(old_data)
+					{
+						wave->data = calloc(wave->samples, sizeof(Sint16));
+						
+						memcpy(wave->data, old_data, wave->samples * sizeof(Sint16));
+					}
+					
+					mused.wavetable_preview_idx = 0xff;
+				}
 			}
 		}
 		break;

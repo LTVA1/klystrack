@@ -396,7 +396,7 @@ void help_list_view(GfxDomain *dest_surface, const SDL_Rect *area, const SDL_Eve
 	
 	gfx_domain_set_clip(dest_surface, NULL);
 	
-	check_mouse_wheel_event(event, area, &data.scrollbar);
+	//check_mouse_wheel_event(event, area, &data.scrollbar);
 }
 
 
@@ -524,6 +524,24 @@ int helpbox(const char *title, GfxDomain *domain, GfxSurface *gfx, const Font *l
 						mouse_released(&e);
 				}
 				break;
+			}
+			
+			if (e.type == SDL_MOUSEWHEEL)
+			{
+				if (e.wheel.y > 0)
+				{
+					data.list_position -= 2;
+					data.scrollbar.position -= 2;
+				}
+				
+				else
+				{
+					data.list_position += 2;
+					data.scrollbar.position += 2;
+				}
+				
+				data.list_position = my_max(0, my_min((data.n_lines - 1) - ((domain->window_h - (33 + 30)) / 18), data.list_position));
+				data.scrollbar.position = my_max(0, my_min((data.n_lines - 1) - ((domain->window_h - (33 + 30)) / 18), data.scrollbar.position));
 			}
 			
 			if (e.type != SDL_MOUSEMOTION || (e.motion.state)) ++got_event;

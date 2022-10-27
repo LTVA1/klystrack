@@ -258,15 +258,15 @@ void sequence_view_inner(GfxDomain *dest_surface, const SDL_Rect *_dest, const S
 	{
 		if (event->wheel.y > 0)
 		{
-			mused.sequence_position -= mused.sequenceview_steps;
+			mused.sequence_position -= mused.sequenceview_steps * 2;
 		}
 		
 		else
 		{
-			mused.sequence_position += mused.sequenceview_steps;
+			mused.sequence_position += mused.sequenceview_steps * 2;
 		}
 		
-		mused.sequence_position = my_max(0, my_min(mused.song.song_length - mused.sequenceview_steps * 7, mused.sequence_position));
+		mused.sequence_position = my_max(0, my_min(mused.song.song_length - mused.sequenceview_steps * ((_dest->h - 2 * height) / height), mused.sequence_position));
 	}
 	
 	//mused.sequence_position = my_max(0, my_min(mused.song.song_length - mused.sequenceview_steps, mused.sequence_position));
