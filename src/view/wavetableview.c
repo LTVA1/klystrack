@@ -184,7 +184,25 @@ void wavetablelist_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 	
 	gfx_domain_set_clip(dest_surface, NULL);
 	
-	check_mouse_wheel_event(event, dest, &mused.wavetable_list_slider_param);	
+	//check_mouse_wheel_event(event, dest, &mused.wavetable_list_slider_param);
+	
+	if (event->type == SDL_MOUSEWHEEL && mused.focus == EDITWAVETABLE)
+	{
+		if (event->wheel.y > 0)
+		{
+			mused.wavetable_list_position -= 4;
+			mused.wavetable_list_slider_param.position -= 4;
+		}
+		
+		else
+		{
+			mused.wavetable_list_position += 4;
+			mused.wavetable_list_slider_param.position += 4;
+		}
+		
+		mused.wavetable_list_position = my_max(0, my_min(CYD_WAVE_MAX_ENTRIES - area.h / 8, mused.wavetable_list_position));
+		mused.wavetable_list_slider_param.position = my_max(0, my_min(CYD_WAVE_MAX_ENTRIES - area.h / 8, mused.wavetable_list_slider_param.position));
+	}
 }
 
 

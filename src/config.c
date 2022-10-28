@@ -88,6 +88,10 @@ static const struct { int type; const char *name; void *param; Uint64 mask; } co
 	{ C_BOOL, "show_bpm_count", &mused.flags2, SHOW_BPM }, //wasn't there
 	{ C_BOOL, "smooth_scroll", &mused.flags2, SMOOTH_SCROLL },
 	{ C_BOOL, "highlight_commands", &mused.flags2, HIGHLIGHT_COMMANDS },
+	{ C_BOOL, "drag_selection_pattern", &mused.flags2, DRAG_SELECT_PATTERN },
+	{ C_BOOL, "drag_selection_sequence", &mused.flags2, DRAG_SELECT_SEQUENCE },
+	{ C_BOOL, "drag_selection_inst_program", &mused.flags2, DRAG_SELECT_PROGRAM },
+	{ C_BOOL, "drag_selection_4op_program", &mused.flags2, DRAG_SELECT_4OP },
 	{ C_END }
 };
 

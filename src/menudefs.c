@@ -111,7 +111,7 @@ Menu oversamplemenu[] =
 	{ 0, prefsmenu, "2x", NULL, change_oversample, (void*)1, 0, 0 },
 	{ 0, prefsmenu, "4x", NULL, change_oversample, (void*)2, 0, 0 },
 	{ 0, prefsmenu, "8x", NULL, change_oversample, (void*)3, 0, 0 },
-	{ 0, NULL,NULL },
+	{ 0, NULL, NULL },
 };
 
 
@@ -122,7 +122,16 @@ Menu patternlengthmenu[] =
 	{ 0, prefsmenu, "32 steps", NULL, change_default_pattern_length, (void*)32, 0, 0 },
 	{ 0, prefsmenu, "48 steps", NULL, change_default_pattern_length, (void*)48, 0, 0 },
 	{ 0, prefsmenu, "64 steps", NULL, change_default_pattern_length, (void*)64, 0, 0 },
-	{ 0, NULL,NULL },
+	{ 0, NULL, NULL },
+};
+
+Menu drag_selection_menu[] =
+{
+	{ 0, prefsmenu, "Pattern editor", NULL, MENU_CHECK, &mused.flags2, (void*)DRAG_SELECT_PATTERN, 0 },
+	{ 0, prefsmenu, "Sequence editor", NULL, MENU_CHECK, &mused.flags2, (void*)DRAG_SELECT_SEQUENCE, 0 },
+	{ 0, prefsmenu, "Inst. prog. editor", NULL, MENU_CHECK, &mused.flags2, (void*)DRAG_SELECT_PROGRAM, 0 },
+	{ 0, prefsmenu, "4-OP prog. editor", NULL, MENU_CHECK, &mused.flags2, (void*)DRAG_SELECT_4OP, 0 },
+	{ 0, NULL, NULL },
 };
 
 
@@ -160,6 +169,8 @@ const Menu prefsmenu[] =
 	{ 0, mainmenu, "Load default song on startup", NULL, MENU_CHECK, &mused.flags, (void*)START_WITH_TEMPLATE, 0 },
 	{ 0, mainmenu, "Use system mouse cursor", NULL, MENU_CHECK_NOSET, &mused.flags, (void*)USE_SYSTEM_CURSOR, toggle_mouse_cursor },
 	{ 0, mainmenu, "Smooth pattern scroll", NULL, MENU_CHECK, &mused.flags2, (void*)SMOOTH_SCROLL, 0 },
+	{ 0, mainmenu, "", NULL, NULL },
+	{ 0, mainmenu, "Mouse drag selection", drag_selection_menu },
 	{ 0, NULL, NULL }
 };
 

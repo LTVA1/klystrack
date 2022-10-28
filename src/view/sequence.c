@@ -105,72 +105,79 @@ void sequence_view_inner(GfxDomain *dest_surface, const SDL_Rect *_dest, const S
 			clip_rect(&pos, &dest);
 			
 			//check_event(event, &pos, select_sequence_position, MAKEPTR(channel), MAKEPTR(i), 0); //sequence editor position selection
-			
-			if(mused.selection.drag_selection_sequence)
+			if(mused.flags2 & DRAG_SELECT_SEQUENCE)
 			{
-				int mouse_x, mouse_y;
-				
-				Uint32 buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
-				gfx_convert_mouse_coordinates(domain, &mouse_x, &mouse_y);
-				
-				if ((mouse_x >= pos.x) && (mouse_y >= pos.y) && (mouse_x <= pos.x + pos.w) && (mouse_y < pos.y + pos.h))
+				if(mused.selection.drag_selection_sequence)
 				{
-					if(mused.selection.prev_start != i)
-					{
-						if(mused.selection.channel == channel)
-						{
-							mused.selection.start = mused.selection.prev_start;
-							mused.selection.end = i;
-						}
-						
-						if(mused.selection.start > mused.selection.end)
-						{
-							int temp = mused.selection.start;
-							mused.selection.start = mused.selection.end;
-							mused.selection.end = temp;
-						}
-					}
-				}
-				
-				if(event->type == SDL_MOUSEBUTTONUP)
-				{
-					mused.selection.drag_selection_sequence = false;
+					int mouse_x, mouse_y;
 					
-					if(mused.selection.start != mused.selection.end)
+					Uint32 buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+					gfx_convert_mouse_coordinates(domain, &mouse_x, &mouse_y);
+					
+					if ((mouse_x >= pos.x) && (mouse_y >= pos.y) && (mouse_x <= pos.x + pos.w) && (mouse_y < pos.y + pos.h))
 					{
-						mused.jump_in_sequence = false;
+						if(mused.selection.prev_start != i)
+						{
+							if(mused.selection.channel == channel)
+							{
+								mused.selection.start = mused.selection.prev_start;
+								mused.selection.end = i;
+							}
+							
+							if(mused.selection.start > mused.selection.end)
+							{
+								int temp = mused.selection.start;
+								mused.selection.start = mused.selection.end;
+								mused.selection.end = temp;
+							}
+						}
+					}
+					
+					if(event->type == SDL_MOUSEBUTTONUP)
+					{
+						mused.selection.drag_selection_sequence = false;
+						
+						if(mused.selection.start != mused.selection.end)
+						{
+							mused.jump_in_sequence = false;
+						}
+					}
+				}
+				
+				if(check_event(event, &pos, NULL, NULL, NULL, NULL))
+				{
+					if(!(mused.selection.drag_selection_sequence) && (mused.selection.start == mused.selection.end))
+					{
+						mused.selection.prev_start = i;
+						mused.selection.drag_selection_sequence = true;
+						mused.selection.channel = channel;
+					}
+					
+					if(!(mused.selection.drag_selection_sequence) && (mused.selection.start != mused.selection.end))
+					{
+						mused.selection.drag_selection_sequence = false;
+						mused.jump_in_sequence = true;
+						mused.selection.start = mused.selection.end = -1;
+					}
+				}
+				
+				if (event->type == SDL_MOUSEBUTTONUP)
+				{
+					if(mused.jump_in_sequence)
+					{
+						check_event_mousebuttonup(event, &pos, select_sequence_position, MAKEPTR(channel), MAKEPTR(i), 0);
+					}
+					
+					if(check_event_mousebuttonup(event, &pos, NULL, NULL, NULL, NULL))
+					{
+						mused.jump_in_sequence = true;
 					}
 				}
 			}
 			
-			if(check_event(event, &pos, NULL, NULL, NULL, NULL))
+			else
 			{
-				if(!(mused.selection.drag_selection_sequence) && (mused.selection.start == mused.selection.end))
-				{
-					mused.selection.prev_start = mused.current_sequencepos;
-					mused.selection.drag_selection_sequence = true;
-					mused.selection.channel = channel;
-				}
-				
-				if(!(mused.selection.drag_selection_sequence) && (mused.selection.start != mused.selection.end))
-				{
-					mused.selection.drag_selection_sequence = false;
-					mused.jump_in_sequence = true;
-					mused.selection.start = mused.selection.end = -1;
-				}
-			}
-			
-			if (event->type == SDL_MOUSEBUTTONUP)
-			{
-				if(mused.jump_in_sequence)
-				{
-					check_event_mousebuttonup(event, &pos, select_sequence_position, MAKEPTR(channel), MAKEPTR(i), 0);
-				}
-				
-				if(check_event_mousebuttonup(event, &pos, NULL, NULL, NULL, NULL))
-				{
-					mused.jump_in_sequence = true;
-				}
+				check_event(event, &pos, select_sequence_position, MAKEPTR(channel), MAKEPTR(i), 0); //sequence editor position selection
 			}
 		}
 	}
