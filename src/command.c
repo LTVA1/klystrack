@@ -41,6 +41,7 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_RELEASE_POINT, 0xff00, "Program jumps here when release is triggered", "\xf9 Release", 0, 0},
 	
 	{MUS_FX_ARPEGGIO, 0xff00, "Set arpeggio note", "Arp", -1, -1},
+	{MUS_FX_ARPEGGIO_DOWN, 0xff00, "Set arpeggio note (but XX semitones down)", "ArpDown", -1, -1},
 	{MUS_FX_SET_2ND_ARP_NOTE, 0xff00, "Set 2nd arpeggio note (for multiosc)", "Arp2nd", -1, -1},
 	{MUS_FX_SET_3RD_ARP_NOTE, 0xff00, "Set 3rd arpeggio note (for multiosc)", "Arp3rd", -1, -1},
 	

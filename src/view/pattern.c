@@ -576,7 +576,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 				}
 			}
 				
-			else
+			else if(current_pattern_for_channel(i) != -1)
 			{
 				if((param - PED_COMMAND21) < mused.song.pattern[current_pattern_for_channel(i)].command_columns * 4)
 				{

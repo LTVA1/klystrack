@@ -308,8 +308,12 @@ void init(MusInstrument *instrument, MusPattern *pattern, MusSeqPattern **sequen
 	for (int i = 0; i < NUM_PATTERNS; ++i)
 	{
 		mused.song.pattern[i].step = NULL;
+		mused.song.pattern[i].four_op_step = NULL;
 		mused.song.pattern[i].num_steps = 0;
 		mused.song.pattern[i].color = 0;
+		
+		mused.song.pattern[i].command_columns = 0;
+		
 		resize_pattern(&mused.song.pattern[i], mused.default_pattern_length);
 		
 		for(int j = 0; j < mused.default_pattern_length; j++) //wasn't there

@@ -1579,6 +1579,11 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 					console_write_args(mused.console, "EXT%x", inst->program[i] & 0x0f);
 			}
 			
+			else if ((inst->program[i] & 0xff00) == MUS_FX_ARPEGGIO_DOWN)
+			{
+				console_write_args(mused.console, "%s", notename(((inst->program[i] & 0xff00) == MUS_FX_ARPEGGIO_ABS ? 0 : inst->base_note) - (inst->program[i] & 0xff)));
+			}
+			
 			else if ((inst->program[i] & 0xff00) == MUS_FX_SET_2ND_ARP_NOTE || (inst->program[i] & 0xff00) == MUS_FX_SET_3RD_ARP_NOTE)
 			{
 				console_write_args(mused.console, "%s", notename(inst->base_note + (inst->program[i] & 0xff)));
@@ -1986,17 +1991,33 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 		inst_flags(event, &r, P_EXP_RELEASE, "REL", &inst->cydflags, CYD_CHN_ENABLE_EXPONENTIAL_RELEASE);
 		update_rect(&frame, &r);
 		
+		//r.w = temp;
+		
+		r.w = 8 * 4;
+		
+		inst_flags(event, &r, P_VOL_KSL, "VKS", &inst->cydflags, CYD_CHN_ENABLE_VOLUME_KEY_SCALING);
+		update_rect(&frame, &r);
+		
+		r.w = 8 * 2 + 19;
+		
+		inst_text(event, &r, P_VOL_KSL_LEVEL, "", "%02X", MAKEPTR(inst->vol_ksl_level), 2);
+		update_rect(&frame, &r);
+		
+		r.w = 8 * 4;
+		
+		r.x += 1;
+		
+		inst_flags(event, &r, P_ENV_KSL, "EKS", &inst->cydflags, CYD_CHN_ENABLE_ENVELOPE_KEY_SCALING);
+		update_rect(&frame, &r);
+		
+		r.w = 8 * 2 + 19;
+		
+		r.x -= 1;
+		
+		inst_text(event, &r, P_ENV_KSL_LEVEL, "", "%02X", MAKEPTR(inst->env_ksl_level), 2);
+		update_rect(&frame, &r);
+		
 		r.w = temp;
-		
-		inst_flags(event, &r, P_VOL_KSL, "VOL.KSL", &inst->cydflags, CYD_CHN_ENABLE_VOLUME_KEY_SCALING);
-		update_rect(&frame, &r);
-		inst_text(event, &r, P_VOL_KSL_LEVEL, "LEVEL", "%02X", MAKEPTR(inst->vol_ksl_level), 2);
-		update_rect(&frame, &r);
-		
-		inst_flags(event, &r, P_ENV_KSL, "ENV.KSL", &inst->cydflags, CYD_CHN_ENABLE_ENVELOPE_KEY_SCALING);
-		update_rect(&frame, &r);
-		inst_text(event, &r, P_ENV_KSL_LEVEL, "LEVEL", "%02X", MAKEPTR(inst->env_ksl_level), 2);
-		update_rect(&frame, &r);
 
 		{
 			my_separator(&frame, &r);
@@ -2189,7 +2210,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			adjust_rect(&top_view, 4);
 			
 			copy_rect(&r, &top_view);
-			r.w = 170;
+			r.w = 160;
 			r.h = 10;
 			r.y -= 2;
 			
@@ -2197,7 +2218,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 				four_op_flags(event, &r, FOUROP_3CH_EXP_MODE, "ENABLE 3CH EXP MODE", &inst->fm_flags, CYD_FM_ENABLE_3CH_EXP_MODE);
 				update_rect(&top_view, &r);
 				
-				r.w = 120;
+				r.w = 100;
 				
 				four_op_text(event, &r, FOUROP_ALG, "ALGORITHM", "%02d", MAKEPTR(inst->alg), 2);
 				update_rect(&top_view, &r);
@@ -2440,16 +2461,30 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			
 			r.w = temp;
 			
-			four_op_flags(event, &r, FOUROP_VOL_KSL, "VOL.KSL", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_VOLUME_KEY_SCALING);
-			update_rect(&view, &r);
-			four_op_text(event, &r, FOUROP_VOL_KSL_LEVEL, "LEVEL", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].vol_ksl_level), 2);
+			r.w = 8 * 2 + 19 + 4;
+			
+			four_op_flags(event, &r, FOUROP_VOL_KSL, "VKS", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_VOLUME_KEY_SCALING);
 			update_rect(&view, &r);
 			
-			four_op_flags(event, &r, FOUROP_ENV_KSL, "ENV.KSL", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_ENVELOPE_KEY_SCALING);
+			r.w = 8 * 4;
+			
+			four_op_text(event, &r, FOUROP_VOL_KSL_LEVEL, "", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].vol_ksl_level), 2);
 			update_rect(&view, &r);
-			four_op_text(event, &r, FOUROP_ENV_KSL_LEVEL, "LEVEL", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].env_ksl_level), 2);
+			
+			r.w = 8 * 2 + 19;
+			r.x += 1;
+			
+			four_op_flags(event, &r, FOUROP_ENV_KSL, "EKS", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_ENVELOPE_KEY_SCALING);
 			update_rect(&view, &r);
-
+			
+			r.w = 8 * 4;
+			r.x += 3;
+			
+			four_op_text(event, &r, FOUROP_ENV_KSL_LEVEL, "", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].env_ksl_level), 2);
+			update_rect(&view, &r);
+			
+			r.w = temp;
+			
 			my_separator(&view, &r);
 			four_op_flags(event, &r, FOUROP_SYNC, "SYNC", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_SYNC);
 			update_rect(&view, &r);
@@ -3239,6 +3274,11 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 					console_write_args(mused.console, "EXT%x", inst->ops[mused.selected_operator - 1].program[i] & 0x0f);
 			}
 			
+			else if ((inst->program[i] & 0xff00) == MUS_FX_ARPEGGIO_DOWN)
+			{
+				console_write_args(mused.console, "%s", notename(((inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_ARPEGGIO_ABS ? 0 : ((inst->fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) ? inst->ops[mused.selected_operator - 1].base_note : inst->base_note)) - (inst->ops[mused.selected_operator - 1].program[i] & 0xff)));
+			}
+			
 			else if ((inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_SET_2ND_ARP_NOTE || (inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_SET_3RD_ARP_NOTE)
 			{
 				console_write_args(mused.console, "%s", notename(((inst->fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) ? inst->ops[mused.selected_operator - 1].base_note : inst->base_note) + (inst->ops[mused.selected_operator - 1].program[i] & 0xff)));
@@ -3375,17 +3415,38 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 		inst_text(event, &r, P_FM_MODULATION, "VOL", "%02X", MAKEPTR(inst->fm_modulation), 2);
 		update_rect(&frame, &r);
 		
-		inst_flags(event, &r, P_FM_VOL_KSL_ENABLE, "FM VOL.KSL", &inst->fm_flags, CYD_FM_ENABLE_VOLUME_KEY_SCALING);
+		int temp2 = r.w;
+		
+		r.w = 7 * 8 + 15;
+		
+		inst_flags(event, &r, P_FM_VOL_KSL_ENABLE, "FM V.KSL", &inst->fm_flags, CYD_FM_ENABLE_VOLUME_KEY_SCALING);
 		update_rect(&frame, &r);
-		inst_text(event, &r, P_FM_VOL_KSL_LEVEL, "LEVEL", "%02X", MAKEPTR(inst->fm_vol_ksl_level), 2);
+		
+		r.w = 8 * 2 + 18;
+		r.x = frame.x + frame.w / 2 - r.w - 2;
+		
+		inst_text(event, &r, P_FM_VOL_KSL_LEVEL, "", "%02X", MAKEPTR(inst->fm_vol_ksl_level), 2);
 		update_rect(&frame, &r);
-		inst_flags(event, &r, P_FM_ENV_KSL_ENABLE, "FM ENV.KSL", &inst->fm_flags, CYD_FM_ENABLE_ENVELOPE_KEY_SCALING);
+		
+		r.x = frame.x + frame.w / 2 + 2;
+		r.w = 7 * 8 + 15;
+		
+		inst_flags(event, &r, P_FM_ENV_KSL_ENABLE, "FM E.KSL", &inst->fm_flags, CYD_FM_ENABLE_ENVELOPE_KEY_SCALING);
 		update_rect(&frame, &r);
-		inst_text(event, &r, P_FM_ENV_KSL_LEVEL, "LEVEL", "%02X", MAKEPTR(inst->fm_env_ksl_level), 2);
+		
+		r.w = 8 * 2 + 18;
+		r.x = frame.x + frame.w - r.w;
+		
+		inst_text(event, &r, P_FM_ENV_KSL_LEVEL, "", "%02X", MAKEPTR(inst->fm_env_ksl_level), 2);
 		update_rect(&frame, &r);
+		
+		//r.y += 10;
+		//r.x = frame.x;
+		r.w = temp2;
 		
 		inst_text(event, &r, P_FM_FEEDBACK, "FEEDBACK", "%01X", MAKEPTR(inst->fm_feedback), 1);
 		update_rect(&frame, &r);
+		
 		int tmp = r.w;
 		r.w -= 27;
 		inst_text(event, &r, P_FM_HARMONIC_CARRIER, "MUL", "%01X", MAKEPTR(inst->fm_harmonic >> 4), 1);

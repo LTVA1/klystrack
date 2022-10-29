@@ -81,7 +81,7 @@ extern const Menu mainmenu[];
 #define SCROLLBAR 10
 #define INST_LIST (6*8 + 3*2)
 #define INFO 13
-#define INST_VIEW2 (38+10+10+10+186) //#define INST_VIEW2 (38+10+10+10+52)
+#define INST_VIEW2 (38+10+10+10+176) //#define INST_VIEW2 (38+10+10+10+52)
 
 void change_pixel_scale(void *, void*, void*);
 
@@ -258,11 +258,17 @@ int main(int argc, char **argv)
 	
 	gfx_domain_update(domain, false);
 
-	MusInstrument instrument[NUM_INSTRUMENTS];
-	MusPattern pattern[NUM_PATTERNS];
-	//MusSeqPattern sequence[MUS_MAX_CHANNELS][NUM_SEQUENCES];
-	MusChannel channel[CYD_MAX_CHANNELS];
+	//MusInstrument instrument[NUM_INSTRUMENTS];
+	MusInstrument* instrument = (MusInstrument*)malloc(NUM_INSTRUMENTS * sizeof(MusInstrument));
 	
+	//MusPattern pattern[NUM_PATTERNS];
+	MusPattern* pattern = (MusPattern*)malloc(NUM_PATTERNS * sizeof(MusPattern));
+	memset(pattern, 0, NUM_PATTERNS * sizeof(MusPattern));
+	
+	//MusChannel channel[CYD_MAX_CHANNELS];
+	MusChannel* channel = (MusChannel*)malloc(CYD_MAX_CHANNELS * sizeof(MusChannel));
+	
+	//MusSeqPattern sequence[MUS_MAX_CHANNELS][NUM_SEQUENCES];
 	MusSeqPattern** sequence = (MusSeqPattern**)malloc(MUS_MAX_CHANNELS * sizeof(MusSeqPattern*));
 	
 	for(int i = 0; i < MUS_MAX_CHANNELS; ++i)
@@ -677,6 +683,12 @@ int main(int argc, char **argv)
 	}
 	
 	free(sequence);
+	
+	free(instrument);
+	
+	free(pattern);
+	
+	free(channel);
 
 	save_config(".klystrack"); //was `save_config(TOSTRING(CONFIG_PATH));`
 	
