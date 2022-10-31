@@ -224,6 +224,7 @@ void my_open_menu(const Menu *menu, const Menu *action)
 
 int main(int argc, char **argv)
 {
+	
 #ifdef WIN32
 	// Set directsound as the audio driver because SDL>=2.0.6 sets wasapi as the default
 	// which means no audio on some systems (needs format conversion and that doesn't

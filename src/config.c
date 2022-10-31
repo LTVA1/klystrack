@@ -92,6 +92,7 @@ static const struct { int type; const char *name; void *param; Uint64 mask; } co
 	{ C_BOOL, "drag_selection_sequence", &mused.flags2, DRAG_SELECT_SEQUENCE },
 	{ C_BOOL, "drag_selection_inst_program", &mused.flags2, DRAG_SELECT_PROGRAM },
 	{ C_BOOL, "drag_selection_4op_program", &mused.flags2, DRAG_SELECT_4OP },
+	{ C_BOOL, "show_old_spectrum_visualizer", &mused.flags2, SHOW_OLD_SPECTRUM_VIS },
 	{ C_END }
 };
 

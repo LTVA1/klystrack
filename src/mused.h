@@ -124,6 +124,8 @@ enum
 	DRAG_SELECT_SEQUENCE = 256,
 	DRAG_SELECT_PROGRAM = 512,
 	DRAG_SELECT_4OP = 1024,
+	
+	SHOW_OLD_SPECTRUM_VIS = 2048,
 };
 
 //#define SHOW_OSCILLOSCOPES_PATTERN_EDITOR ((Uint64)65536 << 16)
@@ -212,23 +214,32 @@ typedef struct
 	int mix_rate, mix_buffer;
 	int window_w, window_h;
 	int fx_bus, fx_room_size, fx_room_vol, fx_room_dec, fx_tap, fx_axis, fx_room_ticks, fx_room_prev_x, fx_room_prev_y;
+	
 	/*---vis---*/
+	
 	int current_visualizer;
 	struct 
 	{
 		int cyd_env[MUS_MAX_CHANNELS];
-		int spec_peak[96], spec_peak_decay[96];
+		int spec_peak[256], spec_peak_decay[96];
 		float prev_a;
 	} vis;
 	
+	float real_buffer[8192];
+	float imaginary_buffer[8192];
+	
 	/*---*/
+	
 	SDL_Rect cursor_target, cursor;
+	
 	/*----------*/
+	
 	UndoStack undo;
 	UndoStack redo;
 	SHType last_snapshot;
 	int last_snapshot_a, last_snapshot_b;
 	bool modified;
+	
 	/*------------*/
 	
 	GfxSurface *wavetable_preview;

@@ -1654,7 +1654,7 @@ void oscilloscope_view(GfxDomain *dest_surface, SDL_Rect *dest, const SDL_Event 
 {
 	if(mused.show_four_op_menu)
 	{
-		dest->y -= 155;
+		dest->y -= 145;
 		dest->x -= 10;
 	}
 	
@@ -1713,11 +1713,11 @@ static void four_op_text(const SDL_Event *e, const SDL_Rect *area, int p, const 
 
 void inst_field(const SDL_Event *e, const SDL_Rect *area, int p, int length, char *text) //instrument name/song name
 {
-	console_set_color(mused.console,colors[COLOR_MAIN_TEXT]);
+	console_set_color(mused.console, colors[COLOR_MAIN_TEXT]);
 	console_set_clip(mused.console, area);
 	console_clear(mused.console);
 
-	bevelex(domain,area, mused.slider_bevel, BEV_FIELD, BEV_F_STRETCH_ALL);
+	bevelex(domain, area, mused.slider_bevel, BEV_FIELD, BEV_F_STRETCH_ALL);
 
 	SDL_Rect field;
 	copy_rect(&field, area);
@@ -1730,9 +1730,11 @@ void inst_field(const SDL_Event *e, const SDL_Rect *area, int p, int length, cha
 	if (mused.edit_buffer == text && mused.focus == EDITBUFFER && mused.selected_param == p)
 	{
 		int i = my_max(0, mused.editpos - field.w / mused.console->font.w + 1), c = 0;
+		
 		for (; text[i] && c < my_min(length, field.w / mused.console->font.w); ++i, ++c)
 		{
 			const SDL_Rect *r = console_write_args(mused.console, "%c", mused.editpos == i ? '½' : text[i]);
+			
 			if (check_event(e, r, NULL, NULL, NULL, NULL))
 			{
 				mused.editpos = i;
@@ -1741,7 +1743,9 @@ void inst_field(const SDL_Event *e, const SDL_Rect *area, int p, int length, cha
 		}
 
 		if (mused.editpos == i && c <= length)
+		{
 			console_write(mused.console, "ï¿½");
+		}
 	}
 	
 	else
@@ -1781,9 +1785,9 @@ void instrument_name_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 	if(!(mused.show_four_op_menu) || ((mused.focus != EDIT4OP) && (mused.focus != EDITPROG4OP)))
 	{
 		SDL_Rect farea, larea, tarea;
-		copy_rect(&farea,dest);
-		copy_rect(&larea,dest);
-		copy_rect(&tarea,dest);
+		copy_rect(&farea, dest);
+		copy_rect(&larea, dest);
+		copy_rect(&tarea, dest);
 
 		farea.w = 2 * mused.console->font.w + 2 + 16;
 
