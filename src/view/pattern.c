@@ -1330,7 +1330,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 					copy_rect(&tmp, &pos);
 					clip_rect(&tmp, &track);
 					
-					if (tmp.y - header.y > HEADER_HEIGHT + 3 && mused.frames_since_menu_close > 1)
+					if (tmp.y - header.y > HEADER_HEIGHT + 3 && mused.frames_since_menu_close > 5)
 					{
 						if(mused.flags2 & DRAG_SELECT_PATTERN)
 						{
@@ -1405,7 +1405,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 					//if (sp && event->type == SDL_MOUSEBUTTONDOWN && tmp.y - header.y > HEADER_HEIGHT + 3) //so we do not process the topmost row which is hidden under header and is there for smooth scroll (so rows disappear upper then pattern edge where they are still visible)
 					if(mused.flags2 & DRAG_SELECT_PATTERN)
 					{
-						if (sp && event->type == SDL_MOUSEBUTTONUP && tmp.y - header.y > HEADER_HEIGHT + 3 && mused.frames_since_menu_close > 1)
+						if (sp && event->type == SDL_MOUSEBUTTONUP && tmp.y - header.y > HEADER_HEIGHT + 3 && mused.frames_since_menu_close > 5)
 						{
 							if(mused.jump_in_pattern)
 							{

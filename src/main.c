@@ -224,7 +224,6 @@ void my_open_menu(const Menu *menu, const Menu *action)
 
 int main(int argc, char **argv)
 {
-	
 #ifdef WIN32
 	// Set directsound as the audio driver because SDL>=2.0.6 sets wasapi as the default
 	// which means no audio on some systems (needs format conversion and that doesn't
@@ -319,6 +318,7 @@ int main(int argc, char **argv)
 	{
 		cyd_lock(&mused.cyd, 1);
 		FILE *f = fopen("Default.kt", "rb");
+		
 		if (f)
 		{
 			open_song(f);
@@ -350,12 +350,17 @@ int main(int argc, char **argv)
 	
 	//debug("%d", mused.song.song_info[0]);
 	
+	float* re = (float*)malloc(sizeof(float) * 8192);
+	float* im = (float*)malloc(sizeof(float) * 8192);
+	mused.real_buffer = re;
+	mused.imaginary_buffer = im;
+	
 	while (1)
 	{
 		SDL_Event e = { 0 };
 		int got_event = 0, menu_closed = 0;
 		
-		if(mused.frames_since_menu_close < 4)
+		if(mused.frames_since_menu_close < 0x60)
 		{
 			mused.frames_since_menu_close++;
 		}
@@ -690,6 +695,10 @@ int main(int argc, char **argv)
 	free(pattern);
 	
 	free(channel);
+	
+	free(mused.real_buffer);
+	
+	free(mused.imaginary_buffer);
 
 	save_config(".klystrack"); //was `save_config(TOSTRING(CONFIG_PATH));`
 	

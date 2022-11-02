@@ -609,7 +609,7 @@ void instrument_add_param(int a)
 		{
 			int x = (Uint8)(i->ring_mod+1);
 			clamp(x, a, 0, MUS_MAX_CHANNELS);
-			i->ring_mod = x-1;
+			i->ring_mod = x - 1;
 		}
 		break;
 
@@ -628,6 +628,14 @@ void instrument_add_param(int a)
 		case P_SLOPE: //wasn't there
 
 		clamp(i->slope, a, 0, 5);  //was `0, 3)`
+
+		break;
+		
+		case P_NUM_OF_MACROS: //wasn't there
+
+		clamp(i->num_macros, a, 0, MUS_MAX_MACROS_INST);  //was `0, 3)`
+		
+		mused.current_instrument_program = i->num_macros;
 
 		break;
 
@@ -1331,6 +1339,14 @@ void four_op_add_param(int a)
 		case FOUROP_SLOPE: //wasn't there
 
 		clamp(i->ops[mused.selected_operator - 1].slope, a, 0, 5);  //was `0, 3)`
+
+		break;
+		
+		case FOUROP_NUM_OF_MACROS: //wasn't there
+
+		clamp(i->ops[mused.selected_operator - 1].num_macros, a, 0, MUS_MAX_MACROS_OP);
+		
+		mused.current_fourop_program[mused.selected_operator - 1] = i->ops[mused.selected_operator - 1].num_macros;
 
 		break;
 

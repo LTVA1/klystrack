@@ -137,6 +137,9 @@ bool FFT(float *Rdat, float *Idat, int N, int LogN, int Ft_Flag)
 
 void do_fft(int num_peaks)
 {
+	if(mused.real_buffer == NULL) return;
+	if(mused.imaginary_buffer == NULL) return;
+	
 	for(int i = 0; i < FFT_BUFFER_SIZE; ++i)
 	{
 		mused.real_buffer[i] = (float)mused.output_buffer[i] / 32768.0; //0...1 amplitude

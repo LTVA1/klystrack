@@ -445,6 +445,9 @@ int helpbox(const char *title, GfxDomain *domain, GfxSurface *gfx, const Font *l
 				
 				set_repeat_timer(NULL);
 				SDL_PushEvent(&e);
+				
+				mused.frames_since_menu_close = 0;
+				
 				deinit_lines();
 				return 0;
 				
@@ -563,6 +566,9 @@ int helpbox(const char *title, GfxDomain *domain, GfxSurface *gfx, const Font *l
 	}
 	
 	deinit_lines();
+	
+	mused.frames_since_menu_close = 0;
+	
 	return 0;
 }
 

@@ -745,6 +745,9 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Filter cutoff frequency",
 					"Filter resonance",
 					"Filter slope",
+					
+					"Number of instrument programs", //wasn't there
+					
 					"Send signal to FX chain",
 					"FX bus",
 					"Vibrato speed",
@@ -925,6 +928,9 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"filter cutoff frequency",
 					"filter resonance",
 					"filter slope",
+					
+					"number of programs",
+					
 					"vibrato speed",
 					"vibrato depth",
 					"vibrato shape",
@@ -2073,6 +2079,13 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 		
 		inst_text(event, &r, P_SLOPE, "SLOPE", "%s", (char*)slope[inst->slope], 10);
 		update_rect(&frame, &r);
+		
+		my_separator(&frame, &r);
+		
+		inst_text(event, &r, P_NUM_OF_MACROS, "PROGRAM NUMBER", "%02X", MAKEPTR(inst->num_macros), 2);
+		update_rect(&frame, &r);
+		
+		inst_field(event, &r, P_NAME, MUS_MACRO_NAME_LEN, mused.song.instrument[mused.current_instrument].program_names[mused.current_instrument_program]);
 	}
 }
 
@@ -2516,6 +2529,13 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			
 			four_op_text(event, &r, FOUROP_SLOPE, "SLOPE", "%s", (char*)slope_4op[inst->ops[mused.selected_operator - 1].slope], 10);
 			update_rect(&view, &r);
+			
+			my_separator(&view, &r);
+		
+			four_op_text(event, &r, FOUROP_NUM_OF_MACROS, "PROGRAM NUMBER", "%1X", MAKEPTR(inst->ops[mused.selected_operator - 1].num_macros), 1);
+			update_rect(&view, &r);
+			
+			inst_field(event, &r, P_NAME, MUS_MACRO_NAME_LEN, mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_names[mused.current_fourop_program[mused.selected_operator - 1]]);
 		}
 		
 		//========================================================================

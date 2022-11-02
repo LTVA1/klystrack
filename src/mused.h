@@ -171,6 +171,8 @@ typedef struct
 		loop_store_length, loop_store_loop, note_jump, wavetable_list_position, wavetable_preview_idx, sequence_digit;
 	
 	int fourop_program_position[CYD_FM_NUM_OPS];
+	int current_instrument_program;
+	int current_fourop_program[CYD_FM_NUM_OPS];
 	
 	int current_sequencetrack;
 	Uint16 time_signature;
@@ -225,8 +227,13 @@ typedef struct
 		float prev_a;
 	} vis;
 	
-	float real_buffer[8192];
-	float imaginary_buffer[8192];
+	//float real_buffer[8192];
+	//float imaginary_buffer[8192];
+	
+	float* real_buffer;
+	float* imaginary_buffer;
+	
+	//float* test;
 	
 	/*---*/
 	
