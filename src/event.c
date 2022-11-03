@@ -642,13 +642,14 @@ void instrument_add_param(int a)
 				if(!(is_empty_program(i->program[mused.current_instrument_program])))
 				{
 					mused.current_instrument_program++;
-					i->num_macros++;
 					
-					if(i->program[i->num_macros - 1] == NULL)
+					if(i->program[i->num_macros] == NULL)
 					{
+						i->num_macros++;
+						
 						i->program[i->num_macros - 1] = (Uint16*)malloc(MUS_PROG_LEN * sizeof(Uint16));
 						i->program_unite_bits[i->num_macros - 1] = (Uint8*)malloc((MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
-
+						
 						for (int p = 0; p < MUS_PROG_LEN; ++p)
 						{
 							i->program[i->num_macros - 1][p] = MUS_FX_NOP;
@@ -1374,33 +1375,30 @@ void four_op_add_param(int a)
 		break;
 		
 		case FOUROP_NUM_OF_MACROS: //wasn't there
-
-		//clamp(i->ops[mused.selected_operator - 1].num_macros, a, 0, MUS_MAX_MACROS_OP);
 		
-		//mused.current_fourop_program[mused.selected_operator - 1] = i->ops[mused.selected_operator - 1].num_macros;
-		
-		if(mused.current_instrument_program + a >= 0 && mused.current_instrument_program + a < MUS_MAX_MACROS_OP)
+		if(mused.current_fourop_program[mused.selected_operator - 1] + a >= 0 && mused.current_fourop_program[mused.selected_operator - 1] + a < MUS_MAX_MACROS_OP)
 		{
 			if(a == 1)
 			{
 				if(!(is_empty_program(i->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]])))
 				{
 					mused.current_fourop_program[mused.selected_operator - 1]++;
-					i->ops[mused.selected_operator - 1].num_macros++;
 					
-					if(i->ops[mused.selected_operator - 1].program[i->ops[mused.selected_operator - 1].num_macros - 1] == NULL)
+					if(i->ops[mused.selected_operator - 1].program[i->ops[mused.selected_operator - 1].num_macros] == NULL)
 					{
+						i->ops[mused.selected_operator - 1].num_macros++;
+						
 						i->ops[mused.selected_operator - 1].program[i->ops[mused.selected_operator - 1].num_macros - 1] = (Uint16*)malloc(MUS_PROG_LEN * sizeof(Uint16));
 						i->ops[mused.selected_operator - 1].program_unite_bits[i->ops[mused.selected_operator - 1].num_macros - 1] = (Uint8*)malloc((MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
-
+						
 						for (int p = 0; p < MUS_PROG_LEN; ++p)
 						{
-							i->program[i->ops[mused.selected_operator - 1].num_macros - 1][p] = MUS_FX_NOP;
+							i->ops[mused.selected_operator - 1].program[i->ops[mused.selected_operator - 1].num_macros - 1][p] = MUS_FX_NOP;
 						}
 						
 						for (int p = 0; p < MUS_PROG_LEN / 8 + 1; ++p)
 						{
-							i->program_unite_bits[i->ops[mused.selected_operator - 1].num_macros - 1][p] = 0;
+							i->ops[mused.selected_operator - 1].program_unite_bits[i->ops[mused.selected_operator - 1].num_macros - 1][p] = 0;
 						}
 					}
 				}

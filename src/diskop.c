@@ -271,8 +271,15 @@ static void write_string8(SDL_RWops *f, const char * string)
 static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWavetableEntry *write_wave, const CydWavetableEntry *write_wave_fm)
 {
 	Uint16 temp16_f = inst->flags;
+	
+	if(inst->num_macros > 1)
+	{
+		temp16_f |= MUS_INST_SEVERAL_MACROS;
+	}
+	
 	FIX_ENDIAN(temp16_f);
 	SDL_RWwrite(f, &temp16_f, sizeof(temp16_f), 1);
+	
 	Uint32 temp32 = inst->cydflags;
 	FIX_ENDIAN(temp32);
 	SDL_RWwrite(f, &temp32, sizeof(temp32), 1);
@@ -332,34 +339,54 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 	FIX_ENDIAN(temp16);
 	SDL_RWwrite(f, &temp16, sizeof(temp16), 1);
 	SDL_RWwrite(f, &inst->volume, sizeof(inst->volume), 1);
-	Uint8 progsteps = 0;
 	
-	for (int i = 0; i < MUS_PROG_LEN; ++i)
+	Uint8 temp_macros = 1;
+	
+	if(inst->num_macros > 1)
 	{
-		if (inst->program[i] != MUS_FX_NOP) 
+		temp_macros = inst->num_macros;
+		
+		if(is_empty_program(inst->program[inst->num_macros - 1])) //the last one may be empty
 		{
-			progsteps = i+1;
+			temp_macros--;
 		}
+		
+		SDL_RWwrite(f, &temp_macros, sizeof(temp_macros), 1);
 	}
 	
-	SDL_RWwrite(f, &progsteps, sizeof(progsteps), 1);
-	
-	if(progsteps != 0)
+	for(int pr = 0; pr < temp_macros; ++pr)
 	{
-		for (int i = 0; i < progsteps / 8 + 1; ++i)
+		write_string8(f, inst->program_names[pr]);
+		
+		Uint8 progsteps = 0;
+		
+		for (int i = 0; i < MUS_PROG_LEN; ++i)
 		{
-			SDL_RWwrite(f, &inst->program_unite_bits[i], sizeof(Uint8), 1);
+			if (inst->program[pr][i] != MUS_FX_NOP) 
+			{
+				progsteps = i + 1;
+			}
 		}
-	}
-	
-	for (int i = 0; i < progsteps; ++i)
-	{
-		temp16 = inst->program[i];
-		FIX_ENDIAN(temp16);
-		SDL_RWwrite(f, &temp16, sizeof(temp16), 1);
-	}
+		
+		SDL_RWwrite(f, &progsteps, sizeof(progsteps), 1);
+		
+		if(progsteps != 0)
+		{
+			for (int i = 0; i < progsteps / 8 + 1; ++i)
+			{
+				SDL_RWwrite(f, &inst->program_unite_bits[pr][i], sizeof(Uint8), 1);
+			}
+		}
+		
+		for (int i = 0; i < progsteps; ++i)
+		{
+			temp16 = inst->program[pr][i];
+			FIX_ENDIAN(temp16);
+			SDL_RWwrite(f, &temp16, sizeof(temp16), 1);
+		}
 
-	SDL_RWwrite(f, &inst->prog_period, sizeof(inst->prog_period), 1);
+		SDL_RWwrite(f, &inst->prog_period[pr], sizeof(inst->prog_period[pr]), 1);
+	}
 	
 	if(inst->flags & MUS_INST_SAVE_LFO_SETTINGS)
 	{
@@ -496,6 +523,12 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 			for(int i = 0; i < CYD_FM_NUM_OPS; ++i)
 			{
 				Uint16 temp16_f = inst->ops[i].flags;
+				
+				if(inst->ops[i].num_macros > 1)
+				{
+					temp16_f |= MUS_FM_OP_SEVERAL_MACROS;
+				}
+				
 				FIX_ENDIAN(temp16_f);
 				SDL_RWwrite(f, &temp16_f, sizeof(temp16_f), 1);
 				Uint32 temp32 = inst->ops[i].cydflags;
@@ -586,34 +619,54 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 				FIX_ENDIAN(temp16);
 				SDL_RWwrite(f, &temp16, sizeof(temp16), 1);
 				SDL_RWwrite(f, &inst->ops[i].volume, sizeof(inst->ops[i].volume), 1);
-				Uint8 progsteps = 0;
 				
-				for (int j = 0; j < MUS_PROG_LEN; ++j)
+				Uint8 temp_macros = 1;
+	
+				if(inst->ops[i].num_macros > 1)
 				{
-					if (inst->ops[i].program[j] != MUS_FX_NOP) 
+					temp_macros = inst->ops[i].num_macros;
+					
+					if(is_empty_program(inst->ops[i].program[inst->num_macros - 1])) //the last one may be empty
 					{
-						progsteps = j + 1;
+						temp_macros--;
 					}
+					
+					SDL_RWwrite(f, &temp_macros, sizeof(temp_macros), 1);
 				}
 				
-				SDL_RWwrite(f, &progsteps, sizeof(progsteps), 1);
-				
-				if(progsteps != 0)
+				for(int pr = 0; pr < temp_macros; ++pr)
 				{
-					for (int i1 = 0; i1 < progsteps / 8 + 1; ++i1)
+					write_string8(f, inst->ops[i].program_names[pr]);
+					
+					Uint8 progsteps = 0;
+					
+					for (int j = 0; j < MUS_PROG_LEN; ++j)
 					{
-						SDL_RWwrite(f, &inst->ops[i].program_unite_bits[i1], sizeof(Uint8), 1);
+						if (inst->ops[i].program[pr][j] != MUS_FX_NOP) 
+						{
+							progsteps = j + 1;
+						}
 					}
-				}
-				
-				for (int i1 = 0; i1 < progsteps; ++i1)
-				{
-					temp16 = inst->ops[i].program[i1];
-					FIX_ENDIAN(temp16);
-					SDL_RWwrite(f, &temp16, sizeof(temp16), 1);
-				}
+					
+					SDL_RWwrite(f, &progsteps, sizeof(progsteps), 1);
+					
+					if(progsteps != 0)
+					{
+						for (int i1 = 0; i1 < progsteps / 8 + 1; ++i1)
+						{
+							SDL_RWwrite(f, &inst->ops[i].program_unite_bits[pr][i1], sizeof(Uint8), 1);
+						}
+					}
+					
+					for (int i1 = 0; i1 < progsteps; ++i1)
+					{
+						temp16 = inst->ops[i].program[pr][i1];
+						FIX_ENDIAN(temp16);
+						SDL_RWwrite(f, &temp16, sizeof(temp16), 1);
+					}
 
-				SDL_RWwrite(f, &inst->ops[i].prog_period, sizeof(inst->prog_period), 1);
+					SDL_RWwrite(f, &inst->ops[i].prog_period[pr], sizeof(inst->ops[i].prog_period[pr]), 1);
+				}
 				
 				if(inst->ops[i].flags & MUS_FM_OP_SAVE_LFO_SETTINGS)
 				{
