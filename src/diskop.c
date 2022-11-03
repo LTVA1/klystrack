@@ -270,6 +270,11 @@ static void write_string8(SDL_RWops *f, const char * string)
 
 static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWavetableEntry *write_wave, const CydWavetableEntry *write_wave_fm)
 {
+	if(inst->num_macros == 1)
+	{
+		inst->flags &= ~(MUS_FM_OP_SEVERAL_MACROS);
+	}
+	
 	Uint16 temp16_f = inst->flags;
 	
 	if(inst->num_macros > 1)
@@ -522,6 +527,11 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 			
 			for(int i = 0; i < CYD_FM_NUM_OPS; ++i)
 			{
+				if(inst->ops[i].num_macros == 1)
+				{
+					inst->ops[i].flags &= ~(MUS_FM_OP_SEVERAL_MACROS);
+				}
+				
 				Uint16 temp16_f = inst->ops[i].flags;
 				
 				if(inst->ops[i].num_macros > 1)
@@ -620,21 +630,23 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 				SDL_RWwrite(f, &temp16, sizeof(temp16), 1);
 				SDL_RWwrite(f, &inst->ops[i].volume, sizeof(inst->ops[i].volume), 1);
 				
-				Uint8 temp_macros = 1;
+				Uint8 temp_macros_op = 1;
 	
 				if(inst->ops[i].num_macros > 1)
 				{
-					temp_macros = inst->ops[i].num_macros;
+					temp_macros_op = inst->ops[i].num_macros;
 					
 					if(is_empty_program(inst->ops[i].program[inst->num_macros - 1])) //the last one may be empty
 					{
-						temp_macros--;
+						temp_macros_op--;
 					}
 					
-					SDL_RWwrite(f, &temp_macros, sizeof(temp_macros), 1);
+					SDL_RWwrite(f, &temp_macros_op, sizeof(temp_macros_op), 1);
+					
+					debug("macros %d", temp_macros_op);
 				}
 				
-				for(int pr = 0; pr < temp_macros; ++pr)
+				for(int pr = 0; pr < temp_macros_op; ++pr)
 				{
 					write_string8(f, inst->ops[i].program_names[pr]);
 					

@@ -747,6 +747,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Filter slope",
 					
 					"Number of instrument programs", //wasn't there
+					"Selected program period",
 					
 					"Send signal to FX chain",
 					"FX bus",
@@ -762,7 +763,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Tremolo depth", //wasn't there
 					"Tremolo shape", //wasn't there
 					"Tremolo delay", //wasn't there
-					"Program period",
+					
 					"Don't restart program on keydown",
 					"Enable multi oscillator (play 2- or 3-note chords by using 00XY command in pattern)",
 					"Save vibrato, PWM and tremolo settings", //wasn't there
@@ -930,6 +931,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"filter slope",
 					
 					"number of programs",
+					"selected program period",
 					
 					"vibrato speed",
 					"vibrato depth",
@@ -943,7 +945,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"tremolo depth", //wasn't there
 					"tremolo shape", //wasn't there
 					"tremolo delay", //wasn't there
-					"program period",
+					
 					"don't restart program on keydown",
 					"save vibrato, PWM and tremolo settings", //wasn't there
 					"trigger delay (in ticks)",
@@ -2090,6 +2092,11 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 		update_rect(&frame, &r);
 		
 		inst_field(event, &r, P_NAME, MUS_MACRO_NAME_LEN, mused.song.instrument[mused.current_instrument].program_names[mused.current_instrument_program]);
+		
+		r.y += 10;
+		
+		inst_text(event, &r, P_PROGPERIOD, "PROGRAM PERIOD", "%02X", MAKEPTR(inst->prog_period[mused.current_instrument_program]), 2);
+		update_rect(&frame, &r);
 	}
 }
 
@@ -2542,6 +2549,11 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			update_rect(&view, &r);
 			
 			inst_field(event, &r, P_NAME, MUS_MACRO_NAME_LEN, mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_names[mused.current_fourop_program[mused.selected_operator - 1]]);
+			
+			r.y += 10;
+			
+			four_op_text(event, &r, FOUROP_PROGPERIOD, "PROGRAM PERIOD", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].prog_period[mused.current_fourop_program[mused.selected_operator - 1]]), 2);
+			update_rect(&view, &r);
 		}
 		
 		//========================================================================
@@ -2976,8 +2988,8 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			update_rect(&view2, &r);
 			four_op_text(event, &r, FOUROP_TREMDELAY,   "TR.DEL", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].tremolo_delay), 2);
 			update_rect(&view2, &r);
-			four_op_text(event, &r, FOUROP_PROGPERIOD, "P.PRD", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].prog_period[mused.current_fourop_program[mused.selected_operator - 1]]), 2);
-			update_rect(&view2, &r);
+			//four_op_text(event, &r, FOUROP_PROGPERIOD, "P.PRD", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].prog_period[mused.current_fourop_program[mused.selected_operator - 1]]), 2);
+			//update_rect(&view2, &r);
 			four_op_flags(event, &r, FOUROP_NORESTART, "NO RESTART", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_NO_PROG_RESTART);
 			update_rect(&view2, &r);
 			four_op_flags(event, &r, FOUROP_SAVE_LFO_SETTINGS, "SAVE LFO SET.", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_SAVE_LFO_SETTINGS);
@@ -3430,8 +3442,8 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 		inst_text(event, &r, P_TREMDELAY,   "TR.DEL", "%02X", MAKEPTR(inst->tremolo_delay), 2);
 		update_rect(&frame, &r);
 		
-		inst_text(event, &r, P_PROGPERIOD, "P.PRD", "%02X", MAKEPTR(inst->prog_period[mused.current_instrument_program]), 2);
-		update_rect(&frame, &r);
+		//inst_text(event, &r, P_PROGPERIOD, "P.PRD", "%02X", MAKEPTR(inst->prog_period[mused.current_instrument_program]), 2);
+		//update_rect(&frame, &r);
 		inst_flags(event, &r, P_NORESTART, "NO RESTART", &inst->flags, MUS_INST_NO_PROG_RESTART);
 		update_rect(&frame, &r);
 		inst_flags(event, &r, P_MULTIOSC, "MULTIOSC", &inst->flags, MUS_INST_MULTIOSC);
