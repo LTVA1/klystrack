@@ -467,7 +467,7 @@ int import_hubbard(FILE *f)
 		mused.song.instrument[i].adsr.d = decay_tab[hub->instrument[i].d];
 		mused.song.instrument[i].adsr.s = sustain_tab[hub->instrument[i].s];
 		mused.song.instrument[i].adsr.r = decay_tab[hub->instrument[i].r];
-		mused.song.instrument[i].prog_period = 1;
+		mused.song.instrument[i].prog_period[0] = 1;
 		mused.song.instrument[i].pwm_depth = 0x30;
 		mused.song.instrument[i].pwm_speed = hub->instrument[i].pwm / 8;
 		mused.song.instrument[i].vibrato_speed = 0x20;
@@ -477,21 +477,21 @@ int import_hubbard(FILE *f)
 		if (hub->instrument[i].fx & 1)
 		{
 			mused.song.instrument[i].flags |= MUS_INST_DRUM;
-			mused.song.instrument[i].program[0] = 0x0208;
-			mused.song.instrument[i].program[1] = 0xFF00;
+			mused.song.instrument[i].program[0][0] = 0x0208;
+			mused.song.instrument[i].program[0][1] = 0xFF00;
 		}
 		
 		if (hub->instrument[i].fx & 2)
 		{
-			mused.song.instrument[i].program[0] = 0x0204;
-			mused.song.instrument[i].program[1] = 0xFF00;
+			mused.song.instrument[i].program[0][0] = 0x0204;
+			mused.song.instrument[i].program[0][1] = 0xFF00;
 		}
 		
 		if (hub->instrument[i].fx & 4)
 		{
-			mused.song.instrument[i].program[0] = 0x0000;
-			mused.song.instrument[i].program[1] = 0x000C;
-			mused.song.instrument[i].program[2] = 0xFF00;
+			mused.song.instrument[i].program[0][0] = 0x0000;
+			mused.song.instrument[i].program[0][1] = 0x000C;
+			mused.song.instrument[i].program[0][2] = 0xFF00;
 		}
 	}
 	

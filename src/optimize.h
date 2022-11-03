@@ -47,4 +47,6 @@ void optimize_wavetables_action(void *unused1, void *unused2, void *unused3);
 void duplicate_wavetables_action(void *unused1, void *unused2, void *unused3); //wasn't there
 void remove_instrument(MusSong *song, int instrument);
 
+int is_empty_program(Uint16* program);
+
 #endif

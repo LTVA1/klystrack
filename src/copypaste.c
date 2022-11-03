@@ -79,31 +79,31 @@ void copy()
 		case EDITPROG:
 		case EDITPROG4OP:
 		{
-			cp_copy_items(&mused.cp, CP_PROGRAM, &mused.song.instrument[mused.current_instrument].program[mused.selection.start], mused.selection.end - mused.selection.start, 
-				sizeof(mused.song.instrument[mused.current_instrument].program[0]), mused.selection.start);
+			//cp_copy_items(&mused.cp, CP_PROGRAM, &mused.song.instrument[mused.current_instrument].program[mused.selection.start], mused.selection.end - mused.selection.start, 
+				//sizeof(mused.song.instrument[mused.current_instrument].program[0]), mused.selection.start);
 			
 			if(mused.show_four_op_menu)
 			{
-				cp_copy_items(&mused.cp, CP_PROGRAM, &mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.selection.start], mused.selection.end - mused.selection.start, 
-				sizeof(mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[0]), mused.selection.start);
+				cp_copy_items(&mused.cp, CP_PROGRAM, &mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][mused.selection.start], mused.selection.end - mused.selection.start, 
+				sizeof(mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][0]), mused.selection.start);
 			}
 				
 			else
 			{
-				cp_copy_items(&mused.cp, CP_PROGRAM, &mused.song.instrument[mused.current_instrument].program[mused.selection.start], mused.selection.end - mused.selection.start, 
-				sizeof(mused.song.instrument[mused.current_instrument].program[0]), mused.selection.start);
+				cp_copy_items(&mused.cp, CP_PROGRAM, &mused.song.instrument[mused.current_instrument].program[mused.current_instrument_program][mused.selection.start], mused.selection.end - mused.selection.start, 
+				sizeof(mused.song.instrument[mused.current_instrument].program[mused.current_instrument_program][0]), mused.selection.start);
 			}
 			
 			for(int i = mused.selection.start; i <= mused.selection.end; ++i)
 			{
 				if(mused.show_four_op_menu)
 				{
-					mused.unite_bits_buffer[i] = (mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[i / 8]) & (1 << (i & 7));
+					mused.unite_bits_buffer[i] = (mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8]) & (1 << (i & 7));
 				}
 				
 				else
 				{
-					mused.unite_bits_buffer[i] = (mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8]) & (1 << (i & 7));
+					mused.unite_bits_buffer[i] = (mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_instrument_program][i / 8]) & (1 << (i & 7));
 				}
 				
 				if(mused.unite_bits_buffer[i] > 0)
@@ -192,8 +192,8 @@ void delete()
 		{
 			for(int i = mused.selection.start; i < mused.selection.end; ++i)
 			{
-				mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] &= ~(1 << (i & 7));
-				mused.song.instrument[mused.current_instrument].program[i] = MUS_FX_NOP;
+				mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_instrument_program][i / 8] &= ~(1 << (i & 7));
+				mused.song.instrument[mused.current_instrument].program[mused.current_instrument_program][i] = MUS_FX_NOP;
 			}
 		}
 		break;
@@ -202,8 +202,8 @@ void delete()
 		{
 			for(int i = mused.selection.start; i < mused.selection.end; ++i)
 			{
-				mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[i / 8] &= ~(1 << (i & 7));
-				mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[i] = MUS_FX_NOP;
+				mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] &= ~(1 << (i & 7));
+				mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] = MUS_FX_NOP;
 			}
 		}
 		break;
@@ -427,7 +427,7 @@ void paste()
 		case EDITPROG:
 		case EDITPROG4OP:
 		{
-			size_t items = cp_get_item_count(&mused.cp, sizeof(mused.song.instrument[mused.current_instrument].program[0]));
+			size_t items = cp_get_item_count(&mused.cp, sizeof(mused.song.instrument[mused.current_instrument].program[mused.current_instrument_program][0]));
 			
 			if (items < 1) 
 				break;
@@ -438,14 +438,14 @@ void paste()
 				
 				if(mused.show_four_op_menu)
 				{
-					cp_paste_items(&mused.cp, CP_PROGRAM, &mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_program_step], MUS_PROG_LEN - mused.current_program_step, 
-					sizeof(mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[0]));
+					cp_paste_items(&mused.cp, CP_PROGRAM, &mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step], MUS_PROG_LEN - mused.current_program_step, 
+					sizeof(mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][0]));
 				}
 				
 				else
 				{
-					cp_paste_items(&mused.cp, CP_PROGRAM, &mused.song.instrument[mused.current_instrument].program[mused.current_program_step], MUS_PROG_LEN - mused.current_program_step, 
-					sizeof(mused.song.instrument[mused.current_instrument].program[0]));
+					cp_paste_items(&mused.cp, CP_PROGRAM, &mused.song.instrument[mused.current_instrument].program[mused.current_instrument_program][mused.current_program_step], MUS_PROG_LEN - mused.current_program_step, 
+					sizeof(mused.song.instrument[mused.current_instrument].program[mused.current_instrument_program][0]));
 				}
 				
 				int y = 0;
@@ -456,12 +456,12 @@ void paste()
 					{
 						if(mused.show_four_op_menu)
 						{
-							mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[i / 8] &= ~(1 << (i & 7));
+							mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] &= ~(1 << (i & 7));
 						}
 						
 						else
 						{
-							mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] &= ~(1 << (i & 7));
+							mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_instrument_program][i / 8] &= ~(1 << (i & 7));
 						}
 					}
 					
@@ -469,12 +469,12 @@ void paste()
 					{
 						if(mused.show_four_op_menu)
 						{
-							mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[i / 8] |= (1 << (i & 7));
+							mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] |= (1 << (i & 7));
 						}
 						
 						else
 						{
-							mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] |= (1 << (i & 7));
+							mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_instrument_program][i / 8] |= (1 << (i & 7));
 						}
 					}
 				}

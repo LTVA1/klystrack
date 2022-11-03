@@ -1322,6 +1322,9 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 		
 		MusInstrument *inst = &mused.song.instrument[mused.current_instrument];
 		
+		if(inst->program_unite_bits[mused.current_instrument_program] == NULL) return;
+		if(inst->program[mused.current_instrument_program] == NULL) return;
+		
 		//separator("----program-----");
 		
 		int start = mused.program_position;
@@ -1332,7 +1335,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 		for (int i = 0; i < start; ++i)
 		{
 			prev_pos = pos;
-			if (!(inst->program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->program[i] & 0xff00) == MUS_FX_JUMP || (inst->program[i] & 0xff00) == MUS_FX_LABEL || (inst->program[i] & 0xff00) == MUS_FX_LOOP) ++pos; //old command if (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ++pos;
+			if (!(inst->program_unite_bits[mused.current_instrument_program][i / 8] & (1 << (i & 7))) || (inst->program[mused.current_instrument_program][i] & 0xff00) == MUS_FX_JUMP || (inst->program[mused.current_instrument_program][i] & 0xff00) == MUS_FX_LABEL || (inst->program[mused.current_instrument_program][i] & 0xff00) == MUS_FX_LOOP) ++pos; //old command if (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ++pos;
 		}
 
 		gfx_domain_set_clip(domain, &clip);
@@ -1367,27 +1370,27 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 			
 			for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
 			{
-				if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE) || ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_FM) && (mused.cyd.channel[c].fm.adsr.envelope != 0) && !(mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE))) && (mused.channel[c].flags & MUS_CHN_PROGRAM_RUNNING) && mused.channel[c].program_tick == i)
+				if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE) || ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_FM) && (mused.cyd.channel[c].fm.adsr.envelope != 0) && !(mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE))) && (mused.channel[c].program_flags & (1 << mused.current_instrument_program)) && mused.channel[c].program_tick[mused.current_instrument_program] == i)
 				{
 					cur = '½'; //where arrow pointing at current instrument program step is drawn
 					pointing_at_command = true;
 				}
 			}
 			
-			if (inst->program[i] == MUS_FX_NOP)
+			if (inst->program[mused.current_instrument_program][i] == MUS_FX_NOP)
 			{
 				strcpy(box, "....");
 			}
 			
 			else
 			{
-				sprintf(box, "%04X", inst->program[i]); //old command sprintf(box, "%04X", ((inst->program[i] & 0xf000) != 0xf000) ? (inst->program[i] & 0x7fff) : inst->program[i]);
+				sprintf(box, "%04X", inst->program[mused.current_instrument_program][i]); //old command sprintf(box, "%04X", ((inst->program[i] & 0xf000) != 0xf000) ? (inst->program[i] & 0x7fff) : inst->program[i]);
 			}
 			
 			Uint32 temp_color = mused.console->current_color;
 			Uint32 highlight_color;
 			
-			if((inst->program[mused.current_program_step] & 0xff00) == MUS_FX_JUMP && inst->program[mused.current_program_step] != MUS_FX_NOP && (mused.flags2 & HIGHLIGHT_COMMANDS) && (inst->program[mused.current_program_step] & 0xff) == i && mused.focus == EDITPROG)
+			if((inst->program[mused.current_instrument_program][mused.current_program_step] & 0xff00) == MUS_FX_JUMP && inst->program[mused.current_instrument_program][mused.current_program_step] != MUS_FX_NOP && (mused.flags2 & HIGHLIGHT_COMMANDS) && (inst->program[mused.current_instrument_program][mused.current_program_step] & 0xff) == i && mused.focus == EDITPROG)
 			{
 				highlight_color = 0x00ee00;
 				console_set_color(mused.console, highlight_color);
@@ -1419,13 +1422,13 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 				{
 					console_set_color(mused.console, temp_color);
 					
-					if((inst->program_unite_bits[my_max(i - 1, 0) / 8] & (1 << (my_max(i - 1, 0) & 7))))
+					if((inst->program_unite_bits[mused.current_instrument_program][my_max(i - 1, 0) / 8] & (1 << (my_max(i - 1, 0) & 7))))
 					{
-						for(int q = i - 1; ((inst->program_unite_bits[my_max(q, 0) / 8] & (1 << (my_max(q, 0) & 7)))) && (q >= 0); --q)
+						for(int q = i - 1; ((inst->program_unite_bits[mused.current_instrument_program][my_max(q, 0) / 8] & (1 << (my_max(q, 0) & 7)))) && (q >= 0); --q)
 						{
 							for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
 							{
-								if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE) || ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_FM) && (mused.cyd.channel[c].fm.adsr.envelope != 0) && !(mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE))) && (mused.channel[c].flags & MUS_CHN_PROGRAM_RUNNING) && mused.channel[c].program_tick == q)
+								if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE) || ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_FM) && (mused.cyd.channel[c].fm.adsr.envelope != 0) && !(mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE))) && (mused.channel[c].program_flags & (1 << mused.current_instrument_program)) && mused.channel[c].program_tick == q)
 								{
 									highlight_united = true;
 									break;
@@ -1441,19 +1444,19 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 				{
 					if(mused.jump_in_program)
 					{
-						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", (!(inst->program_unite_bits[i / 8] & (1 << (i & 7)))) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
+						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", (!(inst->program_unite_bits[mused.current_instrument_program][i / 8] & (1 << (i & 7)))) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
 							select_program_step, MAKEPTR(i), 0, 0);
 					}
 					
 					else
 					{
-						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", (!(inst->program_unite_bits[i / 8] & (1 << (i & 7)))) ? '´' : '|'), NULL, NULL, NULL, NULL);
+						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", (!(inst->program_unite_bits[mused.current_instrument_program][i / 8] & (1 << (i & 7)))) ? '´' : '|'), NULL, NULL, NULL, NULL);
 					}
 				}
 				
 				else
 				{
-					check_event(event, console_write_args(mused.console, "%c ", (!(inst->program_unite_bits[i / 8] & (1 << (i & 7)))) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
+					check_event(event, console_write_args(mused.console, "%c ", (!(inst->program_unite_bits[mused.current_instrument_program][i / 8] & (1 << (i & 7)))) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
 							select_program_step, MAKEPTR(i), 0, 0);
 				}
 			}
@@ -1484,13 +1487,13 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 				{
 					console_set_color(mused.console, temp_color);
 					
-					if(inst->program_unite_bits[(i) / 8] & (1 << ((i) & 7)))
+					if(inst->program_unite_bits[mused.current_instrument_program][(i) / 8] & (1 << ((i) & 7)))
 					{
-						for(int q = i; (inst->program_unite_bits[q / 8] & (1 << (q & 7))) && (q >= 0); --q)
+						for(int q = i; (inst->program_unite_bits[mused.current_instrument_program][q / 8] & (1 << (q & 7))) && (q >= 0); --q)
 						{
 							for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
 							{
-								if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE) || ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_FM) && (mused.cyd.channel[c].fm.adsr.envelope != 0) && !(mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE))) && (mused.channel[c].flags & MUS_CHN_PROGRAM_RUNNING) && mused.channel[c].program_tick == q)
+								if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE) || ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_FM) && (mused.cyd.channel[c].fm.adsr.envelope != 0) && !(mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE))) && (mused.channel[c].program_flags & (1 << mused.current_instrument_program)) && mused.channel[c].program_tick == q)
 								{
 									highlight_united = true;
 								}
@@ -1505,19 +1508,19 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 				{
 					if(mused.jump_in_program)
 					{
-						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", ((inst->program_unite_bits[i / 8] & (1 << (i & 7)))) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
+						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", ((inst->program_unite_bits[mused.current_instrument_program][i / 8] & (1 << (i & 7)))) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
 							select_program_step, MAKEPTR(i), 0, 0);
 					}
 					
 					else
 					{
-						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", ((inst->program_unite_bits[i / 8] & (1 << (i & 7)))) ? '`' : ' '), NULL, NULL, NULL, NULL);
+						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", ((inst->program_unite_bits[mused.current_instrument_program][i / 8] & (1 << (i & 7)))) ? '`' : ' '), NULL, NULL, NULL, NULL);
 					}
 				}
 				
 				else
 				{
-					check_event(event, console_write_args(mused.console, "%c ", ((inst->program_unite_bits[i / 8] & (1 << (i & 7)))) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
+					check_event(event, console_write_args(mused.console, "%c ", ((inst->program_unite_bits[mused.current_instrument_program][i / 8] & (1 << (i & 7)))) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
 							select_program_step, MAKEPTR(i), 0, 0);
 				}
 			}
@@ -1575,34 +1578,34 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 				}
 			}
 
-			if (!is_valid_command(inst->program[i]))
+			if (!is_valid_command(inst->program[mused.current_instrument_program][i]))
 				console_write_args(mused.console, "???");
-			else if ((inst->program[i] & 0xff00) == MUS_FX_ARPEGGIO || (inst->program[i] & 0xff00) == MUS_FX_ARPEGGIO_ABS)
+			else if ((inst->program[mused.current_instrument_program][i] & 0xff00) == MUS_FX_ARPEGGIO || (inst->program[mused.current_instrument_program][i] & 0xff00) == MUS_FX_ARPEGGIO_ABS)
 			{
-				if ((inst->program[i] & 0xff) != 0xf0 && (inst->program[i] & 0xff) != 0xf1)
-					console_write_args(mused.console, "%s", notename(((inst->program[i] & 0xff00) == MUS_FX_ARPEGGIO_ABS ? 0 : inst->base_note) + (inst->program[i] & 0xff)));
+				if ((inst->program[mused.current_instrument_program][i] & 0xff) != 0xf0 && (inst->program[mused.current_instrument_program][i] & 0xff) != 0xf1)
+					console_write_args(mused.console, "%s", notename(((inst->program[mused.current_instrument_program][i] & 0xff00) == MUS_FX_ARPEGGIO_ABS ? 0 : inst->base_note) + (inst->program[mused.current_instrument_program][i] & 0xff)));
 				else
-					console_write_args(mused.console, "EXT%x", inst->program[i] & 0x0f);
+					console_write_args(mused.console, "EXT%x", inst->program[mused.current_instrument_program][i] & 0x0f);
 			}
 			
-			else if ((inst->program[i] & 0xff00) == MUS_FX_ARPEGGIO_DOWN)
+			else if ((inst->program[mused.current_instrument_program][i] & 0xff00) == MUS_FX_ARPEGGIO_DOWN)
 			{
-				console_write_args(mused.console, "%s", notename(((inst->program[i] & 0xff00) == MUS_FX_ARPEGGIO_ABS ? 0 : inst->base_note) - (inst->program[i] & 0xff)));
+				console_write_args(mused.console, "%s", notename(((inst->program[mused.current_instrument_program][i] & 0xff00) == MUS_FX_ARPEGGIO_ABS ? 0 : inst->base_note) - (inst->program[mused.current_instrument_program][i] & 0xff)));
 			}
 			
-			else if ((inst->program[i] & 0xff00) == MUS_FX_SET_2ND_ARP_NOTE || (inst->program[i] & 0xff00) == MUS_FX_SET_3RD_ARP_NOTE)
+			else if ((inst->program[mused.current_instrument_program][i] & 0xff00) == MUS_FX_SET_2ND_ARP_NOTE || (inst->program[mused.current_instrument_program][i] & 0xff00) == MUS_FX_SET_3RD_ARP_NOTE)
 			{
-				console_write_args(mused.console, "%s", notename(inst->base_note + (inst->program[i] & 0xff)));
+				console_write_args(mused.console, "%s", notename(inst->base_note + (inst->program[mused.current_instrument_program][i] & 0xff)));
 			}
 			
-			else if ((inst->program[i] & 0xff00) == MUS_FX_SET_NOISE_CONSTANT_PITCH)
+			else if ((inst->program[mused.current_instrument_program][i] & 0xff00) == MUS_FX_SET_NOISE_CONSTANT_PITCH)
 			{
-				console_write_args(mused.console, "NOI %s", notename(inst->program[i] & 0xff));
+				console_write_args(mused.console, "NOI %s", notename(inst->program[mused.current_instrument_program][i] & 0xff));
 			}
 			
-			else if (inst->program[i] != MUS_FX_NOP)
+			else if (inst->program[mused.current_instrument_program][i] != MUS_FX_NOP)
 			{
-				const InstructionDesc *d = get_instruction_desc(inst->program[i]);
+				const InstructionDesc *d = get_instruction_desc(inst->program[mused.current_instrument_program][i]);
 				
 				if (d)
 					console_write(mused.console, d->shortname ? d->shortname : d->name);
@@ -1615,7 +1618,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 
 			prev_pos = pos;
 
-			if (!(inst->program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->program[i] & 0xff00) == MUS_FX_JUMP || (inst->program[i] & 0xff00) == MUS_FX_LABEL || (inst->program[i] & 0xff00) == MUS_FX_LOOP) ++pos;
+			if (!(inst->program_unite_bits[mused.current_instrument_program][i / 8] & (1 << (i & 7))) || (inst->program[mused.current_instrument_program][i] & 0xff00) == MUS_FX_JUMP || (inst->program[mused.current_instrument_program][i] & 0xff00) == MUS_FX_LABEL || (inst->program[mused.current_instrument_program][i] & 0xff00) == MUS_FX_LOOP) ++pos;
 		}
 
 		if (mused.focus == EDITPROG && mused.selection.start != mused.selection.end
@@ -2082,7 +2085,8 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 		
 		my_separator(&frame, &r);
 		
-		inst_text(event, &r, P_NUM_OF_MACROS, "PROGRAM NUMBER", "%02X", MAKEPTR(inst->num_macros), 2);
+		//inst_text(event, &r, P_NUM_OF_MACROS, "PROGRAM NUMBER", "%02X", MAKEPTR(inst->num_macros), 2);
+		inst_text(event, &r, P_NUM_OF_MACROS, "PROGRAM NUMBER", "%02X", MAKEPTR(mused.current_instrument_program), 2);
 		update_rect(&frame, &r);
 		
 		inst_field(event, &r, P_NAME, MUS_MACRO_NAME_LEN, mused.song.instrument[mused.current_instrument].program_names[mused.current_instrument_program]);
@@ -2532,7 +2536,8 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			
 			my_separator(&view, &r);
 		
-			four_op_text(event, &r, FOUROP_NUM_OF_MACROS, "PROGRAM NUMBER", "%1X", MAKEPTR(inst->ops[mused.selected_operator - 1].num_macros), 1);
+			//four_op_text(event, &r, FOUROP_NUM_OF_MACROS, "PROGRAM NUMBER", "%1X", MAKEPTR(inst->ops[mused.selected_operator - 1].num_macros), 1);
+			four_op_text(event, &r, FOUROP_NUM_OF_MACROS, "PROGRAM NUMBER", "%1X", MAKEPTR(mused.current_fourop_program[mused.selected_operator - 1]), 1);
 			update_rect(&view, &r);
 			
 			inst_field(event, &r, P_NAME, MUS_MACRO_NAME_LEN, mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_names[mused.current_fourop_program[mused.selected_operator - 1]]);
@@ -2970,7 +2975,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			update_rect(&view2, &r);
 			four_op_text(event, &r, FOUROP_TREMDELAY,   "TR.DEL", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].tremolo_delay), 2);
 			update_rect(&view2, &r);
-			four_op_text(event, &r, FOUROP_PROGPERIOD, "P.PRD", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].prog_period), 2);
+			four_op_text(event, &r, FOUROP_PROGPERIOD, "P.PRD", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].prog_period[mused.current_fourop_program[mused.selected_operator - 1]]), 2);
 			update_rect(&view2, &r);
 			four_op_flags(event, &r, FOUROP_NORESTART, "NO RESTART", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_NO_PROG_RESTART);
 			update_rect(&view2, &r);
@@ -3027,6 +3032,9 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 
 		MusInstrument *inst = &mused.song.instrument[mused.current_instrument];
 		
+		if(inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]] == NULL) return;
+		if(inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]] == NULL) return;
+		
 		int start = mused.fourop_program_position[mused.selected_operator - 1];
 
 		int pos = 0, prev_pos = -1;
@@ -3035,7 +3043,7 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 		for (int i = 0; i < start; ++i)
 		{
 			prev_pos = pos;
-			if (!(inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_JUMP || (inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_LABEL || (inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_LOOP) ++pos; //old command if (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ++pos;
+			if (!(inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xff00) == MUS_FX_JUMP || (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xff00) == MUS_FX_LABEL || (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xff00) == MUS_FX_LOOP) ++pos; //old command if (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ++pos;
 		}
 
 		gfx_domain_set_clip(domain, &clip);
@@ -3075,7 +3083,7 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 
 			for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
 			{
-				if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].adsr.envelope > 0) && (mused.channel[c].ops[mused.selected_operator - 1].flags & MUS_FM_OP_PROGRAM_RUNNING) && mused.channel[c].ops[mused.selected_operator - 1].program_tick == i) && !(inst->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG))
+				if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].adsr.envelope > 0) && (mused.channel[c].ops[mused.selected_operator - 1].program_flags & (1 << (mused.current_fourop_program[mused.selected_operator - 1]))) && mused.channel[c].ops[mused.selected_operator - 1].program_tick[mused.current_fourop_program[mused.selected_operator - 1]] == i) && !(inst->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG))
 				//if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].flags & CYD_FM_OP_ENABLE_GATE) && (mused.channel[c].ops[mused.selected_operator - 1].flags & MUS_FM_OP_PROGRAM_RUNNING) && mused.channel[c].ops[mused.selected_operator - 1].program_tick == i) && !(inst->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG))
 				{
 					cur = '½'; //where arrow pointing at current instrument (operator) program step is drawn
@@ -3083,20 +3091,20 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 				}
 			}
 
-			if (inst->ops[mused.selected_operator - 1].program[i] == MUS_FX_NOP)
+			if (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] == MUS_FX_NOP)
 			{
 				strcpy(box, "....");
 			}
 			
 			else
 			{
-				sprintf(box, "%04X", inst->ops[mused.selected_operator - 1].program[i]); //old command sprintf(box, "%04X", ((inst->program[i] & 0xf000) != 0xf000) ? (inst->program[i] & 0x7fff) : inst->program[i]);
+				sprintf(box, "%04X", inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i]); //old command sprintf(box, "%04X", ((inst->program[i] & 0xf000) != 0xf000) ? (inst->program[i] & 0x7fff) : inst->program[i]);
 			}
 			
 			Uint32 temp_color = mused.console->current_color;
 			Uint32 highlight_color;
 			
-			if((inst->ops[mused.selected_operator - 1].program[mused.current_program_step] & 0xff00) == MUS_FX_JUMP && inst->ops[mused.selected_operator - 1].program[mused.current_program_step] != MUS_FX_NOP && (mused.flags2 & HIGHLIGHT_COMMANDS) && (inst->ops[mused.selected_operator - 1].program[mused.current_program_step] & 0xff) == i && mused.focus == EDITPROG4OP)
+			if((inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step] & 0xff00) == MUS_FX_JUMP && inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step] != MUS_FX_NOP && (mused.flags2 & HIGHLIGHT_COMMANDS) && (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step] & 0xff) == i && mused.focus == EDITPROG4OP)
 			{
 				highlight_color = 0x00ee00;
 				console_set_color(mused.console, highlight_color);
@@ -3128,13 +3136,13 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 				{
 					console_set_color(mused.console, temp_color);
 					
-					if((inst->ops[mused.selected_operator - 1].program_unite_bits[my_max(i - 1, 0) / 8] & (1 << (my_max(i - 1, 0) & 7))))
+					if((inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][my_max(i - 1, 0) / 8] & (1 << (my_max(i - 1, 0) & 7))))
 					{
-						for(int q = i - 1; ((inst->ops[mused.selected_operator - 1].program_unite_bits[my_max(q, 0) / 8] & (1 << (my_max(q, 0) & 7)))) && (q >= 0); --q)
+						for(int q = i - 1; ((inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][my_max(q, 0) / 8] & (1 << (my_max(q, 0) & 7)))) && (q >= 0); --q)
 						{
 							for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
 							{
-								if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].adsr.envelope > 0) && (mused.channel[c].ops[mused.selected_operator - 1].flags & MUS_FM_OP_PROGRAM_RUNNING) && mused.channel[c].ops[mused.selected_operator - 1].program_tick == q) && !(inst->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG))
+								if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].adsr.envelope > 0) && (mused.channel[c].ops[mused.selected_operator - 1].program_flags & (1 << mused.current_fourop_program[mused.selected_operator - 1])) && mused.channel[c].ops[mused.selected_operator - 1].program_tick[mused.current_fourop_program[mused.selected_operator - 1]] == q) && !(inst->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG))
 								{
 									highlight_united = true;
 								}
@@ -3149,20 +3157,20 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 				{
 					if(mused.jump_in_program_4op)
 					{
-						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[i] & 0xf000) == 0xf000) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
+						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xf000) == 0xf000) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
 							select_program_step, MAKEPTR(i), 0, 0);
 					}
 					
 					else
 					{
-						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[i] & 0xf000) == 0xf000) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
+						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xf000) == 0xf000) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
 							NULL, 0, 0, 0);
 					}
 				}
 				
 				else
 				{
-					check_event(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[i] & 0xf000) == 0xf000) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
+					check_event(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xf000) == 0xf000) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
 							select_program_step, MAKEPTR(i), 0, 0);
 				}
 			}
@@ -3193,13 +3201,13 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 				{
 					console_set_color(mused.console, temp_color);
 					
-					if((inst->ops[mused.selected_operator - 1].program_unite_bits[(i) / 8] & (1 << ((i) & 7))) || (inst->ops[mused.selected_operator - 1].program_unite_bits[my_max(i - 1, 0) / 8] & (1 << (my_max(i - 1, 0) & 7))))
+					if((inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][(i) / 8] & (1 << ((i) & 7))) || (inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][my_max(i - 1, 0) / 8] & (1 << (my_max(i - 1, 0) & 7))))
 					{
-						for(int q = i; (inst->ops[mused.selected_operator - 1].program_unite_bits[q / 8] & (1 << (q & 7))) && (q >= 0); --q)
+						for(int q = i; (inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][q / 8] & (1 << (q & 7))) && (q >= 0); --q)
 						{
 							for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
 							{
-								if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].adsr.envelope > 0) && (mused.channel[c].ops[mused.selected_operator - 1].flags & MUS_FM_OP_PROGRAM_RUNNING) && mused.channel[c].ops[mused.selected_operator - 1].program_tick == q) && !(inst->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG))
+								if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].adsr.envelope > 0) && (mused.channel[c].ops[mused.selected_operator - 1].program_flags & (1 << mused.current_fourop_program[mused.selected_operator - 1])) && mused.channel[c].ops[mused.selected_operator - 1].program_tick[mused.current_fourop_program[mused.selected_operator - 1]] == q) && !(inst->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG))
 								{
 									highlight_united = true;
 								}
@@ -3214,20 +3222,20 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 				{
 					if(mused.jump_in_program_4op)
 					{
-						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", ((inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) && (inst->ops[mused.selected_operator - 1].program[i] & 0xf000) != 0xf000) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
+						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", ((inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7))) && (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xf000) != 0xf000) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
 							select_program_step, MAKEPTR(i), 0, 0);
 					}
 					
 					else
 					{
-						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", ((inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) && (inst->ops[mused.selected_operator - 1].program[i] & 0xf000) != 0xf000) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
+						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", ((inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7))) && (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xf000) != 0xf000) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
 							NULL, 0, 0, 0);
 					}
 				}
 				
 				else
 				{
-					check_event(event, console_write_args(mused.console, "%c ", ((inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) && (inst->ops[mused.selected_operator - 1].program[i] & 0xf000) != 0xf000) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
+					check_event(event, console_write_args(mused.console, "%c ", ((inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7))) && (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xf000) != 0xf000) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
 							select_program_step, MAKEPTR(i), 0, 0);
 				}
 			}
@@ -3285,37 +3293,37 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 				}
 			}
 
-			if (!is_valid_command(inst->ops[mused.selected_operator - 1].program[i]))
+			if (!is_valid_command(inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i]))
 			{
 				console_write_args(mused.console, "???");
 			}
 			
-			else if ((inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_ARPEGGIO || (inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_ARPEGGIO_ABS)
+			else if ((inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xff00) == MUS_FX_ARPEGGIO || (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xff00) == MUS_FX_ARPEGGIO_ABS)
 			{
-				if ((inst->ops[mused.selected_operator - 1].program[i] & 0xff) != 0xf0 && (inst->ops[mused.selected_operator - 1].program[i] & 0xff) != 0xf1)
-					console_write_args(mused.console, "%s", notename(((inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_ARPEGGIO_ABS ? 0 : ((inst->fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) ? inst->ops[mused.selected_operator - 1].base_note : inst->base_note)) + (inst->ops[mused.selected_operator - 1].program[i] & 0xff)));
+				if ((inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xff) != 0xf0 && (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xff) != 0xf1)
+					console_write_args(mused.console, "%s", notename(((inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xff00) == MUS_FX_ARPEGGIO_ABS ? 0 : ((inst->fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) ? inst->ops[mused.selected_operator - 1].base_note : inst->base_note)) + (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xff)));
 				else
-					console_write_args(mused.console, "EXT%x", inst->ops[mused.selected_operator - 1].program[i] & 0x0f);
+					console_write_args(mused.console, "EXT%x", inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0x0f);
 			}
 			
-			else if ((inst->program[i] & 0xff00) == MUS_FX_ARPEGGIO_DOWN)
+			else if ((inst->program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xff00) == MUS_FX_ARPEGGIO_DOWN)
 			{
-				console_write_args(mused.console, "%s", notename(((inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_ARPEGGIO_ABS ? 0 : ((inst->fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) ? inst->ops[mused.selected_operator - 1].base_note : inst->base_note)) - (inst->ops[mused.selected_operator - 1].program[i] & 0xff)));
+				console_write_args(mused.console, "%s", notename(((inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xff00) == MUS_FX_ARPEGGIO_ABS ? 0 : ((inst->fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) ? inst->ops[mused.selected_operator - 1].base_note : inst->base_note)) - (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xff)));
 			}
 			
-			else if ((inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_SET_2ND_ARP_NOTE || (inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_SET_3RD_ARP_NOTE)
+			else if ((inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xff00) == MUS_FX_SET_2ND_ARP_NOTE || (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xff00) == MUS_FX_SET_3RD_ARP_NOTE)
 			{
-				console_write_args(mused.console, "%s", notename(((inst->fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) ? inst->ops[mused.selected_operator - 1].base_note : inst->base_note) + (inst->ops[mused.selected_operator - 1].program[i] & 0xff)));
+				console_write_args(mused.console, "%s", notename(((inst->fm_flags & CYD_FM_ENABLE_3CH_EXP_MODE) ? inst->ops[mused.selected_operator - 1].base_note : inst->base_note) + (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xff)));
 			}
 			
-			else if ((inst->ops[mused.selected_operator - 1].program[i] & 0xff00) == MUS_FX_SET_NOISE_CONSTANT_PITCH)
+			else if ((inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xff00) == MUS_FX_SET_NOISE_CONSTANT_PITCH)
 			{
-				console_write_args(mused.console, "NOI %s", notename(inst->ops[mused.selected_operator - 1].program[i] & 0xff));
+				console_write_args(mused.console, "NOI %s", notename(inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xff));
 			}
 			
-			else if (inst->ops[mused.selected_operator - 1].program[i] != MUS_FX_NOP)
+			else if (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] != MUS_FX_NOP)
 			{
-				const InstructionDesc *d = get_instruction_desc(inst->ops[mused.selected_operator - 1].program[i]);
+				const InstructionDesc *d = get_instruction_desc(inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i]);
 				
 				if (d)
 				{
@@ -3333,7 +3341,7 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 
 			prev_pos = pos;
 
-			if (!(inst->ops[mused.selected_operator - 1].program_unite_bits[i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[i] & 0xf000) == 0xf000) ++pos;
+			if (!(inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xf000) == 0xf000) ++pos;
 		}
 
 		if (mused.focus == EDITPROG4OP && mused.selection.start != mused.selection.end
@@ -3421,7 +3429,7 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 		inst_text(event, &r, P_TREMDELAY,   "TR.DEL", "%02X", MAKEPTR(inst->tremolo_delay), 2);
 		update_rect(&frame, &r);
 		
-		inst_text(event, &r, P_PROGPERIOD, "P.PRD", "%02X", MAKEPTR(inst->prog_period), 2);
+		inst_text(event, &r, P_PROGPERIOD, "P.PRD", "%02X", MAKEPTR(inst->prog_period[mused.current_instrument_program]), 2);
 		update_rect(&frame, &r);
 		inst_flags(event, &r, P_NORESTART, "NO RESTART", &inst->flags, MUS_INST_NO_PROG_RESTART);
 		update_rect(&frame, &r);

@@ -166,43 +166,43 @@ static void ahx_program(Uint8 fx1, Uint8 data1, int *pidx, MusInstrument *i, con
 	switch (fx1)
 	{
 		case 0:
-			i->program[*pidx] = MUS_FX_CUTOFF_SET_COMBINED | (get_cutoff(data1 & 0x3f));
+			i->program[0][*pidx] = MUS_FX_CUTOFF_SET_COMBINED | (get_cutoff(data1 & 0x3f));
 			break;
 
 		case 1:
-			i->program[*pidx] = MUS_FX_PORTA_UP | (data1 & 0xff);
+			i->program[0][*pidx] = MUS_FX_PORTA_UP | (data1 & 0xff);
 			break;
 
 		case 2:
-			i->program[*pidx] = MUS_FX_PORTA_DN | (data1 & 0xff);
+			i->program[0][*pidx] = MUS_FX_PORTA_DN | (data1 & 0xff);
 			break;
 
 		case 3:
-			i->program[*pidx] = MUS_FX_PW_SET | my_min(255, my_max(8, ((int)(data1) * 0x80 / 63)));
+			i->program[0][*pidx] = MUS_FX_PW_SET | my_min(255, my_max(8, ((int)(data1) * 0x80 / 63)));
 			break;
 
 		case 0xf:
-			i->program[*pidx] = MUS_FX_SET_SPEED | data1;
+			i->program[0][*pidx] = MUS_FX_SET_SPEED | data1;
 			break;
 
 		case 4:
 			*has_4xx |= data1;
 		case 7:
 			--*pidx; // not supported
-			i->program[*pidx] &= ~0x8000;
+			i->program[0][*pidx] &= ~0x8000;
 			break;
 
 		case 5:
-			i->program[*pidx] = MUS_FX_JUMP | (pos[data1] & (MUS_PROG_LEN - 1));
-			if (*pidx > 0) i->program[*pidx - 1] &= ~0x8000;
+			i->program[0][*pidx] = MUS_FX_JUMP | (pos[data1] & (MUS_PROG_LEN - 1));
+			if (*pidx > 0) i->program[0][*pidx - 1] &= ~0x8000;
 			break;
 
 		case 0xc:
 		case 6:
 			if (data1<=0x40)
-				i->program[*pidx] = MUS_FX_SET_VOLUME | (data1 * 2);
+				i->program[0][*pidx] = MUS_FX_SET_VOLUME | (data1 * 2);
 			else if (data1>=0x50 && data1<=0x90)
-				i->program[*pidx] = MUS_FX_SET_VOLUME | ((int)(data1 - 0x50) * 2); // should be relative but no can do
+				i->program[0][*pidx] = MUS_FX_SET_VOLUME | ((int)(data1 - 0x50) * 2); // should be relative but no can do
 
 			break;
 	}
@@ -403,7 +403,7 @@ int import_ahx(FILE *f)
 			i->cutoff = 2047;
 
 		fread(&byte, 1, 1, f);
-		i->prog_period = byte;
+		i->prog_period[0] = byte;
 
 		int PLEN;
 		fread(&byte, 1, 1, f);
@@ -441,16 +441,16 @@ int import_ahx(FILE *f)
 					switch (wave)
 					{
 						case 1:
-							i->program[pidx] = MUS_FX_SET_WAVEFORM | CYD_CHN_ENABLE_TRIANGLE;
+							i->program[0][pidx] = MUS_FX_SET_WAVEFORM | CYD_CHN_ENABLE_TRIANGLE;
 							break;
 						case 2:
-							i->program[pidx] = MUS_FX_SET_WAVEFORM | CYD_CHN_ENABLE_SAW;
+							i->program[0][pidx] = MUS_FX_SET_WAVEFORM | CYD_CHN_ENABLE_SAW;
 							break;
 						case 3:
-							i->program[pidx] = MUS_FX_SET_WAVEFORM | CYD_CHN_ENABLE_PULSE;
+							i->program[0][pidx] = MUS_FX_SET_WAVEFORM | CYD_CHN_ENABLE_PULSE;
 							break;
 						case 4:
-							i->program[pidx] = MUS_FX_SET_WAVEFORM | CYD_CHN_ENABLE_NOISE;
+							i->program[0][pidx] = MUS_FX_SET_WAVEFORM | CYD_CHN_ENABLE_NOISE;
 							break;
 						default:
 							break;
@@ -461,7 +461,7 @@ int import_ahx(FILE *f)
 				{
 					if (wave && pidx < MUS_PROG_LEN - 1)
 					{
-						i->program[pidx] |= 0x8000;
+						i->program[0][pidx] |= 0x8000;
 						++pidx;
 					}
 
@@ -471,7 +471,7 @@ int import_ahx(FILE *f)
 
 					n = my_max(0, my_min(n, FREQ_TAB_SIZE - 1));
 
-					if (pidx < MUS_PROG_LEN - 1) i->program[pidx] = (fixed_note ? MUS_FX_ARPEGGIO_ABS : MUS_FX_ARPEGGIO) | ((fixed_note ? (n + 12 * 5) : n) & 0xff);
+					if (pidx < MUS_PROG_LEN - 1) i->program[0][pidx] = (fixed_note ? MUS_FX_ARPEGGIO_ABS : MUS_FX_ARPEGGIO) | ((fixed_note ? (n + 12 * 5) : n) & 0xff);
 				}
 
 				if (fx1 == 0x5 && fx2 != 0x0)
@@ -492,7 +492,7 @@ int import_ahx(FILE *f)
 					if ((wave || note) && pidx < MUS_PROG_LEN - 1)
 					{
 						//i->program[pidx] |= 0x8000;
-						i->program_unite_bits[pidx / 8] |= (1 << (pidx & 7));
+						i->program_unite_bits[0][pidx / 8] |= (1 << (pidx & 7));
 						++pidx;
 					}
 
@@ -503,7 +503,7 @@ int import_ahx(FILE *f)
 				{
 					if ((wave || note || (fx1 || data1)) && pidx < MUS_PROG_LEN - 1)
 					{
-						i->program_unite_bits[pidx / 8] |= (1 << (pidx & 7));
+						i->program_unite_bits[0][pidx / 8] |= (1 << (pidx & 7));
 						++pidx;
 					}
 
@@ -526,7 +526,7 @@ int import_ahx(FILE *f)
 			i->cutoff = 4096; // no modulation set so disable
 		}
 
-		i->program[pidx] = MUS_FX_END;
+		i->program[0][pidx] = MUS_FX_END;
 	}
 
 	size_t begin_names = ftell(f);

@@ -48,12 +48,12 @@ void editparambox(int v)
 	
 	if(mused.show_four_op_menu)
 	{
-		param = &inst->ops[mused.selected_operator - 1].program[mused.current_program_step];
+		param = &inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step];
 	}
 	
 	else
 	{
-		param = &inst->program[mused.current_program_step];
+		param = &inst->program[mused.current_instrument_program][mused.current_program_step];
 	}
 	
 	Uint32 mask = 0xffff0fff >> (mused.editpos*4);
@@ -428,7 +428,7 @@ void instrument_add_param(int a)
 
 		case P_PROGPERIOD:
 
-		clamp(i->prog_period, a, 0, 0xff);
+		clamp(i->prog_period[mused.current_instrument_program], a, 0, 0xff);
 
 		break;
 
@@ -607,7 +607,7 @@ void instrument_add_param(int a)
 
 		case P_RINGMODSRC:
 		{
-			int x = (Uint8)(i->ring_mod+1);
+			int x = (Uint8)(i->ring_mod + 1);
 			clamp(x, a, 0, MUS_MAX_CHANNELS);
 			i->ring_mod = x - 1;
 		}
@@ -633,9 +633,40 @@ void instrument_add_param(int a)
 		
 		case P_NUM_OF_MACROS: //wasn't there
 
-		clamp(i->num_macros, a, 0, MUS_MAX_MACROS_INST);  //was `0, 3)`
+		//clamp(i->num_macros, a, 0, MUS_MAX_MACROS_INST);  //was `0, 3)`
 		
-		mused.current_instrument_program = i->num_macros;
+		if(mused.current_instrument_program + a >= 0 && mused.current_instrument_program + a < MUS_MAX_MACROS_INST)
+		{
+			if(a == 1)
+			{
+				if(!(is_empty_program(i->program[mused.current_instrument_program])))
+				{
+					mused.current_instrument_program++;
+					i->num_macros++;
+					
+					if(i->program[i->num_macros - 1] == NULL)
+					{
+						i->program[i->num_macros - 1] = (Uint16*)malloc(MUS_PROG_LEN * sizeof(Uint16));
+						i->program_unite_bits[i->num_macros - 1] = (Uint8*)malloc((MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
+
+						for (int p = 0; p < MUS_PROG_LEN; ++p)
+						{
+							i->program[i->num_macros - 1][p] = MUS_FX_NOP;
+						}
+						
+						for (int p = 0; p < MUS_PROG_LEN / 8 + 1; ++p)
+						{
+							i->program_unite_bits[i->num_macros - 1][p] = 0;
+						}
+					}
+				}
+			}
+			
+			if(a == -1)
+			{
+				mused.current_instrument_program--;
+			}
+		}
 
 		break;
 
@@ -1192,7 +1223,7 @@ void four_op_add_param(int a)
 
 		case FOUROP_PROGPERIOD:
 
-		clamp(i->ops[mused.selected_operator - 1].prog_period, a, 0, 0xff);
+		clamp(i->ops[mused.selected_operator - 1].prog_period[mused.current_fourop_program[mused.selected_operator - 1]], a, 0, 0xff);
 
 		break;
 
@@ -1344,9 +1375,42 @@ void four_op_add_param(int a)
 		
 		case FOUROP_NUM_OF_MACROS: //wasn't there
 
-		clamp(i->ops[mused.selected_operator - 1].num_macros, a, 0, MUS_MAX_MACROS_OP);
+		//clamp(i->ops[mused.selected_operator - 1].num_macros, a, 0, MUS_MAX_MACROS_OP);
 		
-		mused.current_fourop_program[mused.selected_operator - 1] = i->ops[mused.selected_operator - 1].num_macros;
+		//mused.current_fourop_program[mused.selected_operator - 1] = i->ops[mused.selected_operator - 1].num_macros;
+		
+		if(mused.current_instrument_program + a >= 0 && mused.current_instrument_program + a < MUS_MAX_MACROS_OP)
+		{
+			if(a == 1)
+			{
+				if(!(is_empty_program(i->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]])))
+				{
+					mused.current_fourop_program[mused.selected_operator - 1]++;
+					i->ops[mused.selected_operator - 1].num_macros++;
+					
+					if(i->ops[mused.selected_operator - 1].program[i->ops[mused.selected_operator - 1].num_macros - 1] == NULL)
+					{
+						i->ops[mused.selected_operator - 1].program[i->ops[mused.selected_operator - 1].num_macros - 1] = (Uint16*)malloc(MUS_PROG_LEN * sizeof(Uint16));
+						i->ops[mused.selected_operator - 1].program_unite_bits[i->ops[mused.selected_operator - 1].num_macros - 1] = (Uint8*)malloc((MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
+
+						for (int p = 0; p < MUS_PROG_LEN; ++p)
+						{
+							i->program[i->ops[mused.selected_operator - 1].num_macros - 1][p] = MUS_FX_NOP;
+						}
+						
+						for (int p = 0; p < MUS_PROG_LEN / 8 + 1; ++p)
+						{
+							i->program_unite_bits[i->ops[mused.selected_operator - 1].num_macros - 1][p] = 0;
+						}
+					}
+				}
+			}
+			
+			if(a == -1)
+			{
+				mused.current_fourop_program[mused.selected_operator - 1]--;
+			}
+		}
 
 		break;
 
@@ -1466,12 +1530,15 @@ static void play_the_jams(int sym, int chn, int state)
 			
 			if(mused.mus.channel[chan].instrument != NULL)
 			{
-				for(int j = 0; j < MUS_PROG_LEN; ++j)
+				for(int pr = 0; pr < mused.mus.channel[chan].instrument->num_macros; ++pr)
 				{
-					if((mused.mus.channel[chan].instrument->program[j] & 0xff00) == MUS_FX_RELEASE_POINT)
+					for(int j = 0; j < MUS_PROG_LEN; ++j)
 					{
-						mused.mus.channel[chan].program_tick = j + 1;
-						break;
+						if((mused.mus.channel[chan].instrument->program[pr][j] & 0xff00) == MUS_FX_RELEASE_POINT)
+						{
+							mused.mus.channel[chan].program_tick[pr] = j + 1;
+							break;
+						}
 					}
 				}
 				
@@ -1479,12 +1546,15 @@ static void play_the_jams(int sym, int chn, int state)
 				{
 					for(int j = 0; j < CYD_FM_NUM_OPS; ++j)
 					{
-						for(int k = 0; k < MUS_PROG_LEN; ++k)
+						for(int pr = 0; pr < mused.mus.channel[chan].instrument->ops[j].num_macros; ++pr)
 						{
-							if((mused.mus.channel[chan].instrument->ops[j].program[k] & 0xff00) == MUS_FX_RELEASE_POINT)
+							for(int k = 0; k < MUS_PROG_LEN; ++k)
 							{
-								mused.mus.channel[chan].ops[j].program_tick = k + 1;
-								break;
+								if((mused.mus.channel[chan].instrument->ops[j].program[pr][k] & 0xff00) == MUS_FX_RELEASE_POINT)
+								{
+									mused.mus.channel[chan].ops[j].program_tick[pr] = k + 1;
+									break;
+								}
 							}
 						}
 					}
@@ -1541,12 +1611,15 @@ static void wave_the_jams(int sym)
 			
 			if(mused.mus.channel[chan].instrument != NULL)
 			{
-				for(int j = 0; j < MUS_PROG_LEN; ++j)
+				for(int pr = 0; pr < mused.mus.channel[chan].instrument->num_macros; ++pr)
 				{
-					if((mused.mus.channel[chan].instrument->program[j] & 0xff00) == MUS_FX_RELEASE_POINT)
+					for(int j = 0; j < MUS_PROG_LEN; ++j)
 					{
-						mused.mus.channel[chan].program_tick = j + 1;
-						break;
+						if((mused.mus.channel[chan].instrument->program[pr][j] & 0xff00) == MUS_FX_RELEASE_POINT)
+						{
+							mused.mus.channel[chan].program_tick[pr] = j + 1;
+							break;
+						}
 					}
 				}
 				
@@ -1554,12 +1627,15 @@ static void wave_the_jams(int sym)
 				{
 					for(int j = 0; j < CYD_FM_NUM_OPS; ++j)
 					{
-						for(int k = 0; k < MUS_PROG_LEN; ++k)
+						for(int pr = 0; pr < mused.mus.channel[chan].instrument->ops[j].num_macros; ++pr)
 						{
-							if((mused.mus.channel[chan].instrument->ops[j].program[k] & 0xff00) == MUS_FX_RELEASE_POINT)
+							for(int k = 0; k < MUS_PROG_LEN; ++k)
 							{
-								mused.mus.channel[chan].ops[j].program_tick = k + 1;
-								break;
+								if((mused.mus.channel[chan].instrument->ops[j].program[pr][k] & 0xff00) == MUS_FX_RELEASE_POINT)
+								{
+									mused.mus.channel[chan].ops[j].program_tick[pr] = k + 1;
+									break;
+								}
 							}
 						}
 					}
@@ -3018,12 +3094,12 @@ void edit_program_event(SDL_Event *e)
 				
 				if(mused.show_four_op_menu)
 				{
-					mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_program_step] = MUS_FX_NOP;
+					mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step] = MUS_FX_NOP;
 				}
 				
 				else
 				{
-					mused.song.instrument[mused.current_instrument].program[mused.current_program_step] = MUS_FX_NOP;
+					mused.song.instrument[mused.current_instrument].program[mused.current_instrument_program][mused.current_program_step] = MUS_FX_NOP;
 				}
 			break;
 
@@ -3031,24 +3107,22 @@ void edit_program_event(SDL_Event *e)
 			{
 				snapshot(S_T_INSTRUMENT);
 				
-				
-				
 				if(mused.show_four_op_menu)
 				{
-					Uint16 opcode = mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_program_step];
+					Uint16 opcode = mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step];
 					
-					if (((opcode & 0xff00) != MUS_FX_JUMP && (opcode & 0xff00) != MUS_FX_LABEL && (opcode & 0xff00) != MUS_FX_LOOP && opcode != MUS_FX_NOP && opcode != MUS_FX_END) && (mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[my_min(mused.current_program_step + 1, MUS_PROG_LEN)] & 0xff00) != MUS_FX_JUMP)
+					if (((opcode & 0xff00) != MUS_FX_JUMP && (opcode & 0xff00) != MUS_FX_LABEL && (opcode & 0xff00) != MUS_FX_LOOP && opcode != MUS_FX_NOP && opcode != MUS_FX_END) && (mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][my_min(mused.current_program_step + 1, MUS_PROG_LEN)] & 0xff00) != MUS_FX_JUMP)
 						//mused.song.instrument[mused.current_instrument].program[mused.current_program_step] ^= 0x8000; //old command mused.song.instrument[mused.current_instrument].program[mused.current_program_step] ^= 0x8000;
-						mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[mused.current_program_step / 8] ^= (1 << (mused.current_program_step & 7));
+						mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step / 8] ^= (1 << (mused.current_program_step & 7));
 				}
 				
 				else
 				{
-					Uint16 opcode = mused.song.instrument[mused.current_instrument].program[mused.current_program_step];
+					Uint16 opcode = mused.song.instrument[mused.current_instrument].program[mused.current_instrument_program][mused.current_program_step];
 					
-					if (((opcode & 0xff00) != MUS_FX_JUMP && (opcode & 0xff00) != MUS_FX_LABEL && (opcode & 0xff00) != MUS_FX_LOOP && opcode != MUS_FX_NOP && opcode != MUS_FX_END) && (mused.song.instrument[mused.current_instrument].program[my_min(mused.current_program_step + 1, MUS_PROG_LEN)] & 0xff00) != MUS_FX_JUMP)
+					if (((opcode & 0xff00) != MUS_FX_JUMP && (opcode & 0xff00) != MUS_FX_LABEL && (opcode & 0xff00) != MUS_FX_LOOP && opcode != MUS_FX_NOP && opcode != MUS_FX_END) && (mused.song.instrument[mused.current_instrument].program[mused.current_instrument_program][my_min(mused.current_program_step + 1, MUS_PROG_LEN)] & 0xff00) != MUS_FX_JUMP)
 						//mused.song.instrument[mused.current_instrument].program[mused.current_program_step] ^= 0x8000; //old command mused.song.instrument[mused.current_instrument].program[mused.current_program_step] ^= 0x8000;
-						mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_program_step / 8] ^= (1 << (mused.current_program_step & 7));
+						mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_instrument_program][mused.current_program_step / 8] ^= (1 << (mused.current_program_step & 7));
 				}
 			}
 			break;
@@ -3060,12 +3134,12 @@ void edit_program_event(SDL_Event *e)
 	
 				if(mused.show_four_op_menu)
 				{
-					param = &inst->ops[mused.selected_operator - 1].program[mused.current_program_step];
+					param = &inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step];
 				}
 				
 				else
 				{
-					param = &inst->program[mused.current_program_step];
+					param = &inst->program[mused.current_instrument_program][mused.current_program_step];
 				}
 				
 				*param = validate_command(*param);
@@ -3081,12 +3155,12 @@ void edit_program_event(SDL_Event *e)
 	
 				if(mused.show_four_op_menu)
 				{
-					param = &inst->ops[mused.selected_operator - 1].program[mused.current_program_step];
+					param = &inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step];
 				}
 				
 				else
 				{
-					param = &inst->program[mused.current_program_step];
+					param = &inst->program[mused.current_instrument_program][mused.current_program_step];
 				}
 				
 				*param = validate_command(*param);
@@ -3122,12 +3196,12 @@ void edit_program_event(SDL_Event *e)
 	
 				if(mused.show_four_op_menu)
 				{
-					param = &inst->ops[mused.selected_operator - 1].program[mused.current_program_step];
+					param = &inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step];
 				}
 				
 				else
 				{
-					param = &inst->program[mused.current_program_step];
+					param = &inst->program[mused.current_instrument_program][mused.current_program_step];
 				}
 				
 				*param = validate_command(*param);
@@ -3161,51 +3235,51 @@ void edit_program_event(SDL_Event *e)
 				{
 					if(mused.show_four_op_menu)
 					{
-						mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[i] = mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[i - 1];
+						mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] = mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i - 1];
 						
-						bool b = (mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[(i - 1) / 8] & (1 << ((i - 1) & 7)));
+						bool b = (mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][(i - 1) / 8] & (1 << ((i - 1) & 7)));
 						
 						if(b == false)
 						{
-							mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[i / 8] &= ~(1 << (i & 7));
+							mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] &= ~(1 << (i & 7));
 						}
 						
 						else
 						{
-							mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[i / 8] |= (1 << (i & 7));
+							mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] |= (1 << (i & 7));
 						}
 						
-						mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[(i - 1) / 8] &= ~(1 << ((i - 1) & 7));
+						mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][(i - 1) / 8] &= ~(1 << ((i - 1) & 7));
 					}
 					
 					else
 					{
-						mused.song.instrument[mused.current_instrument].program[i] = mused.song.instrument[mused.current_instrument].program[i - 1];
+						mused.song.instrument[mused.current_instrument].program[mused.current_instrument_program][i] = mused.song.instrument[mused.current_instrument].program[mused.current_instrument_program][i - 1];
 						
-						bool b = (mused.song.instrument[mused.current_instrument].program_unite_bits[(i - 1) / 8] & (1 << ((i - 1) & 7)));
+						bool b = (mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_instrument_program][(i - 1) / 8] & (1 << ((i - 1) & 7)));
 						
 						if(b == false)
 						{
-							mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] &= ~(1 << (i & 7));
+							mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_instrument_program][i / 8] &= ~(1 << (i & 7));
 						}
 						
 						else
 						{
-							mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] |= (1 << (i & 7));
+							mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_instrument_program][i / 8] |= (1 << (i & 7));
 						}
 						
-						mused.song.instrument[mused.current_instrument].program_unite_bits[(i - 1) / 8] &= ~(1 << ((i - 1) & 7));
+						mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_instrument_program][(i - 1) / 8] &= ~(1 << ((i - 1) & 7));
 					}
 				}
 				
 				if(mused.show_four_op_menu)
 				{
-					mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_program_step] = MUS_FX_NOP;
+					mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step] = MUS_FX_NOP;
 				}
 				
 				else
 				{
-					mused.song.instrument[mused.current_instrument].program[mused.current_program_step] = MUS_FX_NOP;
+					mused.song.instrument[mused.current_instrument].program[mused.current_instrument_program][mused.current_program_step] = MUS_FX_NOP;
 				}
 			}
 			break;
@@ -3240,47 +3314,47 @@ void edit_program_event(SDL_Event *e)
 					{
 						if(mused.show_four_op_menu)
 						{
-							mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[i] = mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[i + 1];
+							mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] = mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i + 1];
 							
-							bool b = (mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[(i + 1) / 8] & (1 << ((i + 1) & 7)));
+							bool b = (mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][(i + 1) / 8] & (1 << ((i + 1) & 7)));
 							
 							if(b == false)
 							{
-								mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[i / 8] &= ~(1 << (i & 7));
+								mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] &= ~(1 << (i & 7));
 							}
 							
 							else
 							{
-								mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[i / 8] |= (1 << (i & 7));
+								mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] |= (1 << (i & 7));
 							}
 						}
 						
 						else
 						{
-							mused.song.instrument[mused.current_instrument].program[i] = mused.song.instrument[mused.current_instrument].program[i + 1];
+							mused.song.instrument[mused.current_instrument].program[mused.current_instrument_program][i] = mused.song.instrument[mused.current_instrument].program[mused.current_instrument_program][i + 1];
 							
-							bool b = (mused.song.instrument[mused.current_instrument].program_unite_bits[(i + 1) / 8] & (1 << ((i + 1) & 7)));
+							bool b = (mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_instrument_program][(i + 1) / 8] & (1 << ((i + 1) & 7)));
 							
 							if(b == false)
 							{
-								mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] &= ~(1 << (i & 7));
+								mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_instrument_program][i / 8] &= ~(1 << (i & 7));
 							}
 							
 							else
 							{
-								mused.song.instrument[mused.current_instrument].program_unite_bits[i / 8] |= (1 << (i & 7));
+								mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_instrument_program][i / 8] |= (1 << (i & 7));
 							}
 						}
 					}
 					
 					if(mused.show_four_op_menu)
 					{
-						mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[MUS_PROG_LEN - 1] = MUS_FX_NOP;
+						mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][MUS_PROG_LEN - 1] = MUS_FX_NOP;
 					}
 					
 					else
 					{
-						mused.song.instrument[mused.current_instrument].program[MUS_PROG_LEN - 1] = MUS_FX_NOP;
+						mused.song.instrument[mused.current_instrument].program[mused.current_instrument_program][MUS_PROG_LEN - 1] = MUS_FX_NOP;
 					}
 				}
 				
@@ -3288,16 +3362,16 @@ void edit_program_event(SDL_Event *e)
 				{
 					if(mused.show_four_op_menu)
 					{
-						mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_program_step] = MUS_FX_NOP;
+						mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step] = MUS_FX_NOP;
 						
-						mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[mused.current_program_step / 8] &= ~(1 << (mused.current_program_step & 7));
+						mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step / 8] &= ~(1 << (mused.current_program_step & 7));
 					}
 					
 					else
 					{
-						mused.song.instrument[mused.current_instrument].program[mused.current_program_step] = MUS_FX_NOP;
+						mused.song.instrument[mused.current_instrument].program[mused.current_instrument_program][mused.current_program_step] = MUS_FX_NOP;
 						
-						mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_program_step / 8] &= ~(1 << (mused.current_program_step & 7));
+						mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_instrument_program][mused.current_program_step / 8] &= ~(1 << (mused.current_program_step & 7));
 					}
 					
 					++mused.current_program_step;

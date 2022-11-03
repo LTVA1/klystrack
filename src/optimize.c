@@ -176,23 +176,29 @@ bool is_wavetable_used(const MusSong *song, int wavetable)
 					return true;
 				}
 				
-				for (int p = 0; p < MUS_PROG_LEN; ++p)
+				for(int pr = 0; pr < song->instrument[i].ops[j].num_macros; ++pr)
 				{
-					if ((song->instrument[i].ops[j].program[p] & 0xffff) == (MUS_FX_SET_WAVETABLE_ITEM | wavetable))
+					for (int p = 0; p < MUS_PROG_LEN; ++p)
 					{
-						debug("Wavetable %x used by instrument %x FM operator %x program (step %d)", wavetable, i, j, p);
-						return true;
+						if ((song->instrument[i].ops[j].program[pr][p] & 0xffff) == (MUS_FX_SET_WAVETABLE_ITEM | wavetable))
+						{
+							debug("Wavetable %x used by instrument %x FM operator %x program %x (step %d)", wavetable, i, j, pr, p);
+							return true;
+						}
 					}
 				}
 			}
 		}
 		
-		for (int p = 0; p < MUS_PROG_LEN; ++p)
+		for(int pr = 0; pr < song->instrument[i].num_macros; ++pr)
 		{
-			if ((song->instrument[i].program[p] & 0xffff) == (MUS_FX_SET_WAVETABLE_ITEM | wavetable))
+			for (int p = 0; p < MUS_PROG_LEN; ++p)
 			{
-				debug("Wavetable %x used by instrument %x program (step %d)", wavetable, i, p);
-				return true;
+				if ((song->instrument[i].program[pr][p] & 0xffff) == (MUS_FX_SET_WAVETABLE_ITEM | wavetable))
+				{
+					debug("Wavetable %x used by instrument %x program %x (step %d)", wavetable, i, pr, p);
+					return true;
+				}
 			}
 		}
 	}
@@ -237,30 +243,36 @@ static void remove_wavetable(MusSong *song, CydEngine *cyd, int wavetable)
 					song->instrument[i].ops[j].wavetable_entry--;
 				}
 				
-				for (int p = 0; p < MUS_PROG_LEN; ++p)
+				for(int pr = 0; pr < song->instrument[i].ops[j].num_macros; ++pr)
 				{
-					if ((song->instrument[i].ops[j].program[p] & 0xff00) == MUS_FX_SET_WAVETABLE_ITEM)
+					for (int p = 0; p < MUS_PROG_LEN; ++p)
 					{
-						Uint8 param = song->instrument[i].ops[j].program[p] & 0xff;
-				
-						if (param > wavetable)
+						if ((song->instrument[i].ops[j].program[pr][p] & 0xff00) == MUS_FX_SET_WAVETABLE_ITEM)
 						{
-							song->instrument[i].ops[j].program[p] = MUS_FX_SET_WAVETABLE_ITEM | (param - 1);
+							Uint8 param = song->instrument[i].ops[j].program[pr][p] & 0xff;
+					
+							if (param > wavetable)
+							{
+								song->instrument[i].ops[j].program[pr][p] = MUS_FX_SET_WAVETABLE_ITEM | (param - 1);
+							}
 						}
 					}
 				}
 			}
 		}
 		
-		for (int p = 0; p < MUS_PROG_LEN; ++p)
+		for(int pr = 0; pr < song->instrument[i].num_macros; ++pr)
 		{
-			if ((song->instrument[i].program[p] & 0xff00) == MUS_FX_SET_WAVETABLE_ITEM)
+			for (int p = 0; p < MUS_PROG_LEN; ++p)
 			{
-				Uint8 param = song->instrument[i].program[p] & 0xff;
-				
-				if (param > wavetable)
+				if ((song->instrument[i].program[pr][p] & 0xff00) == MUS_FX_SET_WAVETABLE_ITEM)
 				{
-					song->instrument[i].program[p] = MUS_FX_SET_WAVETABLE_ITEM | (param - 1);
+					Uint8 param = song->instrument[i].program[pr][p] & 0xff;
+					
+					if (param > wavetable)
+					{
+						song->instrument[i].program[pr][p] = MUS_FX_SET_WAVETABLE_ITEM | (param - 1);
+					}
 				}
 			}
 		}
@@ -632,21 +644,27 @@ void kill_duplicate_wavetables(MusSong *song, CydEngine *cyd) //wasn't there
 								song->instrument[h].ops[q].wavetable_entry = i;
 							}
 							
-							for (int p = 0; p < MUS_PROG_LEN; ++p)
+							for(int pr = 0; pr < song->instrument[h].num_macros; ++pr)
 							{
-								if ((song->instrument[h].program[p] & 0x3B00) == 0x3B00 && (song->instrument[h].program[p] & 0x00FF) == j && (song->instrument[h].program[p] & 0xFF00) != 0xFF00)
+								for (int p = 0; p < MUS_PROG_LEN; ++p)
 								{
-									song->instrument[h].program[p] = 0x3B00 + i;
+									if ((song->instrument[h].program[pr][p] & 0x3B00) == 0x3B00 && (song->instrument[h].program[pr][p] & 0x00FF) == j && (song->instrument[h].program[pr][p] & 0xFF00) != 0xFF00)
+									{
+										song->instrument[h].program[pr][p] = 0x3B00 + i;
+									}
 								}
 							}
 							
 							for(int q = 0; q < CYD_FM_NUM_OPS; ++q)
 							{
-								for (int p = 0; p < MUS_PROG_LEN; ++p)
+								for(int pr = 0; pr < song->instrument[h].ops[q].num_macros; ++pr)
 								{
-									if ((song->instrument[h].ops[q].program[p] & 0x3B00) == 0x3B00 && (song->instrument[h].ops[q].program[p] & 0x00FF) == j && (song->instrument[h].ops[q].program[p] & 0xFF00) != 0xFF00)
+									for (int p = 0; p < MUS_PROG_LEN; ++p)
 									{
-										song->instrument[h].ops[q].program[p] = 0x3B00 + i;
+										if ((song->instrument[h].ops[q].program[pr][p] & 0x3B00) == 0x3B00 && (song->instrument[h].ops[q].program[pr][p] & 0x00FF) == j && (song->instrument[h].ops[q].program[pr][p] & 0xFF00) != 0xFF00)
+										{
+											song->instrument[h].ops[q].program[pr][p] = 0x3B00 + i;
+										}
 									}
 								}
 							}
@@ -681,6 +699,18 @@ void kill_duplicate_wavetables(MusSong *song, CydEngine *cyd) //wasn't there
 	
 	debug("Removed %d duplicate wavetables", removed);
 	set_info_message("Removed %d duplicate wavetables", removed);
+}
+
+int is_empty_program(Uint16* program)
+{
+	if(!(program)) return -1;
+	
+	for(int i = 0; i < MUS_PROG_LEN; ++i)
+	{
+		if(program[i] != MUS_FX_NOP && program[i] != MUS_FX_END && program[i] != MUS_FX_LABEL && (program[i] & 0xff00) != MUS_FX_LOOP && program[i] != MUS_FX_RELEASE_POINT) return 0;
+	}
+	
+	return 1;
 }
 
 void optimize_song(MusSong *song)
