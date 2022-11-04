@@ -28,6 +28,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 #include <stdlib.h>
 
+#include "../klystron/src/snd/music.h"
 
 typedef struct
 {
@@ -38,10 +39,12 @@ typedef struct
 	
 	int patternx_start, patternx_end; //for mouse drag selection
 	int pattern_length;
+	
+	MusInstrument* inst;
+	MusFmOp* op;
 } Clipboard;
 
 #include "mused.h"
-
 
 enum
 {

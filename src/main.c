@@ -690,8 +690,6 @@ int main(int argc, char **argv)
 	
 	free(sequence);
 	
-	free(instrument);
-	
 	free(pattern);
 	
 	free(channel);
@@ -706,6 +704,42 @@ int main(int argc, char **argv)
 
 	debug("deinit");
 	deinit();
+	
+	for(int k = 0; k < NUM_INSTRUMENTS; ++k) //undo and redo stacks have instrument data pointers so deinit instruments after undo-redo deinit
+	{
+		MusInstrument* inst = &mused.song.instrument[k];
+		
+		for(int i = 0; i < MUS_MAX_MACROS_INST; ++i)
+		{
+			if(inst->program[i])
+			{
+				free(inst->program[i]);
+			}
+			
+			if(inst->program_unite_bits[i])
+			{
+				free(inst->program_unite_bits[i]);
+			}
+		}
+		
+		for(int op = 0; op < CYD_FM_NUM_OPS; ++op)
+		{
+			for(int i = 0; i < MUS_MAX_MACROS_OP; ++i)
+			{
+				if(inst->ops[op].program[i])
+				{
+					free(inst->ops[op].program[i]);
+				}
+				
+				if(inst->ops[op].program_unite_bits[i])
+				{
+					free(inst->ops[op].program_unite_bits[i]);
+				}
+			}
+		}
+	}
+	
+	free(instrument);
 
 	gfx_domain_free(domain);
 

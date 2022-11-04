@@ -985,8 +985,6 @@ void do_undo(void *a, void*b, void*c)
 
 	if (!frame) return;
 
-
-
 	if (!a)
 	{
 		UndoStack tmp = mused.redo;
@@ -1022,6 +1020,37 @@ void do_undo(void *a, void*b, void*c)
 			mused.current_instrument = frame->event.instrument.idx;
 
 			undo_store_instrument(&mused.undo, mused.current_instrument, &mused.song.instrument[mused.current_instrument], mused.modified);
+			
+			MusInstrument* inst = &mused.song.instrument[mused.current_instrument];
+			
+			for(int i = 0; i < MUS_MAX_MACROS_INST; ++i)
+			{
+				if(inst->program[i])
+				{
+					free(inst->program[i]);
+				}
+				
+				if(inst->program_unite_bits[i])
+				{
+					free(inst->program_unite_bits[i]);
+				}
+			}
+			
+			for(int op = 0; op < CYD_FM_NUM_OPS; ++op)
+			{
+				for(int i = 0; i < MUS_MAX_MACROS_OP; ++i)
+				{
+					if(inst->ops[op].program[i])
+					{
+						free(inst->ops[op].program[i]);
+					}
+					
+					if(inst->ops[op].program_unite_bits[i])
+					{
+						free(inst->ops[op].program_unite_bits[i]);
+					}
+				}
+			}
 
 			memcpy(&mused.song.instrument[mused.current_instrument], &frame->event.instrument.instrument, sizeof(frame->event.instrument.instrument));
 

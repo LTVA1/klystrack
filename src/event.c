@@ -48,15 +48,19 @@ void editparambox(int v)
 	
 	if(mused.show_four_op_menu)
 	{
+		if(!(inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]])) return;
+		
 		param = &inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step];
 	}
 	
 	else
 	{
+		if(!(inst->program[mused.current_instrument_program])) return;
+		
 		param = &inst->program[mused.current_instrument_program][mused.current_program_step];
 	}
 	
-	Uint32 mask = 0xffff0fff >> (mused.editpos*4);
+	Uint32 mask = 0xffff0fff >> (mused.editpos * 4);
 
 	if (*param == MUS_FX_NOP)
 		*param = 0;

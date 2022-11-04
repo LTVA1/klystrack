@@ -621,7 +621,9 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 
 	console_clear(mused.console);
 
-	char text[200]="";
+	char text[200] = "";
+	
+	static char prev_text[200];
 
 	if (mused.info_message[0] != '\0')
 		strncpy(text, mused.info_message, sizeof(text) - 1);
@@ -636,15 +638,35 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 				
 				if(mused.show_four_op_menu)
 				{
-					inst = mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step];
+					if(mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]])
+					{
+						inst = mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step];
+						get_command_desc(text, sizeof(text) - 1, inst);
+						
+						strcpy(prev_text, text); //so in 4-op editor when you undo and go to prev macro there isn't 1 frame of empty info line
+					}
+					
+					else
+					{
+						strcpy(text, prev_text);
+					}
 				}
 				
 				else
 				{
-					inst = mused.song.instrument[mused.current_instrument].program[mused.current_instrument_program][mused.current_program_step];
+					if(mused.song.instrument[mused.current_instrument].program[mused.current_instrument_program])
+					{
+						inst = mused.song.instrument[mused.current_instrument].program[mused.current_instrument_program][mused.current_program_step];
+						get_command_desc(text, sizeof(text) - 1, inst);
+						
+						strcpy(prev_text, text);
+					}
+					
+					else
+					{
+						strcpy(text, prev_text);
+					}
 				}
-				
-				get_command_desc(text, sizeof(text) - 1, inst);
 			}
 			break;
 
@@ -1324,6 +1346,14 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 		
 		MusInstrument *inst = &mused.song.instrument[mused.current_instrument];
 		
+		if(inst->program_unite_bits[mused.current_instrument_program] == NULL)
+		{
+			while(inst->program_unite_bits[mused.current_instrument_program] == NULL)
+			{
+				mused.current_instrument_program--;
+			}
+		}
+		
 		if(inst->program_unite_bits[mused.current_instrument_program] == NULL) return;
 		if(inst->program[mused.current_instrument_program] == NULL) return;
 		
@@ -1495,7 +1525,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 						{
 							for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
 							{
-								if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE) || ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_FM) && (mused.cyd.channel[c].fm.adsr.envelope != 0) && !(mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE))) && (mused.channel[c].program_flags & (1 << mused.current_instrument_program)) && mused.channel[c].program_tick == q)
+								if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE) || ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_FM) && (mused.cyd.channel[c].fm.adsr.envelope != 0) && !(mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE))) && (mused.channel[c].program_flags & (1 << mused.current_instrument_program)) && mused.channel[c].program_tick[mused.current_instrument_program] == q)
 								{
 									highlight_united = true;
 								}
@@ -3044,6 +3074,14 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 		console_set_clip(mused.console, &area);
 
 		MusInstrument *inst = &mused.song.instrument[mused.current_instrument];
+		
+		if(inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]] == NULL)
+		{
+			while(inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]] == NULL)
+			{
+				mused.current_fourop_program[mused.selected_operator - 1]--;
+			}
+		}
 		
 		if(inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]] == NULL) return;
 		if(inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]] == NULL) return;

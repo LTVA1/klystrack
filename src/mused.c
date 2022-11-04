@@ -376,7 +376,7 @@ void init_scrollbars()
 void deinit()
 {
 	deinit_recent_files_list();
-
+	
 	undo_deinit(&mused.undo);
 	undo_deinit(&mused.redo);
 

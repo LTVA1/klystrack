@@ -143,6 +143,39 @@ void remove_instrument(MusSong *song, int instrument)
 		}
 	}
 	
+	int ins = instrument;
+	
+	MusInstrument* inst = &song->instrument[ins];
+	
+	for(int i = 0; i < MUS_MAX_MACROS_INST; ++i)
+	{
+		if(inst->program[i])
+		{
+			free(inst->program[i]);
+		}
+		
+		if(inst->program_unite_bits[i])
+		{
+			free(inst->program_unite_bits[i]);
+		}
+	}
+	
+	for(int op = 0; op < CYD_FM_NUM_OPS; ++op)
+	{
+		for(int i = 0; i < MUS_MAX_MACROS_OP; ++i)
+		{
+			if(inst->ops[op].program[i])
+			{
+				free(inst->ops[op].program[i]);
+			}
+			
+			if(inst->ops[op].program_unite_bits[i])
+			{
+				free(inst->ops[op].program_unite_bits[i]);
+			}
+		}
+	}
+	
 	for (int i = instrument; i < song->num_instruments - 1; ++i)
 		memcpy(&song->instrument[i], &song->instrument[i + 1], sizeof(song->instrument[i]));
 	

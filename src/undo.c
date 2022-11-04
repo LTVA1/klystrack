@@ -74,9 +74,94 @@ void undo_destroy_frame(UndoFrame *frame)
 			free(frame->event.wave_data.data);
 			break;
 			
-		case UNDO_WAVE_NAME:
-			free(frame->event.wave_name.name);
-			break;
+		case UNDO_INSTRUMENT:
+		{
+			for(int i = 0; i < MUS_MAX_MACROS_INST; ++i)
+			{
+				if(frame->event.instrument.instrument.program[i])
+				{
+					bool is_pointer_used = false;
+					
+					for(int j = 0; j < NUM_INSTRUMENTS; ++j)
+					{
+						if(mused.song.instrument[j].program[i] == frame->event.instrument.instrument.program[i])
+						{
+							is_pointer_used = true;
+							break;
+						}
+					}
+					
+					if(!(is_pointer_used))
+					{
+						free(frame->event.instrument.instrument.program[i]);
+					}
+				}
+				
+				if(frame->event.instrument.instrument.program_unite_bits[i])
+				{
+					bool is_pointer_used = false;
+					
+					for(int j = 0; j < NUM_INSTRUMENTS; ++j)
+					{
+						if(mused.song.instrument[j].program_unite_bits[i] == frame->event.instrument.instrument.program_unite_bits[i])
+						{
+							is_pointer_used = true;
+							break;
+						}
+					}
+					
+					if(!(is_pointer_used))
+					{
+						free(frame->event.instrument.instrument.program_unite_bits[i]);
+					}
+				}
+			}
+			
+			for(int op = 0; op < CYD_FM_NUM_OPS; ++op)
+			{
+				for(int i = 0; i < MUS_MAX_MACROS_OP; ++i)
+				{
+					if(frame->event.instrument.instrument.ops[op].program[i])
+					{
+						bool is_pointer_used = false;
+					
+						for(int j = 0; j < NUM_INSTRUMENTS; ++j)
+						{
+							if(mused.song.instrument[j].ops[op].program[i] == frame->event.instrument.instrument.ops[op].program[i])
+							{
+								is_pointer_used = true;
+								break;
+							}
+						}
+						
+						if(!(is_pointer_used))
+						{
+							free(frame->event.instrument.instrument.ops[op].program[i]);
+						}
+					}
+					
+					if(frame->event.instrument.instrument.ops[op].program_unite_bits[i])
+					{
+						bool is_pointer_used = false;
+						
+						for(int j = 0; j < NUM_INSTRUMENTS; ++j)
+						{
+							if(mused.song.instrument[j].ops[op].program_unite_bits[i] == frame->event.instrument.instrument.ops[op].program_unite_bits[i])
+							{
+								is_pointer_used = true;
+								break;
+							}
+						}
+						
+						if(!(is_pointer_used))
+						{
+							free(frame->event.instrument.instrument.ops[op].program_unite_bits[i]);
+						}
+					}
+				}
+			}
+		}
+		break;
 			
 		default: break;
 	}
@@ -104,6 +189,27 @@ void undo_store_instrument(UndoStack *stack, int idx, const MusInstrument *instr
 	
 	frame->instrument.idx = idx;
 	memcpy(&frame->instrument.instrument, instrument, sizeof(*instrument));
+	
+	for(int i = 0; i < instrument->num_macros; ++i)
+	{
+		frame->instrument.instrument.program[i] = (Uint16*)malloc(MUS_PROG_LEN * sizeof(Uint16));
+		frame->instrument.instrument.program_unite_bits[i] = (Uint8*)malloc((MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
+		
+		memcpy(frame->instrument.instrument.program[i], instrument->program[i], MUS_PROG_LEN * sizeof(Uint16));
+		memcpy(frame->instrument.instrument.program_unite_bits[i], instrument->program_unite_bits[i], (MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
+	}
+	
+	for(int op = 0; op < CYD_FM_NUM_OPS; ++op)
+	{
+		for(int i = 0; i < instrument->ops[op].num_macros; ++i)
+		{
+			frame->instrument.instrument.ops[op].program[i] = (Uint16*)malloc(MUS_PROG_LEN * sizeof(Uint16));
+			frame->instrument.instrument.ops[op].program_unite_bits[i] = (Uint8*)malloc((MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
+			
+			memcpy(frame->instrument.instrument.ops[op].program[i], instrument->ops[op].program[i], MUS_PROG_LEN * sizeof(Uint16));
+			memcpy(frame->instrument.instrument.ops[op].program_unite_bits[i], instrument->ops[op].program_unite_bits[i], (MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
+		}
+	}
 }
 
 
