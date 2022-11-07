@@ -48,7 +48,7 @@ typedef union
 	struct { int idx; MusInstrument instrument; } instrument;
 	struct { int idx; MusStep *step; int n_steps; } pattern;
 	struct { CydFxSerialized fx; int idx; Uint8 multiplex_period; } fx;
-	struct { int old_mode, focus; } mode;
+	struct { int old_mode, focus; bool show_four_op_menu; } mode;
 	struct { 
 		Uint16 song_length, loop_point, sequence_step;
 		Uint8 song_speed, song_speed2, song_rate;

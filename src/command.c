@@ -158,6 +158,7 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_SET_ATTACK_RATE, 0xff00, "Set attack rate", "AtkRate", 0, 0x7f},
 	{MUS_FX_SET_DECAY_RATE, 0xff00, "Set decay rate", "DecRate", 0, 0x7f},
 	{MUS_FX_SET_SUSTAIN_LEVEL, 0xff00, "Set sustain level", "SusLev", 0, 0x3f},
+	{MUS_FX_SET_SUSTAIN_RATE, 0xff00, "Set sustain rate (only in FM op program)", "SusRate", 0, 0x3f},
 	{MUS_FX_SET_RELEASE_RATE, 0xff00, "Set release rate", "RelRate", 0, 0x7f},
 	
 	{MUS_FX_SET_EXPONENTIALS, 0xfff0, "Set exponential settings", "SetExpSett", 0, 0xf}, //wasn't there
@@ -197,6 +198,11 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_FM_SET_OP2_SUSTAIN_LEVEL, 0xff00, "Set FM operator 2 sustain level", "FmOp2susLev", 0, 63},
 	{MUS_FX_FM_SET_OP3_SUSTAIN_LEVEL, 0xff00, "Set FM operator 3 sustain level", "FmOp3susLev", 0, 63},
 	{MUS_FX_FM_SET_OP4_SUSTAIN_LEVEL, 0xff00, "Set FM operator 4 sustain level", "FmOp4susLev", 0, 63},
+	
+	{MUS_FX_FM_SET_OP1_SUSTAIN_RATE, 0xff00, "Set FM operator 1 sustain rate", "FmOp1susRate", 0, 127},
+	{MUS_FX_FM_SET_OP2_SUSTAIN_RATE, 0xff00, "Set FM operator 2 sustain rate", "FmOp2susRate", 0, 127},
+	{MUS_FX_FM_SET_OP3_SUSTAIN_RATE, 0xff00, "Set FM operator 3 sustain rate", "FmOp3susRate", 0, 127},
+	{MUS_FX_FM_SET_OP4_SUSTAIN_RATE, 0xff00, "Set FM operator 4 sustain rate", "FmOp4susRate", 0, 127},
 	
 	{MUS_FX_FM_SET_OP1_RELEASE_RATE, 0xff00, "Set FM operator 1 release rate", "FmOp1relRate", 0, 127},
 	{MUS_FX_FM_SET_OP2_RELEASE_RATE, 0xff00, "Set FM operator 2 release rate", "FmOp2relRate", 0, 127},
@@ -285,6 +291,8 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst)
 	
 	static const char * ssg_eg_types[] = { "\\\\\\\\", "\\___", "\\/\\/", "\\\xfd\xfd\xfd", "////", "/\xfd\xfd\xfd", "/\\/\\", "/___" };
 	
+	Uint32 p = 0x7F800000; //a hack to display infinity
+	
 	if ((fi & 0xff00) == MUS_FX_SET_WAVEFORM)
 	{
 		if (inst & 0xff)
@@ -351,7 +359,7 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst)
 		snprintf(text, buffer_size, "%s (%+1d)\n", name, my_min(7, my_max((inst & 0xF) - 7, -7)));
 	}
 	
-	#define envelope_length(slope) (slope!=0?(float)(((slope) * (slope) * 256 / (ENVELOPE_SCALE * ENVELOPE_SCALE))) / ((float)CYD_BASE_FREQ / 1000.0f) :0.0f)
+	#define envelope_length(slope) (slope != 0 ? (float)(((slope) * (slope) * 256 / (ENVELOPE_SCALE * ENVELOPE_SCALE))) / ((float)CYD_BASE_FREQ / 1000.0f) : 0.0f)
 	
 	else if ((fi & 0xff00) == MUS_FX_SET_ATTACK_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP1_ATTACK_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP2_ATTACK_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP3_ATTACK_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP4_ATTACK_RATE || (fi & 0xff00) == MUS_FX_SET_DECAY_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP1_DECAY_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP2_DECAY_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP3_DECAY_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP4_DECAY_RATE || (fi & 0xff00) == MUS_FX_SET_RELEASE_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP1_RELEASE_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP2_RELEASE_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP3_RELEASE_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP4_RELEASE_RATE)
 	{
@@ -361,6 +369,16 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst)
 	else if ((fi & 0xff00) == MUS_FX_SET_SUSTAIN_LEVEL || (fi & 0xff00) == MUS_FX_FM_SET_OP1_SUSTAIN_LEVEL || (fi & 0xff00) == MUS_FX_FM_SET_OP2_SUSTAIN_LEVEL || (fi & 0xff00) == MUS_FX_FM_SET_OP3_SUSTAIN_LEVEL || (fi & 0xff00) == MUS_FX_FM_SET_OP4_SUSTAIN_LEVEL)
 	{
 		snprintf(text, buffer_size, "%s (%s)", name, (inst & 0x20) ? "Global" : "Local");
+	}
+	
+	else if ((fi & 0xff00) == MUS_FX_SET_SUSTAIN_RATE)
+	{
+		snprintf(text, buffer_size, "%s (%.1f ms)", name, (inst & 0x3f) == 0 ? *(float *)&p : envelope_length(64 - (inst & 0x3f)));
+	}
+	
+	else if ((fi & 0xff00) == MUS_FX_FM_SET_OP1_SUSTAIN_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP2_SUSTAIN_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP3_SUSTAIN_RATE || (fi & 0xff00) == MUS_FX_FM_SET_OP4_SUSTAIN_RATE)
+	{
+		snprintf(text, buffer_size, "%s (%s %.1f ms)", name, (inst & 0x40) ? "Global" : "Local", (inst & 0x3f) == 0 ? *(float *)&p : envelope_length(64 - (inst & 0x3f)));
 	}
 	
 	else if ((fi & 0xfff0) == MUS_FX_FM_SET_OP1_SSG_EG_TYPE || (fi & 0xfff0) == MUS_FX_FM_SET_OP2_SSG_EG_TYPE || (fi & 0xfff0) == MUS_FX_FM_SET_OP3_SSG_EG_TYPE || (fi & 0xfff0) == MUS_FX_FM_SET_OP4_SSG_EG_TYPE || (fi & 0xfff0) == MUS_FX_FM_4OP_SET_SSG_EG_TYPE)

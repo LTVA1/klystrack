@@ -44,6 +44,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 #include "view/oscilloscope.h" //wasn't there
 
+#include "import/mml_string.h" //wasn't there
+
 extern Mused mused;
 
 extern int event_hit;
@@ -932,7 +934,8 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"relative volume commands",
 					"envelope attack",
 					"envelope decay",
-					"envelope sustain",
+					"envelope sustain level",
+					"envelope sustain rate",
 					"envelope release",
 					"enable exponential volume", //wasn't there
 					"enable exponential attack", //wasn't there
@@ -1001,6 +1004,8 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 				static const char * ssg_eg_types[] = { "\\\\\\\\", "\\___", "\\/\\/", "\\\xfd\xfd\xfd", "////", "/\xfd\xfd\xfd", "/\\/\\", "/___" };
 				
 				//\xfd_/\\
+				
+				Uint32 p = 0x7F800000; //a hack to display infinity
 
 				if (mused.fourop_selected_param == FOUROP_WAVE_ENTRY)
 					snprintf(text, sizeof(text) - 1, "Operator %d %s (%s)", mused.selected_operator, param_desc[mused.fourop_selected_param], mused.song.wavetable_names[mused.song.instrument[mused.current_instrument].wavetable_entry]);
@@ -1010,6 +1015,10 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					snprintf(text, sizeof(text) - 1, "Operator %d %s (%.1f ms)", mused.selected_operator, param_desc[mused.fourop_selected_param], envelope_length(mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].adsr.a));
 				else if (mused.fourop_selected_param == FOUROP_DECAY)
 					snprintf(text, sizeof(text) - 1, "Operator %d %s (%.1f ms)", mused.selected_operator, param_desc[mused.fourop_selected_param], envelope_length(mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].adsr.d));
+				
+				else if (mused.fourop_selected_param == FOUROP_SUSTAIN_RATE)
+					snprintf(text, sizeof(text) - 1, "Operator %d %s (%.1f ms)", mused.selected_operator, param_desc[mused.fourop_selected_param], mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].adsr.sr == 0 ? *(float *)&p : envelope_length((64 - mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].adsr.sr)));
+				
 				else if (mused.fourop_selected_param == FOUROP_RELEASE)
 					snprintf(text, sizeof(text) - 1, "Operator %d %s (%.1f ms)", mused.selected_operator, param_desc[mused.fourop_selected_param], envelope_length(mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].adsr.r));
 				
@@ -1710,6 +1719,11 @@ void oscilloscope_view(GfxDomain *dest_surface, SDL_Rect *dest, const SDL_Event 
 		
 		update_oscillscope_view(dest_surface, &area, mused.output_buffer, OSC_SIZE, pointer, true, (bool)(mused.flags2 & SHOW_OSCILLOSCOPE_MIDLINES));
 	}
+	
+	if(mused.import_mml_string)
+	{
+		import_mml_fm_instrument_string(&mused.song.instrument[mused.current_instrument]);
+	}
 }
 
 static void inst_flags(const SDL_Event *e, const SDL_Rect *_area, int p, const char *label, Uint32 *flags, Uint32 mask)
@@ -2238,9 +2252,13 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 		
 		if (button_event(dest_surface, event, &button, mused.slider_bevel, BEV_BUTTON, BEV_BUTTON_ACTIVE, DECAL_CLOSE, NULL, MAKEPTR(1), 0, 0) & 1) //button to exit filebox
 		{
+			snapshot(S_T_MODE);
+			
 			mused.show_four_op_menu = false;
 			
 			change_mode(EDITINSTRUMENT);
+			
+			snapshot(S_T_MODE);
 		}
 		
 		adjust_rect(&frame, 8);
@@ -2502,10 +2520,19 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			update_rect(&view, &r);
 			four_op_text(event, &r, FOUROP_SUSTAIN, "SUS", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].adsr.s), 2);
 			update_rect(&view, &r);
-			four_op_text(event, &r, FOUROP_RELEASE, "REL", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].adsr.r), 2);
+			
+			four_op_text(event, &r, FOUROP_SUSTAIN_RATE, "SUS.R", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].adsr.sr), 2);
 			update_rect(&view, &r);
 			
 			int temp = r.w;
+			
+			r.w *= 2;
+			r.w += 4;
+			
+			four_op_text(event, &r, FOUROP_RELEASE, "ENV.RELEASE RATE", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].adsr.r), 2);
+			update_rect(&view, &r);
+			
+			
 			r.w = view.w / 4 - 2;
 			
 			four_op_flags(event, &r, FOUROP_EXP_VOL, "E.V", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_EXPONENTIAL_VOLUME);
@@ -3030,6 +3057,9 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			
 			r.w = 80;
 			
+			r.x -= view2.w / 2 + 2;
+			r.y += 10;
+			
 			four_op_flags(event, &r, FOUROP_ENABLE_CSM_TIMER, "CSM TIMER", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_CSM_TIMER);
 			update_rect(&view2, &r);
 			
@@ -3134,7 +3164,7 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 
 			for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
 			{
-				if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].adsr.envelope > 0) && (mused.channel[c].ops[mused.selected_operator - 1].program_flags & (1 << (mused.current_fourop_program[mused.selected_operator - 1]))) && mused.channel[c].ops[mused.selected_operator - 1].program_tick[mused.current_fourop_program[mused.selected_operator - 1]] == i) && !(inst->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG))
+				if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].adsr.envelope > 0 || (mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].flags & CYD_FM_OP_ENABLE_GATE) /* so arrow does not blink when CSM timer is used */) && (mused.channel[c].ops[mused.selected_operator - 1].program_flags & (1 << (mused.current_fourop_program[mused.selected_operator - 1]))) && mused.channel[c].ops[mused.selected_operator - 1].program_tick[mused.current_fourop_program[mused.selected_operator - 1]] == i) && !(inst->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG))
 				//if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].flags & CYD_FM_OP_ENABLE_GATE) && (mused.channel[c].ops[mused.selected_operator - 1].flags & MUS_FM_OP_PROGRAM_RUNNING) && mused.channel[c].ops[mused.selected_operator - 1].program_tick == i) && !(inst->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG))
 				{
 					cur = '½'; //where arrow pointing at current instrument (operator) program step is drawn
@@ -3641,9 +3671,13 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 
 void open_4op(void *unused1, void *unused2, void *unused3)
 {
+	snapshot(S_T_MODE);
+	
 	mused.show_four_op_menu = true;
 
 	change_mode(EDIT4OP);
+	
+	snapshot(S_T_MODE);
 	
 	mused.selected_operator = 1;
 	
@@ -4261,6 +4295,8 @@ void fx_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *eve
 
 void instrument_disk_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
+	//mused.import_mml_string = false;
+	
 	if(!(mused.show_four_op_menu) || ((mused.focus != EDIT4OP) && (mused.focus != EDITPROG4OP)))
 	{
 		SDL_Rect area;
@@ -4270,15 +4306,30 @@ void instrument_disk_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 		bevelex(domain,&area, mused.slider_bevel, BEV_BACKGROUND, BEV_F_STRETCH_ALL);
 		adjust_rect(&area, 2);
 
-		SDL_Rect button = { area.x + 2, area.y, area.w / 2 - 4, area.h };
+		SDL_Rect button = { area.x + 2, area.y, area.w / 3 - 8, area.h };
 
 		int open = button_text_event(domain, event, &button, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "LOAD", NULL, MAKEPTR(1), NULL, NULL);
-		update_rect(&area, &button);
+		//update_rect(&area, &button);
+		
+		button.x += button.w;
+		
 		int save = button_text_event(domain, event, &button, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "SAVE", NULL, MAKEPTR(2), NULL, NULL);
+		//update_rect(&area, &button);
+		
+		button.x += button.w;
+		
+		button.w += 20;
+		
+		int import_mml_string = button_text_event(domain, event, &button, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "IMP.MML", NULL, MAKEPTR(3), NULL, NULL);
 		update_rect(&area, &button);
 
 		if (open & 1) open_data(param, MAKEPTR(OD_A_OPEN), 0);
 		else if (save & 1) open_data(param, MAKEPTR(OD_A_SAVE), 0);
+		//else if (import_mml_string & 1) import_mml_fm_instrument_string(&mused.song.instrument[mused.current_instrument]);
+		else if (import_mml_string & 1)
+		{
+			mused.import_mml_string = true;
+		}
 	}
 }
 

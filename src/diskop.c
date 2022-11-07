@@ -590,6 +590,8 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 				
 				SDL_RWwrite(f, &inst->ops[i].adsr.r, sizeof(inst->ops[i].adsr.r), 1);
 				
+				SDL_RWwrite(f, &inst->ops[i].adsr.sr, sizeof(inst->ops[i].adsr.sr), 1); //wasn't there
+				
 				inst->ops[i].adsr.a &= 0b00111111;
 				inst->ops[i].adsr.d &= 0b00111111;
 				inst->ops[i].adsr.s &= 0b00011111;
@@ -1453,7 +1455,7 @@ void open_data(void *type, void *action, void *_ret)
 
 		if (r == 1)
 		{
-			stop(0,0,0); // so loop positions set by pattern loop mode will be restored
+			stop(0, 0, 0); // so loop positions set by pattern loop mode will be restored
 			open_data(MAKEPTR(OD_T_SONG), MAKEPTR(OD_A_SAVE), &ret_val);
 			if (!ret_val)
 			{

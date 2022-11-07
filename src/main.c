@@ -608,6 +608,16 @@ int main(int argc, char **argv)
 			}
 
 			int prev_mode;
+			
+			/*if(m == EDIT4OP || m == EDITPROG4OP)
+			{
+				mused.show_four_op_menu = true;
+			}
+			
+			else
+			{
+				mused.show_four_op_menu = false;
+			}*/
 
 			do
 			{

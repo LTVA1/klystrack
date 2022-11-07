@@ -685,7 +685,15 @@ void paste()
 						{
 							wave->data = calloc(wave->samples, sizeof(Sint16));
 							
-							memcpy(wave->data, old_data, wave->samples * sizeof(Sint16));
+							if(wave->data)
+							{
+								memcpy(wave->data, old_data, wave->samples * sizeof(Sint16));
+							}
+							
+							else
+							{
+								set_info_message("Out of memory!");
+							}
 						}
 						
 						mused.wavetable_preview_idx = 0xff;

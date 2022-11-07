@@ -178,6 +178,8 @@ void undo_store_mode(UndoStack *stack, int old_mode, int focus, bool modified)
 	
 	frame->mode.old_mode = old_mode;
 	frame->mode.focus = focus;
+	
+	frame->mode.show_four_op_menu = mused.show_four_op_menu; //wasn't there
 }
 
 

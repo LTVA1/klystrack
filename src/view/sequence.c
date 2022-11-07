@@ -242,7 +242,29 @@ void sequence_view_inner(GfxDomain *dest_surface, const SDL_Rect *_dest, const S
 		SDL_Rect play = { dest.x, (mused.stat_song_position - top) * height / mused.sequenceview_steps + dest.y, dest.w, 2 };
 		clip_rect(&play, &dest);
 		bevelex(dest_surface, &play, mused.slider_bevel, BEV_SEQUENCE_PLAY_POS, BEV_F_STRETCH_ALL);
-    }
+	}
+	
+	/*else
+	{
+		if(abs(mused.pattern_position - mused.sequence_position) / mused.sequenceview_steps > 6)
+		{
+			if(mused.pattern_position - mused.sequence_position > 0)
+			{
+				while(abs(mused.pattern_position - mused.sequence_position) / mused.sequenceview_steps > 6)
+				{
+					mused.sequence_position += mused.sequenceview_steps;
+				}
+			}
+			
+			if(mused.pattern_position - mused.sequence_position < 0)
+			{
+				while(abs(mused.pattern_position - mused.sequence_position) / mused.sequenceview_steps > 6)
+				{
+					mused.sequence_position -= mused.sequenceview_steps;
+				}
+			}
+		}
+    }*/
 	
 	gfx_domain_set_clip(domain, NULL);
 	

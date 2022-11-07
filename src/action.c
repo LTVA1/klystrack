@@ -80,8 +80,12 @@ void select_pattern_param(void *id, void *position, void *track)
 	mused.pattern_position = mused.current_sequencepos = CASTPTR(int, position);
 
 	mused.focus = EDITPATTERN;
+	
+	int temp = mused.current_sequencetrack; //this should fix the unnoying as fuck thing when you launch klys and can't move cursor to the right from leftmost pattern
 
 	update_horiz_sliders();
+	
+	mused.current_sequencetrack = temp;
 }
 
 
@@ -418,6 +422,9 @@ void select_all(void *unused1, void *unused2, void *unused3)
 					
 					mused.selection.end = (sp + 1)->position + mused.song.pattern[(sp + 1)->pattern].num_steps;
 					
+					mused.selection.patternx_start = 0;
+					mused.selection.patternx_end = 1 + 2 + 2 + 4 + ((mused.song.pattern[current_pattern_for_channel(mused.current_sequencetrack)].command_columns + 1) * 4) - 1;
+					
 					break;
 				}
 				
@@ -427,6 +434,9 @@ void select_all(void *unused1, void *unused2, void *unused3)
 					
 					mused.selection.end = my_min(sp->position + mused.song.pattern[sp->pattern].num_steps, (sp + 1)->position);
 					//mused.selection.end = sp->position + mused.song.pattern[sp->pattern].num_steps;
+					
+					mused.selection.patternx_start = 0;
+					mused.selection.patternx_end = 1 + 2 + 2 + 4 + ((mused.song.pattern[current_pattern_for_channel(mused.current_sequencetrack)].command_columns + 1) * 4) - 1;
 					
 					break;
 				}
@@ -1014,6 +1024,7 @@ void do_undo(void *a, void*b, void*c)
 		case UNDO_MODE:
 			change_mode(frame->event.mode.old_mode);
 			mused.focus = frame->event.mode.focus;
+			mused.show_four_op_menu = frame->event.mode.show_four_op_menu; //wasn't there
 			break;
 
 		case UNDO_INSTRUMENT:
