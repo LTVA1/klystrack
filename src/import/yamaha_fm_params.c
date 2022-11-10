@@ -23,34 +23,9 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#pragma once
-
-#include "snd/music.h"
-#include "../mused.h"
-#include "../klystron/src/gui/msgbox.h"
-#include "../klystron/src/gui/bevdefs.h"
-#include "../klystron/src/gui/view.h"
-#include "../klystron/src/gui/toolutil.h"
-#include "../klystron/src/gui/bevel.h"
-#include "../klystron/src/gui/dialog.h"
-#include "../klystron/src/gui/mouse.h"
-
-#include <string.h>
-
 #include "yamaha_fm_params.h"
 
-enum
+Uint8 reinterpret_yamaha_params(Uint8 param, Uint8 type)
 {
-	BTN_PMD = 1,
-	BTN_FMP = 2,
-	BTN_FMP7 = 4,
-	BTN_VOPM = 8,
-	BTN_NRTDRV = 16,
-	BTN_MXDRV = 32,
-	BTN_MMLDRV = 64,
-	BTN_MUCOM88 = 128,
 	
-	MML_BUTTON_TYPES = 8,
-};
-
-void import_mml_fm_instrument_string(MusInstrument* inst);
+}

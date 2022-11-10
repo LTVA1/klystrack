@@ -49,4 +49,6 @@ void remove_instrument(MusSong *song, int instrument);
 
 int is_empty_program(Uint16* program);
 
+void kill_empty_patterns(MusSong *song, void* no_confirm); //wasn't there
+
 #endif

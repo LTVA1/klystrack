@@ -544,7 +544,7 @@ int helpbox(const char *title, GfxDomain *domain, GfxSurface *gfx, const Font *l
 				}
 				
 				data.list_position = my_max(0, my_min((data.n_lines - 1) - ((domain->window_h - (33 + 30)) / 18), data.list_position));
-				data.scrollbar.position = my_max(0, my_min((data.n_lines - 1) - ((domain->window_h - (33 + 30)) / 18), data.scrollbar.position));
+				*(data.scrollbar.position) = my_max(0, my_min((data.n_lines - 1) - ((domain->window_h - (33 + 30)) / 18), *(data.scrollbar.position)));
 			}
 			
 			if (e.type != SDL_MOUSEMOTION || (e.motion.state)) ++got_event;

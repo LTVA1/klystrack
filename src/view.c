@@ -1575,7 +1575,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 					Uint32 buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
 					gfx_convert_mouse_coordinates(domain, &mouse_x, &mouse_y);
 					
-					if ((mouse_x >= row1.x) && (mouse_y >= row1.y) && (mouse_x <= row1.x + row1.w) && (mouse_y < row1.y + row1.h))
+					if ((mouse_x > row1.x) && (mouse_y > row1.y) && (mouse_x <= row1.x + row1.w) && (mouse_y < row1.y + row1.h - 1))
 					{
 						if(mused.selection.prev_start != i)
 						{
@@ -1695,7 +1695,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 			}
 			
 			mused.program_position = my_max(0, my_min(MUS_PROG_LEN - area.h / 8, mused.program_position));
-			mused.program_slider_param.position = my_max(0, my_min(MUS_PROG_LEN - area.h / 8, mused.program_slider_param.position));
+			*(mused.program_slider_param.position) = my_max(0, my_min(MUS_PROG_LEN - area.h / 8, *(mused.program_slider_param.position)));
 		}
 	}
 }
@@ -1903,20 +1903,20 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 			note.x += note.w + 2;
 			note.w = frame.w - note.x;
 
-			inst_flags(event, &note, P_LOCKNOTE, "L", &inst->flags, MUS_INST_LOCK_NOTE);
-			inst_flags(event, &r, P_DRUM, "DRUM", &inst->flags, MUS_INST_DRUM);
+			inst_flags(event, &note, P_LOCKNOTE, "L", (Uint32*)&inst->flags, MUS_INST_LOCK_NOTE);
+			inst_flags(event, &r, P_DRUM, "DRUM", (Uint32*)&inst->flags, MUS_INST_DRUM);
 			update_rect(&frame, &r);
 			inst_flags(event, &r, P_KEYSYNC, "KSYNC", &inst->cydflags, CYD_CHN_ENABLE_KEY_SYNC);
 			update_rect(&frame, &r);
-			inst_flags(event, &r, P_INVVIB, "VIB", &inst->flags, MUS_INST_INVERT_VIBRATO_BIT);
+			inst_flags(event, &r, P_INVVIB, "VIB", (Uint32*)&inst->flags, MUS_INST_INVERT_VIBRATO_BIT);
 			update_rect(&frame, &r);
 			
-			inst_flags(event, &r, P_INVTREM, "TREM", &inst->flags, MUS_INST_INVERT_TREMOLO_BIT);
+			inst_flags(event, &r, P_INVTREM, "TREM", (Uint32*)&inst->flags, MUS_INST_INVERT_TREMOLO_BIT);
 			update_rect(&frame, &r);
 			
-			inst_flags(event, &r, P_SETPW, "SET PW", &inst->flags, MUS_INST_SET_PW);
+			inst_flags(event, &r, P_SETPW, "SET PW", (Uint32*)&inst->flags, MUS_INST_SET_PW);
 			update_rect(&frame, &r);
-			inst_flags(event, &r, P_SETCUTOFF, "SET CUT", &inst->flags, MUS_INST_SET_CUTOFF);
+			inst_flags(event, &r, P_SETCUTOFF, "SET CUT", (Uint32*)&inst->flags, MUS_INST_SET_CUTOFF);
 			update_rect(&frame, &r);
 			
 			int tmp = r.w;
@@ -1954,7 +1954,7 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 			inst_text(event, &r, P_LFSRTYPE, "", "%X", MAKEPTR(inst->lfsr_type), 1);
 			update_rect(&frame, &r);
 			r.w = frame.w / 3 - 2;
-			inst_flags(event, &r, P_1_4TH, "1/4TH", &inst->flags, MUS_INST_QUARTER_FREQ);
+			inst_flags(event, &r, P_1_4TH, "1/4TH", (Uint32*)&inst->flags, MUS_INST_QUARTER_FREQ);
 			update_rect(&frame, &r);
 			
 			r.w = frame.w / 3 - 5;
@@ -2005,7 +2005,7 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 			inst_flags(event, &r, P_WAVE_OVERRIDE_ENV, "OENV", &inst->cydflags, CYD_CHN_WAVE_OVERRIDE_ENV);
 			r.x += r.w;
 			r.w = 20;
-			inst_flags(event, &r, P_WAVE_LOCK_NOTE, "L", &inst->flags, MUS_INST_WAVE_LOCK_NOTE);
+			inst_flags(event, &r, P_WAVE_LOCK_NOTE, "L", (Uint32*)&inst->flags, MUS_INST_WAVE_LOCK_NOTE);
 			update_rect(&frame, &r);
 
 			r.w = tmp;
@@ -2027,7 +2027,7 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 		my_separator(&frame, &r);
 		inst_text(event, &r, P_VOLUME, "VOL", "%02X", MAKEPTR(inst->volume), 2);
 		update_rect(&frame, &r);
-		inst_flags(event, &r, P_RELVOL, "RELATIVE", &inst->flags, MUS_INST_RELATIVE_VOLUME);
+		inst_flags(event, &r, P_RELVOL, "RELATIVE", (Uint32*)&inst->flags, MUS_INST_RELATIVE_VOLUME);
 		update_rect(&frame, &r);
 		inst_text(event, &r, P_ATTACK, "ATK", "%02X", MAKEPTR(inst->adsr.a), 2);
 		update_rect(&frame, &r);
@@ -2082,7 +2082,7 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 			my_separator(&frame, &r);
 			int tmp = r.w;
 			r.w = frame.w / 3 + 8;
-			inst_flags(event, &r, P_BUZZ, "BUZZ", &inst->flags, MUS_INST_YM_BUZZ);
+			inst_flags(event, &r, P_BUZZ, "BUZZ", (Uint32*)&inst->flags, MUS_INST_YM_BUZZ);
 			r.x += r.w + 2;
 			r.w = frame.w - r.x + 4;
 			inst_text(event, &r, P_BUZZ_SEMI, "DETUNE", "%+3d", MAKEPTR((inst->buzz_offset + 0x80) >> 8), 3);
@@ -2355,7 +2355,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 					note.x += note.w + 2;
 					note.w = view.w - note.x;
 
-					four_op_flags(event, &note, FOUROP_LOCKNOTE, "L", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_LOCK_NOTE);
+					four_op_flags(event, &note, FOUROP_LOCKNOTE, "L", (Uint32*)&inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_LOCK_NOTE);
 				}
 				
 				else //mult and detune
@@ -2400,19 +2400,19 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 				
 				r.w = temp;
 				
-				four_op_flags(event, &r, FOUROP_DRUM, "DRUM", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_DRUM);
+				four_op_flags(event, &r, FOUROP_DRUM, "DRUM", (Uint32*)&inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_DRUM);
 				update_rect(&view, &r);
 				four_op_flags(event, &r, FOUROP_KEYSYNC, "KSYNC", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_KEY_SYNC);
 				update_rect(&view, &r);
-				four_op_flags(event, &r, FOUROP_INVVIB, "VIB", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_INVERT_VIBRATO_BIT);
+				four_op_flags(event, &r, FOUROP_INVVIB, "VIB", (Uint32*)&inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_INVERT_VIBRATO_BIT);
 				update_rect(&view, &r);
 				
-				four_op_flags(event, &r, FOUROP_INVTREM, "TREM", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_INVERT_TREMOLO_BIT);
+				four_op_flags(event, &r, FOUROP_INVTREM, "TREM", (Uint32*)&inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_INVERT_TREMOLO_BIT);
 				update_rect(&view, &r);
 				
-				four_op_flags(event, &r, FOUROP_SETPW, "SET PW", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_SET_PW);
+				four_op_flags(event, &r, FOUROP_SETPW, "SET PW", (Uint32*)&inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_SET_PW);
 				update_rect(&view, &r);
-				four_op_flags(event, &r, FOUROP_SETCUTOFF, "SET CUT", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_SET_CUTOFF);
+				four_op_flags(event, &r, FOUROP_SETCUTOFF, "SET CUT", (Uint32*)&inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_SET_CUTOFF);
 				update_rect(&view, &r);
 				
 				int tmp = r.w;
@@ -2492,7 +2492,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 				four_op_flags(event, &r, FOUROP_WAVE_OVERRIDE_ENV, "OENV", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_WAVE_OVERRIDE_ENV);
 				r.x += r.w;
 				r.w = 20;
-				four_op_flags(event, &r, FOUROP_WAVE_LOCK_NOTE, "L", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_WAVE_LOCK_NOTE);
+				four_op_flags(event, &r, FOUROP_WAVE_LOCK_NOTE, "L", (Uint32*)&inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_WAVE_LOCK_NOTE);
 				update_rect(&view, &r);
 
 				r.w = tmp;
@@ -2512,7 +2512,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			my_separator(&view, &r);
 			four_op_text(event, &r, FOUROP_VOLUME, "VOL", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].volume), 2);
 			update_rect(&view, &r);
-			four_op_flags(event, &r, FOUROP_RELVOL, "RELATIVE", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_RELATIVE_VOLUME);
+			four_op_flags(event, &r, FOUROP_RELVOL, "RELATIVE", (Uint32*)&inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_RELATIVE_VOLUME);
 			update_rect(&view, &r);
 			four_op_text(event, &r, FOUROP_ATTACK, "ATK", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].adsr.a), 2);
 			update_rect(&view, &r);
@@ -2942,6 +2942,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 				(mused.selected_operator != 1) ? BEV_BUTTON : BEV_BUTTON_ACTIVE, 
 				(mused.selected_operator != 1) ? BEV_BUTTON : BEV_BUTTON_ACTIVE, ops_playing[0] ? " 1\xff" : " 1\xfe", NULL, MAKEPTR(1), 0, 0) & 1)
 			{
+				snapshot(S_T_INSTRUMENT);
 				mused.selected_operator = 1;
 			}
 			
@@ -2949,6 +2950,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 				(mused.selected_operator != 2) ? BEV_BUTTON : BEV_BUTTON_ACTIVE, 
 				(mused.selected_operator != 2) ? BEV_BUTTON : BEV_BUTTON_ACTIVE, ops_playing[1] ? " 2\xff" : " 2\xfe", NULL, MAKEPTR(1), 0, 0) & 1)
 			{
+				snapshot(S_T_INSTRUMENT);
 				mused.selected_operator = 2;
 			}
 			
@@ -2956,6 +2958,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 				(mused.selected_operator != 3) ? BEV_BUTTON : BEV_BUTTON_ACTIVE, 
 				(mused.selected_operator != 3) ? BEV_BUTTON : BEV_BUTTON_ACTIVE, ops_playing[2] ? " 3\xff" : " 3\xfe", NULL, MAKEPTR(1), 0, 0) & 1)
 			{
+				snapshot(S_T_INSTRUMENT);
 				mused.selected_operator = 3;
 			}
 			
@@ -2963,6 +2966,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 				(mused.selected_operator != 4) ? BEV_BUTTON : BEV_BUTTON_ACTIVE, 
 				(mused.selected_operator != 4) ? BEV_BUTTON : BEV_BUTTON_ACTIVE, ops_playing[3] ? " 4\xff" : " 4\xfe", NULL, MAKEPTR(1), 0, 0) & 1)
 			{
+				snapshot(S_T_INSTRUMENT);
 				mused.selected_operator = 4;
 			}
 			
@@ -3047,9 +3051,9 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			update_rect(&view2, &r);
 			//four_op_text(event, &r, FOUROP_PROGPERIOD, "P.PRD", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].prog_period[mused.current_fourop_program[mused.selected_operator - 1]]), 2);
 			//update_rect(&view2, &r);
-			four_op_flags(event, &r, FOUROP_NORESTART, "NO RESTART", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_NO_PROG_RESTART);
+			four_op_flags(event, &r, FOUROP_NORESTART, "NO RESTART", (Uint32*)&inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_NO_PROG_RESTART);
 			update_rect(&view2, &r);
-			four_op_flags(event, &r, FOUROP_SAVE_LFO_SETTINGS, "SAVE LFO SET.", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_SAVE_LFO_SETTINGS);
+			four_op_flags(event, &r, FOUROP_SAVE_LFO_SETTINGS, "SAVE LFO SET.", (Uint32*)&inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_SAVE_LFO_SETTINGS);
 			update_rect(&view2, &r);
 			
 			four_op_text(event, &r, FOUROP_TRIG_DELAY, "TRIG.DEL.", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].trigger_delay), 2);
@@ -3078,7 +3082,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			r.x -= 84;
 			r.y += 10;
 			
-			four_op_flags(event, &r, FOUROP_LINK_CSM_TIMER_NOTE, "LINK TO OP NOTE", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_LINK_CSM_TIMER_NOTE);
+			four_op_flags(event, &r, FOUROP_LINK_CSM_TIMER_NOTE, "LINK TO OP NOTE", (Uint32*)&inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_LINK_CSM_TIMER_NOTE);
 			update_rect(&view2, &r);
 		}
 	}
@@ -3330,7 +3334,7 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 					Uint32 buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
 					gfx_convert_mouse_coordinates(domain, &mouse_x, &mouse_y);
 					
-					if ((mouse_x >= row1.x) && (mouse_y >= row1.y) && (mouse_x <= row1.x + row1.w) && (mouse_y < row1.y + row1.h))
+					if ((mouse_x > row1.x) && (mouse_y > row1.y) && (mouse_x <= row1.x + row1.w) && (mouse_y < row1.y + row1.h - 1))
 					{
 						if(mused.selection.prev_start != i)
 						{
@@ -3456,7 +3460,7 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 				}
 				
 				mused.fourop_program_position[mused.selected_operator - 1] = my_max(0, my_min(MUS_PROG_LEN - area.h / 8, mused.fourop_program_position[mused.selected_operator - 1]));
-				mused.four_op_slider_param.position = my_max(0, my_min(MUS_PROG_LEN - area.h / 8, mused.four_op_slider_param.position));
+				*(mused.four_op_slider_param.position) = my_max(0, my_min(MUS_PROG_LEN - area.h / 8, *(mused.four_op_slider_param.position)));
 			}
 		}
 	}

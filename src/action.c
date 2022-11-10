@@ -726,6 +726,7 @@ void change_timesig(void *delta, void *part, void *c)
 	// I'm a 4/4 or 3/4 man myself so I'll trust the article :)
 	
 	int parti = CASTPTR(int, part);
+	int deltai = CASTPTR(int, delta);
 
 	/*static const Uint16 sigs[] = { 0x0404, 0x0304, 0x0604, 0x0308, 0x0608, 0x0908, 0x0c08 };
 	int i;
@@ -744,10 +745,10 @@ void change_timesig(void *delta, void *part, void *c)
 	{
 		Uint8 temp = (mused.time_signature & 0xff00) >> 8;
 		
-		if(temp + delta > 0 && temp + delta <= 20)
+		if(temp + deltai > 0 && temp + deltai <= 20)
 		{
 			mused.time_signature &= 0x00ff;
-			mused.time_signature |= (Uint8)(temp + delta) << 8;
+			mused.time_signature |= (Uint8)(temp + deltai) << 8;
 		}
 	}
 	
@@ -755,16 +756,16 @@ void change_timesig(void *delta, void *part, void *c)
 	{
 		Uint8 temp = mused.time_signature & 0xff;
 		
-		if(temp + delta > 0 && temp + delta <= 20)
+		if(temp + deltai > 0 && temp + deltai <= 20)
 		{
 			mused.time_signature &= 0xff00;
-			mused.time_signature |= (Uint8)(temp + delta);
+			mused.time_signature |= (Uint8)(temp + deltai);
 		}
 	}
 }
 
 
-void export_wav_action(void *a, void*b, void*c)
+void export_wav_action(void *a, void *b, void *c)
 {
 	char def[1000];
 	
@@ -987,7 +988,7 @@ void export_channels_action(void *a, void*b, void*c)
 }
 
 
-void do_undo(void *a, void*b, void*c)
+void do_undo(void *a, void *b, void *c)
 {
 	UndoFrame *frame = a ? undo(&mused.redo) : undo(&mused.undo);
 
@@ -1025,6 +1026,7 @@ void do_undo(void *a, void*b, void*c)
 			change_mode(frame->event.mode.old_mode);
 			mused.focus = frame->event.mode.focus;
 			mused.show_four_op_menu = frame->event.mode.show_four_op_menu; //wasn't there
+			
 			break;
 
 		case UNDO_INSTRUMENT:
@@ -1034,36 +1036,25 @@ void do_undo(void *a, void*b, void*c)
 			
 			MusInstrument* inst = &mused.song.instrument[mused.current_instrument];
 			
-			for(int i = 0; i < MUS_MAX_MACROS_INST; ++i)
+			mus_free_inst_programs(inst);
+
+			memcpy(&mused.song.instrument[mused.current_instrument], frame->event.instrument.instrument, sizeof(*(frame->event.instrument.instrument)));
+			
+			mused.current_instrument_program = frame->event.instrument.current_instrument_program;
+			
+			for(int i = 0; i < CYD_FM_NUM_OPS; ++i)
 			{
-				if(inst->program[i])
-				{
-					free(inst->program[i]);
-				}
-				
-				if(inst->program_unite_bits[i])
-				{
-					free(inst->program_unite_bits[i]);
-				}
+				mused.current_fourop_program[i] = frame->event.instrument.current_fourop_program[i];
 			}
 			
-			for(int op = 0; op < CYD_FM_NUM_OPS; ++op)
+			mused.selected_operator = frame->event.instrument.selected_operator;
+			
+			mused.program_position = frame->event.instrument.program_position;
+			
+			for(int i = 0; i < CYD_FM_NUM_OPS; ++i)
 			{
-				for(int i = 0; i < MUS_MAX_MACROS_OP; ++i)
-				{
-					if(inst->ops[op].program[i])
-					{
-						free(inst->ops[op].program[i]);
-					}
-					
-					if(inst->ops[op].program_unite_bits[i])
-					{
-						free(inst->ops[op].program_unite_bits[i]);
-					}
-				}
+				mused.fourop_program_position[i] = frame->event.instrument.fourop_program_position[i];
 			}
-
-			memcpy(&mused.song.instrument[mused.current_instrument], &frame->event.instrument.instrument, sizeof(frame->event.instrument.instrument));
 
 			break;
 

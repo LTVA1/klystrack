@@ -44,11 +44,11 @@ typedef enum
 
 typedef union
 {	
-	struct { int channel; MusSeqPattern *seq; int n_seq; } sequence;
-	struct { int idx; MusInstrument instrument; } instrument;
-	struct { int idx; MusStep *step; int n_steps; } pattern;
+	struct { Uint8 channel; MusSeqPattern *seq; int n_seq; } sequence;
+	struct { Uint8 idx; /*MusInstrument instrument;*/ MusInstrument* instrument; Uint8 current_instrument_program; Uint8 current_fourop_program[CYD_FM_NUM_OPS]; Uint8 selected_operator; Uint8 program_position; Uint8 fourop_program_position[CYD_FM_NUM_OPS]; } instrument;
+	struct { Uint8 idx; MusStep *step; Uint16 n_steps; } pattern;
 	struct { CydFxSerialized fx; int idx; Uint8 multiplex_period; } fx;
-	struct { int old_mode, focus; bool show_four_op_menu; } mode;
+	struct { Uint8 old_mode, focus; bool show_four_op_menu; } mode;
 	struct { 
 		Uint16 song_length, loop_point, sequence_step;
 		Uint8 song_speed, song_speed2, song_rate;

@@ -78,13 +78,13 @@ void undo_destroy_frame(UndoFrame *frame)
 		{
 			for(int i = 0; i < MUS_MAX_MACROS_INST; ++i)
 			{
-				if(frame->event.instrument.instrument.program[i])
+				if(frame->event.instrument.instrument->program[i])
 				{
 					bool is_pointer_used = false;
 					
 					for(int j = 0; j < NUM_INSTRUMENTS; ++j)
 					{
-						if(mused.song.instrument[j].program[i] == frame->event.instrument.instrument.program[i])
+						if(mused.song.instrument[j].program[i] == frame->event.instrument.instrument->program[i])
 						{
 							is_pointer_used = true;
 							break;
@@ -93,17 +93,17 @@ void undo_destroy_frame(UndoFrame *frame)
 					
 					if(!(is_pointer_used))
 					{
-						free(frame->event.instrument.instrument.program[i]);
+						free(frame->event.instrument.instrument->program[i]);
 					}
 				}
 				
-				if(frame->event.instrument.instrument.program_unite_bits[i])
+				if(frame->event.instrument.instrument->program_unite_bits[i])
 				{
 					bool is_pointer_used = false;
 					
 					for(int j = 0; j < NUM_INSTRUMENTS; ++j)
 					{
-						if(mused.song.instrument[j].program_unite_bits[i] == frame->event.instrument.instrument.program_unite_bits[i])
+						if(mused.song.instrument[j].program_unite_bits[i] == frame->event.instrument.instrument->program_unite_bits[i])
 						{
 							is_pointer_used = true;
 							break;
@@ -112,7 +112,7 @@ void undo_destroy_frame(UndoFrame *frame)
 					
 					if(!(is_pointer_used))
 					{
-						free(frame->event.instrument.instrument.program_unite_bits[i]);
+						free(frame->event.instrument.instrument->program_unite_bits[i]);
 					}
 				}
 			}
@@ -121,13 +121,13 @@ void undo_destroy_frame(UndoFrame *frame)
 			{
 				for(int i = 0; i < MUS_MAX_MACROS_OP; ++i)
 				{
-					if(frame->event.instrument.instrument.ops[op].program[i])
+					if(frame->event.instrument.instrument->ops[op].program[i])
 					{
 						bool is_pointer_used = false;
 					
 						for(int j = 0; j < NUM_INSTRUMENTS; ++j)
 						{
-							if(mused.song.instrument[j].ops[op].program[i] == frame->event.instrument.instrument.ops[op].program[i])
+							if(mused.song.instrument[j].ops[op].program[i] == frame->event.instrument.instrument->ops[op].program[i])
 							{
 								is_pointer_used = true;
 								break;
@@ -136,17 +136,17 @@ void undo_destroy_frame(UndoFrame *frame)
 						
 						if(!(is_pointer_used))
 						{
-							free(frame->event.instrument.instrument.ops[op].program[i]);
+							free(frame->event.instrument.instrument->ops[op].program[i]);
 						}
 					}
 					
-					if(frame->event.instrument.instrument.ops[op].program_unite_bits[i])
+					if(frame->event.instrument.instrument->ops[op].program_unite_bits[i])
 					{
 						bool is_pointer_used = false;
 						
 						for(int j = 0; j < NUM_INSTRUMENTS; ++j)
 						{
-							if(mused.song.instrument[j].ops[op].program_unite_bits[i] == frame->event.instrument.instrument.ops[op].program_unite_bits[i])
+							if(mused.song.instrument[j].ops[op].program_unite_bits[i] == frame->event.instrument.instrument->ops[op].program_unite_bits[i])
 							{
 								is_pointer_used = true;
 								break;
@@ -155,11 +155,13 @@ void undo_destroy_frame(UndoFrame *frame)
 						
 						if(!(is_pointer_used))
 						{
-							free(frame->event.instrument.instrument.ops[op].program_unite_bits[i]);
+							free(frame->event.instrument.instrument->ops[op].program_unite_bits[i]);
 						}
 					}
 				}
 			}
+			
+			free(frame->event.instrument.instrument);
 		}
 		break;
 			
@@ -190,27 +192,46 @@ void undo_store_instrument(UndoStack *stack, int idx, const MusInstrument *instr
 	if (!frame) return;
 	
 	frame->instrument.idx = idx;
-	memcpy(&frame->instrument.instrument, instrument, sizeof(*instrument));
+	
+	frame->instrument.instrument = (MusInstrument*)malloc(sizeof(MusInstrument));
+	
+	memcpy(frame->instrument.instrument, instrument, sizeof(*instrument));
 	
 	for(int i = 0; i < instrument->num_macros; ++i)
 	{
-		frame->instrument.instrument.program[i] = (Uint16*)malloc(MUS_PROG_LEN * sizeof(Uint16));
-		frame->instrument.instrument.program_unite_bits[i] = (Uint8*)malloc((MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
+		frame->instrument.instrument->program[i] = (Uint16*)malloc(MUS_PROG_LEN * sizeof(Uint16));
+		frame->instrument.instrument->program_unite_bits[i] = (Uint8*)malloc((MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
 		
-		memcpy(frame->instrument.instrument.program[i], instrument->program[i], MUS_PROG_LEN * sizeof(Uint16));
-		memcpy(frame->instrument.instrument.program_unite_bits[i], instrument->program_unite_bits[i], (MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
+		memcpy(frame->instrument.instrument->program[i], instrument->program[i], MUS_PROG_LEN * sizeof(Uint16));
+		memcpy(frame->instrument.instrument->program_unite_bits[i], instrument->program_unite_bits[i], (MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
 	}
 	
 	for(int op = 0; op < CYD_FM_NUM_OPS; ++op)
 	{
 		for(int i = 0; i < instrument->ops[op].num_macros; ++i)
 		{
-			frame->instrument.instrument.ops[op].program[i] = (Uint16*)malloc(MUS_PROG_LEN * sizeof(Uint16));
-			frame->instrument.instrument.ops[op].program_unite_bits[i] = (Uint8*)malloc((MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
+			frame->instrument.instrument->ops[op].program[i] = (Uint16*)malloc(MUS_PROG_LEN * sizeof(Uint16));
+			frame->instrument.instrument->ops[op].program_unite_bits[i] = (Uint8*)malloc((MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
 			
-			memcpy(frame->instrument.instrument.ops[op].program[i], instrument->ops[op].program[i], MUS_PROG_LEN * sizeof(Uint16));
-			memcpy(frame->instrument.instrument.ops[op].program_unite_bits[i], instrument->ops[op].program_unite_bits[i], (MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
+			memcpy(frame->instrument.instrument->ops[op].program[i], instrument->ops[op].program[i], MUS_PROG_LEN * sizeof(Uint16));
+			memcpy(frame->instrument.instrument->ops[op].program_unite_bits[i], instrument->ops[op].program_unite_bits[i], (MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
 		}
+	}
+	
+	frame->instrument.current_instrument_program = mused.current_instrument_program;
+	
+	for(int i = 0; i < CYD_FM_NUM_OPS; ++i)
+	{
+		frame->instrument.current_fourop_program[i] = mused.current_fourop_program[i];
+	}
+	
+	frame->instrument.selected_operator = mused.selected_operator;
+	
+	frame->instrument.program_position = mused.program_position;
+	
+	for(int i = 0; i < CYD_FM_NUM_OPS; ++i)
+	{
+		frame->instrument.fourop_program_position[i] = mused.fourop_program_position[i];
 	}
 }
 

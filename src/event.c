@@ -4125,11 +4125,11 @@ void songinfo_add_param(int d)
 			break;
 
 		case SI_TIME1:
-			change_timesig(MAKEPTR(d), 1, 0);
+			change_timesig(MAKEPTR(d), MAKEPTR(1), 0);
 			break;
 			
 		case SI_TIME2:
-			change_timesig(MAKEPTR(d), 2, 0);
+			change_timesig(MAKEPTR(d), MAKEPTR(2), 0);
 			break;
 
 		case SI_OCTAVE:

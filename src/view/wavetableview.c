@@ -201,7 +201,7 @@ void wavetablelist_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 		}
 		
 		mused.wavetable_list_position = my_max(0, my_min(CYD_WAVE_MAX_ENTRIES - area.h / 8, mused.wavetable_list_position));
-		mused.wavetable_list_slider_param.position = my_max(0, my_min(CYD_WAVE_MAX_ENTRIES - area.h / 8, mused.wavetable_list_slider_param.position));
+		*(mused.wavetable_list_slider_param.position) = my_max(0, my_min(CYD_WAVE_MAX_ENTRIES - area.h / 8, *(mused.wavetable_list_slider_param.position)));
 	}
 }
 

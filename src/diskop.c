@@ -43,6 +43,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "action.h"
 #include <libgen.h>
 
+#include "optimize.h"
+
 extern Mused mused;
 extern GfxDomain *domain;
 
@@ -272,7 +274,7 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 {
 	if(inst->num_macros == 1)
 	{
-		inst->flags &= ~(MUS_FM_OP_SEVERAL_MACROS);
+		inst->flags &= ~(MUS_INST_SEVERAL_MACROS);
 	}
 	
 	Uint16 temp16_f = inst->flags;

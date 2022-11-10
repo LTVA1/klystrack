@@ -237,6 +237,10 @@ int main(int argc, char **argv)
 	
 	debug("Starting %s", VERSION_STRING);
 	
+	/*debug("size of MusInstrument %d", sizeof(MusInstrument));
+	debug("size of CydFxSerialized %d", sizeof(CydFxSerialized));
+	debug("size of UndoEvent %d", sizeof(UndoEvent));*/
+	
 	mused.output_buffer_counter = 0; //wasn't there
 	mused.flags = 0;
 	mused.flags2 = 0;
@@ -719,34 +723,7 @@ int main(int argc, char **argv)
 	{
 		MusInstrument* inst = &mused.song.instrument[k];
 		
-		for(int i = 0; i < MUS_MAX_MACROS_INST; ++i)
-		{
-			if(inst->program[i])
-			{
-				free(inst->program[i]);
-			}
-			
-			if(inst->program_unite_bits[i])
-			{
-				free(inst->program_unite_bits[i]);
-			}
-		}
-		
-		for(int op = 0; op < CYD_FM_NUM_OPS; ++op)
-		{
-			for(int i = 0; i < MUS_MAX_MACROS_OP; ++i)
-			{
-				if(inst->ops[op].program[i])
-				{
-					free(inst->ops[op].program[i]);
-				}
-				
-				if(inst->ops[op].program_unite_bits[i])
-				{
-					free(inst->ops[op].program_unite_bits[i]);
-				}
-			}
-		}
+		mus_free_inst_programs(inst);
 	}
 	
 	free(instrument);
