@@ -1,5 +1,6 @@
 /*
 Copyright (c) 2009-2010 Tero Lindeman (kometbomb)
+Copyright (c) 2021-2022 Georgy Saraykin (LTVA1 a.k.a. LTVA) and contributors
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -36,6 +37,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "gui/mouse.h"
 #include "gui/bevel.h"
 #include "gui/menu.h"
+#include "gui/msgbox.h"
 #include "shortcutdefs.h"
 #include "version.h"
 #include "mused.h"
@@ -167,7 +169,7 @@ static const View fx_view_tab[] =
 	{{0, 0, 0, 14}, fx_global_view, NULL, -1},
 	{{0, 14, -130, 14}, bevel_view, (void*)BEV_BACKGROUND, -1},
 	{{2, 16, -132, 10}, fx_name_view, NULL, -1},
-	{{-130, 14, 130, 14}, instrument_disk_view, MAKEPTR(OD_T_FX), -1},
+	{{-130, 14, 130, 14}, fx_disk_view, MAKEPTR(OD_T_FX), -1},
 	{{0, 28, 0, -INFO}, fx_view, NULL, -1},
 	{{0, 0 - INFO, 0, INFO }, info_line, NULL, -1},
 	{{0, 0, 0, 0}, NULL}
@@ -179,7 +181,7 @@ static const View wavetable_view_tab[] =
 {
 	{{0, 0, -130, 14}, bevel_view, (void*)BEV_BACKGROUND, -1},
 	{{2, 2, -132, 10}, wavetable_name_view, NULL, -1},
-	{{-130, 0, 130, 14}, instrument_disk_view, MAKEPTR(OD_T_WAVETABLE), -1},
+	{{-130, 0, 130, 14}, wave_disk_view, MAKEPTR(OD_T_WAVETABLE), -1},
 	{{0, 14, 204, -INFO-SAMPLEVIEW}, wavetable_view, NULL, -1},
 	{{204, 14, -SCROLLBAR, -INFO-SAMPLEVIEW}, wavetablelist_view, NULL, -1},
 	{{0 - SCROLLBAR, 14, SCROLLBAR, -INFO-SAMPLEVIEW }, slider, &mused.wavetable_list_slider_param, EDITWAVETABLE },
@@ -376,10 +378,10 @@ int main(int argc, char **argv)
 				translate_key_event(&e.key);
 			}
 			
-			if(e.type == SDL_MOUSEWHEEL)
+			/*if(e.type == SDL_MOUSEWHEEL)
 			{
 				//debug("yay");
-			}
+			}*/
 
 			switch (e.type)
 			{
@@ -566,6 +568,234 @@ int main(int argc, char **argv)
 				case MSG_SPP:
 					midi_event(&e);
 				break;
+				
+				case SDL_DROPFILE:
+				{
+					debug("Dropped file: \"%s\"", e.drop.file);
+					
+					char* dropped_filedir = e.drop.file;
+					FILE *f = fopen(dropped_filedir, "rb");
+					
+					const char* extension = &dropped_filedir[strlen(dropped_filedir) - 3];
+					debug("Extension %s", extension);
+					
+					switch(mused.focus)
+					{
+						case EDITBUFFER:
+						{
+							switch(mused.prev_mode)
+							{
+								case EDITPATTERN:
+								case EDITSEQUENCE:
+								case EDITSONGINFO:
+								case EDITCLASSIC:
+								{
+									goto load_song;
+								}
+								
+								case EDITPROG:
+								case EDITPROG4OP:
+								{
+									goto load_inst;
+								}
+								
+								case EDITWAVETABLE:
+								{
+									goto load_wave;
+								}
+								
+								default: break;
+							}
+							
+							break;
+						}
+						
+						default: break;
+					}
+					
+					switch(mused.mode)
+					{
+						case EDITPATTERN:
+						case EDITSEQUENCE:
+						case EDITSONGINFO:
+						case EDITCLASSIC:
+						{
+							load_song:;
+							
+							if(f)
+							{
+								if(strcmp(".kt", extension) == 0)
+								{
+									debug("Dropped a song");
+									
+									if(mused.modified)
+									{
+										if(confirm(domain, mused.slider_bevel, &mused.largefont, "Overwrite current song?"))
+										{
+											stop(0, 0, 0);
+											
+											open_song(f);
+											fclose(f);
+											
+											mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
+											play(0, 0, 0);
+											stop(0, 0, 0);
+										}
+									}
+									
+									else
+									{
+										stop(0, 0, 0);
+										
+										open_song(f);
+										fclose(f);
+										
+										mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
+										play(0, 0, 0);
+										stop(0, 0, 0);
+									}
+								}
+								
+								else
+								{
+									msgbox(domain, mused.slider_bevel, &mused.largefont, "Not a klystrack song (.kt)!", MB_OK);
+								}
+							}
+							
+							else
+							{
+								msgbox(domain, mused.slider_bevel, &mused.largefont, "Failed to load file!", MB_OK);
+							}
+							
+							break;
+						}
+						
+						case EDITINSTRUMENT:
+						case EDIT4OP:
+						{
+							load_inst:;
+							
+							if(f)
+							{
+								if(strcmp(".ki", extension) == 0)
+								{
+									debug("Dropped an instrument");
+									
+									if(confirm(domain, mused.slider_bevel, &mused.largefont, "Overwrite current instrument?"))
+									{
+										open_instrument(f);
+										fclose(f);
+									}
+								}
+								
+								else
+								{
+									msgbox(domain, mused.slider_bevel, &mused.largefont, "Not a klystrack instrument (.ki)!", MB_OK);
+								}
+							}
+							
+							else
+							{
+								msgbox(domain, mused.slider_bevel, &mused.largefont, "Failed to load file!", MB_OK);
+							}
+							
+							break;
+						}
+						
+						case EDITFX:
+						{
+							if(f)
+							{
+								if(strcmp(".kx", extension) == 0)
+								{
+									debug("Dropped an instrument");
+									
+									if(confirm(domain, mused.slider_bevel, &mused.largefont, "Overwrite current FX bus?"))
+									{
+										open_fx(f);
+										fclose(f);
+									}
+								}
+								
+								else
+								{
+									msgbox(domain, mused.slider_bevel, &mused.largefont, "Not a klystrack FX bus (.kx)!", MB_OK);
+								}
+							}
+							
+							else
+							{
+								msgbox(domain, mused.slider_bevel, &mused.largefont, "Failed to load file!", MB_OK);
+							}
+							
+							break;
+						}
+						
+						case EDITWAVETABLE:
+						{
+							load_wave:;
+							
+							if(f)
+							{
+								if(mused.flags & SHOW_WAVEGEN)
+								{
+									if(strcmp(".kw", extension) == 0)
+									{
+										debug("Dropped a wavepatch");
+										
+										if(confirm(domain, mused.slider_bevel, &mused.largefont, "Overwrite current wavepatch?"))
+										{
+											open_wavepatch(f);
+											fclose(f);
+										}
+									}
+									
+									else
+									{
+										msgbox(domain, mused.slider_bevel, &mused.largefont, "Not a klystrack wavepatch (.kw)!", MB_OK);
+									}
+								}
+								
+								else
+								{
+									const char* wav_extension = &dropped_filedir[strlen(dropped_filedir) - 4];
+									debug("Wav extension %s", extension);
+									
+									if(strcmp(".wav", wav_extension) == 0)
+									{
+										debug("Dropped a .wav file");
+										
+										if(confirm(domain, mused.slider_bevel, &mused.largefont, "Overwrite current wavetable?"))
+										{
+											open_wavetable(f);
+											fclose(f);
+										}
+									}
+									
+									else
+									{
+										msgbox(domain, mused.slider_bevel, &mused.largefont, "Not a wave file (.wav)!", MB_OK);
+									}
+								}
+							}
+							
+							else
+							{
+								msgbox(domain, mused.slider_bevel, &mused.largefont, "Failed to load file!", MB_OK);
+							}
+							
+							break;
+							
+							break;
+						}
+						
+						default: break;
+					}
+					
+					SDL_free(dropped_filedir);
+					
+					break;
+				}
 			}
 
 			if (mused.focus == EDITBUFFER && e.type == SDL_KEYDOWN) e.type = SDL_USEREVENT;

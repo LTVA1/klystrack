@@ -3,6 +3,7 @@
 
 /*
 Copyright (c) 2009-2010 Tero Lindeman (kometbomb)
+Copyright (c) 2021-2022 Georgy Saraykin (LTVA1 a.k.a. LTVA) and contributors
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -90,5 +91,8 @@ void toolbar_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 void fx_global_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
 void label(const char *_label, const SDL_Rect *area);
 void inst_field(const SDL_Event *e, const SDL_Rect *area, int p, int length, char *text);
+
+void fx_disk_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
+void wave_disk_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
 
 #endif

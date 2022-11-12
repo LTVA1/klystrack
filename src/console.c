@@ -1,5 +1,6 @@
 /*
 Copyright (c) 2009-2010 Tero Lindeman (kometbomb)
+Copyright (c) 2021-2022 Georgy Saraykin (LTVA1 a.k.a. LTVA) and contributors
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation

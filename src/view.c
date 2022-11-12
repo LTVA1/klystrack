@@ -1,5 +1,6 @@
 /*
 Copyright (c) 2009-2010 Tero Lindeman (kometbomb)
+Copyright (c) 2021-2022 Georgy Saraykin (LTVA1 a.k.a. LTVA) and contributors
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -770,7 +771,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Filter resonance",
 					"Filter slope",
 					
-					"Number of instrument programs", //wasn't there
+					"Current instrument program", //wasn't there
 					"Selected program period",
 					
 					"Send signal to FX chain",
@@ -955,7 +956,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"filter resonance",
 					"filter slope",
 					
-					"number of programs",
+					"current program",
 					"selected program period",
 					
 					"vibrato speed",
@@ -1685,13 +1686,13 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 			if (event->wheel.y > 0)
 			{
 				mused.program_position -= 2;
-				mused.program_slider_param.position -= 2;
+				*(mused.program_slider_param.position) -= 2;
 			}
 			
 			else
 			{
 				mused.program_position += 2;
-				mused.program_slider_param.position += 2;
+				*(mused.program_slider_param.position) += 2;
 			}
 			
 			mused.program_position = my_max(0, my_min(MUS_PROG_LEN - area.h / 8, mused.program_position));
@@ -3450,13 +3451,13 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 				if (event->wheel.y > 0)
 				{
 					mused.fourop_program_position[mused.selected_operator - 1] -= 2;
-					mused.four_op_slider_param.position -= 2;
+					*(mused.four_op_slider_param.position) -= 2;
 				}
 				
 				else
 				{
 					mused.fourop_program_position[mused.selected_operator - 1] += 2;
-					mused.four_op_slider_param.position += 2;
+					*(mused.four_op_slider_param.position) += 2;
 				}
 				
 				mused.fourop_program_position[mused.selected_operator - 1] = my_max(0, my_min(MUS_PROG_LEN - area.h / 8, mused.fourop_program_position[mused.selected_operator - 1]));
@@ -4337,6 +4338,45 @@ void instrument_disk_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 	}
 }
 
+void fx_disk_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
+{
+	SDL_Rect area;
+	copy_rect(&area, dest);
+	console_set_clip(mused.console, &area);
+	console_clear(mused.console);
+	bevelex(domain,&area, mused.slider_bevel, BEV_BACKGROUND, BEV_F_STRETCH_ALL);
+	adjust_rect(&area, 2);
+
+	SDL_Rect button = { area.x + 2, area.y, area.w / 2 - 4, area.h };
+
+	int open = button_text_event(domain, event, &button, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "LOAD", NULL, MAKEPTR(1), NULL, NULL);
+	update_rect(&area, &button);
+	int save = button_text_event(domain, event, &button, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "SAVE", NULL, MAKEPTR(2), NULL, NULL);
+	update_rect(&area, &button);
+
+	if (open & 1) open_data(param, MAKEPTR(OD_A_OPEN), 0);
+	else if (save & 1) open_data(param, MAKEPTR(OD_A_SAVE), 0);
+}
+
+void wave_disk_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
+{
+	SDL_Rect area;
+	copy_rect(&area, dest);
+	console_set_clip(mused.console, &area);
+	console_clear(mused.console);
+	bevelex(domain,&area, mused.slider_bevel, BEV_BACKGROUND, BEV_F_STRETCH_ALL);
+	adjust_rect(&area, 2);
+
+	SDL_Rect button = { area.x + 2, area.y, area.w / 2 - 4, area.h };
+
+	int open = button_text_event(domain, event, &button, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "LOAD", NULL, MAKEPTR(1), NULL, NULL);
+	update_rect(&area, &button);
+	int save = button_text_event(domain, event, &button, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "SAVE", NULL, MAKEPTR(2), NULL, NULL);
+	update_rect(&area, &button);
+
+	if (open & 1) open_data(param, MAKEPTR(OD_A_OPEN), 0);
+	else if (save & 1) open_data(param, MAKEPTR(OD_A_SAVE), 0);
+}
 
 void song_name_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {

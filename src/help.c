@@ -89,7 +89,7 @@ const char* comments[] = {
 	"",
 	"Of course, now these are minor additions, but with each I better understand",
 	"how tracker works, and so I can add more complex stuff in the future. 4-op is",
-	"on the way and other stuff too!",
+	"already there and other stuff is on its way too!",
 	//"\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f\xa0\xa1\xa2\xa3\xa4\xa5\xa6\xad\xa8\xa9\xaa\xab",
 	//   ░   ▒   ▓   █   │   ┤   ╡   ╢   ╖   ╕   ╣   ║   ╗   ╝   ╜   ╛   ┐   └   ┴   ┬   ├   ─   ┼   ╞   ╟   ╚   ╔   ╩   ╦   ╠   ═   ╬   ╧   ╨   ╤   ╥   ╙   ╘   ╒   ╓   ╫   ╪   ┘   ┌
 	
@@ -183,7 +183,8 @@ const char* comments[] = {
 	"you increase this number, you get kinda the same effect as decreasing cutoff",
 	"frequency, but there is some difference which may be useful in some cases.",
 	"Basically higher number there means that inside klystrack-plus sound engine",
-	"you have a chain of 1, 2 or 4 filters. If you want more, just ask about it lol.",
+	"you have a chain of 1, 2, 4, 8, 16 or 32 filters. If you want more, just ask",
+	"about it lol.",
 	"",
 	"Then a bit about new filter modes. These are just sums of signals of different",
 	"filters divided by a number of modes these filters have. For example LHP mode",
@@ -534,13 +535,13 @@ int helpbox(const char *title, GfxDomain *domain, GfxSurface *gfx, const Font *l
 				if (e.wheel.y > 0)
 				{
 					data.list_position -= 2;
-					data.scrollbar.position -= 2;
+					*(data.scrollbar.position) -= 2;
 				}
 				
 				else
 				{
 					data.list_position += 2;
-					data.scrollbar.position += 2;
+					*(data.scrollbar.position) += 2;
 				}
 				
 				data.list_position = my_max(0, my_min((data.n_lines - 1) - ((domain->window_h - (33 + 30)) / 18), data.list_position));

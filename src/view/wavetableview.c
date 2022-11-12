@@ -1,5 +1,6 @@
 /*
 Copyright (c) 2009-2010 Tero Lindeman (kometbomb)
+Copyright (c) 2021-2022 Georgy Saraykin (LTVA1 a.k.a. LTVA) and contributors
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -191,13 +192,13 @@ void wavetablelist_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 		if (event->wheel.y > 0)
 		{
 			mused.wavetable_list_position -= 4;
-			mused.wavetable_list_slider_param.position -= 4;
+			*(mused.wavetable_list_slider_param.position) -= 4;
 		}
 		
 		else
 		{
 			mused.wavetable_list_position += 4;
-			mused.wavetable_list_slider_param.position += 4;
+			*(mused.wavetable_list_slider_param.position) += 4;
 		}
 		
 		mused.wavetable_list_position = my_max(0, my_min(CYD_WAVE_MAX_ENTRIES - area.h / 8, mused.wavetable_list_position));

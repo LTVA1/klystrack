@@ -1,5 +1,6 @@
 /*
 Copyright (c) 2009-2010 Tero Lindeman (kometbomb)
+Copyright (c) 2021-2022 Georgy Saraykin (LTVA1 a.k.a. LTVA) and contributors
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -25,7 +26,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 #include "yamaha_fm_params.h"
 
-Uint8 reinterpret_yamaha_params(Uint8 param, Uint8 type)
+Sint8 reinterpret_yamaha_params(Sint8 param, Uint8 type, Uint16 song_rate, /* <- for LFO speed */ CydEngine* cyd, /* <- for envelope length */ Uint8 chip_type /* OPNx, OPLx or OPM */)
 {
 	
 }

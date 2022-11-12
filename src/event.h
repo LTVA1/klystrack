@@ -3,6 +3,7 @@
 
 /*
 Copyright (c) 2009-2010 Tero Lindeman (kometbomb)
+Copyright (c) 2021-2022 Georgy Saraykin (LTVA1 a.k.a. LTVA) and contributors
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -45,7 +46,7 @@ void wave_add_param(int d);
 void songinfo_event(SDL_Event *e);
 void songinfo_add_param(int d);
 void instrument_add_param(int a);
-void del_sequence(int first,int last,int track);
+void del_sequence(int first, int last, int track);
 void add_sequence(int channel, int position, int pattern, int offset);
 void set_room_size(int fx, int size, int vol, int dec);
 void update_position_sliders();
