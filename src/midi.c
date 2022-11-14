@@ -49,6 +49,7 @@ static void midi_clock(Uint32 ms)
 	{
 		mused.midi_last_clock = ms;
 	}
+	
 	else if (mused.tick_ctr == 12)
 	{
 		mused.tick_ctr = 0;
@@ -161,7 +162,6 @@ void midi_event(SDL_Event *e)
 
 static HMIDIIN hMidiIn = 0;
 
-
 static Uint16 midi_14bit(Uint8 first, Uint8 second)
 {
 	return ((Uint16)(second & 0x7f) << 7) | ((Uint16)first & 0x7f);
@@ -212,6 +212,7 @@ static void CALLBACK MidiInProc(HMIDIIN hMidiIn, UINT wMsg, DWORD_PTR dwInstance
 				}
 			}
 		}
+		
 		else
 		{
 			if (MIDI_SYNC & mused.flags)
@@ -264,6 +265,7 @@ void midi_set_device(void *dev, void *unused1, void *unused2)
 	{
 		warning("midiInOpen returned %d", err);
 	}
+	
 	else
 	{
 		midiInStart(hMidiIn);
@@ -385,6 +387,7 @@ static int midi_thread(void *data)
 				}
 			}
 		}
+		
 		else if (MIDI_SYNC & mused.flags)
 		{
 			switch (ev->type)
@@ -557,6 +560,7 @@ void midi_deinit()
 	{
 		chk(snd_seq_close(seq_handle), "snd_seq_close");
 	}
+	
 	seq_handle = NULL;
 }
 

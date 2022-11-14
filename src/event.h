@@ -33,6 +33,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 #include "../klystron/src/gui/toolutil.h"
 
+#include "gui/msgbox.h"
+
 void edit_instrument_event(SDL_Event *e);
 void sequence_event(SDL_Event *e);
 void pattern_event(SDL_Event *e);
@@ -52,6 +54,8 @@ void set_room_size(int fx, int size, int vol, int dec);
 void update_position_sliders();
 void update_horiz_sliders();
 void note_event(SDL_Event *e);
+
+void dropfile_event(SDL_Event *e);
 
 int seqsort(const void *_a, const void *_b); //wasn't there
 

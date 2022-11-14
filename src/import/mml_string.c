@@ -25,9 +25,31 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 
 #include "mml_string.h"
+#include "stdlib.h"
 
 extern Mused mused;
 extern GfxDomain *domain;
+
+const char* chip_types[3] = 
+{
+	"OPL",
+	"OPM",
+	"OPN",
+};
+
+const Uint8 convert_ops_indices[8][4] = //klystrack and OPN/OPM alg schemes have different ops indices, we need to account for that
+{
+//ops:    1  2  3  4    <- ops in OPN/OPM
+
+		{ 4, 3, 2, 1 }, //alg 0 <- ops in klystrack
+		{ 4, 3, 2, 1 }, //alg 1 ...
+		{ 4, 3, 2, 1 }, //alg 2
+		{ 3, 2, 4, 1 }, //alg 3
+		{ 4, 3, 2, 1 }, //alg 4
+		{ 4, 3, 2, 1 }, //alg 5
+		{ 4, 3, 2, 1 }, //alg 6
+		{ 4, 3, 2, 1 }, //alg 7
+};
 
 static int draw_box_mml(GfxDomain *dest, GfxSurface *gfx, const Font *font, const SDL_Event *event, const char *msg, int buttons, int *selected)
 {
@@ -256,7 +278,7 @@ void process_mml_string(MusInstrument* inst, int dialect, char* mml_string)
 				18 10  0  6  0   0  0  4 -3   0*/
 			
 			/*; NM AG FB  Falcom Synth
-			@  0  4  5  =falsyn?
+			@  0  4  5  =falsynOPM?
 			;   AR DR SR RR SL  TL KS ML DT DT2 AMS
 				31  0  0  0  0  22  0  2  3   0   0
 				18 10  0  6  0   0  0  8  3   0   0
@@ -271,7 +293,223 @@ void process_mml_string(MusInstrument* inst, int dialect, char* mml_string)
 				
 			// ";" seems to define a comment string, and =[inst_name] seems to define instrument name
 			
+			char* current_line;
+			char* lines[6] = { NULL }; //4 lines of main params + "header" with alg, fb and inst num
+			//we are skipping lines that start with ";" since these are comments
+			
+			char* params[4][20] = { NULL }; //individual params
+			
+			Uint8 lines_counter = 0;
+			Uint16 passes = 0;
+			
+			char* current_param; //parsed
+			char* mml_string_copy = (char*)malloc(strlen(mml_string) + 1);
+			strcpy(mml_string_copy, mml_string);
+			
 			debug("Selected PMD dialect");
+			
+			const char delimiters_lines[] = "\n\r";
+			const char delimiters[] = "=\t @";
+			
+			bool instrument_started = false;
+			
+			//current_line = strtok(mml_string, delimiters_lines);
+			
+			while(current_line != NULL)
+			{
+				current_line = strtok(passes > 0 ? NULL : mml_string, delimiters_lines);
+				passes++;
+				
+				if(current_line)
+				{
+					if(strchr(current_line, '@') == NULL && !(instrument_started)) //skipping all strings before start of instrument
+					{
+						debug("Skipping string");
+						goto skip;
+					}
+					
+					else
+					{
+						instrument_started = true;
+					}
+					
+					if(strchr(current_line, ';') == NULL && lines_counter < 5)
+					{
+						lines[lines_counter] = current_line;
+						lines_counter++;
+						
+						debug("Parsed line: \"%s\"", lines[lines_counter - 1]);
+					}
+					
+					else if(lines_counter < 6 && strchr(current_line, ';') != NULL)
+					{
+						debug("Parsed line (comment): \"%s\"", current_line);
+					}
+					
+					if(lines_counter == 5) goto parse_params;
+				}
+				
+				skip:;
+			}
+			
+			parse_params:;
+			
+			Uint8 param_counter = 0;
+			Uint8 param_lines = 0; //if 4 then it's OPN/OPM, if 2 then OPL
+			
+			Uint8 alg = 0;
+			Uint8 feedback = 0;
+			
+			current_param = strtok(lines[0], delimiters); //inst number, discarded here
+			
+			if(lines[0])
+			{
+				current_param = strtok(NULL, delimiters); //algorithm
+				
+				if(current_param)
+				{
+					alg = atoi(current_param);
+					debug("Algorithm: \"%s\", %d", current_param, alg);
+				}
+				
+				current_param = strtok(NULL, delimiters); //feedback
+				
+				if(current_param)
+				{
+					feedback = atoi(current_param);
+					debug("Feedback: \"%s\", %d", current_param, feedback);
+				}
+				
+				current_param = strtok(NULL, delimiters); //instrument name
+				
+				if(strlen(current_param) < MUS_INSTRUMENT_NAME_LEN - 1 && current_param)
+				{
+					strcpy(inst->name, current_param);
+					
+					debug("instrument name: \"%s\"", inst->name);
+				}
+			}
+			
+			for(int i = 0; i < 4 && lines[i + 1]; ++i) //parsing lines
+			{
+				param_counter = 0;
+				
+				if(lines[i + 1])
+				{
+					debug("Parsing params from line: \"%s\"", lines[i + 1]);
+					
+					do
+					{
+						current_param = strtok(param_counter == 0 ? lines[i + 1] : NULL, delimiters);
+						
+						if(current_param)
+						{
+							params[i][param_counter] = current_param;
+							
+							debug("Parsed param: \"%s\"", current_param);
+							
+							param_counter++;
+						}
+						
+					} while(current_param);
+					
+					param_lines++;
+				}
+			}
+			
+			debug("Parsed %d param lines", param_lines);
+			
+			Uint8 params_in_line = 0;
+			
+			do
+			{
+				current_param = params[1][params_in_line];
+				
+				if(current_param)
+				{
+					params_in_line++;
+				}
+				
+			} while(current_param);
+			
+			debug("Params in one line: %d", params_in_line);
+			
+			Uint8 chip_type = param_lines == 2 ? YAMAHA_CHIP_OPL : (params_in_line == 10 ? YAMAHA_CHIP_OPN : YAMAHA_CHIP_OPM);
+			
+			debug("Chip type: %s", chip_types[chip_type]);
+			
+			if(chip_type == YAMAHA_CHIP_OPN || chip_type == YAMAHA_CHIP_OPM) //finally parsing the params!
+			{
+				inst->fm_freq_LUT = 1;
+				
+				inst->alg = reinterpret_yamaha_params(alg, YAMAHA_PARAM_CON, mused.song.song_rate, &mused.cyd, chip_type, BTN_PMD);
+				inst->ops[convert_ops_indices[alg][0] - 1].feedback = reinterpret_yamaha_params(feedback, YAMAHA_PARAM_FL, mused.song.song_rate, &mused.cyd, chip_type, BTN_PMD);
+				
+				for(int i = 0; i < CYD_FM_NUM_OPS; ++i)
+				{
+					inst->ops[convert_ops_indices[alg][i] - 1].adsr.a = reinterpret_yamaha_params(atoi(params[i][0]), YAMAHA_PARAM_AR, mused.song.song_rate, &mused.cyd, chip_type, BTN_PMD);
+					inst->ops[convert_ops_indices[alg][i] - 1].adsr.d = reinterpret_yamaha_params(atoi(params[i][1]), YAMAHA_PARAM_DR, mused.song.song_rate, &mused.cyd, chip_type, BTN_PMD);
+					inst->ops[convert_ops_indices[alg][i] - 1].adsr.sr = reinterpret_yamaha_params(atoi(params[i][2]), YAMAHA_PARAM_SR, mused.song.song_rate, &mused.cyd, chip_type, BTN_PMD);
+					inst->ops[convert_ops_indices[alg][i] - 1].adsr.r = reinterpret_yamaha_params(atoi(params[i][3]), YAMAHA_PARAM_RR, mused.song.song_rate, &mused.cyd, chip_type, BTN_PMD);
+					inst->ops[convert_ops_indices[alg][i] - 1].adsr.s = reinterpret_yamaha_params(atoi(params[i][4]), YAMAHA_PARAM_SL, mused.song.song_rate, &mused.cyd, chip_type, BTN_PMD);
+					
+					inst->ops[convert_ops_indices[alg][i] - 1].volume = reinterpret_yamaha_params(atoi(params[i][5]), YAMAHA_PARAM_TL, mused.song.song_rate, &mused.cyd, chip_type, BTN_PMD);
+					
+					//skip key scaling rn
+					
+					inst->ops[convert_ops_indices[alg][i] - 1].harmonic = reinterpret_yamaha_params(atoi(params[i][7]), YAMAHA_PARAM_MUL, mused.song.song_rate, &mused.cyd, chip_type, BTN_PMD);
+					inst->ops[convert_ops_indices[alg][i] - 1].detune = reinterpret_yamaha_params(atoi(params[i][8]), YAMAHA_PARAM_DT1, mused.song.song_rate, &mused.cyd, chip_type, BTN_PMD);
+					
+					if(chip_type == YAMAHA_CHIP_OPM)
+					{
+						inst->ops[convert_ops_indices[alg][i] - 1].coarse_detune = reinterpret_yamaha_params(atoi(params[i][9]), YAMAHA_PARAM_DT2, mused.song.song_rate, &mused.cyd, chip_type, BTN_PMD);
+					}
+					
+					else
+					{
+						//AMS
+					}
+				}
+				
+				switch(inst->alg) //correcting TL of output ops so they are loud as they should be
+				{
+					case 1:
+					case 2:
+					case 3:
+					{
+						inst->ops[0].volume = 127 - atoi(params[3][5]);
+						break;
+					}
+					
+					case 6:
+					{
+						inst->ops[0].volume = 127 - atoi(params[3][5]);
+						inst->ops[2].volume = 127 - atoi(params[1][5]);
+						break;
+					}
+					
+					case 9:
+					case 11:
+					{
+						inst->ops[0].volume = 127 - atoi(params[3][5]);
+						inst->ops[1].volume = 127 - atoi(params[2][5]);
+						inst->ops[2].volume = 127 - atoi(params[1][5]);
+						break;
+					}
+					
+					case 13:
+					{
+						inst->ops[0].volume = 127 - atoi(params[3][5]);
+						inst->ops[1].volume = 127 - atoi(params[2][5]);
+						inst->ops[2].volume = 127 - atoi(params[1][5]);
+						inst->ops[3].volume = 127 - atoi(params[0][5]);
+						break;
+					}
+				}
+			}
+			
+			free(mml_string_copy);
+			
 			break;
 		}
 		
@@ -333,6 +571,8 @@ void import_mml_fm_instrument_string(MusInstrument* inst)
 		if(strcmp(mml_string, "") == 0)
 		{
 			msgbox(domain, mused.slider_bevel, &mused.largefont, "Clipboard is empty!", MB_OK);
+			SDL_free(mml_string);
+			
 			goto end;
 		}
 		
