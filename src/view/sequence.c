@@ -161,7 +161,7 @@ void sequence_view_inner(GfxDomain *dest_surface, const SDL_Rect *_dest, const S
 					}
 				}
 				
-				if (event->type == SDL_MOUSEBUTTONUP)
+				if (event->type == SDL_MOUSEBUTTONUP && mused.frames_since_menu_close > 5)
 				{
 					if(mused.jump_in_sequence)
 					{

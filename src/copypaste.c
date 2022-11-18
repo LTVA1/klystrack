@@ -736,61 +736,21 @@ void join_paste()
 						
 						if(mused.cp.patternx_start <= 1 && mused.cp.patternx_end >= 1 && cp_step[i].instrument != MUS_NOTE_NO_INSTRUMENT)
 						{
-							if(s[i].instrument == MUS_NOTE_NO_INSTRUMENT)
-							{
-								s[i].instrument = 0;
-							}
-							
-							else
-							{
-								s[i].instrument &= 0x0f;
-							}
-							
 							s[i].instrument |= (cp_step[i].instrument & 0xf0);
 						}
 						
 						if(mused.cp.patternx_start <= 2 && mused.cp.patternx_end >= 2 && cp_step[i].instrument != MUS_NOTE_NO_INSTRUMENT)
 						{
-							if(s[i].instrument == MUS_NOTE_NO_INSTRUMENT)
-							{
-								s[i].instrument = 0;
-							}
-							
-							else
-							{
-								s[i].instrument &= 0xf0;
-							}
-							
 							s[i].instrument |= (cp_step[i].instrument & 0x0f);
 						}
 						
 						if(mused.cp.patternx_start <= 3 && mused.cp.patternx_end >= 3 && cp_step[i].volume != MUS_NOTE_NO_VOLUME)
 						{
-							if(s[i].volume == MUS_NOTE_NO_VOLUME)
-							{
-								s[i].volume = 0;
-							}
-							
-							else
-							{
-								s[i].volume &= 0x0f;
-							}
-							
 							s[i].volume |= (cp_step[i].volume & 0xf0);
 						}
 						
 						if(mused.cp.patternx_start <= 4 && mused.cp.patternx_end >= 4 && cp_step[i].volume != MUS_NOTE_NO_VOLUME)
 						{
-							if(s[i].volume == MUS_NOTE_NO_VOLUME)
-							{
-								s[i].volume = 0;
-							}
-							
-							else
-							{
-								s[i].volume &= 0xf0;
-							}
-							
 							s[i].volume |= (cp_step[i].volume & 0x0f);
 						}
 						
@@ -825,25 +785,21 @@ void join_paste()
 							{
 								if(mused.cp.patternx_start <= 9 + j * 4 && mused.cp.patternx_end >= 9 + j * 4)
 								{
-									s[i].command[j] = 0;
 									s[i].command[j] |= (cp_step[i].command[j] & (Uint16)0xf000);
 								}
 								
 								if(mused.cp.patternx_start <= 10 + j * 4 && mused.cp.patternx_end >= 10 + j * 4)
 								{
-									s[i].command[j] = 0;
 									s[i].command[j] |= (cp_step[i].command[j] & 0x0f00);
 								}
 								
 								if(mused.cp.patternx_start <= 11 + j * 4 && mused.cp.patternx_end >= 11 + j * 4)
 								{
-									s[i].command[j] = 0;
 									s[i].command[j] |= (cp_step[i].command[j] & 0x00f0);
 								}
 								
 								if(mused.cp.patternx_start <= 12 + j * 4 && mused.cp.patternx_end >= 12 + j * 4)
 								{
-									s[i].command[j] = 0;
 									s[i].command[j] |= (cp_step[i].command[j] & 0x000f);
 								}
 							}

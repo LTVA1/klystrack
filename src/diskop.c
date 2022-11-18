@@ -578,11 +578,11 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 				
 				SDL_RWwrite(f, &temp_feedback_ssgeg, sizeof(temp_feedback_ssgeg), 1);
 				
-				if(inst->ops[i].cydflags & CYD_FM_OP_ENABLE_FILTER)
-				{
-					inst->ops[i].adsr.a |= ((inst->ops[i].flttype & 0b110) << 5);
-					inst->ops[i].adsr.d |= ((inst->ops[i].flttype & 0b1) << 6);
-				}
+				//if(inst->ops[i].cydflags & CYD_FM_OP_ENABLE_FILTER)
+				//{
+					//inst->ops[i].adsr.a |= ((inst->ops[i].flttype & 0b110) << 5);
+					//inst->ops[i].adsr.d |= ((inst->ops[i].flttype & 0b1) << 6);
+				//}
 				
 				SDL_RWwrite(f, &inst->ops[i].adsr.a, sizeof(inst->ops[i].adsr.a), 1);
 				SDL_RWwrite(f, &inst->ops[i].adsr.d, sizeof(inst->ops[i].adsr.d), 1);
@@ -595,10 +595,10 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 				
 				SDL_RWwrite(f, &inst->ops[i].adsr.sr, sizeof(inst->ops[i].adsr.sr), 1); //wasn't there
 				
-				inst->ops[i].adsr.a &= 0b00111111;
-				inst->ops[i].adsr.d &= 0b00111111;
+				//inst->ops[i].adsr.a &= 0b00111111;
+				//inst->ops[i].adsr.d &= 0b00111111;
 				inst->ops[i].adsr.s &= 0b00011111;
-				inst->ops[i].adsr.r &= 0b00111111;
+				//inst->ops[i].adsr.r &= 0b00111111;
 				
 				if(inst->ops[i].cydflags & CYD_FM_OP_ENABLE_FIXED_NOISE_PITCH)
 				{
@@ -716,6 +716,7 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 					temp16 = inst->ops[i].cutoff | (inst->ops[i].resonance << 12);
 					FIX_ENDIAN(temp16);
 					SDL_RWwrite(f, &temp16, sizeof(temp16), 1);
+					SDL_RWwrite(f, &inst->ops[i].flttype, sizeof(inst->ops[i].flttype), 1);
 				}
 				
 				if (inst->ops[i].cydflags & CYD_FM_OP_ENABLE_WAVE)

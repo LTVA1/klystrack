@@ -172,6 +172,8 @@ void dropfile_event(SDL_Event *e)
 							open_song(f);
 							fclose(f);
 							
+							set_channels(mused.song.num_channels);
+							
 							mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
 							play(0, 0, 0);
 							stop(0, 0, 0);
@@ -185,6 +187,8 @@ void dropfile_event(SDL_Event *e)
 						open_song(f);
 						fclose(f);
 						
+						set_channels(mused.song.num_channels);
+						
 						mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
 						play(0, 0, 0);
 						stop(0, 0, 0);
@@ -193,7 +197,215 @@ void dropfile_event(SDL_Event *e)
 				
 				else
 				{
-					msgbox(domain, mused.slider_bevel, &mused.largefont, "Not a klystrack song (.kt)!", MB_OK);
+					const char* mod_extension = &dropped_filedir[strlen(dropped_filedir) - 4];
+					
+					if((strcmp(".mod", mod_extension)) == 0 || (strcmp(".MOD", mod_extension)) == 0)
+					{
+						debug("Dropped a .MOD file");
+					
+						if(mused.modified)
+						{
+							if(confirm(domain, mused.slider_bevel, &mused.largefont, "Overwrite current song?"))
+							{
+								stop(0, 0, 0);
+								
+								import_mod(f);
+								fclose(f);
+								
+								kill_empty_patterns(&mused.song, NULL); //wasn't there
+								optimize_duplicate_patterns(&mused.song, true);
+								set_channels(mused.song.num_channels);
+								
+								mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
+								play(0, 0, 0);
+								stop(0, 0, 0);
+							}
+						}
+						
+						else
+						{
+							stop(0, 0, 0);
+							
+							import_mod(f);
+							fclose(f);
+							
+							kill_empty_patterns(&mused.song, NULL); //wasn't there
+							optimize_duplicate_patterns(&mused.song, true);
+							set_channels(mused.song.num_channels);
+							
+							mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
+							play(0, 0, 0);
+							stop(0, 0, 0);
+						}
+						
+						goto end;
+					}
+					
+					if((strcmp(".ahx", mod_extension)) == 0 || (strcmp(".AHX", mod_extension)) == 0)
+					{
+						debug("Dropped an .AHX file");
+					
+						if(mused.modified)
+						{
+							if(confirm(domain, mused.slider_bevel, &mused.largefont, "Overwrite current song?"))
+							{
+								stop(0, 0, 0);
+								
+								import_ahx(f);
+								fclose(f);
+								
+								kill_empty_patterns(&mused.song, NULL); //wasn't there
+								optimize_duplicate_patterns(&mused.song, true);
+								set_channels(mused.song.num_channels);
+								
+								mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
+								play(0, 0, 0);
+								stop(0, 0, 0);
+							}
+						}
+						
+						else
+						{
+							stop(0, 0, 0);
+							
+							import_ahx(f);
+							fclose(f);
+							
+							kill_empty_patterns(&mused.song, NULL); //wasn't there
+							optimize_duplicate_patterns(&mused.song, true);
+							set_channels(mused.song.num_channels);
+							
+							mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
+							play(0, 0, 0);
+							stop(0, 0, 0);
+						}
+						
+						goto end;
+					}
+					
+					if((strcmp(".xm", extension)) == 0 || (strcmp(".XM", extension)) == 0)
+					{
+						debug("Dropped an .XM file");
+					
+						if(mused.modified)
+						{
+							if(confirm(domain, mused.slider_bevel, &mused.largefont, "Overwrite current song?"))
+							{
+								stop(0, 0, 0);
+								
+								import_xm(f);
+								fclose(f);
+								
+								kill_empty_patterns(&mused.song, NULL); //wasn't there
+								optimize_duplicate_patterns(&mused.song, true);
+								set_channels(mused.song.num_channels);
+								
+								mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
+								play(0, 0, 0);
+								stop(0, 0, 0);
+							}
+						}
+						
+						else
+						{
+							stop(0, 0, 0);
+							
+							import_xm(f);
+							fclose(f);
+							
+							kill_empty_patterns(&mused.song, NULL); //wasn't there
+							optimize_duplicate_patterns(&mused.song, true);
+							set_channels(mused.song.num_channels);
+							
+							mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
+							play(0, 0, 0);
+							stop(0, 0, 0);
+						}
+						
+						goto end;
+					}
+					
+					if((strcmp(".org", mod_extension)) == 0 || (strcmp(".ORG", mod_extension)) == 0)
+					{
+						debug("Dropped an .ORG file");
+					
+						if(mused.modified)
+						{
+							if(confirm(domain, mused.slider_bevel, &mused.largefont, "Overwrite current song?"))
+							{
+								stop(0, 0, 0);
+								
+								import_org(f);
+								fclose(f);
+								
+								kill_empty_patterns(&mused.song, NULL); //wasn't there
+								optimize_duplicate_patterns(&mused.song, true);
+								set_channels(mused.song.num_channels);
+								
+								mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
+								play(0, 0, 0);
+								stop(0, 0, 0);
+							}
+						}
+						
+						else
+						{
+							stop(0, 0, 0);
+							
+							import_org(f);
+							fclose(f);
+							
+							kill_empty_patterns(&mused.song, NULL); //wasn't there
+							optimize_duplicate_patterns(&mused.song, true);
+							set_channels(mused.song.num_channels);
+							
+							mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
+							play(0, 0, 0);
+							stop(0, 0, 0);
+						}
+						
+						goto end;
+					}
+					
+					if((strcmp(".sid", mod_extension)) == 0 || (strcmp(".SID", mod_extension)) == 0)
+					{
+						debug("Dropped a .sid file");
+					
+						if(mused.modified)
+						{
+							if(confirm(domain, mused.slider_bevel, &mused.largefont, "Overwrite current song?"))
+							{
+								stop(0, 0, 0);
+								
+								import_hubbard(f);
+								fclose(f);
+								
+								set_channels(mused.song.num_channels);
+								
+								mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
+								play(0, 0, 0);
+								stop(0, 0, 0);
+							}
+						}
+						
+						else
+						{
+							stop(0, 0, 0);
+							
+							import_hubbard(f);
+							fclose(f);
+							
+							set_channels(mused.song.num_channels);
+							
+							mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
+							play(0, 0, 0);
+							stop(0, 0, 0);
+						}
+						
+						goto end;
+					}
+					
+					msgbox(domain, mused.slider_bevel, &mused.largefont, "Not a song klystrack can open or import!", MB_OK);
 				}
 			}
 			
@@ -320,12 +532,12 @@ void dropfile_event(SDL_Event *e)
 			}
 			
 			break;
-			
-			break;
 		}
 		
 		default: break;
 	}
+	
+	end:;
 	
 	SDL_free(dropped_filedir);
 }
@@ -1355,13 +1567,13 @@ void four_op_add_param(int a)
 
 		case FOUROP_ATTACK:
 
-		clamp(i->ops[mused.selected_operator - 1].adsr.a, a, 0, 32 * ENVELOPE_SCALE - 1);
+		clamp(i->ops[mused.selected_operator - 1].adsr.a, a, 0, 0xFF);
 
 		break;
 
 		case FOUROP_DECAY:
 
-		clamp(i->ops[mused.selected_operator - 1].adsr.d, a, 0, 32 * ENVELOPE_SCALE - 1);
+		clamp(i->ops[mused.selected_operator - 1].adsr.d, a, 0, 0xFF);
 
 		break;
 
@@ -1373,13 +1585,13 @@ void four_op_add_param(int a)
 		
 		case FOUROP_SUSTAIN_RATE:
 
-		clamp(i->ops[mused.selected_operator - 1].adsr.sr, a, 0, 32 * ENVELOPE_SCALE - 1);
+		clamp(i->ops[mused.selected_operator - 1].adsr.sr, a, 0, 0xFF);
 
 		break;
 
 		case FOUROP_RELEASE:
 
-		clamp(i->ops[mused.selected_operator - 1].adsr.r, a, 0, 32 * ENVELOPE_SCALE - 1);
+		clamp(i->ops[mused.selected_operator - 1].adsr.r, a, 0, 0xFF);
 
 		break;
 		

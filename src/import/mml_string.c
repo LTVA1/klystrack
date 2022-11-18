@@ -382,7 +382,7 @@ void process_mml_string(MusInstrument* inst, int dialect, char* mml_string)
 				
 				current_param = strtok(NULL, delimiters); //instrument name
 				
-				if(strlen(current_param) < MUS_INSTRUMENT_NAME_LEN - 1 && current_param)
+				if(current_param && strlen(current_param) < MUS_INSTRUMENT_NAME_LEN - 1)
 				{
 					strcpy(inst->name, current_param);
 					
@@ -418,6 +418,12 @@ void process_mml_string(MusInstrument* inst, int dialect, char* mml_string)
 			}
 			
 			debug("Parsed %d param lines", param_lines);
+			
+			if(param_lines < 2)
+			{
+				msgbox(domain, mused.slider_bevel, &mused.largefont, "No FM parameters lines found!", MB_OK);
+				goto end;
+			}
 			
 			Uint8 params_in_line = 0;
 			
@@ -456,6 +462,12 @@ void process_mml_string(MusInstrument* inst, int dialect, char* mml_string)
 					inst->ops[convert_ops_indices[alg][i] - 1].volume = reinterpret_yamaha_params(atoi(params[i][5]), YAMAHA_PARAM_TL, mused.song.song_rate, &mused.cyd, chip_type, BTN_PMD);
 					
 					//skip key scaling rn
+					//inst->ops[convert_ops_indices[alg][i] - 1].env_ksl_level = reinterpret_yamaha_params(atoi(params[i][6]), YAMAHA_PARAM_KS, mused.song.song_rate, &mused.cyd, chip_type, BTN_PMD);
+					
+					/*if(inst->ops[convert_ops_indices[alg][i] - 1].env_ksl_level > 0)
+					{
+						inst->ops[convert_ops_indices[alg][i] - 1].cydflags |= CYD_FM_OP_ENABLE_ENVELOPE_KEY_SCALING;
+					}*/
 					
 					inst->ops[convert_ops_indices[alg][i] - 1].harmonic = reinterpret_yamaha_params(atoi(params[i][7]), YAMAHA_PARAM_MUL, mused.song.song_rate, &mused.cyd, chip_type, BTN_PMD);
 					inst->ops[convert_ops_indices[alg][i] - 1].detune = reinterpret_yamaha_params(atoi(params[i][8]), YAMAHA_PARAM_DT1, mused.song.song_rate, &mused.cyd, chip_type, BTN_PMD);
@@ -463,6 +475,7 @@ void process_mml_string(MusInstrument* inst, int dialect, char* mml_string)
 					if(chip_type == YAMAHA_CHIP_OPM)
 					{
 						inst->ops[convert_ops_indices[alg][i] - 1].coarse_detune = reinterpret_yamaha_params(atoi(params[i][9]), YAMAHA_PARAM_DT2, mused.song.song_rate, &mused.cyd, chip_type, BTN_PMD);
+						//AMS
 					}
 					
 					else
@@ -471,7 +484,7 @@ void process_mml_string(MusInstrument* inst, int dialect, char* mml_string)
 					}
 				}
 				
-				switch(inst->alg) //correcting TL of output ops so they are loud as they should be
+				/*switch(inst->alg) //correcting TL of output ops so they are loud as they should be
 				{
 					case 1:
 					case 2:
@@ -505,8 +518,10 @@ void process_mml_string(MusInstrument* inst, int dialect, char* mml_string)
 						inst->ops[3].volume = 127 - atoi(params[0][5]);
 						break;
 					}
-				}
+				}*/
 			}
+			
+			end:;
 			
 			free(mml_string_copy);
 			

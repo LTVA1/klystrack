@@ -1018,7 +1018,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					snprintf(text, sizeof(text) - 1, "Operator %d %s (%.1f ms)", mused.selected_operator, param_desc[mused.fourop_selected_param], envelope_length(mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].adsr.d));
 				
 				else if (mused.fourop_selected_param == FOUROP_SUSTAIN_RATE)
-					snprintf(text, sizeof(text) - 1, "Operator %d %s (%.1f ms)", mused.selected_operator, param_desc[mused.fourop_selected_param], mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].adsr.sr == 0 ? *(float *)&p : envelope_length((64 - mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].adsr.sr)));
+					snprintf(text, sizeof(text) - 1, "Operator %d %s (%.1f ms)", mused.selected_operator, param_desc[mused.fourop_selected_param], mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].adsr.sr == 0 ? *(float *)&p : envelope_length((0xFF - mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].adsr.sr)));
 				
 				else if (mused.fourop_selected_param == FOUROP_RELEASE)
 					snprintf(text, sizeof(text) - 1, "Operator %d %s (%.1f ms)", mused.selected_operator, param_desc[mused.fourop_selected_param], envelope_length(mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].adsr.r));
@@ -2385,6 +2385,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 				int temp = r.w;
 				
 				r.w -= 12;
+				r.y -= 1;
 				
 				four_op_text(event, &r, FOUROP_FEEDBACK, "FBACK", "%01X", MAKEPTR(inst->ops[mused.selected_operator - 1].feedback), 1);
 				update_rect(&view, &r);
