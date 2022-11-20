@@ -37,6 +37,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "command.h"
 
 #include "theme.h"
+#include "import/import.h"
 
 extern Mused mused;
 
@@ -102,6 +103,122 @@ int find_note(int sym, int oct)
 	}
 
 	return -1;
+}
+
+static int autosave_thread_func(void* payload)
+{
+	SDL_RWops* rw = (SDL_RWops*)payload;
+	save_song(rw, false);
+	SDL_RWclose(rw);
+	return 0;
+}
+
+void do_autosave(Uint32* timeout)
+{
+	if((mused.flags2 & ENABLE_AUTOSAVE) && mused.time_between_autosaves > 0 && !(mused.flags & SONG_PLAYING) && mused.modified)
+	{
+		//debug("motherfucker outside");
+		
+		if(SDL_GetTicks() >= *timeout)
+		{
+			*timeout = SDL_GetTicks() + mused.time_between_autosaves;
+			
+			//debug("motherfucker");
+			
+			char filename[5000] = {0};
+			char* song_name = (char*)&mused.song.title;
+			
+			time_t now_time;
+			time(&now_time);
+			struct tm *now_tm = localtime(&now_time);
+
+			if (!now_tm)
+			{
+				debug("Failed to retrieve current time!");
+				goto error;
+			}
+
+			snprintf(filename, sizeof(filename) - 1, "autosaves/%s.%04d%02d%02d-%02d%02d%02d.kt.autosave", strcmp(song_name, "") == 0 ? "[untitled_song]" : song_name,
+				now_tm->tm_year + 1900, now_tm->tm_mon + 1, now_tm->tm_mday, now_tm->tm_hour, now_tm->tm_min, now_tm->tm_sec);
+			
+			DIR* dir = opendir("autosaves");
+			
+			if(ENOENT == errno)
+			{
+				debug("No autosaves directory found, attempt to create it...");
+				
+				int check = mkdir("autosaves");
+				
+				if(!check)
+				{
+					debug("Directory created");
+					closedir(dir);
+				}
+				
+				else
+				{
+					debug("Failed to create directory!");
+					closedir(dir);
+					goto error;
+				}
+			}
+			
+			//FILE* f = fopen(filename, "wb");
+			SDL_RWops* rw = SDL_RWFromFile(filename, "wb");
+			
+			if(rw)
+			{
+				if(mused.flags2 & SHOW_AUTOSAVE_MESSAGE)
+				{
+					SDL_Rect area = {domain->screen_w / 2 - 65, domain->screen_h / 2 - 12, 130, 24};
+					bevel(domain, &area, mused.slider_bevel, BEV_MENU);
+					
+					adjust_rect(&area, 8);
+					area.h = 16;
+					
+					font_write_args(&mused.largefont, domain, &area, "Autosaving...");
+					
+					gfx_domain_flip(domain);
+				}
+				
+				//save_song(rw, false);
+				//SDL_RWclose(rw);
+				
+				SDL_Thread* autosave_thread = SDL_CreateThread(autosave_thread_func, "Autosave", (void*)rw);
+				SDL_DetachThread(autosave_thread);
+			}
+			
+			else
+			{
+				//fclose(f);
+				//SDL_RWclose(rw);
+				goto error;
+			}
+			
+			if(mused.flags2 & SHOW_AUTOSAVE_MESSAGE)
+			{
+				SDL_Delay(900);
+			}
+			
+			goto end;
+			
+			error:;
+			
+			SDL_Rect area = {domain->screen_w / 2 - 65, domain->screen_h / 2 - 12, 130, 24};
+			bevel(domain, &area, mused.slider_bevel, BEV_MENU);
+			
+			adjust_rect(&area, 8);
+			area.h = 16;
+			
+			font_write_args(&mused.largefont, domain, &area, "Error!");
+			
+			gfx_domain_flip(domain);
+			
+			SDL_Delay(1000);
+		}
+		
+		end:;
+	}
 }
 
 void dropfile_event(SDL_Event *e)

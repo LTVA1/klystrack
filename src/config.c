@@ -94,6 +94,9 @@ static const struct { int type; const char *name; void *param; Uint64 mask; } co
 	{ C_BOOL, "drag_selection_inst_program", &mused.flags2, DRAG_SELECT_PROGRAM },
 	{ C_BOOL, "drag_selection_4op_program", &mused.flags2, DRAG_SELECT_4OP },
 	{ C_BOOL, "show_old_spectrum_visualizer", &mused.flags2, SHOW_OLD_SPECTRUM_VIS },
+	{ C_BOOL, "enable_autosaves", &mused.flags2, ENABLE_AUTOSAVE },
+	{ C_BOOL, "show_autosave_message", &mused.flags2, SHOW_AUTOSAVE_MESSAGE },
+	{ C_INT, "time_between_autosaves_(in_ms)", &mused.time_between_autosaves },
 	{ C_END }
 };
 

@@ -90,6 +90,7 @@ static const Menu showmenu[] =
 	{ 0, mainmenu, "Show \"registers\" table", NULL, MENU_CHECK, &mused.flags2, (void*)SHOW_REGISTERS_MAP, 0 }, //wasn't there
 	{ 0, mainmenu, "Show BPM count", NULL, MENU_CHECK, &mused.flags2, (void*)SHOW_BPM, 0 }, //wasn't there
 	{ 0, mainmenu, "Show old spectrum vis.", NULL, MENU_CHECK, &mused.flags2, (void*)SHOW_OLD_SPECTRUM_VIS, 0 }, //wasn't there
+	{ 0, mainmenu, "Show autosave message", NULL, MENU_CHECK, &mused.flags2, (void*)SHOW_AUTOSAVE_MESSAGE, 0 }, //wasn't there
 	{ 0, NULL, NULL }
 };
 
@@ -168,6 +169,7 @@ const Menu prefsmenu[] =
 	{ 0, mainmenu, "Disable nostalgy", NULL, MENU_CHECK, &mused.flags, (void*)DISABLE_NOSTALGY, 0 },
 	{ 0, mainmenu, "Disable VU meters", NULL, MENU_CHECK, &mused.flags, (void*)DISABLE_VU_METERS, 0 },
 	{ 0, mainmenu, "Disable file backups", NULL, MENU_CHECK, &mused.flags, (void*)DISABLE_BACKUPS, 0 },
+	{ 0, mainmenu, "Enable autosaves", NULL, MENU_CHECK, &mused.flags2, (void*)ENABLE_AUTOSAVE, 0 }, //wasn't there
 	{ 0, mainmenu, "Load default song on startup", NULL, MENU_CHECK, &mused.flags, (void*)START_WITH_TEMPLATE, 0 },
 	{ 0, mainmenu, "Use system mouse cursor", NULL, MENU_CHECK_NOSET, &mused.flags, (void*)USE_SYSTEM_CURSOR, toggle_mouse_cursor },
 	{ 0, mainmenu, "Smooth pattern scroll", NULL, MENU_CHECK, &mused.flags2, (void*)SMOOTH_SCROLL, 0 },

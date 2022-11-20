@@ -100,7 +100,7 @@ SDL_RWops * create_memwriter(FILE *flush)
 	ops->read = mw_read;
 	ops->close = mw_close;
 	ops->size = mw_size;
-	ops->type =0x1234;
+	ops->type = 0x1234;
 	ops->hidden.unknown.data1 = mem;
 	
 	return ops;

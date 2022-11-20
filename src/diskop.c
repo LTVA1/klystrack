@@ -116,7 +116,7 @@ void init_recent_files_list()
 	int list_count = 0;
 
 	debug("Loading recent files list");
-	char *e = expand_tilde(".klystrackrecent");
+	char *e = expand_tilde("~/.klystrackrecent");
 
 	if (e)
 	{
@@ -156,7 +156,7 @@ void init_recent_files_list()
 void deinit_recent_files_list()
 {
 	debug("Saving recent files list");
-	char *e = expand_tilde(".klystrackrecent"); //char *e = expand_tilde(".klystrackrecent");
+	char *e = expand_tilde("~/.klystrackrecent"); //char *e = expand_tilde(".klystrackrecent");
 
 	if (e)
 	{
@@ -172,6 +172,7 @@ void deinit_recent_files_list()
 
 			fclose(f);
 		}
+		
 		else
 		{
 			warning("Could not save recent files list");
@@ -181,11 +182,13 @@ void deinit_recent_files_list()
 	}
 
 	for (int i = 0; i < MAX_RECENT; ++i)
+	{
 		if (recentmenu[i].text != NULL)
 		{
 			free((void*)recentmenu[i].text);
 			free((void*)recentmenu[i].p1);
 		}
+	}
 }
 
 
@@ -1078,37 +1081,40 @@ int open_wavepatch(FILE *f) //wasn't there
 	return 1;
 }
 
-int save_song_inner(SDL_RWops *f, SongStats *stats)
+int save_song_inner(SDL_RWops *f, SongStats *stats, bool confirm_save /* if no confirm save all, even unused */)
 {
 	bool kill_unused_things = false;
 
 	Uint8 n_inst = mused.song.num_instruments;
 	
-	if (!confirm(domain, mused.slider_bevel, &mused.largefont, "Save unused song elements?"))
+	if(confirm_save)
 	{
-		//optimize_song(&mused.song); //wasn't there
-		
-		int maxpat = -1;
-		
-		for (int c = 0; c < mused.song.num_channels; ++c)
+		if (!confirm(domain, mused.slider_bevel, &mused.largefont, "Save unused song elements?"))
 		{
-			for (int i = 0; i < mused.song.num_sequences[c]; ++i)
-				 if (maxpat < mused.song.sequence[c][i].pattern)
-					maxpat = mused.song.sequence[c][i].pattern;
+			//optimize_song(&mused.song); //wasn't there
+			
+			int maxpat = -1;
+			
+			for (int c = 0; c < mused.song.num_channels; ++c)
+			{
+				for (int i = 0; i < mused.song.num_sequences[c]; ++i)
+					 if (maxpat < mused.song.sequence[c][i].pattern)
+						maxpat = mused.song.sequence[c][i].pattern;
+			}
+
+			n_inst = 0;
+
+			for (int i = 0; i <= maxpat; ++i)
+				for (int s = 0; s < mused.song.pattern[i].num_steps; ++s)
+					if (mused.song.pattern[i].step[s].instrument != MUS_NOTE_NO_INSTRUMENT)
+						n_inst = my_max(n_inst, mused.song.pattern[i].step[s].instrument + 1);
+
+			mused.song.num_patterns = maxpat + 1;
+
+			kill_unused_things = true;
 		}
-
-		n_inst = 0;
-
-		for (int i = 0; i <= maxpat; ++i)
-			for (int s = 0; s < mused.song.pattern[i].num_steps; ++s)
-				if (mused.song.pattern[i].step[s].instrument != MUS_NOTE_NO_INSTRUMENT)
-					n_inst = my_max(n_inst, mused.song.pattern[i].step[s].instrument + 1);
-
-		mused.song.num_patterns = maxpat + 1;
-
-		kill_unused_things = true;
 	}
-
+	
 	SDL_RWwrite(f, MUS_SONG_SIG, strlen(MUS_SONG_SIG), sizeof(MUS_SONG_SIG[0]));
 
 	const Uint8 version = MUS_VERSION;
@@ -1418,9 +1424,9 @@ int open_fx(FILE *f)
 }
 
 
-int save_song(SDL_RWops *ops)
+int save_song(SDL_RWops *ops, bool confirm_save /* if no confirm save all, even unused */)
 {
-	int r = save_song_inner(ops, NULL);
+	int r = save_song_inner(ops, NULL, confirm_save);
 
 	mused.modified = false;
 
@@ -1475,7 +1481,7 @@ void open_data(void *type, void *action, void *_ret)
 		int (*open)(FILE *);
 		int (*save)(SDL_RWops *);
 	} open_stuff[] = {
-		{ "song", "kt", open_song, save_song },
+		{ "song", "kt", open_song, /* save_song */ NULL },
 		{ "instrument", "ki", open_instrument, save_instrument },
 		{ "wave", "wav", open_wavetable, NULL },
 		{ "raw signed", "", open_wavetable_raw, NULL },
@@ -1577,7 +1583,17 @@ void open_data(void *type, void *action, void *_ret)
 		if (a == 0)
 			tmp = open_stuff[t].open;
 		else
-			tmp = open_stuff[t].save;
+		{
+			if(t != OD_T_SONG)
+			{
+				tmp = open_stuff[t].save(rw);
+			}
+			
+			else
+			{
+				tmp = &save_song;
+			}
+		}
 
 		if (tmp || ((t == OD_T_WAVETABLE) && (a == 1)))
 		{
@@ -1590,8 +1606,18 @@ void open_data(void *type, void *action, void *_ret)
 				if (t != OD_T_WAVETABLE)
 				{
 					rw = create_memwriter(f);
-					r = open_stuff[t].save(rw);
+					
+					if(t != OD_T_SONG)
+					{
+						r = open_stuff[t].save(rw);
+					}
+					
+					else
+					{
+						r = save_song(rw, true);
+					}
 				}
+				
 				else
 				{
 					r = save_wavetable(f);

@@ -258,11 +258,14 @@ void init(MusInstrument *instrument, MusPattern *pattern, MusSeqPattern **sequen
 
 	default_settings();
 
-	mused.flags = MULTICHANNEL_PREVIEW|ANIMATE_CURSOR|EDIT_MODE|SHOW_LOGO|FOLLOW_PLAY_POSITION|
-		MULTIKEY_JAMMING|START_WITH_TEMPLATE|EDIT_SEQUENCE_DIGITS;
+	mused.flags = MULTICHANNEL_PREVIEW | ANIMATE_CURSOR | EDIT_MODE | SHOW_LOGO | FOLLOW_PLAY_POSITION | 
+		MULTIKEY_JAMMING | START_WITH_TEMPLATE | EDIT_SEQUENCE_DIGITS | HIDE_ZEROS | DELETE_EMPTIES;
+	
+	mused.flags2 = ENABLE_AUTOSAVE;
 	
 	mused.fps = 30;
 	
+	mused.time_between_autosaves = 1000 * 60 * 3;
 
 	// Rendering to the intermediary texture is disabled by default on Linux systems
 	// as it causes flashing of screen
@@ -625,7 +628,7 @@ void set_info_message(const char *message, ...)
 	vsnprintf(mused.info_message, sizeof(mused.info_message), message, args);
 	va_end(args);
 
-	mused.info_message_timer = SDL_AddTimer(5000, info_message_cb, NULL);
+	mused.info_message_timer = SDL_AddTimer(2500, info_message_cb, NULL);
 }
 
 

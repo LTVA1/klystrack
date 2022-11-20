@@ -30,6 +30,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include <stdio.h>
 #include "SDL_rwops.h"
 #include "songstats.h"
+#include <stdbool.h>
 
 #include "wavegen.h" //wasn't there
 
@@ -53,8 +54,8 @@ enum
 };
 
 int open_song(FILE *f);
-int save_song(SDL_RWops *f);
-int save_song_inner(SDL_RWops *f, SongStats *stats);
+int save_song(SDL_RWops *f, bool confirm_save /* if no confirm save all, even unused */);
+int save_song_inner(SDL_RWops *f, SongStats *stats, bool confirm_save /* if no confirm save all, even unused */);
 int open_wavetable(FILE *f);
 int open_instrument(FILE *f);
 int save_instrument(SDL_RWops *f);

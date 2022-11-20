@@ -361,6 +361,8 @@ int main(int argc, char **argv)
 	mused.real_buffer = re;
 	mused.imaginary_buffer = im;
 	
+	Uint32 timeout = SDL_GetTicks() + mused.time_between_autosaves; //for autosave
+	
 	while (1)
 	{
 		SDL_Event e = { 0 };
@@ -573,7 +575,6 @@ int main(int argc, char **argv)
 				{
 					dropfile_event(&e);
 					
-					
 					break;
 				}
 			}
@@ -662,6 +663,8 @@ int main(int argc, char **argv)
 			total_frames++;
 			draw_calls += domain->calls_per_frame;
 #endif
+			do_autosave(&timeout);
+			
 			gfx_domain_flip(domain);
 		}
 		

@@ -8,7 +8,7 @@
 static void get_stats(SongStats *stats)
 {
 	SDL_RWops *rw = create_memwriter(NULL);
-	save_song_inner(rw, stats);
+	save_song_inner(rw, stats, true);
 	SDL_RWclose(rw);
 }
 

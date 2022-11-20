@@ -35,6 +35,23 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 #include "gui/msgbox.h"
 
+#include "import/mod.h"
+#include "import/ahx.h"
+#include "import/xm.h"
+#include "import/org.h"
+#include "import/hubbard.h"
+
+#include <dirent.h>
+#include <errno.h>
+
+#include "gui/mouse.h"
+#include "gui/bevel.h"
+#include "gui/bevdefs.h"
+#include "gui/menu.h"
+#include "gui/msgbox.h"
+
+#include <time.h>
+
 void edit_instrument_event(SDL_Event *e);
 void sequence_event(SDL_Event *e);
 void pattern_event(SDL_Event *e);
@@ -61,6 +78,8 @@ int seqsort(const void *_a, const void *_b); //wasn't there
 
 void edit_fourop_event(SDL_Event *e);
 void four_op_add_param(int a);
+
+void do_autosave(Uint32* timeout);
 
 enum
 {

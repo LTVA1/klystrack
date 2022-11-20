@@ -127,6 +127,9 @@ enum
 	DRAG_SELECT_4OP = 1024,
 	
 	SHOW_OLD_SPECTRUM_VIS = 2048,
+	
+	ENABLE_AUTOSAVE = 4096,
+	SHOW_AUTOSAVE_MESSAGE = 8192,
 };
 
 //#define SHOW_OSCILLOSCOPES_PATTERN_EDITOR ((Uint64)65536 << 16)
@@ -307,7 +310,7 @@ typedef struct
 	bool show_four_op_menu;
 	
 	Sint8 draw_passes_since_song_start;
-	Sint16 fps;
+	int fps;
 	
 	Uint8 frames_since_menu_close;
 	bool jump_in_pattern; //after mouse drag selection ends we don't need the cursor to jump to the end
@@ -316,6 +319,8 @@ typedef struct
 	bool jump_in_program_4op;
 	
 	bool import_mml_string;
+	
+	Uint32 time_between_autosaves; //in ms
 } Mused;
 
 extern Mused mused;

@@ -401,7 +401,7 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst)
 	{
 		char tmp[4] = "\xfa\xf9";
 		
-		bool is_max_pan = (inst & 0xff) == CYD_PAN_CENTER;
+		//bool is_max_pan = (inst & 0xff) == CYD_PAN_CENTER;
 		
 		if ((inst & 0xff) != CYD_PAN_CENTER && (inst & 0xff) != CYD_PAN_CENTER - 1)
 		{
