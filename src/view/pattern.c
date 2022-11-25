@@ -228,11 +228,7 @@ void pattern_view_header(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 static void pattern_view_registers_map(GfxDomain *dest_surface, const SDL_Rect *reg_map)
 {
 	gfx_domain_set_clip(dest_surface, reg_map);
-	
-	//console_set_clip(mused.console, reg_map);
 	console_clear(mused.console);
-	
-	//console_set_background(mused.console, 0);
 	
 	console_set_color(mused.console, colors[COLOR_WAVETABLE_SAMPLE]);
 	

@@ -110,6 +110,7 @@ static int autosave_thread_func(void* payload)
 	SDL_RWops* rw = (SDL_RWops*)payload;
 	save_song(rw, false);
 	SDL_RWclose(rw);
+	
 	return 0;
 }
 

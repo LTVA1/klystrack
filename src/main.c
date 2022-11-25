@@ -361,6 +361,9 @@ int main(int argc, char **argv)
 	mused.real_buffer = re;
 	mused.imaginary_buffer = im;
 	
+	font_load_file(domain, &mused.font16, "res/Fonts/font16x16.fnt");
+	font_load_file(domain, &mused.font24, "res/Fonts/font24x24.fnt");
+	
 	Uint32 timeout = SDL_GetTicks() + mused.time_between_autosaves; //for autosave
 	
 	while (1)

@@ -35,6 +35,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "zap.h"
 #include "optimize.h"
 
+#include "view/credits.h"
+
 extern Mused mused;
 
 const Menu mainmenu[];
@@ -264,6 +266,7 @@ static const Menu infomenu[] =
 	{ 0, mainmenu, "About",  NULL, show_about_box, (void*)0, 0, 0 },
 	{ 0, mainmenu, "Song statistics",  NULL, song_stats, (void*)0, 0, 0 },
 	{ 0, mainmenu, "Help",  NULL, open_help_no_lock, (void*)0, 0, 0 },
+	{ 0, mainmenu, "Credits",  NULL, show_credits, (void*)0, 0, 0 },
 	{ 0, NULL, NULL }
 };
 

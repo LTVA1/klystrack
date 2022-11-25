@@ -208,6 +208,9 @@ typedef struct
 	SDL_TimerID info_message_timer;
 	GfxSurface *slider_bevel, *vu_meter, *analyzer, *logo, *catometer;
 	Font smallfont, largefont, tinyfont, tinyfont_sequence_counter, tinyfont_sequence_normal;
+	
+	Font font16, font24; //16x16 and 24x24 pixels respectively
+	
 	SDL_Cursor *mouse_cursor;
 	GfxSurface *mouse_cursor_surface;
 	GfxSurface *icon_surface;

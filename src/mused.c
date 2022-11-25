@@ -408,6 +408,10 @@ void deinit()
 	font_destroy(&mused.headerfont);
 	font_destroy(&mused.headerfont_selected);
 	font_destroy(&mused.buttonfont);
+	
+	font_destroy(&mused.font16);
+	font_destroy(&mused.font24);
+	
 	free_themes();
 
 	if (mused.wavetable_preview)
