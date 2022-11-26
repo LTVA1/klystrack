@@ -60,6 +60,21 @@ void gfx_translucent_line(GfxDomain *dest, int x0, int y0, int x1, int y1, Uint3
 
 }
 
+void gfx_translucent_rect(GfxDomain *domain, SDL_Rect *dest, Uint32 color)
+{
+#ifdef USESDL_GPU
+	SDL_Color rgb = { (color >> 16) & 255, (color >> 8) & 255, color & 255, (color >> 24) & 255 };
+
+	if (dest)
+		GPU_RectangleFilled(domain->screen, dest->x, dest->y, dest->w + dest->x - 1, dest->y + dest->h - 1, rgb);
+	else
+		GPU_RectangleFilled(domain->screen, 0, 0, domain->screen_w, domain->screen_h, rgb);
+#else
+	SDL_SetRenderDrawColor(domain->renderer, (color >> 16) & 255, (color >> 8) & 255, color & 255, (color >> 24) & 255);
+	SDL_RenderFillRect(domain->renderer, dest);
+#endif
+}
+
 void show_credits(void *unused0, void *unused1, void *unused2)
 {
 	bool modified = mused.modified;
@@ -96,7 +111,11 @@ void show_credits(void *unused0, void *unused1, void *unused2)
 	
 	Sint32 text_scroll_position = domain->screen_h + 10;
 	
-	Uint8 num_added_dots = 0;
+	Uint16 total_dots = NUM_DOTS - 1;
+	Sint16 selected_dot = -1;
+	Sint16 deleted_dot = -1;
+	
+	Uint8 frames_deletion = 0;
 	
 	SDL_Event e = { 0 };
 	int got_event = 0;
@@ -234,27 +253,59 @@ void show_credits(void *unused0, void *unused1, void *unused2)
 						gfx_convert_mouse_coordinates(domain, &e.motion.xrel, &e.motion.yrel);
 					}
 				break;
-
+				
+				#define SELECT_AREA_SIZE 6
+				
 				case SDL_MOUSEBUTTONDOWN:
 					if (domain)
 					{
 						gfx_convert_mouse_coordinates(domain, &e.button.x, &e.button.y);
 						
-						if(num_added_dots < NUM_DOTS * 7)
+						if(e.button.button == SDL_BUTTON_LEFT)
 						{
-							dots[NUM_DOTS + num_added_dots].x = e.button.x;
-							dots[NUM_DOTS + num_added_dots].y = e.button.y;
-							dots[NUM_DOTS + num_added_dots].vx = ((rand() & 1) ? -1 : 1) * (10 + (double)(rand() % 10)) / 120.0;
-							dots[NUM_DOTS + num_added_dots].vy = ((rand() & 1) ? -1 : 1) * (10 + (double)(rand() % 10)) / 120.0;
-							
-							for(int i = 0; i < NUM_PREV_COORDS; ++i)
+							for(int i = 0; i < total_dots; ++i)
 							{
-								dots[NUM_DOTS + num_added_dots].prev_coords[i].x = -100;
-								dots[NUM_DOTS + num_added_dots].prev_coords[i].y = -100;
+								if(abs(e.button.x - dots[i].x) < SELECT_AREA_SIZE && abs(e.button.y - dots[i].y) < SELECT_AREA_SIZE)
+								{
+									selected_dot = i;
+									goto finish;
+								}
 							}
 							
-							num_added_dots++;
+							if(total_dots < NUM_DOTS * 8)
+							{
+								dots[total_dots].x = e.button.x;
+								dots[total_dots].y = e.button.y;
+								dots[total_dots].vx = ((rand() & 1) ? -1 : 1) * (10 + (double)(rand() % 10)) / 120.0;
+								dots[total_dots].vy = ((rand() & 1) ? -1 : 1) * (10 + (double)(rand() % 10)) / 120.0;
+								
+								for(int i = 0; i < NUM_PREV_COORDS; ++i)
+								{
+									dots[total_dots].prev_coords[i].x = -100;
+									dots[total_dots].prev_coords[i].y = -100;
+								}
+								
+								total_dots++;
+							}
 						}
+						
+						if(e.button.button == SDL_BUTTON_RIGHT)
+						{
+							for(int i = 0; i < total_dots; ++i)
+							{
+								if(abs(e.button.x - dots[i].x) < SELECT_AREA_SIZE && abs(e.button.y - dots[i].y) < SELECT_AREA_SIZE)
+								{
+									deleted_dot = i;
+									frames_deletion = 0;
+									goto finish;
+								}
+							}
+							
+							selected_dot = -1;
+							goto finish;
+						}
+						
+						finish:;
 					}
 				break;
 
@@ -288,7 +339,7 @@ void show_credits(void *unused0, void *unused1, void *unused2)
 				gfx_domain_set_clip(domain, &area);
 				gfx_rect(domain, &area, colors[COLOR_WAVETABLE_BACKGROUND]); //fill screen with black
 				
-				for(int y = 0; y < domain->screen_h / 16 + 1; y++) //effect stolen from https://gist.github.com/stevenlr/824019
+				for(int y = 0; y < domain->screen_h / 16 + 1; y++) //plasma effect stolen from https://gist.github.com/stevenlr/824019
 				{
 					for(int x = 0; x < domain->screen_w / 16 + 1; x++)
 					{
@@ -307,11 +358,11 @@ void show_credits(void *unused0, void *unused1, void *unused2)
 				
 				f += 0.005;
 				
-				for(int i = 0; i < NUM_DOTS + num_added_dots; ++i)
+				for(int i = 0; i < total_dots; ++i)
 				{
-					for(int j = 0; j < NUM_DOTS + num_added_dots; ++j) //attraction forces
+					for(int j = 0; j < total_dots; ++j) //attraction forces
 					{
-						if(i != j)
+						if(i != j && i != deleted_dot)
 						{
 							double dx2 = (dots[i].x - dots[j].x) * (dots[i].x - dots[j].x);
 							double dy2 = (dots[i].y - dots[j].y) * (dots[i].y - dots[j].y);
@@ -321,19 +372,24 @@ void show_credits(void *unused0, void *unused1, void *unused2)
 							if(dx2 > 2.0 && dy2 > 2.0)
 							{
 								//dots[i].vx -= ((dots[i].x - dots[j].x) > 0 ? 1 : -1) * G / ((dots[i].x - dots[j].x) * (dots[i].x - dots[j].x));
-								dots[i].vx = my_min(my_max(dots[i].vx - ((dots[i].x - dots[j].x) > 0 ? 1 : -1) * G / ((dots[i].x - dots[j].x) * (dots[i].x - dots[j].x)), -10.5), 10.5);
+								//dots[i].vx = my_min(my_max(dots[i].vx - ((dots[i].x - dots[j].x) > 0 ? 1 : -1) * G / ((dots[i].x - dots[j].x) * (dots[i].x - dots[j].x)), -10.5), 10.5);
+								dots[i].vx = my_min(my_max(dots[i].vx - G / ((dots[i].x - dots[j].x) * fabs(dots[i].x - dots[j].x)), -10.5), 10.5);
 								
 								//dots[i].vy -= ((dots[i].y - dots[j].y) > 0 ? 1 : -1) * G / ((dots[i].y - dots[j].y) * (dots[i].y - dots[j].y));
-								dots[i].vy = my_min(my_max(dots[i].vy - ((dots[i].y - dots[j].y) > 0 ? 1 : -1) * G / ((dots[i].y - dots[j].y) * (dots[i].y - dots[j].y)), -10.5), 10.5);
+								//dots[i].vy = my_min(my_max(dots[i].vy - ((dots[i].y - dots[j].y) > 0 ? 1 : -1) * G / ((dots[i].y - dots[j].y) * (dots[i].y - dots[j].y)), -10.5), 10.5);
+								dots[i].vy = my_min(my_max(dots[i].vy - G / ((dots[i].y - dots[j].y) * fabs(dots[i].y - dots[j].y)), -10.5), 10.5);
 							}
 						}
 					}
 				}
 				
-				for(int i = 0; i < NUM_DOTS + num_added_dots; ++i)
+				for(int i = 0; i < total_dots; ++i)
 				{
-					dots[i].x = my_min(my_max(dots[i].x + dots[i].vx, 0), domain->screen_w);
-					dots[i].y = my_min(my_max(dots[i].y + dots[i].vy, 0), domain->screen_h);
+					if(i != deleted_dot)
+					{
+						dots[i].x = my_min(my_max(dots[i].x + dots[i].vx, 0), domain->screen_w);
+						dots[i].y = my_min(my_max(dots[i].y + dots[i].vy, 0), domain->screen_h);
+					}
 					
 					if(dots[i].x == domain->screen_w || dots[i].x == 0)
 					{
@@ -366,16 +422,83 @@ void show_credits(void *unused0, void *unused1, void *unused2)
 						}
 					}
 					
-					dot_rect.x = dots[i].x;
-					dot_rect.y = dots[i].y;
+					if(i != deleted_dot)
+					{
+						dot_rect.x = dots[i].x;
+						dot_rect.y = dots[i].y;
+						
+						
+						gfx_rect(domain, &dot_rect, 0x808080);
+					}
+				}
+				
+				if(selected_dot >= 0)
+				{
+					int i = selected_dot;
 					
-					gfx_rect(domain, &dot_rect, 0x808080);
+					gfx_translucent_line(domain, dots[i].x - 4 + 1, dots[i].y - 4 + 1, dots[i].x - 4 + 1, dots[i].y - 2 + 1, 0xFFFFFF | (100 << 24));
+					gfx_translucent_line(domain, dots[i].x - 4 + 1, dots[i].y - 4 + 1, dots[i].x - 2 + 1, dots[i].y - 4 + 1, 0xFFFFFF | (100 << 24));
+					
+					gfx_translucent_line(domain, dots[i].x + 4 + 1, dots[i].y + 4 + 1, dots[i].x + 4 + 1, dots[i].y + 2 + 1, 0xFFFFFF | (100 << 24));
+					gfx_translucent_line(domain, dots[i].x + 4 + 1, dots[i].y + 4 + 1, dots[i].x + 2 + 1, dots[i].y + 4 + 1, 0xFFFFFF | (100 << 24));
+					
+					gfx_translucent_line(domain, dots[i].x + 4 + 1, dots[i].y - 4 + 1, dots[i].x + 4 + 1, dots[i].y - 2 + 1, 0xFFFFFF | (100 << 24));
+					gfx_translucent_line(domain, dots[i].x + 4 + 1, dots[i].y - 4 + 1, dots[i].x + 2 + 1, dots[i].y - 4 + 1, 0xFFFFFF | (100 << 24));
+					
+					gfx_translucent_line(domain, dots[i].x - 4 + 1, dots[i].y + 4 + 1, dots[i].x - 4 + 1, dots[i].y + 2 + 1, 0xFFFFFF | (100 << 24));
+					gfx_translucent_line(domain, dots[i].x - 4 + 1, dots[i].y + 4 + 1, dots[i].x - 2 + 1, dots[i].y + 4 + 1, 0xFFFFFF | (100 << 24));
+					
+					textrect.y = dots[i].y - 10 - 6;
+					textrect.x = dots[i].x - 4;
+					
+					font_set_color(&mused.tinyfont, 0xAAAAAA);
+					
+					font_write_args(&mused.tinyfont, domain, &textrect, "X: %u Y: %u", (int)dots[i].x, (int)dots[i].y);
+					
+					textrect.y += 6;
+					
+					font_write_args(&mused.tinyfont, domain, &textrect, "VX: %0.2f VY: %0.2f", dots[i].vx, dots[i].vy);
+				}
+				
+				if(deleted_dot >= 0 && total_dots > 0)
+				{
+					dots[deleted_dot].vx = dots[deleted_dot].vy = 0.0;
+					
+					dot_rect.x = dots[deleted_dot].x;
+					dot_rect.y = dots[deleted_dot].y;
+					
+					for(int q = 0; q < 8; ++q)
+					{
+						for(int j = NUM_PREV_COORDS - 1 - 1; j >= 0; --j)
+						{
+							dots[deleted_dot].prev_coords[j + 1].x = dots[deleted_dot].prev_coords[j].x; //shifting buffer
+							dots[deleted_dot].prev_coords[j + 1].y = dots[deleted_dot].prev_coords[j].y;
+						}
+					}
+					
+					gfx_translucent_rect(domain, &dot_rect, (Uint32)RGB(0x90, 0, 0) | (Uint32)((255 - frames_deletion * 255 / NUM_PREV_COORDS * 8) << 24));
+					
+					frames_deletion++;
+					
+					if(frames_deletion > NUM_PREV_COORDS / 8)
+					{
+						frames_deletion = 0;
+						
+						for(int i = deleted_dot + 1; i < total_dots; ++i)
+						{
+							memcpy(dots + (i - 1), dots + i, sizeof(Dot));
+						}
+						
+						total_dots--;
+						
+						deleted_dot = -1;
+					}
 				}
 				
 				//gfx_domain_set_clip(domain, &textrect); //draw text
 				//console_clear(mused.console);
 				
-				#define SHIFT 50 + 8 + 8
+				#define SHIFT (50 + 8 + 8)
 				
 				if(mused.font16.surface && mused.font24.surface)
 				{
@@ -613,11 +736,11 @@ void show_credits(void *unused0, void *unused1, void *unused2)
 					textrect.x = domain->screen_w / 2 - 150;
 					textrect.y = domain->screen_h / 2 - 8;
 					
-					font_write_args(&mused.largefont, domain, &textrect, "              No special fonts found.");
+					font_write_args(&mused.largefont, domain, &textrect, "        No special fonts found.");
 					
 					textrect.y += 10;
 					
-					font_write_args(&mused.largefont, domain, &textrect, "            Update your \"res\" folder.");
+					font_write_args(&mused.largefont, domain, &textrect, "       Update your \"res\" folder.");
 				}
 				
 				frames++;
@@ -633,6 +756,8 @@ void show_credits(void *unused0, void *unused1, void *unused2)
 	}
 	
 	end:;
+	
+	font_set_color(&mused.tinyfont, colors[COLOR_MAIN_TEXT]);
 	
 	SDL_StopTextInput();
 	
