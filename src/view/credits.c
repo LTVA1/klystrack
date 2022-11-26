@@ -62,6 +62,8 @@ void gfx_translucent_line(GfxDomain *dest, int x0, int y0, int x1, int y1, Uint3
 
 void show_credits(void *unused0, void *unused1, void *unused2)
 {
+	bool modified = mused.modified;
+	
 	char filename[5000] = {0};
 	char* song_name = (char*)&mused.song.title;
 
@@ -316,17 +318,20 @@ void show_credits(void *unused0, void *unused1, void *unused2)
 							
 							double distance = sqrt(dx2 + dy2);
 							
-							if(dx2 > 5.0 && dy2 > 5.0 && distance < 100.0)
+							if(dx2 > 2.0 && dy2 > 2.0)
 							{
 								//dots[i].vx -= ((dots[i].x - dots[j].x) > 0 ? 1 : -1) * G / ((dots[i].x - dots[j].x) * (dots[i].x - dots[j].x));
-								dots[i].vx = my_min(my_max(dots[i].vx - ((dots[i].x - dots[j].x) > 0 ? 1 : -1) * G / ((dots[i].x - dots[j].x) * (dots[i].x - dots[j].x)), -1.5), 1.5);
+								dots[i].vx = my_min(my_max(dots[i].vx - ((dots[i].x - dots[j].x) > 0 ? 1 : -1) * G / ((dots[i].x - dots[j].x) * (dots[i].x - dots[j].x)), -10.5), 10.5);
 								
 								//dots[i].vy -= ((dots[i].y - dots[j].y) > 0 ? 1 : -1) * G / ((dots[i].y - dots[j].y) * (dots[i].y - dots[j].y));
-								dots[i].vy = my_min(my_max(dots[i].vy - ((dots[i].y - dots[j].y) > 0 ? 1 : -1) * G / ((dots[i].y - dots[j].y) * (dots[i].y - dots[j].y)), -1.5), 1.5);
+								dots[i].vy = my_min(my_max(dots[i].vy - ((dots[i].y - dots[j].y) > 0 ? 1 : -1) * G / ((dots[i].y - dots[j].y) * (dots[i].y - dots[j].y)), -10.5), 10.5);
 							}
 						}
 					}
-					
+				}
+				
+				for(int i = 0; i < NUM_DOTS + num_added_dots; ++i)
+				{
 					dots[i].x = my_min(my_max(dots[i].x + dots[i].vx, 0), domain->screen_w);
 					dots[i].y = my_min(my_max(dots[i].y + dots[i].vy, 0), domain->screen_h);
 					
@@ -608,11 +613,11 @@ void show_credits(void *unused0, void *unused1, void *unused2)
 					textrect.x = domain->screen_w / 2 - 150;
 					textrect.y = domain->screen_h / 2 - 8;
 					
-					font_write_args(&mused.largefont, domain, &textrect, "                   No special fonts found.");
+					font_write_args(&mused.largefont, domain, &textrect, "              No special fonts found.");
 					
 					textrect.y += 10;
 					
-					font_write_args(&mused.largefont, domain, &textrect, "                 Update your \"res\" folder.");
+					font_write_args(&mused.largefont, domain, &textrect, "            Update your \"res\" folder.");
 				}
 				
 				frames++;
@@ -646,6 +651,8 @@ void show_credits(void *unused0, void *unused1, void *unused2)
 		cyd_lock(&mused.cyd, 0);
 		
 		remove(filename);
+		
+		mused.modified = modified;
 		
 		play(0, 0, 0);
 		stop(0, 0, 0);
