@@ -182,6 +182,8 @@ void show_credits(void *unused0, void *unused1, void *unused2)
 	Uint32 x_scale = domain->screen_w / 32;
 	Uint32 y_scale = domain->screen_h / 32;
 	
+	bool shift_pressed = false;
+	
 	while(!quit)
 	{
 		while (SDL_PollEvent(&e))
@@ -200,6 +202,11 @@ void show_credits(void *unused0, void *unused1, void *unused2)
 
 				case SDL_KEYDOWN:
 				{
+					if(e.key.keysym.sym == SDLK_LSHIFT || e.key.keysym.sym == SDLK_RSHIFT)
+					{
+						shift_pressed = true;
+					}
+					
 					switch (e.key.keysym.sym)
 					{
 						case SDLK_ESCAPE:
@@ -216,6 +223,18 @@ void show_credits(void *unused0, void *unused1, void *unused2)
 						
 						default: break;
 					}
+					
+					break;
+				}
+				
+				case SDL_KEYUP:
+				{
+					if(e.key.keysym.sym == SDLK_LSHIFT || e.key.keysym.sym == SDLK_RSHIFT)
+					{
+						shift_pressed = false;
+					}
+					
+					break;
 				}
 
 				case SDL_USEREVENT:
@@ -276,8 +295,18 @@ void show_credits(void *unused0, void *unused1, void *unused2)
 							{
 								dots[total_dots].x = e.button.x;
 								dots[total_dots].y = e.button.y;
-								dots[total_dots].vx = ((rand() & 1) ? -1 : 1) * (10 + (double)(rand() % 10)) / 120.0;
-								dots[total_dots].vy = ((rand() & 1) ? -1 : 1) * (10 + (double)(rand() % 10)) / 120.0;
+								
+								if(shift_pressed == false)
+								{
+									dots[total_dots].vx = ((rand() & 1) ? -1 : 1) * (10 + (double)(rand() % 10)) / 40.0;
+									dots[total_dots].vy = ((rand() & 1) ? -1 : 1) * (10 + (double)(rand() % 10)) / 40.0;
+								}
+								
+								else
+								{
+									dots[total_dots].vx = 0;
+									dots[total_dots].vy = 0;
+								}
 								
 								for(int i = 0; i < NUM_PREV_COORDS; ++i)
 								{
@@ -362,22 +391,26 @@ void show_credits(void *unused0, void *unused1, void *unused2)
 				{
 					for(int j = 0; j < total_dots; ++j) //attraction forces
 					{
-						if(i != j && i != deleted_dot)
+						if(i < j && i != deleted_dot)
 						{
 							double dx2 = (dots[i].x - dots[j].x) * (dots[i].x - dots[j].x);
 							double dy2 = (dots[i].y - dots[j].y) * (dots[i].y - dots[j].y);
 							
-							double distance = sqrt(dx2 + dy2);
+							//double distance = sqrt(dx2 + dy2);
 							
-							if(dx2 > 2.0 && dy2 > 2.0)
+							if(dx2 > 2.0 && dy2 > 2.0) //LOOKS LIKE I FINALLY MADE A BELIEVABLE FUCKING GRAVITY!!!
 							{
 								//dots[i].vx -= ((dots[i].x - dots[j].x) > 0 ? 1 : -1) * G / ((dots[i].x - dots[j].x) * (dots[i].x - dots[j].x));
 								//dots[i].vx = my_min(my_max(dots[i].vx - ((dots[i].x - dots[j].x) > 0 ? 1 : -1) * G / ((dots[i].x - dots[j].x) * (dots[i].x - dots[j].x)), -10.5), 10.5);
 								dots[i].vx = my_min(my_max(dots[i].vx - G / ((dots[i].x - dots[j].x) * fabs(dots[i].x - dots[j].x)), -10.5), 10.5);
 								
+								dots[j].vx = my_min(my_max(dots[j].vx - G / ((dots[j].x - dots[i].x) * fabs(dots[j].x - dots[i].x)), -10.5), 10.5);
+								
 								//dots[i].vy -= ((dots[i].y - dots[j].y) > 0 ? 1 : -1) * G / ((dots[i].y - dots[j].y) * (dots[i].y - dots[j].y));
 								//dots[i].vy = my_min(my_max(dots[i].vy - ((dots[i].y - dots[j].y) > 0 ? 1 : -1) * G / ((dots[i].y - dots[j].y) * (dots[i].y - dots[j].y)), -10.5), 10.5);
 								dots[i].vy = my_min(my_max(dots[i].vy - G / ((dots[i].y - dots[j].y) * fabs(dots[i].y - dots[j].y)), -10.5), 10.5);
+								
+								dots[j].vy = my_min(my_max(dots[j].vy - G / ((dots[j].y - dots[i].y) * fabs(dots[j].y - dots[i].y)), -10.5), 10.5);
 							}
 						}
 					}
@@ -487,6 +520,19 @@ void show_credits(void *unused0, void *unused1, void *unused2)
 						for(int i = deleted_dot + 1; i < total_dots; ++i)
 						{
 							memcpy(dots + (i - 1), dots + i, sizeof(Dot));
+						}
+						
+						if(deleted_dot == selected_dot)
+						{
+							selected_dot = -1;
+						}
+						
+						else
+						{
+							if(selected_dot > deleted_dot)
+							{
+								selected_dot--;
+							}
 						}
 						
 						total_dots--;
