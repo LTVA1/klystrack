@@ -105,6 +105,9 @@ void show_credits(void *unused0, void *unused1, void *unused2)
 		fclose(f_bgm);
 		
 		play(0, 0, 0);
+		
+		mused.mus.volume = 0x30;
+		mused.cyd.mus_volume = 0x30;
 	}
 	
 	//debug("sizeof dot %d", sizeof(Dot));

@@ -3749,7 +3749,7 @@ void edit_program_event(SDL_Event *e)
 				{
 					Uint16 opcode = mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step];
 					
-					if (((opcode & 0xff00) != MUS_FX_JUMP && (opcode & 0xff00) != MUS_FX_LABEL && (opcode & 0xff00) != MUS_FX_LOOP && opcode != MUS_FX_NOP && opcode != MUS_FX_END) && (mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][my_min(mused.current_program_step + 1, MUS_PROG_LEN)] & 0xff00) != MUS_FX_JUMP)
+					if (((opcode & 0xff00) != MUS_FX_JUMP && (opcode & 0xff00) != MUS_FX_LABEL && (opcode & 0xff00) != MUS_FX_RELEASE_POINT && (opcode & 0xff00) != MUS_FX_LOOP && opcode != MUS_FX_NOP && opcode != MUS_FX_END) && (mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][my_min(mused.current_program_step + 1, MUS_PROG_LEN)] & 0xff00) != MUS_FX_JUMP)
 						//mused.song.instrument[mused.current_instrument].program[mused.current_program_step] ^= 0x8000; //old command mused.song.instrument[mused.current_instrument].program[mused.current_program_step] ^= 0x8000;
 						mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step / 8] ^= (1 << (mused.current_program_step & 7));
 				}
@@ -3758,7 +3758,7 @@ void edit_program_event(SDL_Event *e)
 				{
 					Uint16 opcode = mused.song.instrument[mused.current_instrument].program[mused.current_instrument_program][mused.current_program_step];
 					
-					if (((opcode & 0xff00) != MUS_FX_JUMP && (opcode & 0xff00) != MUS_FX_LABEL && (opcode & 0xff00) != MUS_FX_LOOP && opcode != MUS_FX_NOP && opcode != MUS_FX_END) && (mused.song.instrument[mused.current_instrument].program[mused.current_instrument_program][my_min(mused.current_program_step + 1, MUS_PROG_LEN)] & 0xff00) != MUS_FX_JUMP)
+					if (((opcode & 0xff00) != MUS_FX_JUMP && (opcode & 0xff00) != MUS_FX_LABEL && (opcode & 0xff00) != MUS_FX_RELEASE_POINT && (opcode & 0xff00) != MUS_FX_LOOP && opcode != MUS_FX_NOP && opcode != MUS_FX_END) && (mused.song.instrument[mused.current_instrument].program[mused.current_instrument_program][my_min(mused.current_program_step + 1, MUS_PROG_LEN)] & 0xff00) != MUS_FX_JUMP)
 						//mused.song.instrument[mused.current_instrument].program[mused.current_program_step] ^= 0x8000; //old command mused.song.instrument[mused.current_instrument].program[mused.current_program_step] ^= 0x8000;
 						mused.song.instrument[mused.current_instrument].program_unite_bits[mused.current_instrument_program][mused.current_program_step / 8] ^= (1 << (mused.current_program_step & 7));
 				}
@@ -4751,17 +4751,22 @@ void note_event(SDL_Event *e)
 	{
 		case MSG_NOTEON:
 		{
-			play_note(e->user.code);
+			Uint32 note = e->user.code + 12 * 5; //to account for negative octaves
+			
+			play_note(note);
+			
 			if (mused.focus == EDITPATTERN && (mused.flags & EDIT_MODE) && get_current_step() && mused.current_patternx == PED_NOTE)
 			{
-				write_note(e->user.code);
+				write_note(note);
 			}
 		}
 		break;
 
 		case MSG_NOTEOFF:
 		{
-			stop_note(e->user.code);
+			Uint32 note = e->user.code + 12 * 5; //to account for negative octaves
+			
+			stop_note(note);
 		}
 		break;
 

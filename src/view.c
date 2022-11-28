@@ -1538,6 +1538,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 								if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE) || ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_FM) && (mused.cyd.channel[c].fm.adsr.envelope != 0) && !(mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE))) && (mused.channel[c].program_flags & (1 << mused.current_instrument_program)) && mused.channel[c].program_tick[mused.current_instrument_program] == q)
 								{
 									highlight_united = true;
+									break;
 								}
 							}
 						}
@@ -3232,6 +3233,7 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 								if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].adsr.envelope > 0) && (mused.channel[c].ops[mused.selected_operator - 1].program_flags & (1 << mused.current_fourop_program[mused.selected_operator - 1])) && mused.channel[c].ops[mused.selected_operator - 1].program_tick[mused.current_fourop_program[mused.selected_operator - 1]] == q) && !(inst->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG))
 								{
 									highlight_united = true;
+									break;
 								}
 							}
 						}
@@ -3244,20 +3246,20 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 				{
 					if(mused.jump_in_program_4op)
 					{
-						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xf000) == 0xf000) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
+						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7)))) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
 							select_program_step, MAKEPTR(i), 0, 0);
 					}
 					
 					else
 					{
-						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xf000) == 0xf000) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
+						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7)))) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
 							NULL, 0, 0, 0);
 					}
 				}
 				
 				else
 				{
-					check_event(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xf000) == 0xf000) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
+					check_event(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7)))) ? '´' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '´' : '|'),
 							select_program_step, MAKEPTR(i), 0, 0);
 				}
 			}
@@ -3297,6 +3299,7 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 								if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].adsr.envelope > 0) && (mused.channel[c].ops[mused.selected_operator - 1].program_flags & (1 << mused.current_fourop_program[mused.selected_operator - 1])) && mused.channel[c].ops[mused.selected_operator - 1].program_tick[mused.current_fourop_program[mused.selected_operator - 1]] == q) && !(inst->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG))
 								{
 									highlight_united = true;
+									break;
 								}
 							}
 						}
@@ -3309,20 +3312,20 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 				{
 					if(mused.jump_in_program_4op)
 					{
-						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", ((inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7))) && (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xf000) != 0xf000) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
+						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", ((inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7)))) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
 							select_program_step, MAKEPTR(i), 0, 0);
 					}
 					
 					else
 					{
-						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", ((inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7))) && (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xf000) != 0xf000) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
+						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", ((inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7)))) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
 							NULL, 0, 0, 0);
 					}
 				}
 				
 				else
 				{
-					check_event(event, console_write_args(mused.console, "%c ", ((inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7))) && (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xf000) != 0xf000) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
+					check_event(event, console_write_args(mused.console, "%c ", ((inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7)))) ? '`' : ' '), //old command check_event(event, console_write_args(mused.console, "%c ", ((inst->program[i] & 0x8000) && (inst->program[i] & 0xf000) != 0xf000) ? '`' : ' '),
 							select_program_step, MAKEPTR(i), 0, 0);
 				}
 			}
@@ -3428,7 +3431,7 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 
 			prev_pos = pos;
 
-			if (!(inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xf000) == 0xf000) ++pos;
+			if (!(inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7))) || (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xff00) == MUS_FX_JUMP || (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xff00) == MUS_FX_LABEL || (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][i] & 0xff00) == MUS_FX_LOOP) ++pos;
 		}
 
 		if (mused.focus == EDITPROG4OP && mused.selection.start != mused.selection.end
