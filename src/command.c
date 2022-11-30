@@ -121,6 +121,11 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_EXT_NOTE_CUT, 0xfff0, "Note cut", "NoteCut", 0, 0xf},
 	{MUS_FX_EXT_RETRIGGER, 0xfff0, "Retrigger", "Retrig", 0, 0xf},
 	
+	{MUS_FX_PHASE_RESET, 0xfff0, "Oscillator phase reset on tick X", "OscPhRes", 0, 0xf},
+	{MUS_FX_NOISE_PHASE_RESET, 0xfff0, "Noise osc. ph. reset (in LOCK NOI PITCH mode)", "NoiPhRes", 0, 0xf},
+	{MUS_FX_WAVE_PHASE_RESET, 0xfff0, "Wave phase reset on tick X", "WavePhRes", 0, 0xf},
+	{MUS_FX_FM_PHASE_RESET, 0xfff0, "FM modulator phase reset", "FMmodPhRes", 0, 0xf},
+	
 	{MUS_FX_WAVETABLE_OFFSET, 0xf000, "Wavetable offset", "WaveOffs", 0, 0xfff},
 	{MUS_FX_WAVETABLE_OFFSET_UP, 0xff00, "Wavetable offset up", "WaveOffsUp", 0, 0xff}, //wasn't there
 	{MUS_FX_WAVETABLE_OFFSET_DOWN, 0xff00, "Wavetable offset down", "WaveOffsDn", 0, 0xff}, //wasn't there

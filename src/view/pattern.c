@@ -526,6 +526,8 @@ static void pattern_view_registers_map(GfxDomain *dest_surface, const SDL_Rect *
 
 void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event)
 {
+	font_set_color(&mused.tinyfont, colors[COLOR_SMALL_TEXT]);
+	
 	gfx_domain_set_clip(dest_surface, dest);
 	
 	const int height = 8;
@@ -1443,6 +1445,19 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 			}
 		}
 		
+		SDL_Rect muted_mask = { 0 };
+		copy_rect(&muted_mask, &track);
+		
+		muted_mask.x -= 1;
+		muted_mask.w += 2;
+		
+		gfx_domain_set_clip(dest_surface, &muted_mask);
+		
+		if(mused.mus.channel[channel].flags & MUS_CHN_DISABLED)
+		{
+			gfx_translucent_rect(domain, &muted_mask, 128 << 24);
+		}
+		
 		SDL_Rect mask;
 		
 		copy_rect(&mask, &header);
@@ -1569,6 +1584,8 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 		
 		pattern_view_registers_map(dest_surface, &reg_map);
 	}
+	
+	font_set_color(&mused.tinyfont, colors[COLOR_MAIN_TEXT]);
 }
 
 static void pattern_view_stepcounter(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event)

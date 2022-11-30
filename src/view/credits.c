@@ -48,33 +48,6 @@ extern GfxDomain* domain;
 
 #define G 0.5 /* sort of gravitational constant lol */
 
-void gfx_translucent_line(GfxDomain *dest, int x0, int y0, int x1, int y1, Uint32 color)
-{
-#ifdef USESDL_GPU
-	SDL_Color c = {(color >> 16) & 255, (color >> 8) & 255, color & 255, (color >> 24) & 255};
-	GPU_Line(dest->screen, x0, y0, x1, y1, c);
-#else
-	SDL_SetRenderDrawColor(dest->renderer, (color >> 16) & 255, (color >> 8) & 255, color & 255, (color >> 24) & 255);
-	SDL_RenderDrawLine(dest->renderer, x0, y0, x1, y1);
-#endif
-
-}
-
-void gfx_translucent_rect(GfxDomain *domain, SDL_Rect *dest, Uint32 color)
-{
-#ifdef USESDL_GPU
-	SDL_Color rgb = { (color >> 16) & 255, (color >> 8) & 255, color & 255, (color >> 24) & 255 };
-
-	if (dest)
-		GPU_RectangleFilled(domain->screen, dest->x, dest->y, dest->w + dest->x - 1, dest->y + dest->h - 1, rgb);
-	else
-		GPU_RectangleFilled(domain->screen, 0, 0, domain->screen_w, domain->screen_h, rgb);
-#else
-	SDL_SetRenderDrawColor(domain->renderer, (color >> 16) & 255, (color >> 8) & 255, color & 255, (color >> 24) & 255);
-	SDL_RenderFillRect(domain->renderer, dest);
-#endif
-}
-
 void show_credits(void *unused0, void *unused1, void *unused2)
 {
 	bool modified = mused.modified;
