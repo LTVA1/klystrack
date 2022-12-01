@@ -51,6 +51,12 @@ Uint16 find_command_pt(Uint16 command, int sample_length)
 		command = MUS_FX_WAVETABLE_OFFSET | ((Uint64)(command & 0xff) * 256 * 0x1000 / (Uint64)sample_length);
 	else if ((command & 0xff00) == 0x0000 && (command & 0xff) != 0) 
 		command = MUS_FX_SET_EXT_ARP | (command & 0xff);
+	
+	
+	else if ((command & 0xff00) == 0x0d00) 
+		command = MUS_FX_SKIP_PATTERN | (command & 0xff);
+	
+	
 	else if ((command & 0xff00) != 0x0400 && (command & 0xff00) != 0x0000) 
 		command = 0;	
 	else if ((command & 0xfff0) == 0x0ec0)
@@ -213,7 +219,7 @@ int import_mod(FILE *f)
 				fread(&inst, 1, sizeof(inst), f);
 				fread(&param, 1, sizeof(param), f);
 				
-				mused.song.pattern[pat].step[s].note = find_note(SDL_SwapBE16(period) & 0xfff) + 12 * 5;
+				mused.song.pattern[pat].step[s].note = find_note(SDL_SwapBE16(period) & 0xfff);
 				mused.song.pattern[pat].step[s].instrument = ((inst >> 4) | ((SDL_SwapBE16(period) & 0xf000) >> 8)) - 1;
 				mused.song.pattern[pat].step[s].volume = MUS_NOTE_NO_VOLUME;
 				
@@ -271,9 +277,11 @@ int import_mod(FILE *f)
 				mused.mus.cyd->wavetable_entries[wt_e].flags |= CYD_WAVE_LOOP;
 			}
 			
+			mused.mus.cyd->wavetable_entries[wt_e].flags |= CYD_WAVE_NO_INTERPOLATION; //crispy!
+			
 			/* assuming PAL timing i.e. C-2 = 8287 Hz */
 			mused.mus.cyd->wavetable_entries[wt_e].base_note = (MIDDLE_C << 8) - ((Sint16)fine[i] << 1);
-			mused.mus.cyd->wavetable_entries[wt_e].sample_rate = 7093789.2/856;
+			mused.mus.cyd->wavetable_entries[wt_e].sample_rate = (Uint32)(7093789.2 / 856.0);
 			
 			++wt_e;
 		}

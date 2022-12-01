@@ -1628,7 +1628,16 @@ void open_data(void *type, void *action, void *_ret)
 
 			if (!r)
 			{
-				snprintf(str, sizeof(str), "Could not open %s!", open_stuff[t].name);
+				if(t == OD_T_SONG)
+				{
+					snprintf(str, sizeof(str), "              Could not open song!\nMaybe it is too new for this version of klystrack.", open_stuff[t].name);
+				}
+				
+				else
+				{
+					snprintf(str, sizeof(str), "Could not open %s!", open_stuff[t].name);
+				}
+				
 				msgbox(domain, mused.slider_bevel, &mused.largefont, str, MB_OK);
 
 				return_val = 0;

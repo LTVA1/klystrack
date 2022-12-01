@@ -555,42 +555,63 @@ void process_mml_string(MusInstrument* inst, int dialect, char* mml_string)
 		case BTN_FMP:
 		{
 			debug("Selected FMP dialect");
+			
+			msgbox(domain, mused.slider_bevel, &mused.largefont, "Only PMD dialect supported in this version!", MB_OK);
+			
 			break;
 		}
 		
 		case BTN_FMP7:
 		{
 			debug("Selected FMP7 dialect");
+			
+			msgbox(domain, mused.slider_bevel, &mused.largefont, "Only PMD dialect supported in this version!", MB_OK);
+			
 			break;
 		}
 		
 		case BTN_VOPM:
 		{
 			debug("Selected VOPM dialect");
+			
+			msgbox(domain, mused.slider_bevel, &mused.largefont, "Only PMD dialect supported in this version!", MB_OK);
+			
 			break;
 		}
 		
 		case BTN_NRTDRV:
 		{
 			debug("Selected NRTDRV dialect");
+			
+			msgbox(domain, mused.slider_bevel, &mused.largefont, "Only PMD dialect supported in this version!", MB_OK);
+			
 			break;
 		}
 		
 		case BTN_MXDRV:
 		{
 			debug("Selected MXDRV dialect");
+			
+			msgbox(domain, mused.slider_bevel, &mused.largefont, "Only PMD dialect supported in this version!", MB_OK);
+			
 			break;
 		}
 		
 		case BTN_MMLDRV:
 		{
 			debug("Selected MMLDRV dialect");
+			
+			msgbox(domain, mused.slider_bevel, &mused.largefont, "Only PMD dialect supported in this version!", MB_OK);
+			
 			break;
 		}
 		
 		case BTN_MUCOM88:
 		{
 			debug("Selected MUCOM88 dialect");
+			
+			msgbox(domain, mused.slider_bevel, &mused.largefont, "Only PMD dialect supported in this version!", MB_OK);
+			
 			break;
 		}
 		
