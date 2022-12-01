@@ -34,7 +34,7 @@ make -j10
 - `.it` (Impulse Tracker) file import
 - `.MED` (OctaMED tracker) file import
 - `.mid`/`.midi` file import along with some kind of klystrack own file for creating instrument banks
-- MIDI input support
+- ~~MIDI input support~~ lol it sort of was there from the very first fork release, but it was proven to work in 0.10.0-alpha2
 - `.mptm` import (OpenMPT file)
 - [`.fur`](https://github.com/tildearrow/furnace) import. I love how this tracker also uses 16-bit commands (and will probably steal some algorithms from it). Deflemask killer.
 - Custom envelope for instruments and thus more precise `.xm` (and maybe other formats) import. Maybe make Yamaha FM chips (YM2612 envelope, `TL-AR-D1R-TL1-D2R-RR` style) envelope as separate option.
