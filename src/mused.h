@@ -49,6 +49,8 @@ enum
 	EDITPROG4OP,
 	EDITSONGINFO,
 	
+	EDITENVELOPE,
+	
 	EDITSONGMESSAGE,
 	/* Virtual modes, i.e. what are not modes itself but should be considered happening "inside" prev_mode */
 	EDITBUFFER,
@@ -179,6 +181,9 @@ typedef struct
 	
 	int current_instrument_program;
 	int current_fourop_program[CYD_FM_NUM_OPS];
+	
+	int current_volume_envelope_point;
+	int current_panning_envelope_point;
 	
 	int current_sequencetrack;
 	Uint16 time_signature;

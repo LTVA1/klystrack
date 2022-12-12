@@ -1,6 +1,8 @@
 #ifndef VIEW_H
 #define VIEW_H
 
+#pragma once
+
 /*
 Copyright (c) 2009-2010 Tero Lindeman (kometbomb)
 Copyright (c) 2021-2022 Georgy Saraykin (LTVA1 a.k.a. LTVA) and contributors

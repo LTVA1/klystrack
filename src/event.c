@@ -2106,7 +2106,7 @@ static void play_the_jams(int sym, int chn, int state)
 					}
 				}
 				
-				if(!(mused.mus.channel[chan].instrument->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG) && (mused.mus.channel[chan].instrument->fm_flags & CYD_FM_ENABLE_4OP))
+				if(mused.mus.channel[chan].instrument->fm_flags & CYD_FM_ENABLE_4OP)
 				{
 					for(int j = 0; j < CYD_FM_NUM_OPS; ++j)
 					{
@@ -2187,7 +2187,7 @@ static void wave_the_jams(int sym)
 					}
 				}
 				
-				if(!(mused.mus.channel[chan].instrument->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG) && (mused.mus.channel[chan].instrument->fm_flags & CYD_FM_ENABLE_4OP))
+				if(mused.mus.channel[chan].instrument->fm_flags & CYD_FM_ENABLE_4OP)
 				{
 					for(int j = 0; j < CYD_FM_NUM_OPS; ++j)
 					{
@@ -3493,6 +3493,8 @@ void pattern_event(SDL_Event *e)
 						
 						else if (e->key.keysym.sym == SDLK_1 || e->key.keysym.sym == SDLK_BACKQUOTE || e->key.keysym.sym == SDLK_EQUALS || e->key.keysym.sym == SDLK_MINUS)
 						{
+							snapshot(S_T_PATTERN);
+							
 							if(e->key.keysym.sym == SDLK_BACKQUOTE)
 							{
 								mused.song.pattern[current_pattern()].step[current_patternstep()].note = MUS_NOTE_CUT;
@@ -3512,8 +3514,6 @@ void pattern_event(SDL_Event *e)
 							{
 								mused.song.pattern[current_pattern()].step[current_patternstep()].note = MUS_NOTE_RELEASE_WITHOUT_MACRO;
 							}
-
-							snapshot(S_T_PATTERN);
 
 							update_pattern_slider(mused.note_jump);
 						}

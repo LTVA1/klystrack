@@ -49,6 +49,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "view/pattern.h"
 #include "view/sequence.h"
 #include "view/wavetableview.h"
+#include "view/envelopeview.h"
 #include "view/timer.h"
 #include "mymsg.h"
 #include "key.h"
@@ -113,6 +114,8 @@ static const View instrument_view_tab[] =
 	{{0, 0, 0, -12}, four_op_menu_view, NULL, EDIT4OP },
 	{{VIEW_WIDTH + 6, TOP_VIEW_H + ALG_VIEW_H + 19, 0 - SCROLLBAR_W - 10, -22}, four_op_program_view, NULL, EDITPROG4OP },
 	{{- SCROLLBAR_W - 10, TOP_VIEW_H + ALG_VIEW_H + 19, SCROLLBAR_W, -22}, slider, &mused.four_op_slider_param, EDITPROG4OP },
+	
+	{{154, 14 + INST_LIST + INST_VIEW2, 0 - SCROLLBAR, -INFO }, point_envelope_view, NULL, EDITENVELOPE },
 	
 	{{ 2 * ( - OSC_SIZE - (SCROLLBAR / 2) - 2), 14 + INST_LIST + INST_VIEW2 + 4, 2 * OSC_SIZE, OSC_SIZE }, oscilloscope_view, NULL, EDITINSTRUMENT }, //wasn't there
 	

@@ -1560,10 +1560,12 @@ void open_data(void *type, void *action, void *_ret)
 			strncpy(mused.previous_song_filename, filename, sizeof(mused.previous_song_filename) - 1);
 
 		f = fopen(filename, mode[a]);
+		
 		if (!f)
 		{
 			msgbox(domain, mused.slider_bevel, &mused.largefont, "Could not open file", MB_OK);
 		}
+		
 		else if (t == OD_T_SONG)
 		{
 			// Update recent files list if we are opening/saving a song
@@ -1577,6 +1579,8 @@ void open_data(void *type, void *action, void *_ret)
 
 	if (f)
 	{
+		debug("if (f)");
+		
 		int return_val = 1;
 		void * tmp;
 
@@ -1586,7 +1590,7 @@ void open_data(void *type, void *action, void *_ret)
 		{
 			if(t != OD_T_SONG)
 			{
-				tmp = open_stuff[t].save(rw);
+				tmp = open_stuff[t].save;
 			}
 			
 			else
@@ -1594,11 +1598,12 @@ void open_data(void *type, void *action, void *_ret)
 				tmp = &save_song;
 			}
 		}
-
+		
 		if (tmp || ((t == OD_T_WAVETABLE) && (a == 1)))
 		{
 			cyd_lock(&mused.cyd, 1);
 			int r;
+			
 			if (a == 0)
 				r = open_stuff[t].open(f);
 			else
@@ -1620,6 +1625,8 @@ void open_data(void *type, void *action, void *_ret)
 				
 				else
 				{
+					debug("save wave");
+					
 					r = save_wavetable(f);
 				}
 			}

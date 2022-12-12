@@ -131,7 +131,10 @@ res/$(1): themes/$(1)/* #themes/$(1)/font/* themes/$(1)/font7x6/* themes/$(1)/ti
 	-$(Q)if test -d themes/$(1)/tiny; then $(MAKEBUNDLE) themetemp.$(1)/4x6.fnt themes/$(1)/tiny; fi
 	$(Q)-$(MAKEBUNDLE) $$@ themetemp.$(1)
 	$(Q)rm -rf themetemp.$(1)
-
+	
+	$(Q)mkdir -p res/Fonts
+	$(Q)cp -f Fonts/* res/Fonts
+	
 endef
 
 build: Makefile src/version.h src/version_number.h
@@ -176,6 +179,7 @@ zip: doc/* $(THEMES) $(DLLS) examples/instruments/* examples/songs/* $(DLLS)
 	$(Q)$(MAKE) -C $(KLYSTRON) CFG=release EXTFLAGS="$(EXTFLAGS)"
 	$(Q)$(MAKE) build CFG=release
 	$(Q)mkdir -p zip/data/res
+	$(Q)mkdir -p zip/data/res/Fonts
 	$(Q)mkdir -p zip/data/examples/songs
 	$(Q)mkdir -p zip/data/examples/songs/Imported-XMs
 	$(Q)mkdir -p zip/data/examples/songs/LTVA-examples
@@ -197,6 +201,7 @@ zip: doc/* $(THEMES) $(DLLS) examples/instruments/* examples/songs/* $(DLLS)
 	$(Q)cp examples/wavegen-patches/*.kw zip/data/examples/wavegen-patches
 	$(Q)cp examples/wavegen-patches/LTVA-examples/*.kw zip/data/examples/wavegen-patches/LTVA-examples
 	$(Q)cp res/* zip/data/res
+	$(Q)cp res/Fonts/* zip/data/res/Fonts
 	$(Q)mkdir -p zip/data/key
 	$(Q)cp key/* zip/data/key
 	$(Q)cp LICENSE zip/data/LICENSE
