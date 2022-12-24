@@ -378,15 +378,21 @@ void show_credits(void *unused0, void *unused1, void *unused2)
 							{
 								//dots[i].vx -= ((dots[i].x - dots[j].x) > 0 ? 1 : -1) * G / ((dots[i].x - dots[j].x) * (dots[i].x - dots[j].x));
 								//dots[i].vx = my_min(my_max(dots[i].vx - ((dots[i].x - dots[j].x) > 0 ? 1 : -1) * G / ((dots[i].x - dots[j].x) * (dots[i].x - dots[j].x)), -10.5), 10.5);
-								dots[i].vx = my_min(my_max(dots[i].vx - G / ((dots[i].x - dots[j].x) * fabs(dots[i].x - dots[j].x)), -10.5), 10.5);
 								
-								dots[j].vx = my_min(my_max(dots[j].vx - G / ((dots[j].x - dots[i].x) * fabs(dots[j].x - dots[i].x)), -10.5), 10.5);
+								double dvx = G / ((dots[i].x - dots[j].x) * fabs(dots[i].x - dots[j].x));
+								
+								dots[i].vx = my_min(my_max(dots[i].vx - dvx, -10.5), 10.5);
+								
+								dots[j].vx = my_min(my_max(dots[j].vx + dvx, -10.5), 10.5);
 								
 								//dots[i].vy -= ((dots[i].y - dots[j].y) > 0 ? 1 : -1) * G / ((dots[i].y - dots[j].y) * (dots[i].y - dots[j].y));
 								//dots[i].vy = my_min(my_max(dots[i].vy - ((dots[i].y - dots[j].y) > 0 ? 1 : -1) * G / ((dots[i].y - dots[j].y) * (dots[i].y - dots[j].y)), -10.5), 10.5);
-								dots[i].vy = my_min(my_max(dots[i].vy - G / ((dots[i].y - dots[j].y) * fabs(dots[i].y - dots[j].y)), -10.5), 10.5);
 								
-								dots[j].vy = my_min(my_max(dots[j].vy - G / ((dots[j].y - dots[i].y) * fabs(dots[j].y - dots[i].y)), -10.5), 10.5);
+								double dvy = G / ((dots[i].y - dots[j].y) * fabs(dots[i].y - dots[j].y));
+								
+								dots[i].vy = my_min(my_max(dots[i].vy - dvy, -10.5), 10.5);
+								
+								dots[j].vy = my_min(my_max(dots[j].vy + dvy, -10.5), 10.5);
 							}
 						}
 					}

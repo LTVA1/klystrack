@@ -28,5 +28,16 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
+	if(!(mused.show_point_envelope_editor)) return;
 	
+	SDL_Rect area, clip;
+	copy_rect(&area, dest);
+	console_set_clip(mused.console, &area);
+	console_clear(mused.console);
+	bevelex(domain,&area, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
+	adjust_rect(&area, 2);
+	copy_rect(&clip, &area);
+	adjust_rect(&area, 1);
+	area.w = 4000;
+	console_set_clip(mused.console, &area);
 }

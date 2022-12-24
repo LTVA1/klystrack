@@ -52,6 +52,8 @@ extern Mused mused;
 extern int event_hit;
 
 void open_4op(void *unused1, void *unused2, void *unused3);
+void open_prog(void *unused1, void *unused2, void *unused3);
+void open_env(void *unused1, void *unused2, void *unused3);
 
 /*
 
@@ -1338,6 +1340,8 @@ static void write_command(const SDL_Event *event, const char *text, int cmd_idx,
 void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
 	//debug("program_view");
+	
+	if(mused.show_point_envelope_editor) return;
 	
 	if(!(mused.show_four_op_menu) || ((mused.focus != EDIT4OP) && (mused.focus != EDITPROG4OP)))
 	{
@@ -3521,6 +3525,10 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 		
 		//inst_text(event, &r, P_PROGPERIOD, "P.PRD", "%02X", MAKEPTR(inst->prog_period[mused.current_instrument_program]), 2);
 		//update_rect(&frame, &r);
+		
+		int temp666 = r.w;
+		r.w = init_width / 3 - 2;
+		
 		inst_flags(event, &r, P_NORESTART, "NO RESTART", &inst->flags, MUS_INST_NO_PROG_RESTART);
 		update_rect(&frame, &r);
 		inst_flags(event, &r, P_MULTIOSC, "MULTIOSC", &inst->flags, MUS_INST_MULTIOSC);
@@ -3530,6 +3538,7 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 		inst_flags(event, &r, P_SAVE_LFO_SETTINGS, "SAVE LFO SET.", &inst->flags, MUS_INST_SAVE_LFO_SETTINGS);
 		update_rect(&frame, &r);
 		
+		r.w = temp666;
 		
 		my_separator(&frame, &r);
 		inst_flags(event, &r, P_FM_ENABLE, "FM", &inst->cydflags, CYD_CHN_ENABLE_FM);
@@ -3644,7 +3653,7 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 		
 		r.w = tmp;
 		r.y += 10;
-		r.x -= 42+32+2+8+tmp;
+		r.x -= 42 + 32 + 2 + 8 + tmp;
 		
 		inst_text(event, &r, P_FM_VIBSPEED,   "FM VIB.S", "%02X", MAKEPTR(inst->fm_vibrato_speed), 2);
 		update_rect(&frame, &r);
@@ -3675,6 +3684,12 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 		
 		button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "OPEN MENU", open_4op, NULL, NULL, NULL);
 		update_rect(&frame, &r);
+		
+		button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, !(mused.show_point_envelope_editor) ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "PROGRAM", open_prog, NULL, NULL, NULL);
+		update_rect(&frame, &r);
+		
+		button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, mused.show_point_envelope_editor ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "ENVELOPE", open_env, NULL, NULL, NULL);
+		update_rect(&frame, &r);
 	}
 }
 
@@ -3699,6 +3714,19 @@ void open_4op(void *unused1, void *unused2, void *unused3)
 	{
 		mused.fourop_program_position[i] = 0;
 	}
+}
+
+void open_prog(void *unused1, void *unused2, void *unused3)
+{
+	mused.show_point_envelope_editor = false;
+}
+
+void open_env(void *unused1, void *unused2, void *unused3)
+{
+	mused.show_point_envelope_editor = true;
+	
+	mused.current_volume_envelope_point = 0;
+	mused.current_panning_envelope_point = 0;
 }
 
 

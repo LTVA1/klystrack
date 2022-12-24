@@ -329,6 +329,8 @@ typedef struct
 	bool import_mml_string;
 	
 	Uint32 time_between_autosaves; //in ms
+	
+	bool show_point_envelope_editor;
 } Mused;
 
 extern Mused mused;
