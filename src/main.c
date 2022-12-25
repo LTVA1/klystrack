@@ -25,6 +25,9 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 
 #include "SDL.h"
+
+#include "SDL_hints.h"
+
 #include "gfx/gfx.h"
 #include "snd/music.h"
 #include "gui/toolutil.h"
@@ -116,6 +119,7 @@ static const View instrument_view_tab[] =
 	{{- SCROLLBAR_W - 10, TOP_VIEW_H + ALG_VIEW_H + 19, SCROLLBAR_W, -22}, slider, &mused.four_op_slider_param, EDITPROG4OP },
 	
 	{{154, 14 + INST_LIST + INST_VIEW2, 0 - SCROLLBAR, -INFO }, point_envelope_view, NULL, EDITENVELOPE },
+	{{0 - SCROLLBAR, 14 + INST_LIST + INST_VIEW2, SCROLLBAR, -INFO}, slider, &mused.point_env_slider_param, EDITENVELOPE },
 	
 	{{ 2 * ( - OSC_SIZE - (SCROLLBAR / 2) - 2), 14 + INST_LIST + INST_VIEW2 + 4, 2 * OSC_SIZE, OSC_SIZE }, oscilloscope_view, NULL, EDITINSTRUMENT }, //wasn't there
 	
@@ -256,8 +260,14 @@ int main(int argc, char **argv)
 	default_settings();
 	
 	load_config(".klystrack", false); //was `load_config(TOSTRING(CONFIG_PATH), false);`
+	
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+	
+	#ifdef WIN32
+	SetProcessDPIAware();
+	#endif
 
-	domain = gfx_create_domain(VERSION_STRING, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | ((mused.flags & WINDOW_MAXIMIZED) ? SDL_WINDOW_MAXIMIZED : 0), mused.window_w, mused.window_h, mused.pixel_scale);
+	domain = gfx_create_domain(VERSION_STRING, SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | ((mused.flags & WINDOW_MAXIMIZED) ? SDL_WINDOW_MAXIMIZED : 0), mused.window_w, mused.window_h, mused.pixel_scale);
 	
 	domain->fps = 30;
 	//domain->fps = mused.fps;
@@ -522,6 +532,10 @@ int main(int argc, char **argv)
 						{
 							case EDITBUFFER:
 							edit_text(&e);
+							break;
+							
+							case EDITENVELOPE:
+							edit_env_editor_event(&e);
 							break;
 
 							case EDITPROG:

@@ -43,6 +43,8 @@ extern Mused mused;
 
 #define flipbit(val, bit) { val ^= bit; };
 
+static void play_the_jams(int sym, int chn, int state);
+
 void editparambox(int v)
 {
 	MusInstrument *inst = &mused.song.instrument[mused.current_instrument];
@@ -658,6 +660,109 @@ void dropfile_event(SDL_Event *e)
 	end:;
 	
 	SDL_free(dropped_filedir);
+}
+
+void env_editor_add_param(int a)
+{
+	MusInstrument *i = &mused.song.instrument[mused.current_instrument];
+
+	if (a < 0) a = -1; else if (a > 0) a = 1;
+
+	if (SDL_GetModState() & KMOD_SHIFT)
+	{
+		switch (mused.selected_param)
+		{
+			default: a *= 16; break;
+		}
+	}
+	
+	if (SDL_GetModState() & KMOD_CTRL) //wasn't there
+	{
+		switch (mused.selected_param)
+		{
+			default: a *= 256; break;
+		}
+	}
+
+	switch (mused.selected_param)
+	{
+		
+	}
+}
+
+void edit_env_editor_event(SDL_Event *e)
+{
+	switch (e->type)
+	{
+		case SDL_KEYDOWN:
+
+		switch (e->key.keysym.sym)
+		{
+			case SDLK_RETURN:
+			{
+				//if (mused.selected_param == P_NAME)
+					//set_edit_buffer(mused.song.instrument[mused.current_instrument].name, sizeof(mused.song.instrument[mused.current_instrument].name));
+			}
+			break;
+
+			case SDLK_DOWN:
+			{
+				++mused.selected_param;
+
+				if (mused.mode == EDITENVELOPE)
+				{
+					if (mused.selected_param >= ENV_PARAMS) mused.selected_param = ENV_PARAMS - 1;
+				}
+				
+				else
+				{
+					if (mused.selected_param >= P_NAME) mused.selected_param = P_NAME;
+				}
+			}
+			break;
+
+			case SDLK_UP:
+			{
+				--mused.selected_param;
+
+				if (mused.selected_param < 0) mused.selected_param = 0;
+			}
+			break;
+
+			case SDLK_DELETE:
+			{
+				
+			}
+			break;
+
+			case SDLK_RIGHT:
+			{
+				env_editor_add_param(+1);
+			}
+			break;
+
+
+			case SDLK_LEFT:
+			{
+				env_editor_add_param(-1);
+			}
+			break;
+
+			default:
+			{
+				play_the_jams(e->key.keysym.sym, -1, 1);
+			}
+			break;
+		}
+
+		break;
+
+		case SDL_KEYUP:
+
+			play_the_jams(e->key.keysym.sym, -1, 0);
+
+		break;
+	}
 }
 
 void instrument_add_param(int a)

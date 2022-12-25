@@ -238,6 +238,7 @@ void set_scaled_cursor()
 	{
 		mused.mouse_cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 	}
+	
 	else
 	{
 		// We'll use SDL_Renderer here because SDL_BlitScaled seems to have an issue with the alpha channel
@@ -296,11 +297,11 @@ void load_theme(const char *name)
 	snprintf(fullpath, sizeof(fullpath) - 1, "%s/res/%s", query_resource_directory(), tmpname);
 	
 	
+	/*
 	
 	
 	
-	
-	/*if (strcmp(name, "Default") == 0)
+	if (strcmp(name, "Default") == 0)
 	{
 		char MIKEYCHAD_path[3000] = {0};
 		
@@ -324,9 +325,14 @@ void load_theme(const char *name)
 		if(mused.MIKEYCHAD_logic_icons)
 		{
 			SDL_FreeSurface(mused.MIKEYCHAD_logic_icons);
+			mused.MIKEYCHAD_logic_icons = calloc(1, sizeof(GfxSurface));
 		}
-			
-		mused.MIKEYCHAD_logic_icons = calloc(1, sizeof(GfxSurface));
+		
+		if(!(loaded->format))
+		{
+			debug("loaded.format = NULL!");
+			goto proceed;
+		}
 		
 		Uint32 c = SDL_MapRGB(loaded->format, 255, 0, 255);
 		
@@ -349,9 +355,9 @@ void load_theme(const char *name)
 		gfx_update_texture(domain, mused.MIKEYCHAD_logic_icons);
 		
 		proceed:;
-	}*/
+	}
 	
-	
+	*/
 	
 	
 

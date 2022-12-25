@@ -35,6 +35,11 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 extern Mused mused;
 
+typedef struct
+{
+	Uint16 x, y;
+} vol_env_point;
+
 Uint16 find_command_xm(Uint16 command)
 {
 	if ((command & 0xff00) == 0x0100 || (command & 0xff00) == 0x0200)
@@ -240,8 +245,12 @@ int import_xm(FILE *f)
 		struct {
 			Uint32 size;
 			Uint8 sample[96];
-			Uint8 vol_env[48];
-			Uint8 pan_env[48];
+			//Uint8 vol_env[48];
+			//Uint8 pan_env[48];
+			
+			vol_env_point vol_points[12];
+			vol_env_point pan_points[12];
+			
 			Uint8 num_volume;
 			Uint8 num_panning;
 			Uint8 vol_sustain;
@@ -268,8 +277,8 @@ int import_xm(FILE *f)
 		{
 			fread(&instrument_ext_hdr.size, 1, sizeof(instrument_ext_hdr.size), f);
 			fread(&instrument_ext_hdr.sample[0], 1, sizeof(instrument_ext_hdr.sample), f);
-			fread(&instrument_ext_hdr.vol_env[0], 1, sizeof(instrument_ext_hdr.vol_env), f);
-			fread(&instrument_ext_hdr.pan_env[0], 1, sizeof(instrument_ext_hdr.pan_env), f);
+			fread(&instrument_ext_hdr.vol_points[0], 1, sizeof(instrument_ext_hdr.vol_points), f);
+			fread(&instrument_ext_hdr.pan_points[0], 1, sizeof(instrument_ext_hdr.pan_points), f);
 			fread(&instrument_ext_hdr.num_volume, 1, sizeof(instrument_ext_hdr.num_volume), f);
 			fread(&instrument_ext_hdr.num_panning, 1, sizeof(instrument_ext_hdr.num_panning), f);
 			fread(&instrument_ext_hdr.vol_sustain, 1, sizeof(instrument_ext_hdr.vol_sustain), f);

@@ -137,10 +137,20 @@ void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain,
 				
 				if (view->focus != -1 && mused.focus != view->focus && orig_focus != EDITBUFFER && mused.focus != EDITBUFFER)
 				{
-					if((mused.show_four_op_menu && (m == 3 || m == 4) && i > 9) || (!(mused.show_four_op_menu) && (m != 3 || m != 4) && i <= 9))
+					if((mused.show_four_op_menu && (m == 3 || m == 4) && i > 9) || (!(mused.show_four_op_menu) && (m != 3 || m != 4) && (i <= 9 || (i == 13 && !(mused.show_four_op_menu)))))
 					//if((mused.show_four_op_menu) || (!(mused.show_four_op_menu) && (m != 3 || m != 4) && i != 11))
 					{
-						mused.focus = view->focus;
+						if((mused.show_point_envelope_editor && (m == 3 || m == 4 || m == EDITPROG4OP) && i == 6) || (i == 13 && mused.show_four_op_menu) || (i == 7 && mused.show_point_envelope_editor && (m == EDITPROG || m == EDITINSTRUMENT)))
+						{
+							
+						}
+						
+						else //so we don't focus on program editor when point envelope editor is open
+						{
+							mused.focus = view->focus;
+							
+							//debug("152 new focus %d", mused.focus);
+						}
 						
 						if(!(mused.selection.drag_selection_program_4op))
 						{
@@ -160,15 +170,35 @@ void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain,
 		{
 			if (view->focus != -1 && mused.focus != view->focus)
 			{
-				if((mused.show_four_op_menu && (m == 3 || m == 4) && i > 9) || (!(mused.show_four_op_menu) && (m != 3 || m != 4) && i <= 9))
+				if((mused.show_four_op_menu && (m == 3 || m == 4) && i > 9) || (!(mused.show_four_op_menu) && (m != 3 || m != 4) && (i == 13 && !(mused.show_four_op_menu))))
 				//if((mused.show_four_op_menu) || (!(mused.show_four_op_menu) && (m != 3 || m != 4) && i != 11))
 				{
 					if (orig_focus == EDITBUFFER)
 					{
-						change_mode(view->focus);
+						if((mused.show_point_envelope_editor && (m == 3 || m == 4 || m == EDITPROG4OP) && i == 6) || (i == 13 && mused.show_four_op_menu) || (i == 7 && mused.show_point_envelope_editor && (m == EDITPROG || m == EDITINSTRUMENT)))
+						{
+							
+						}
+						
+						else
+						{
+							change_mode(view->focus);
+							
+							//debug("187 new mode %d", mused.mode);
+						}
 					}
 					
-					mused.focus = view->focus;
+					if((mused.show_point_envelope_editor && (m == 3 || m == 4 || m == EDITPROG4OP) && i == 6) || (i == 13 && mused.show_four_op_menu) || (i == 7 && mused.show_point_envelope_editor && (m == EDITPROG || m == EDITINSTRUMENT)))
+					{
+						
+					}
+					
+					else
+					{
+						mused.focus = view->focus;
+						
+						//debug("200 new focus %d", mused.focus);
+					}
 					
 					if(!(mused.selection.drag_selection_program_4op))
 					{
@@ -636,6 +666,12 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 	{
 		switch (mused.focus)
 		{
+			case EDITENVELOPE:
+			{
+				strcpy(text, "Envelope editor");
+				break;
+			}
+			
 			case EDITPROG:
 			case EDITPROG4OP:
 			{

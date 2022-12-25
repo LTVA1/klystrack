@@ -133,6 +133,13 @@ enum
 
 enum
 {
+	
+	/*----------*/
+	ENV_PARAMS
+};
+
+enum
+{
 	P_INSTRUMENT,
 	P_NAME,
 	P_BASENOTE,

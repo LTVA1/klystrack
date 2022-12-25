@@ -29,15 +29,30 @@ OTHER DEALINGS IN THE SOFTWARE.
 void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
 	if(!(mused.show_point_envelope_editor)) return;
+	if(mused.show_four_op_menu) return;
 	
-	SDL_Rect area, clip;
+	SDL_Rect area;
 	copy_rect(&area, dest);
 	console_set_clip(mused.console, &area);
 	console_clear(mused.console);
-	bevelex(domain,&area, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
+	bevelex(domain, &area, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
 	adjust_rect(&area, 2);
-	copy_rect(&clip, &area);
-	adjust_rect(&area, 1);
-	area.w = 4000;
+	
+	gfx_domain_set_clip(domain, &area);
+	
+	adjust_rect(&area, 4);
+	
+	area.y -= mused.point_env_editor_scroll;
+	
+	bevelex(domain, &area, mused.slider_bevel, BEV_BACKGROUND, BEV_F_STRETCH_ALL);
+	
+	adjust_rect(&area, 4);
+	
 	console_set_clip(mused.console, &area);
+	
+	font_write_args(&mused.largefont, domain, &area, "test\ntest\ntest\ntest\ntest\ntest\n");
+	
+	slider_set_params(&mused.point_env_slider_param, 0, 2000, mused.point_env_editor_scroll, area.h + mused.point_env_editor_scroll, &mused.point_env_editor_scroll, 1, SLIDER_VERTICAL, mused.slider_bevel);
+	
+	gfx_domain_set_clip(domain, NULL);
 }

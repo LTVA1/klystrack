@@ -374,6 +374,7 @@ void init_scrollbars()
 	slider_set_params(&mused.wavetable_list_slider_param, 0, 0, 0, 0, &mused.sequence_position, 1, SLIDER_VERTICAL, mused.slider_bevel);
 	
 	slider_set_params(&mused.four_op_slider_param, 0, 0, 0, 0, &mused.sequence_position, 1, SLIDER_VERTICAL, mused.slider_bevel);
+	slider_set_params(&mused.point_env_slider_param, 0, 0, 0, 0, &mused.point_env_editor_scroll, 1, SLIDER_VERTICAL, mused.slider_bevel);
 }
 
 
