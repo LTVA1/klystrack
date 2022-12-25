@@ -68,6 +68,22 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 #endif
 
+#ifdef WIN32
+	#ifdef WINVER
+	#undef WINVER
+	#endif
+
+	#ifdef _WIN32_WINNT
+	#undef _WIN32_WINNT
+	#endif
+
+	#define WINVER 0x0601
+	#define _WIN32_WINNT 0x0601
+
+	#include <windows.h>
+	#include <winbase.h>
+#endif
+
 //#define DUMPKEYS
 
 Mused mused;
@@ -261,10 +277,10 @@ int main(int argc, char **argv)
 	
 	load_config(".klystrack", false); //was `load_config(TOSTRING(CONFIG_PATH), false);`
 	
-	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+	//SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 	
 	#ifdef WIN32
-	SetProcessDPIAware();
+	SetProcessDPIAware(); //allows app to be crisp on QHD, 4K etc. screens when e.g. 150% Windows interface scale is selected, otherwise app is blurry
 	#endif
 
 	domain = gfx_create_domain(VERSION_STRING, SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | ((mused.flags & WINDOW_MAXIMIZED) ? SDL_WINDOW_MAXIMIZED : 0), mused.window_w, mused.window_h, mused.pixel_scale);
