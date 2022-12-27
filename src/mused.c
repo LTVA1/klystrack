@@ -294,6 +294,9 @@ void init(MusInstrument *instrument, MusPattern *pattern, MusSeqPattern **sequen
 	mused.fx_room_vol = 16;
 	mused.fx_room_dec = 5;
 	mused.oversample = 2;
+	
+	mused.vol_env_point = -1; //so no point is selected at the very beginning
+	mused.pan_env_point = -1;
 
 	strcpy(mused.themename, "Default");
 	strcpy(mused.keymapname, "Default");

@@ -315,6 +315,10 @@ bool check_mouse_hit(const SDL_Event *e, const SDL_Rect *area, int focus, int pa
 			case EDITINSTRUMENT:
 				mused.selected_param = param;
 				break;
+				
+			case EDITENVELOPE:
+				mused.env_selected_param = param;
+				break;
 			
 			case EDIT4OP:
 				mused.fourop_selected_param = param;
@@ -410,7 +414,7 @@ void generic_flags(const SDL_Event *e, const SDL_Rect *_area, int focus, int p, 
 	{
 		switch (focus)
 		{
-			case EDITINSTRUMENT: case EDIT4OP: snapshot(S_T_INSTRUMENT); break;
+			case EDITINSTRUMENT: case EDIT4OP: case EDITENVELOPE: snapshot(S_T_INSTRUMENT); break;
 			case EDITFX: snapshot(S_T_FX); break;
 		}
 		*_flags = flags;
@@ -668,7 +672,19 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 		{
 			case EDITENVELOPE:
 			{
-				strcpy(text, "Envelope editor");
+				static const char * param_desc[] =
+				{
+					"Use custom volume envelope",
+					"Volume envelope fadeout (sort of release rate)",
+					"Enable volume envelope sustain",
+					"Volume envelope sustain point",
+					"Enable volume envelope loop",
+					"Volume envelope loop begin point",
+					"Volume envelope loop end point",
+				};
+				
+				strcpy(text, param_desc[mused.env_selected_param]);
+				
 				break;
 			}
 			
@@ -1798,6 +1814,7 @@ static void four_op_flags(const SDL_Event *e, const SDL_Rect *_area, int p, cons
 static void four_op_text(const SDL_Event *e, const SDL_Rect *area, int p, const char *_label, const char *format, void *value, int width)
 {
 	int d = generic_field(e, area, EDIT4OP, p, _label, format, value, width);
+	
 	if (d && mused.mode == EDIT4OP)
 	{
 		if (p >= 0) mused.fourop_selected_param = p;
@@ -1806,7 +1823,6 @@ static void four_op_text(const SDL_Event *e, const SDL_Rect *area, int p, const 
 		else if (d > 0) four_op_add_param(1);
 	}
 }
-
 
 void inst_field(const SDL_Event *e, const SDL_Rect *area, int p, int length, char *text) //instrument name/song name
 {
@@ -3763,6 +3779,7 @@ void open_env(void *unused1, void *unused2, void *unused3)
 	
 	mused.current_volume_envelope_point = 0;
 	mused.current_panning_envelope_point = 0;
+	mused.env_selected_param = 0;
 }
 
 

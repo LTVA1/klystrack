@@ -670,7 +670,7 @@ void env_editor_add_param(int a)
 
 	if (SDL_GetModState() & KMOD_SHIFT)
 	{
-		switch (mused.selected_param)
+		switch (mused.env_selected_param)
 		{
 			default: a *= 16; break;
 		}
@@ -678,15 +678,55 @@ void env_editor_add_param(int a)
 	
 	if (SDL_GetModState() & KMOD_CTRL) //wasn't there
 	{
-		switch (mused.selected_param)
+		switch (mused.env_selected_param)
 		{
 			default: a *= 256; break;
 		}
 	}
 
-	switch (mused.selected_param)
+	switch (mused.env_selected_param)
 	{
+		case ENV_ENABLE_VOLUME_ENVELOPE:
+		{
+			flipbit(i->flags, MUS_INST_USE_VOLUME_ENVELOPE);
+			break;
+		}
 		
+		case ENV_VOLUME_ENVELOPE_FADEOUT:
+		{
+			clamp(i->vol_env_fadeout, a, 0, 0xFFF);
+			break;
+		}
+		
+		case ENV_ENABLE_VOLUME_ENVELOPE_SUSTAIN:
+		{
+			flipbit(i->vol_env_flags, MUS_ENV_SUSTAIN);
+			break;
+		}
+		
+		case ENV_VOLUME_ENVELOPE_SUSTAIN_POINT:
+		{
+			clamp(i->vol_env_sustain, a, 0, mused.song.instrument[mused.current_instrument].num_vol_points - 1);
+			break;
+		}
+		
+		case ENV_ENABLE_VOLUME_ENVELOPE_LOOP:
+		{
+			flipbit(i->vol_env_flags, MUS_ENV_LOOP);
+			break;
+		}
+		
+		case ENV_VOLUME_ENVELOPE_LOOP_BEGIN:
+		{
+			clamp(i->vol_env_loop_start, a, 0, mused.song.instrument[mused.current_instrument].vol_env_loop_end);
+			break;
+		}
+		
+		case ENV_VOLUME_ENVELOPE_LOOP_END:
+		{
+			clamp(i->vol_env_loop_end, a, i->vol_env_loop_start, mused.song.instrument[mused.current_instrument].num_vol_points - 1);
+			break;
+		}
 	}
 }
 
@@ -707,25 +747,20 @@ void edit_env_editor_event(SDL_Event *e)
 
 			case SDLK_DOWN:
 			{
-				++mused.selected_param;
+				++mused.env_selected_param;
 
-				if (mused.mode == EDITENVELOPE)
+				if (mused.focus == EDITENVELOPE)
 				{
-					if (mused.selected_param >= ENV_PARAMS) mused.selected_param = ENV_PARAMS - 1;
-				}
-				
-				else
-				{
-					if (mused.selected_param >= P_NAME) mused.selected_param = P_NAME;
+					if (mused.env_selected_param >= ENV_PARAMS) mused.env_selected_param = ENV_PARAMS - 1;
 				}
 			}
 			break;
 
 			case SDLK_UP:
 			{
-				--mused.selected_param;
+				--mused.env_selected_param;
 
-				if (mused.selected_param < 0) mused.selected_param = 0;
+				if (mused.env_selected_param < 0) mused.env_selected_param = 0;
 			}
 			break;
 
@@ -758,7 +793,7 @@ void edit_env_editor_event(SDL_Event *e)
 		break;
 
 		case SDL_KEYUP:
-
+		
 			play_the_jams(e->key.keysym.sym, -1, 0);
 
 		break;

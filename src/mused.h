@@ -169,7 +169,7 @@ typedef struct
 	CydEngine cyd;
 	MusEngine mus;
 	
-	int octave, instrument_page, current_instrument, default_pattern_length, selected_param, fourop_selected_param, selected_operator, editpos, mode, focus,
+	int octave, instrument_page, current_instrument, default_pattern_length, selected_param, env_selected_param, fourop_selected_param, selected_operator, editpos, mode, focus,
 		current_patternx, current_patternpos, current_sequencepos, sequenceview_steps, single_pattern_edit, 
 		prev_mode, current_sequenceparam, instrument_list_position,
 		pattern_position, sequence_position, pattern_horiz_position, sequence_horiz_position,
@@ -178,6 +178,10 @@ typedef struct
 		loop_store_length, loop_store_loop, note_jump, wavetable_list_position, wavetable_preview_idx, sequence_digit;
 		
 	int point_env_editor_scroll;
+	
+	int vol_env_point, pan_env_point;
+	
+	int prev_env_x, prev_env_y;
 	
 	int fourop_program_position[CYD_FM_NUM_OPS];
 	
