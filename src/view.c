@@ -3771,6 +3771,7 @@ void open_4op(void *unused1, void *unused2, void *unused3)
 void open_prog(void *unused1, void *unused2, void *unused3)
 {
 	mused.show_point_envelope_editor = false;
+	mused.vol_env_point = -1;
 }
 
 void open_env(void *unused1, void *unused2, void *unused3)

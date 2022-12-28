@@ -27,7 +27,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "envelopeview.h"
 
 #define ENV_WINDOW_HEIGHT 128
-#define ENV_ED_MARGIN 6
+#define ENV_ED_MARGIN 8
 
 void env_flags(const SDL_Event *e, const SDL_Rect *area, const SDL_Rect *dest, int p, const char *label, Uint32 *flags, Uint32 mask)
 {
@@ -139,7 +139,21 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 	
 	bevelex(domain, &vol_env_editor, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
 	
-	adjust_rect(&vol_env_editor, 2 + ENV_ED_MARGIN);
+	adjust_rect(&vol_env_editor, ENV_ED_MARGIN);
+	
+	SDL_Rect vol_env_info;
+	
+	vol_env_info.y = vol_env_editor.y - 4;
+	vol_env_info.x = vol_env_editor.x + vol_env_editor.w - 4 * 8 - 4;
+	vol_env_info.h = 8;
+	vol_env_info.w = 4 * 11;
+	
+	if(mused.vol_env_point != -1)
+	{
+		font_write_args(&mused.tinyfont, dest_surface, &vol_env_info, "TIME:%0.2fs\n VOL:%02X", (float)mused.song.instrument[mused.current_instrument].volume_envelope[mused.vol_env_point].x / 100.0, mused.song.instrument[mused.current_instrument].volume_envelope[mused.vol_env_point].y);
+	}
+	
+	//mused.song.instrument[mused.current_instrument].volume_envelope[mused.vol_env_point].x
 	
 	bool should_continue = true;
 	
@@ -159,8 +173,8 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 					
 					current_position.w = 16;
 					current_position.x = vol_env_editor.x + (mused.mus.cyd->channel[i].adsr.envelope >> 16) - 7;
-					current_position.y -= ENV_ED_MARGIN;
-					current_position.h += 2 * ENV_ED_MARGIN;
+					current_position.y -= (ENV_ED_MARGIN - 2);
+					current_position.h += 2 * (ENV_ED_MARGIN - 2);
 					
 					bevelex(domain, &current_position, mused.slider_bevel, BEV_ENV_CURRENT_ENV_POSITION, BEV_F_NORMAL);
 					
@@ -178,8 +192,8 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 		
 		sustain_point.w = 16;
 		sustain_point.x = vol_env_editor.x + mused.song.instrument[mused.current_instrument].volume_envelope[mused.song.instrument[mused.current_instrument].vol_env_sustain].x - 7;
-		sustain_point.y -= ENV_ED_MARGIN;
-		sustain_point.h += 2 * ENV_ED_MARGIN;
+		sustain_point.y -= (ENV_ED_MARGIN - 2);
+		sustain_point.h += 2 * (ENV_ED_MARGIN - 2);
 		
 		bevelex(domain, &sustain_point, mused.slider_bevel, BEV_ENV_SUSTAIN_POINT, BEV_F_NORMAL);
 	}
@@ -193,15 +207,15 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 		
 		loop_begin.w = 16;
 		loop_begin.x = vol_env_editor.x + mused.song.instrument[mused.current_instrument].volume_envelope[mused.song.instrument[mused.current_instrument].vol_env_loop_start].x;
-		loop_begin.y -= ENV_ED_MARGIN;
-		loop_begin.h += 2 * ENV_ED_MARGIN;
+		loop_begin.y -= (ENV_ED_MARGIN - 2);
+		loop_begin.h += 2 * (ENV_ED_MARGIN - 2);
 		
 		bevelex(domain, &loop_begin, mused.slider_bevel, BEV_ENV_LOOP_START, BEV_F_NORMAL);
 		
 		loop_end.w = 16;
 		loop_end.x = vol_env_editor.x + mused.song.instrument[mused.current_instrument].volume_envelope[mused.song.instrument[mused.current_instrument].vol_env_loop_end].x - 15;
-		loop_end.y -= ENV_ED_MARGIN;
-		loop_end.h += 2 * ENV_ED_MARGIN;
+		loop_end.y -= (ENV_ED_MARGIN - 2);
+		loop_end.h += 2 * (ENV_ED_MARGIN - 2);
 		
 		bevelex(domain, &loop_end, mused.slider_bevel, BEV_ENV_LOOP_END, BEV_F_NORMAL);
 	}
@@ -216,7 +230,7 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 			int prev_x = mused.song.instrument[mused.current_instrument].volume_envelope[i - 1].x;
 			int prev_y = mused.song.instrument[mused.current_instrument].volume_envelope[i - 1].y;
 			
-			gfx_line(domain, vol_env_editor.x + prev_x, vol_env_editor.y + (ENV_WINDOW_HEIGHT - prev_y) - 4, vol_env_editor.x + x, vol_env_editor.y + (ENV_WINDOW_HEIGHT - y) - 4, colors[COLOR_WAVETABLE_SAMPLE]);
+			gfx_line(domain, vol_env_editor.x + prev_x, vol_env_editor.y + (ENV_WINDOW_HEIGHT - prev_y) - 1, vol_env_editor.x + x, vol_env_editor.y + (ENV_WINDOW_HEIGHT - y) - 1, colors[COLOR_WAVETABLE_SAMPLE]);
 		}
 	}
 	
@@ -226,7 +240,7 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 		int y = mused.song.instrument[mused.current_instrument].volume_envelope[i].y;
 
 		SDL_Rect rr = { vol_env_editor.x + x - mused.smallfont.w / 2,
-			vol_env_editor.y + (ENV_WINDOW_HEIGHT - y) - mused.smallfont.h / 2 - 3, mused.smallfont.w, mused.smallfont.h };
+			vol_env_editor.y + (ENV_WINDOW_HEIGHT - y) - mused.smallfont.h / 2, mused.smallfont.w, mused.smallfont.h };
 		
 		font_write(&mused.smallfont, dest_surface, &rr, "\2");
 
@@ -254,7 +268,7 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 		mx /= mused.pixel_scale;
 		my /= mused.pixel_scale;
 
-		if (mx >= vol_env_editor.x - 4 && mx <= vol_env_editor.x + vol_env_editor.w + 4 && my >= vol_env_editor.y - 4 && my <= vol_env_editor.y + vol_env_editor.h + 4)
+		if (mx >= vol_env_editor.x - 5 && mx <= vol_env_editor.x + vol_env_editor.w + 5 && my >= vol_env_editor.y - 5 && my <= vol_env_editor.y + vol_env_editor.h + 5)
 		{
 			if (mused.prev_env_x != -1)
 			{
@@ -314,9 +328,9 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 	
 	vol_env_params.y -= mused.point_env_editor_scroll;
 	vol_env_params.y += TOP_VIEW_H - 4;
-	vol_env_params.h = ENV_WINDOW_HEIGHT + 2 * ENV_ED_MARGIN + 1;
+	vol_env_params.h = ENV_WINDOW_HEIGHT + 2 * ENV_ED_MARGIN;
 	vol_env_params.w = 200 - 2 * ENV_ED_MARGIN;
-	vol_env_params.x += area.w - 200 - 4  + 2 * ENV_ED_MARGIN;
+	vol_env_params.x += area.w - 200 - 4 + 2 * ENV_ED_MARGIN;
 	
 	bevelex(domain, &vol_env_params, mused.slider_bevel, BEV_BACKGROUND, BEV_F_STRETCH_ALL);
 	
@@ -425,7 +439,7 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 	//update_rect(&vol_env_params, &r);
 	
 	r.x += r.w + 5;
-	r.w = 70;
+	r.w = 66;
 	
 	env_text(event, &r, dest, ENV_VOLUME_ENVELOPE_LOOP_BEGIN, "BEGIN", "%01X", MAKEPTR(inst->vol_env_loop_start), 1);
 	//update_rect(&vol_env_params, &r);
