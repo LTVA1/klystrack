@@ -141,6 +141,35 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 	
 	adjust_rect(&vol_env_editor, 2 + ENV_ED_MARGIN);
 	
+	bool should_continue = true;
+	
+	for(int i = 0; (i < mused.song.num_channels) && should_continue; ++i)
+	{
+		if(mused.mus.channel[i].instrument != NULL)
+		{
+			if(mused.mus.channel[i].instrument == inst && (inst->flags & MUS_INST_USE_VOLUME_ENVELOPE))
+			{
+				if(mused.mus.cyd->channel[i].adsr.envelope > 0 && (mused.mus.cyd->channel[i].flags & CYD_CHN_ENABLE_GATE)) //if custom envelope is playing draw current position
+				{
+					should_continue = false;
+					
+					SDL_Rect current_position;
+		
+					copy_rect(&current_position, &vol_env_editor);
+					
+					current_position.w = 16;
+					current_position.x = vol_env_editor.x + (mused.mus.cyd->channel[i].adsr.envelope >> 16) - 7;
+					current_position.y -= ENV_ED_MARGIN;
+					current_position.h += 2 * ENV_ED_MARGIN;
+					
+					bevelex(domain, &current_position, mused.slider_bevel, BEV_ENV_CURRENT_ENV_POSITION, BEV_F_NORMAL);
+					
+					gfx_translucent_rect(domain, &current_position, colors[COLOR_WAVETABLE_BACKGROUND] | (Uint32)(255 - (mused.mus.cyd->channel[i].adsr.curr_vol_fadeout_value >> (31 - 8))) << 24);
+				}
+			}
+		}
+	}
+	
 	if(mused.song.instrument[mused.current_instrument].vol_env_flags & MUS_ENV_SUSTAIN) //draw sustain
 	{
 		SDL_Rect sustain_point;
