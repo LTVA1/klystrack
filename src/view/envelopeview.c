@@ -352,7 +352,7 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 			{
 				snapshot(S_T_INSTRUMENT);
 				
-				for(int i = mused.song.instrument[mused.current_instrument].num_vol_points - 2; i > mused.vol_env_point; --i)
+				for(int i = mused.vol_env_point; i < mused.song.instrument[mused.current_instrument].num_vol_points - 1; ++i)
 				{
 					mused.song.instrument[mused.current_instrument].volume_envelope[i].x = mused.song.instrument[mused.current_instrument].volume_envelope[i + 1].x;
 					mused.song.instrument[mused.current_instrument].volume_envelope[i].y = mused.song.instrument[mused.current_instrument].volume_envelope[i + 1].y;

@@ -297,15 +297,15 @@ void load_theme(const char *name)
 	snprintf(fullpath, sizeof(fullpath) - 1, "%s/res/%s", query_resource_directory(), tmpname);
 	
 	
+	
+	
 	/*
-	
-	
 	
 	if (strcmp(name, "Default") == 0)
 	{
 		char MIKEYCHAD_path[3000] = {0};
 		
-		snprintf(MIKEYCHAD_path, sizeof(MIKEYCHAD_path) - 1, "%s/res/MIKEYCHAD/logic_icons.png", query_resource_directory());
+		snprintf(MIKEYCHAD_path, sizeof(MIKEYCHAD_path) - 1, "res/MIKEYCHAD/logic_icons.png");
 		
 		SDL_Surface* loaded = NULL;
 
