@@ -698,6 +698,31 @@ void env_editor_add_param(int a)
 			break;
 		}
 		
+		case ENV_VOLUME_ENVELOPE_SCALE:
+		{
+			a *= -1;
+			
+			if(mused.vol_env_scale + a == 0)
+			{
+				if(a > 0)
+				{
+					mused.vol_env_scale = 1;
+				}
+				
+				if(a < 0)
+				{
+					mused.vol_env_scale = -1;
+				}
+			}
+			
+			else
+			{
+				clamp(mused.vol_env_scale, a, -1, 5);
+			}
+			
+			break;
+		}
+		
 		case ENV_ENABLE_VOLUME_ENVELOPE_SUSTAIN:
 		{
 			flipbit(i->vol_env_flags, MUS_ENV_SUSTAIN);

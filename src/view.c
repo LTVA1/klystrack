@@ -676,6 +676,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 				{
 					"Use custom volume envelope",
 					"Volume envelope fadeout (sort of release rate)",
+					"Volume envelope horizontal axis display scale",
 					"Enable volume envelope sustain",
 					"Volume envelope sustain point",
 					"Enable volume envelope loop",
@@ -3579,7 +3580,7 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 		//update_rect(&frame, &r);
 		
 		int temp666 = r.w;
-		r.w = init_width / 3 - 2;
+		r.w = 110;
 		
 		inst_flags(event, &r, P_NORESTART, "NO RESTART", &inst->flags, MUS_INST_NO_PROG_RESTART);
 		update_rect(&frame, &r);
@@ -3771,7 +3772,11 @@ void open_4op(void *unused1, void *unused2, void *unused3)
 void open_prog(void *unused1, void *unused2, void *unused3)
 {
 	mused.show_point_envelope_editor = false;
+	
 	mused.vol_env_point = -1;
+	mused.vol_env_scale = 1;
+	mused.vol_env_horiz_scroll = 0;
+	mused.point_env_editor_scroll = 0;
 }
 
 void open_env(void *unused1, void *unused2, void *unused3)

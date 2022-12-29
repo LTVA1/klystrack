@@ -127,6 +127,26 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 	env_text(event, &r, dest, ENV_VOLUME_ENVELOPE_FADEOUT, "FADEOUT", "%03X", MAKEPTR(inst->vol_env_fadeout), 3);
 	update_rect(&vol_env_header, &r);
 	
+	r.w = 95;
+	
+	float fuuuck = 1.0 / (float)mused.vol_env_scale;
+	
+	char fuck_string[10];
+	
+	sprintf(fuck_string, "%0.2fx", fuuuck);
+	
+	if(mused.vol_env_scale < 0)
+	{
+		env_text(event, &r, dest, ENV_VOLUME_ENVELOPE_SCALE, "ZOOM", "2x", MAKEPTR(fuuuck), 5);
+	}
+	
+	else
+	{
+		env_text(event, &r, dest, ENV_VOLUME_ENVELOPE_SCALE, "ZOOM", fuck_string, (void*)&fuuuck, 5);
+	}
+	
+	update_rect(&vol_env_header, &r);
+	
 	SDL_Rect vol_env_editor;
 	copy_rect(&vol_env_editor, &area);
 	
@@ -328,7 +348,7 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 	
 	vol_env_params.y -= mused.point_env_editor_scroll;
 	vol_env_params.y += TOP_VIEW_H - 4;
-	vol_env_params.h = ENV_WINDOW_HEIGHT + 2 * ENV_ED_MARGIN;
+	vol_env_params.h = ENV_WINDOW_HEIGHT + 2 * ENV_ED_MARGIN + 10;
 	vol_env_params.w = 200 - 2 * ENV_ED_MARGIN;
 	vol_env_params.x += area.w - 200 - 4 + 2 * ENV_ED_MARGIN;
 	
@@ -450,7 +470,17 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 	env_text(event, &r, dest, ENV_VOLUME_ENVELOPE_LOOP_END, "END", "%01X", MAKEPTR(inst->vol_env_loop_end), 1);
 	update_rect(&vol_env_params, &r);
 	
-	//gfx_line(domain, vol_env_editor.x - 20, vol_env_editor.y - 20, vol_env_editor.x + 20, vol_env_editor.y + 20, colors[COLOR_WAVETABLE_SAMPLE]);
+	SDL_Rect vol_env_horiz_slider_rect;
+	copy_rect(&vol_env_horiz_slider_rect, &vol_env_editor);
+	
+	vol_env_horiz_slider_rect.h = 10;
+	vol_env_horiz_slider_rect.y += vol_env_editor.h + ENV_ED_MARGIN;
+	vol_env_horiz_slider_rect.x -= ENV_ED_MARGIN;
+	vol_env_horiz_slider_rect.w += 2 * ENV_ED_MARGIN;
+	
+	slider_set_params(&mused.vol_env_horiz_slider_param, 0, MUS_MAX_ENVELOPE_POINT_X, mused.vol_env_horiz_scroll, (mused.vol_env_horiz_scroll + (mused.vol_env_scale < 0 ? (vol_env_editor.w / 2) : (vol_env_editor.w * mused.vol_env_scale))), &mused.vol_env_horiz_scroll, 1, SLIDER_HORIZONTAL, mused.slider_bevel);
+	slider(dest_surface, &vol_env_horiz_slider_rect, event, &mused.vol_env_horiz_slider_param);
+	//vol_env_horiz_slider_param
 	
 	slider_set_params(&mused.point_env_slider_param, 0, 2000, mused.point_env_editor_scroll, area.h + mused.point_env_editor_scroll, &mused.point_env_editor_scroll, 1, SLIDER_VERTICAL, mused.slider_bevel);
 	
