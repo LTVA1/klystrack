@@ -682,6 +682,15 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Enable volume envelope loop",
 					"Volume envelope loop begin point",
 					"Volume envelope loop end point",
+					
+					"Use custom panning envelope",
+					"Panning envelope fadeout (sort of release rate)",
+					"Panning envelope horizontal axis display scale",
+					"Enable panning envelope sustain",
+					"Panning envelope sustain point",
+					"Enable panning envelope loop",
+					"Panning envelope loop begin point",
+					"Panning envelope loop end point",
 				};
 				
 				strcpy(text, param_desc[mused.env_selected_param]);
@@ -3776,6 +3785,11 @@ void open_prog(void *unused1, void *unused2, void *unused3)
 	mused.vol_env_point = -1;
 	mused.vol_env_scale = 1;
 	mused.vol_env_horiz_scroll = 0;
+	
+	mused.pan_env_point = -1;
+	mused.pan_env_scale = 1;
+	mused.pan_env_horiz_scroll = 0;
+	
 	mused.point_env_editor_scroll = 0;
 }
 
@@ -3936,9 +3950,11 @@ void fx_reverb_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 
 	int c = 0;
 
-	int row_ms = (1000 / mused.song.song_rate) * mused.song.song_speed;
-	int row_ms2 = (1000 / mused.song.song_rate) * mused.song.song_speed2;
-
+	int row_ms = (1000.0 / (float)mused.song.song_rate) * mused.song.song_speed;
+	int row_ms2 = (1000.0 / (float)mused.song.song_rate) * mused.song.song_speed2;
+	
+	if(row_ms == 0 || row_ms2 == 0) goto skip;
+	
 	for (int ms = 0; ms < CYDRVB_SIZE / 4; c++) //was for (int ms = 0; ms < CYDRVB_SIZE; c++)
 	{
 		SDL_Rect r = { area.x + ms * area.w / (CYDRVB_SIZE / 4), area.y, 1, area.h}; //was SDL_Rect r = { area.x + ms * area.w / CYDRVB_SIZE, area.y, 1, area.h};
@@ -3961,7 +3977,9 @@ void fx_reverb_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 		else
 			ms += row_ms;
 	}
-
+	
+	skip:;
+	
 	c = 0;
 
 	if (mused.fx_axis == 0)

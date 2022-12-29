@@ -752,6 +752,75 @@ void env_editor_add_param(int a)
 			clamp(i->vol_env_loop_end, a, i->vol_env_loop_start, mused.song.instrument[mused.current_instrument].num_vol_points - 1);
 			break;
 		}
+		
+		//===================
+		
+		case ENV_ENABLE_PANNING_ENVELOPE:
+		{
+			flipbit(i->flags, MUS_INST_USE_PANNING_ENVELOPE);
+			break;
+		}
+		
+		case ENV_PANNING_ENVELOPE_FADEOUT:
+		{
+			clamp(i->pan_env_fadeout, a, 0, 0xFFF);
+			break;
+		}
+		
+		case ENV_PANNING_ENVELOPE_SCALE:
+		{
+			a *= -1;
+			
+			if(mused.pan_env_scale + a == 0)
+			{
+				if(a > 0)
+				{
+					mused.pan_env_scale = 1;
+				}
+				
+				if(a < 0)
+				{
+					mused.pan_env_scale = -1;
+				}
+			}
+			
+			else
+			{
+				clamp(mused.pan_env_scale, a, -1, 5);
+			}
+			
+			break;
+		}
+		
+		case ENV_ENABLE_PANNING_ENVELOPE_SUSTAIN:
+		{
+			flipbit(i->pan_env_flags, MUS_ENV_SUSTAIN);
+			break;
+		}
+		
+		case ENV_PANNING_ENVELOPE_SUSTAIN_POINT:
+		{
+			clamp(i->pan_env_sustain, a, 0, mused.song.instrument[mused.current_instrument].num_pan_points - 1);
+			break;
+		}
+		
+		case ENV_ENABLE_PANNING_ENVELOPE_LOOP:
+		{
+			flipbit(i->vol_env_flags, MUS_ENV_LOOP);
+			break;
+		}
+		
+		case ENV_PANNING_ENVELOPE_LOOP_BEGIN:
+		{
+			clamp(i->pan_env_loop_start, a, 0, mused.song.instrument[mused.current_instrument].pan_env_loop_end);
+			break;
+		}
+		
+		case ENV_PANNING_ENVELOPE_LOOP_END:
+		{
+			clamp(i->pan_env_loop_end, a, i->pan_env_loop_start, mused.song.instrument[mused.current_instrument].num_pan_points - 1);
+			break;
+		}
 	}
 }
 

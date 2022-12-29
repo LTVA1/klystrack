@@ -182,9 +182,13 @@ typedef struct
 	int vol_env_horiz_scroll;
 	int vol_env_scale; //-1 = 2x, 1 = 1x, 2 = 0.5x, 3 = 0.33x etc.
 	
+	int pan_env_horiz_scroll;
+	int pan_env_scale; //-1 = 2x, 1 = 1x, 2 = 0.5x, 3 = 0.33x etc.
+	
 	int vol_env_point, pan_env_point;
 	
-	int prev_env_x, prev_env_y;
+	int prev_vol_env_x, prev_vol_env_y;
+	int prev_pan_env_x, prev_pan_env_y;
 	
 	int fourop_program_position[CYD_FM_NUM_OPS];
 	
@@ -205,7 +209,7 @@ typedef struct
 	
 	int edit_buffer_size;
 	SliderParam sequence_slider_param, pattern_slider_param, program_slider_param, instrument_list_slider_param, 
-		pattern_horiz_slider_param, sequence_horiz_slider_param, wavetable_list_slider_param, four_op_slider_param, point_env_slider_param, vol_env_horiz_slider_param;
+		pattern_horiz_slider_param, sequence_horiz_slider_param, wavetable_list_slider_param, four_op_slider_param, point_env_slider_param, vol_env_horiz_slider_param, pan_env_horiz_slider_param;
 	char previous_song_filename[1000], previous_export_filename[1000], previous_filebox_path[OD_T_N_TYPES][1000];
 	/*---*/
 	char * edit_backup_buffer;

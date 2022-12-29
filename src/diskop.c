@@ -281,15 +281,15 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 		inst->flags &= ~(MUS_INST_SEVERAL_MACROS);
 	}
 	
-	Uint16 temp16_f = inst->flags;
+	Uint32 temp32_f = inst->flags;
 	
 	if(inst->num_macros > 1)
 	{
-		temp16_f |= MUS_INST_SEVERAL_MACROS;
+		temp32_f |= MUS_INST_SEVERAL_MACROS;
 	}
 	
-	FIX_ENDIAN(temp16_f);
-	SDL_RWwrite(f, &temp16_f, sizeof(temp16_f), 1);
+	FIX_ENDIAN(temp32_f);
+	SDL_RWwrite(f, &temp32_f, sizeof(temp32_f), 1);
 	
 	Uint32 temp32 = inst->cydflags;
 	FIX_ENDIAN(temp32);
@@ -315,6 +315,66 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 	inst->adsr.d &= 0b00111111;
 	inst->adsr.s &= 0b00011111;
 	inst->adsr.r &= 0b00111111;
+	
+	if(inst->flags & MUS_INST_USE_VOLUME_ENVELOPE)
+	{
+		SDL_RWwrite(f, &inst->vol_env_flags, sizeof(inst->vol_env_flags), 1);
+		SDL_RWwrite(f, &inst->num_vol_points, sizeof(inst->num_vol_points), 1);
+		
+		Uint16 temp16 = inst->vol_env_fadeout;
+		FIX_ENDIAN(temp16);
+		SDL_RWwrite(f, &temp16, sizeof(temp16), 1);
+		
+		if(inst->vol_env_flags & MUS_ENV_SUSTAIN)
+		{
+			SDL_RWwrite(f, &inst->vol_env_sustain, sizeof(inst->vol_env_sustain), 1);
+		}
+	
+		if(inst->vol_env_flags & MUS_ENV_LOOP)
+		{
+			SDL_RWwrite(f, &inst->vol_env_loop_start, sizeof(inst->vol_env_loop_start), 1);
+			SDL_RWwrite(f, &inst->vol_env_loop_end, sizeof(inst->vol_env_loop_end), 1);
+		}
+		
+		for(int i = 0; i < inst->num_vol_points; ++i)
+		{
+			temp16 = inst->volume_envelope[i].x;
+			FIX_ENDIAN(temp16);
+			SDL_RWwrite(f, &temp16, sizeof(temp16), 1);
+			
+			SDL_RWwrite(f, &inst->volume_envelope[i].y, sizeof(inst->volume_envelope[i].y), 1);
+		}
+	}
+	
+	if(inst->flags & MUS_INST_USE_PANNING_ENVELOPE)
+	{
+		SDL_RWwrite(f, &inst->pan_env_flags, sizeof(inst->pan_env_flags), 1);
+		SDL_RWwrite(f, &inst->num_pan_points, sizeof(inst->num_pan_points), 1);
+		
+		Uint16 temp16 = inst->pan_env_fadeout;
+		FIX_ENDIAN(temp16);
+		SDL_RWwrite(f, &temp16, sizeof(temp16), 1);
+		
+		if(inst->pan_env_flags & MUS_ENV_SUSTAIN)
+		{
+			SDL_RWwrite(f, &inst->pan_env_sustain, sizeof(inst->pan_env_sustain), 1);
+		}
+	
+		if(inst->pan_env_flags & MUS_ENV_LOOP)
+		{
+			SDL_RWwrite(f, &inst->pan_env_loop_start, sizeof(inst->pan_env_loop_start), 1);
+			SDL_RWwrite(f, &inst->pan_env_loop_end, sizeof(inst->pan_env_loop_end), 1);
+		}
+		
+		for(int i = 0; i < inst->num_pan_points; ++i)
+		{
+			temp16 = inst->panning_envelope[i].x;
+			FIX_ENDIAN(temp16);
+			SDL_RWwrite(f, &temp16, sizeof(temp16), 1);
+			
+			SDL_RWwrite(f, &inst->panning_envelope[i].y, sizeof(inst->panning_envelope[i].y), 1);
+		}
+	}
 	
 	if(inst->cydflags & CYD_CHN_ENABLE_FIXED_NOISE_PITCH)
 	{
