@@ -179,6 +179,7 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 	{
 		font_write_args(&mused.tinyfont, dest_surface, &vol_env_info, "TIME:%0.2fs\n VOL:%02X", (float)mused.song.instrument[mused.current_instrument].volume_envelope[mused.vol_env_point].x / 100.0, mused.song.instrument[mused.current_instrument].volume_envelope[mused.vol_env_point].y);
 	}
+
 	
 	//mused.song.instrument[mused.current_instrument].volume_envelope[mused.vol_env_point].x
 	
@@ -595,7 +596,26 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 		font_write_args(&mused.tinyfont, dest_surface, &pan_env_info, "TIME:%0.2fs\n PAN:%02X", (float)mused.song.instrument[mused.current_instrument].panning_envelope[mused.pan_env_point].x / 100.0, mused.song.instrument[mused.current_instrument].panning_envelope[mused.pan_env_point].y);
 	}
 	
-	//mused.song.instrument[mused.current_instrument].volume_envelope[mused.vol_env_point].x
+	SDL_Rect panning_stuff;
+	
+	panning_stuff.x = pan_env_editor.x;
+	panning_stuff.y = pan_env_editor.y;
+	panning_stuff.w = panning_stuff.h = 8;
+	
+	font_write_args(&mused.largefont, dest_surface, &panning_stuff, "R");
+	
+	panning_stuff.y += pan_env_editor.h - 8;
+	
+	font_write_args(&mused.largefont, dest_surface, &panning_stuff, "L");
+	
+	panning_stuff.y = pan_env_editor.y + pan_env_editor.h / 2 - 1;
+	panning_stuff.w = pan_env_editor.w + 2 * ENV_ED_MARGIN;
+	panning_stuff.x -= ENV_ED_MARGIN;
+	panning_stuff.h = 1;
+	
+	Uint32 color = (colors[COLOR_WAVETABLE_SAMPLE] & 255) / 3 + ((((colors[COLOR_WAVETABLE_SAMPLE] >> 8) & 255) / 3) << 8) + ((((colors[COLOR_WAVETABLE_SAMPLE] >> 16) & 255) / 3) << 16);
+	
+	gfx_rect(domain, &panning_stuff, color);
 	
 	should_continue = true;
 	

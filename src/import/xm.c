@@ -217,16 +217,56 @@ int import_xm(FILE *f)
 				
 				if (volume >= 0x10 && volume <= 0x50)
 					step->volume = (volume - 0x10) * 2;
+				
+				else if (volume >= 0xc0 && volume <= 0xcf)
+					step->volume = MUS_NOTE_VOLUME_SET_PAN | (volume & 0xf);
+				
+				else if (volume >= 0xd0 && volume <= 0xdf)
+					step->volume = MUS_NOTE_VOLUME_PAN_LEFT | (volume & 0xf);
+				else if (volume >= 0xe0 && volume <= 0xef)
+					step->volume = MUS_NOTE_VOLUME_PAN_RIGHT | (volume & 0xf);
+				
 				else if (volume >= 0x60 && volume <= 0x6f)
 					step->volume = MUS_NOTE_VOLUME_FADE_DN | (volume & 0xf);
 				else if (volume >= 0x70 && volume <= 0x7f)
 					step->volume = MUS_NOTE_VOLUME_FADE_UP | (volume & 0xf);
+				
 				else if (volume >= 0xf0 && volume <= 0xff)
 					step->ctrl = MUS_CTRL_SLIDE|MUS_CTRL_LEGATO;
 				else if (volume >= 0xb0 && volume <= 0xbf)
 					step->ctrl = MUS_CTRL_VIB;
 					
 				step->command[0] = find_command_xm((fx << 8) | param);
+				
+				if (volume >= 0x80 && volume <= 0x8f)
+				{
+					Uint16 vol_command = MUS_FX_EXT_FADE_VOLUME_DN | (volume & 0xf);
+					
+					if(step->command[0] == 0)
+					{
+						step->command[0] = vol_command;
+					}
+					
+					else
+					{
+						step->command[1] = vol_command;
+					}
+				}
+				
+				else if (volume >= 0x90 && volume <= 0x9f)
+				{
+					Uint16 vol_command = MUS_FX_EXT_FADE_VOLUME_UP | (volume & 0xf);
+					
+					if(step->command[0] == 0)
+					{
+						step->command[0] = vol_command;
+					}
+					
+					else
+					{
+						step->command[1] = vol_command;
+					}
+				}
 			}
 		}
 	}
@@ -295,6 +335,40 @@ int import_xm(FILE *f)
 			fread(&instrument_ext_hdr.vib_rate, 1, sizeof(instrument_ext_hdr.vib_rate), f);
 			fread(&instrument_ext_hdr.vol_fadeout, 1, sizeof(instrument_ext_hdr.vol_fadeout), f);
 			fread(&instrument_ext_hdr.reserved[0], 1, sizeof(instrument_ext_hdr.reserved), f);
+			
+			if(instrument_ext_hdr.vol_type & 1) //if volume envelope is used
+			{
+				mused.song.instrument[i].flags |= MUS_INST_USE_VOLUME_ENVELOPE;
+				mused.song.instrument[i].vol_env_fadeout = instrument_ext_hdr.vol_fadeout;
+				mused.song.instrument[i].num_vol_points = instrument_ext_hdr.num_volume;
+				mused.song.instrument[i].vol_env_loop_start = instrument_ext_hdr.vol_loop_start;
+				mused.song.instrument[i].vol_env_loop_end = instrument_ext_hdr.pan_loop_end;
+				mused.song.instrument[i].vol_env_sustain = instrument_ext_hdr.vol_sustain;
+				mused.song.instrument[i].vol_env_flags = (instrument_ext_hdr.vol_type >> 1);
+				
+				for(int j = 0; j < mused.song.instrument[i].num_vol_points; ++j)
+				{
+					mused.song.instrument[i].volume_envelope[j].x = instrument_ext_hdr.vol_points[j].x << 1;
+					mused.song.instrument[i].volume_envelope[j].y = instrument_ext_hdr.vol_points[j].y << 1;
+				}
+			}
+			
+			if(instrument_ext_hdr.pan_type & 1) //if panning envelope is used
+			{
+				mused.song.instrument[i].flags |= MUS_INST_USE_PANNING_ENVELOPE;
+				
+				mused.song.instrument[i].num_pan_points = instrument_ext_hdr.num_panning;
+				mused.song.instrument[i].pan_env_loop_start = instrument_ext_hdr.pan_loop_start;
+				mused.song.instrument[i].pan_env_loop_end = instrument_ext_hdr.pan_loop_end;
+				mused.song.instrument[i].pan_env_sustain = instrument_ext_hdr.pan_sustain;
+				mused.song.instrument[i].pan_env_flags = (instrument_ext_hdr.pan_type >> 1);
+				
+				for(int j = 0; j < mused.song.instrument[i].num_pan_points; ++j)
+				{
+					mused.song.instrument[i].panning_envelope[j].x = instrument_ext_hdr.pan_points[j].x << 1;
+					mused.song.instrument[i].panning_envelope[j].y = instrument_ext_hdr.pan_points[j].y << 1;
+				}
+			}
 			
 			fseek(f, si + instrument_hdr.size, SEEK_SET);
 			
@@ -393,7 +467,14 @@ int import_xm(FILE *f)
 				mused.mus.cyd->wavetable_entries[wt_e].loop_end = my_min(mused.mus.cyd->wavetable_entries[wt_e].loop_end, mused.mus.cyd->wavetable_entries[wt_e].samples);
 				
 				mused.song.instrument[i].cydflags = CYD_CHN_ENABLE_WAVE | CYD_CHN_WAVE_OVERRIDE_ENV | CYD_CHN_ENABLE_KEY_SYNC;
-				mused.song.instrument[i].flags = MUS_INST_SET_PW | MUS_INST_SET_CUTOFF;
+				mused.song.instrument[i].flags |= MUS_INST_SET_PW | MUS_INST_SET_CUTOFF;
+				mused.song.instrument[i].flags &= ~(MUS_INST_DRUM);
+				
+				if(mused.song.instrument[i].flags & MUS_INST_USE_VOLUME_ENVELOPE)
+				{
+					mused.song.instrument[i].cydflags &= ~(CYD_CHN_WAVE_OVERRIDE_ENV);
+				}
+				
 				mused.song.instrument[i].vibrato_speed = instrument_ext_hdr.vib_rate;
 				mused.song.instrument[i].vibrato_depth = instrument_ext_hdr.vib_depth;
 				mused.song.instrument[i].vibrato_delay = instrument_ext_hdr.vib_sweep;
@@ -406,7 +487,7 @@ int import_xm(FILE *f)
 				{
 					case 0: mused.mus.cyd->wavetable_entries[wt_e].flags &= ~CYD_WAVE_LOOP; break;
 					case 1: mused.mus.cyd->wavetable_entries[wt_e].flags |= CYD_WAVE_LOOP; break;
-					case 2: mused.mus.cyd->wavetable_entries[wt_e].flags |= CYD_WAVE_LOOP|CYD_WAVE_PINGPONG; break;
+					case 2: mused.mus.cyd->wavetable_entries[wt_e].flags |= CYD_WAVE_LOOP | CYD_WAVE_PINGPONG; break;
 				}
 				
 				mused.song.instrument[i].wavetable_entry = wt_e++;
