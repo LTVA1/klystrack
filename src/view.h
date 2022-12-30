@@ -97,4 +97,6 @@ void inst_field(const SDL_Event *e, const SDL_Rect *area, int p, int length, cha
 void fx_disk_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
 void wave_disk_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
 
+bool check_mouse_hit(const SDL_Event *e, const SDL_Rect *area, int focus, int param);
+
 #endif

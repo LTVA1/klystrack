@@ -118,6 +118,8 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_FM_EXT_FADE_VOLUME_DN, 0xfff0, "Fine fade FM modulator volume out", "FMvolDnFine", 0, 0xf}, //wasn't there
 	{MUS_FX_EXT_PORTA_UP, 0xfff0, "Fine portamento up", "PortUpFine", 0, 0xf},
 	{MUS_FX_EXT_PORTA_DN, 0xfff0, "Fine portamento down", "PortDnFine", 0, 0xf},
+	{MUS_FX_EXT_FINE_PORTA_UP, 0xfff0, "Extra fine portamento up", "PortUpExtraFine", 0, 0xf},
+	{MUS_FX_EXT_FINE_PORTA_DN, 0xfff0, "Extra fine portamento down", "PortDnExtraFine", 0, 0xf},
 	{MUS_FX_EXT_NOTE_CUT, 0xfff0, "Note cut", "NoteCut", 0, 0xf},
 	{MUS_FX_EXT_RETRIGGER, 0xfff0, "Retrigger", "Retrig", 0, 0xf},
 	

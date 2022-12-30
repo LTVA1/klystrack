@@ -2334,7 +2334,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 		int frame_x = frame.x;
 		int frame_y = frame.y;
 		int frame_w = frame.w;
-		int frame_h = frame.h;
+		//int frame_h = frame.h;
 		
 		gfx_rect(dest_surface, &frame, 0x0);
 		

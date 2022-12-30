@@ -171,9 +171,9 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 	SDL_Rect vol_env_info;
 	
 	vol_env_info.y = vol_env_editor.y - 4;
-	vol_env_info.x = vol_env_editor.x + vol_env_editor.w - 4 * 9 - 4;
+	vol_env_info.x = vol_env_editor.x + vol_env_editor.w - 4 * 9 - 4 - 4;
 	vol_env_info.h = 8;
-	vol_env_info.w = 4 * 11;
+	vol_env_info.w = 4 * 12;
 	
 	if(mused.vol_env_point != -1)
 	{
@@ -478,14 +478,14 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 	
 	r.w = vol_env_params.w / 2 - 2;
 	
-	env_flags(event, &r, dest, ENV_ENABLE_VOLUME_ENVELOPE_SUSTAIN, "SUSTAIN", &inst->vol_env_flags, MUS_ENV_SUSTAIN);
+	env_flags(event, &r, dest, ENV_ENABLE_VOLUME_ENVELOPE_SUSTAIN, "SUSTAIN", (Uint32*)&inst->vol_env_flags, MUS_ENV_SUSTAIN);
 	update_rect(&vol_env_params, &r);
 	env_text(event, &r, dest, ENV_VOLUME_ENVELOPE_SUSTAIN_POINT, "POINT", "%01X", MAKEPTR(inst->vol_env_sustain), 1);
 	update_rect(&vol_env_params, &r);
 	
 	r.w = 45;
 	
-	env_flags(event, &r, dest, ENV_ENABLE_VOLUME_ENVELOPE_LOOP, "LOOP", &inst->vol_env_flags, MUS_ENV_LOOP);
+	env_flags(event, &r, dest, ENV_ENABLE_VOLUME_ENVELOPE_LOOP, "LOOP", (Uint32*)&inst->vol_env_flags, MUS_ENV_LOOP);
 	//update_rect(&vol_env_params, &r);
 	
 	r.x += r.w + 5;
@@ -587,29 +587,42 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 	SDL_Rect pan_env_info;
 	
 	pan_env_info.y = pan_env_editor.y - 4;
-	pan_env_info.x = pan_env_editor.x + pan_env_editor.w - 4 * 9 - 4;
+	pan_env_info.x = pan_env_editor.x + pan_env_editor.w - 4 * 9 - 4 - 4;
 	pan_env_info.h = 8;
-	pan_env_info.w = 4 * 11;
+	pan_env_info.w = 4 * 12;
 	
 	if(mused.pan_env_point != -1)
 	{
-		font_write_args(&mused.tinyfont, dest_surface, &pan_env_info, "TIME:%0.2fs\n PAN:%02X", (float)mused.song.instrument[mused.current_instrument].panning_envelope[mused.pan_env_point].x / 100.0, mused.song.instrument[mused.current_instrument].panning_envelope[mused.pan_env_point].y);
+		if(mused.song.instrument[mused.current_instrument].panning_envelope[mused.pan_env_point].y == 0x40) //center
+		{
+			font_write_args(&mused.tinyfont, dest_surface, &pan_env_info, "TIME:%0.2fs\n PAN:\xfa\xf9", (float)mused.song.instrument[mused.current_instrument].panning_envelope[mused.pan_env_point].x / 100.0);
+		}
+		
+		if(mused.song.instrument[mused.current_instrument].panning_envelope[mused.pan_env_point].y < 0x40) //left
+		{
+			font_write_args(&mused.tinyfont, dest_surface, &pan_env_info, "TIME:%0.2fs\n PAN:\xf9%02X", (float)mused.song.instrument[mused.current_instrument].panning_envelope[mused.pan_env_point].x / 100.0, 0x40 - mused.song.instrument[mused.current_instrument].panning_envelope[mused.pan_env_point].y);
+		}
+		
+		if(mused.song.instrument[mused.current_instrument].panning_envelope[mused.pan_env_point].y > 0x40) //right
+		{
+			font_write_args(&mused.tinyfont, dest_surface, &pan_env_info, "TIME:%0.2fs\n PAN:%02X\xfa", (float)mused.song.instrument[mused.current_instrument].panning_envelope[mused.pan_env_point].x / 100.0, mused.song.instrument[mused.current_instrument].panning_envelope[mused.pan_env_point].y - 0x40);
+		}
 	}
 	
 	SDL_Rect panning_stuff;
 	
-	panning_stuff.x = pan_env_editor.x;
-	panning_stuff.y = pan_env_editor.y;
+	panning_stuff.x = pan_env_editor.x - 5;
+	panning_stuff.y = pan_env_editor.y - 5;
 	panning_stuff.w = panning_stuff.h = 8;
 	
 	font_write_args(&mused.largefont, dest_surface, &panning_stuff, "R");
 	
-	panning_stuff.y += pan_env_editor.h - 8;
+	panning_stuff.y += pan_env_editor.h + 3;
 	
 	font_write_args(&mused.largefont, dest_surface, &panning_stuff, "L");
 	
 	panning_stuff.y = pan_env_editor.y + pan_env_editor.h / 2 - 1;
-	panning_stuff.w = pan_env_editor.w + 2 * ENV_ED_MARGIN;
+	panning_stuff.w = pan_env_editor.w + 2 * ENV_ED_MARGIN + 3;
 	panning_stuff.x -= ENV_ED_MARGIN;
 	panning_stuff.h = 1;
 	
@@ -913,14 +926,14 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 	
 	r.w = pan_env_params.w / 2 - 2;
 	
-	env_flags(event, &r, dest, ENV_ENABLE_PANNING_ENVELOPE_SUSTAIN, "SUSTAIN", &inst->pan_env_flags, MUS_ENV_SUSTAIN);
+	env_flags(event, &r, dest, ENV_ENABLE_PANNING_ENVELOPE_SUSTAIN, "SUSTAIN", (Uint32*)&inst->pan_env_flags, MUS_ENV_SUSTAIN);
 	update_rect(&pan_env_params, &r);
 	env_text(event, &r, dest, ENV_PANNING_ENVELOPE_SUSTAIN_POINT, "POINT", "%01X", MAKEPTR(inst->pan_env_sustain), 1);
 	update_rect(&pan_env_params, &r);
 	
 	r.w = 45;
 	
-	env_flags(event, &r, dest, ENV_ENABLE_PANNING_ENVELOPE_LOOP, "LOOP", &inst->pan_env_flags, MUS_ENV_LOOP);
+	env_flags(event, &r, dest, ENV_ENABLE_PANNING_ENVELOPE_LOOP, "LOOP", (Uint32*)&inst->pan_env_flags, MUS_ENV_LOOP);
 	//update_rect(&pan_env_params, &r);
 	
 	r.x += r.w + 5;

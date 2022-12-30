@@ -78,6 +78,7 @@ int seqsort(const void *_a, const void *_b); //wasn't there
 
 void edit_fourop_event(SDL_Event *e);
 void four_op_add_param(int a);
+void env_editor_add_param(int a);
 
 void do_autosave(Uint32* timeout);
 

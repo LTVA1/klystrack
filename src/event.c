@@ -39,6 +39,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "theme.h"
 #include "import/import.h"
 
+#include "gui/view.h"
+
 extern Mused mused;
 
 #define flipbit(val, bit) { val ^= bit; };

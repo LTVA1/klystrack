@@ -138,11 +138,11 @@ static Uint16 find_command_ahx(Uint8 command, Uint8 data, Uint8 *ctrl)
 			}
 			else if ((data & 0xf0) == 0x10)
 			{
-				return MUS_FX_EXT_PORTA_UP | (data & 0xf);
+				return MUS_FX_EXT_FINE_PORTA_UP | (data & 0xf);
 			}
 			else if ((data & 0xf0) == 0x20)
 			{
-				return MUS_FX_EXT_PORTA_DN | (data & 0xf);
+				return MUS_FX_EXT_FINE_PORTA_DN | (data & 0xf);
 			}
 			else if ((data & 0xf0) == 0xa0)
 			{

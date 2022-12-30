@@ -37,6 +37,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "../../klystron/src/gui/toolutil.h"
 #include "../../klystron/src/gui/slider.h"
 #include "../mused.h"
+#include "../action.h"
 #include "../theme.h"
 #include <dirent.h>
 #include <string.h>
