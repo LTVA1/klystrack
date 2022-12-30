@@ -411,11 +411,6 @@ int main(int argc, char **argv)
 			{
 				translate_key_event(&e.key);
 			}
-			
-			/*if(e.type == SDL_MOUSEWHEEL)
-			{
-				//debug("yay");
-			}*/
 
 			switch (e.type)
 			{

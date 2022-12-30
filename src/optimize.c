@@ -135,6 +135,8 @@ bool is_instrument_used(const MusSong *song, int instrument)
 
 void remove_instrument(MusSong *song, int instrument)
 {
+	if(instrument > song->num_instruments - 1) return;
+	
 	for (int p = 0; p < song->num_patterns; ++p)
 	{
 		for (int i = 0; i < song->pattern[p].num_steps; ++i)
@@ -146,14 +148,26 @@ void remove_instrument(MusSong *song, int instrument)
 	
 	int ins = instrument;
 	
-	MusInstrument* inst = &song->instrument[ins];
-	
-	mus_free_inst_programs(inst);
-	
-	for (int i = instrument; i < song->num_instruments - 1; ++i)
-		memcpy(&song->instrument[i], &song->instrument[i + 1], sizeof(song->instrument[i]));
-	
-	kt_default_instrument(&song->instrument[song->num_instruments - 1]);
+	if(song->num_instruments > 0)
+	{
+		MusInstrument* inst = &song->instrument[ins];
+		
+		mus_free_inst_programs(inst);
+		
+		for (int i = instrument; i < song->num_instruments - 1; ++i)
+		{
+			if(&song->instrument[i] && &song->instrument[i + 1])
+			{
+				memcpy(&song->instrument[i], &song->instrument[i + 1], sizeof(MusInstrument));
+			}
+		}
+		
+		if(&song->instrument[song->num_instruments - 1] && song->num_instruments - 1 < NUM_INSTRUMENTS)
+		{
+			memset(&song->instrument[song->num_instruments - 1], 0, sizeof(MusInstrument));
+			kt_default_instrument(&song->instrument[song->num_instruments - 1]);
+		}
+	}
 }
 
 
@@ -312,12 +326,19 @@ static void remove_wavetable(MusSong *song, CydEngine *cyd, int wavetable)
 		cyd->wavetable_entries[i].loop_begin = cyd->wavetable_entries[i + 1].loop_begin;
 		cyd->wavetable_entries[i].loop_end = cyd->wavetable_entries[i + 1].loop_end;
 		cyd->wavetable_entries[i].base_note = cyd->wavetable_entries[i + 1].base_note;
-		cyd->wavetable_entries[i].data = realloc(cyd->wavetable_entries[i].data, cyd->wavetable_entries[i + 1].samples * sizeof(Sint16));
-		memcpy(cyd->wavetable_entries[i].data, cyd->wavetable_entries[i + 1].data, cyd->wavetable_entries[i + 1].samples * sizeof(Sint16));
+		
+		if(cyd->wavetable_entries[i].data && cyd->wavetable_entries[i + 1].data)
+		{
+			cyd->wavetable_entries[i].data = realloc(cyd->wavetable_entries[i].data, cyd->wavetable_entries[i + 1].samples * sizeof(Sint16));
+			memcpy(cyd->wavetable_entries[i].data, cyd->wavetable_entries[i + 1].data, cyd->wavetable_entries[i + 1].samples * sizeof(Sint16));
+		}
 	}
 	
-	strcpy(song->wavetable_names[song->num_wavetables - 1], "");
-	cyd_wave_entry_init(&cyd->wavetable_entries[song->num_wavetables - 1], NULL, 0, 0, 0, 0, 0);
+	if(song->num_wavetables > 0)
+	{
+		strcpy(song->wavetable_names[song->num_wavetables - 1], "");
+		cyd_wave_entry_init(&cyd->wavetable_entries[song->num_wavetables - 1], NULL, 0, 0, 0, 0, 0);
+	}
 }
 
 
@@ -556,7 +577,7 @@ void optimize_unused_instruments(MusSong *song)
 	
 	debug("Kill unused instruments");
 	
-	for (int i = 0; i < song->num_instruments; ++i)
+	for (int i = 0; i < NUM_INSTRUMENTS - 2; ++i)
 	{
 		if (!is_instrument_used(song, i))
 		{
@@ -565,16 +586,19 @@ void optimize_unused_instruments(MusSong *song)
 		}
 	}
 	
-	if (confirm(domain, mused.slider_bevel, &mused.largefont, "Move instruments to their topmost positions (no undo)?\nThis may take a while"))
+	if(song->num_instruments > 0)
 	{
-		for(int k = 0; k < NUM_INSTRUMENTS / 8; ++k)
+		if (confirm(domain, mused.slider_bevel, &mused.largefont, "Move instruments to their topmost positions (no undo)?\nThis may take a while"))
 		{
-			for (int i = 0; i < song->num_instruments; ++i)
+			for(int k = 0; k < NUM_INSTRUMENTS / 8; ++k)
 			{
-				if (!is_instrument_used(song, i))
+				for (int i = 0; i < NUM_INSTRUMENTS - 2; ++i)
 				{
-					remove_instrument(song, i);
-					//++removed;
+					if (!is_instrument_used(song, i))
+					{
+						remove_instrument(song, i);
+						//++removed;
+					}
 				}
 			}
 		}
@@ -590,7 +614,7 @@ void optimize_unused_wavetables(MusSong *song, CydEngine *cyd)
 	
 	debug("Kill unused wavetables");
 	
-	for (int i = 0; i < song->num_wavetables; ++i)
+	for (int i = 0; i < CYD_WAVE_MAX_ENTRIES; ++i)
 		if (!is_wavetable_used(song, i))
 		{
 			remove_wavetable(song, cyd, i);
@@ -607,9 +631,9 @@ void kill_duplicate_wavetables(MusSong *song, CydEngine *cyd) //wasn't there
 	debug("Kill duplicate wavetables");
 	debug("Wavetables: %d", song->num_wavetables);
 	
-	for (int i = 0; i <= song->num_wavetables; ++i)
+	for (int i = 0; i <= CYD_WAVE_MAX_ENTRIES; ++i)
 	{
-		for(int j = 0; j <= song->num_wavetables; ++j)
+		for(int j = 0; j <= CYD_WAVE_MAX_ENTRIES; ++j)
 		{
 			if(i != j)
 			{
@@ -621,17 +645,23 @@ void kill_duplicate_wavetables(MusSong *song, CydEngine *cyd) //wasn't there
 					cyd->wavetable_entries[i].base_note == cyd->wavetable_entries[j].base_note && 
 					cyd->wavetable_entries[i].sample_rate != 0 && 
 					cyd->wavetable_entries[i].samples != 0 &&
-					(strcmp(song->wavetable_names[j], song->wavetable_names[i]) == 0 || (song->wavetable_names[j] == NULL && song->wavetable_names[i] == 0)))
+					(strcmp(song->wavetable_names[j], song->wavetable_names[i]) == 0 || (song->wavetable_names[j] == NULL && song->wavetable_names[i] == NULL)))
 				{
 					Uint8 flag = 0;
 					
-					for(int k = 0; k < cyd->wavetable_entries[j].samples; k++)
+					if(cyd->wavetable_entries[i].data)
 					{
-						if(*(cyd->wavetable_entries[i].data + k) != *(cyd->wavetable_entries[j].data + k))
+						for(int k = 0; k < cyd->wavetable_entries[j].samples; k++)
 						{
-							flag++;
+							if(*(cyd->wavetable_entries[i].data + k) != *(cyd->wavetable_entries[j].data + k))
+							{
+								flag = 1;
+								goto skip;
+							}
 						}
 					}
+					
+					skip:;
 					
 					if(flag == 0)
 					{
