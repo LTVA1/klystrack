@@ -104,6 +104,7 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_SET_RATE, 0xff00, "Set rate lower byte", "RateLowByte", -1, -1},
 	{MUS_FX_SET_RATE_HIGHER_BYTE, 0xff00, "Set rate higher byte", "RateHighByte", -1, -1}, //wasn't there
 	{MUS_FX_LOOP_PATTERN, 0xff00, "Loop pattern", "PatLoop", -1, -1},
+	{MUS_FX_FT2_PATTERN_LOOP, 0xfff0, "Loop pattern (FastTracker II style)", "PatLoopFT2", -1, -1},
 	{MUS_FX_SKIP_PATTERN, 0xff00, "Skip pattern", "PatSkip", -1, -1},
 	{MUS_FX_TRIGGER_RELEASE, 0xff00, "Trigger release", "Release", 0, 0xff},
 	{MUS_FX_TRIGGER_MACRO_RELEASE, 0xff00, "Trigger macro release", "ProgRelease", 0, 0xff},
@@ -416,6 +417,27 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst)
 		}
 		
 		snprintf(text, buffer_size, "%s (%s)\n", name, ((inst & 0xff) == CYD_PAN_CENTER || (inst & 0xff) == CYD_PAN_CENTER - 1) ? "Center" : tmp);
+	}
+	
+	else if ((fi & 0xfff0) == MUS_FX_FT2_PATTERN_LOOP)
+	{
+		if(inst & 0xf)
+		{
+			if((inst & 0xf) > 1)
+			{
+				snprintf(text, buffer_size, "%s (loop end; loop %d times)", name, (inst & 0xf));
+			}
+			
+			else
+			{
+				snprintf(text, buffer_size, "%s (loop end; loop once)", name);
+			}
+		}
+		
+		else
+		{
+			snprintf(text, buffer_size, "%s (loop begin)", name);
+		}
 	}
 	
 	else snprintf(text, buffer_size, "%s\n", name);

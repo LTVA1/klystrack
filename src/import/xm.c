@@ -124,6 +124,12 @@ void find_command_xm(Uint16 command, MusStep* step)
 		return;
 	}
 	
+	else if ((command & 0xfff0) == 0x0e60)
+	{
+		step->command[0] = MUS_FX_FT2_PATTERN_LOOP | (command & 0xf);
+		return;
+	}
+	
 	else if ((command & 0xfff0) == 0x0e90)
 	{
 		step->command[0] = MUS_FX_EXT_RETRIGGER | (command & 0xf);
@@ -176,6 +182,21 @@ void find_command_xm(Uint16 command, MusStep* step)
 	{
 		step->command[0] = MUS_FX_TRIGGER_RELEASE | (command & 0xff);
 		return;
+	}
+	
+	else if ((command >> 8) == 'P')
+	{
+		if(command & 0xf0) //pan right
+		{
+			step->command[0] = MUS_FX_PAN_RIGHT | ((command & 0xf0) >> 4);
+			return;
+		}
+		
+		if(command & 0xf) //pan left
+		{
+			step->command[0] = MUS_FX_PAN_LEFT | (command & 0xf);
+			return;
+		}
 	}
 	
 	else if ((command >> 8) == 'X')

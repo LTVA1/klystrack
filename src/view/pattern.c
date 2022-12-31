@@ -1329,104 +1329,107 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 					copy_rect(&tmp, &pos);
 					clip_rect(&tmp, &track);
 					
-					if (tmp.y - header.y > HEADER_HEIGHT + 3 && mused.frames_since_menu_close > 5)
+					if(tmp.y < track.y + track.h - 18) //so rows drawn under the slider don't result in unwanted hits
 					{
+						if (tmp.y - header.y > HEADER_HEIGHT + 3 && mused.frames_since_menu_close > 5)
+						{
+							if(mused.flags2 & DRAG_SELECT_PATTERN)
+							{
+								if(mused.selection.drag_selection)
+								{
+									int mouse_x, mouse_y;
+									
+									Uint32 buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+									gfx_convert_mouse_coordinates(domain, &mouse_x, &mouse_y);
+									
+									if ((mouse_x >= tmp.x - SPACER) && (mouse_y >= tmp.y) && (mouse_x <= tmp.x + tmp.w + SPACER / 2) && (mouse_y < tmp.y + tmp.h))
+									{
+										if(mused.selection.prev_start != (sp->position + step) || mused.selection.prev_patternx_start != param)
+										{
+											if(mused.selection.channel == channel)
+											{
+												mused.selection.start = mused.selection.prev_start;
+												mused.selection.end = sp->position + step;
+												
+												mused.selection.patternx_start = mused.selection.prev_patternx_start;
+												mused.selection.patternx_end = param;
+											}
+											
+											if(mused.selection.start > mused.selection.end)
+											{
+												int temp = mused.selection.start;
+												mused.selection.start = mused.selection.end;
+												mused.selection.end = temp;
+											}
+											
+											if(mused.selection.patternx_start > mused.selection.patternx_end)
+											{
+												int temp = mused.selection.patternx_start;
+												mused.selection.patternx_start = mused.selection.patternx_end;
+												mused.selection.patternx_end = temp;
+											}
+										}
+									}
+									
+									if(event->type == SDL_MOUSEBUTTONUP)
+									{
+										mused.selection.drag_selection = false;
+										
+										if(mused.selection.start != mused.selection.end)
+										{
+											mused.jump_in_pattern = false;
+										}
+									}
+								}
+								
+								if(check_event(event, &tmp, NULL, NULL, NULL, NULL))
+								{
+									if(!(mused.selection.drag_selection) && (mused.selection.start == mused.selection.end))
+									{
+										mused.selection.prev_start = sp->position + step;
+										mused.selection.prev_patternx_start = param;
+										mused.selection.drag_selection = true;
+										
+										mused.selection.channel = channel;
+									}
+									
+									if(!(mused.selection.drag_selection) && (mused.selection.start != mused.selection.end))
+									{
+										mused.selection.drag_selection = false;
+										mused.jump_in_pattern = true;
+										mused.selection.start = mused.selection.end = mused.selection.patternx_start = mused.selection.patternx_end = -1;
+									}
+								}
+							}
+						}
+						
+						//if (sp && event->type == SDL_MOUSEBUTTONDOWN && tmp.y - header.y > HEADER_HEIGHT + 3) //so we do not process the topmost row which is hidden under header and is there for smooth scroll (so rows disappear upper then pattern edge where they are still visible)
 						if(mused.flags2 & DRAG_SELECT_PATTERN)
 						{
-							if(mused.selection.drag_selection)
+							if (sp && event->type == SDL_MOUSEBUTTONUP && tmp.y - header.y > HEADER_HEIGHT + 3 && mused.frames_since_menu_close > 5)
 							{
-								int mouse_x, mouse_y;
-								
-								Uint32 buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
-								gfx_convert_mouse_coordinates(domain, &mouse_x, &mouse_y);
-								
-								if ((mouse_x >= tmp.x - SPACER) && (mouse_y >= tmp.y) && (mouse_x <= tmp.x + tmp.w + SPACER / 2) && (mouse_y < tmp.y + tmp.h))
+								if(mused.jump_in_pattern)
 								{
-									if(mused.selection.prev_start != (sp->position + step) || mused.selection.prev_patternx_start != param)
-									{
-										if(mused.selection.channel == channel)
-										{
-											mused.selection.start = mused.selection.prev_start;
-											mused.selection.end = sp->position + step;
-											
-											mused.selection.patternx_start = mused.selection.prev_patternx_start;
-											mused.selection.patternx_end = param;
-										}
-										
-										if(mused.selection.start > mused.selection.end)
-										{
-											int temp = mused.selection.start;
-											mused.selection.start = mused.selection.end;
-											mused.selection.end = temp;
-										}
-										
-										if(mused.selection.patternx_start > mused.selection.patternx_end)
-										{
-											int temp = mused.selection.patternx_start;
-											mused.selection.patternx_start = mused.selection.patternx_end;
-											mused.selection.patternx_end = temp;
-										}
-									}
+									check_event_mousebuttonup(event, &tmp, select_pattern_param, MAKEPTR(param), MAKEPTR(sp->position + step), MAKEPTR(channel)); //change focus row and column on mouse button down (preparing for mouse drag selection)
 								}
 								
-								if(event->type == SDL_MOUSEBUTTONUP)
+								if(check_event_mousebuttonup(event, &tmp, NULL, NULL, NULL, NULL))
 								{
-									mused.selection.drag_selection = false;
-									
-									if(mused.selection.start != mused.selection.end)
-									{
-										mused.jump_in_pattern = false;
-									}
-								}
-							}
-							
-							if(check_event(event, &tmp, NULL, NULL, NULL, NULL))
-							{
-								if(!(mused.selection.drag_selection) && (mused.selection.start == mused.selection.end))
-								{
-									mused.selection.prev_start = sp->position + step;
-									mused.selection.prev_patternx_start = param;
-									mused.selection.drag_selection = true;
-									
-									mused.selection.channel = channel;
-								}
-								
-								if(!(mused.selection.drag_selection) && (mused.selection.start != mused.selection.end))
-								{
-									mused.selection.drag_selection = false;
 									mused.jump_in_pattern = true;
-									mused.selection.start = mused.selection.end = mused.selection.patternx_start = mused.selection.patternx_end = -1;
 								}
+								
+								set_repeat_timer(NULL); // ugh
 							}
 						}
-					}
-					
-					//if (sp && event->type == SDL_MOUSEBUTTONDOWN && tmp.y - header.y > HEADER_HEIGHT + 3) //so we do not process the topmost row which is hidden under header and is there for smooth scroll (so rows disappear upper then pattern edge where they are still visible)
-					if(mused.flags2 & DRAG_SELECT_PATTERN)
-					{
-						if (sp && event->type == SDL_MOUSEBUTTONUP && tmp.y - header.y > HEADER_HEIGHT + 3 && mused.frames_since_menu_close > 5)
+						
+						else
 						{
-							if(mused.jump_in_pattern)
+							if (sp && event->type == SDL_MOUSEBUTTONDOWN && tmp.y - header.y > HEADER_HEIGHT + 3)
 							{
-								check_event_mousebuttonup(event, &tmp, select_pattern_param, MAKEPTR(param), MAKEPTR(sp->position + step), MAKEPTR(channel)); //change focus row and column on mouse button down (preparing for mouse drag selection)
+								check_event(event, &tmp, select_pattern_param, MAKEPTR(param), MAKEPTR(sp->position + step), MAKEPTR(channel));
+								
+								set_repeat_timer(NULL); // ugh
 							}
-							
-							if(check_event_mousebuttonup(event, &tmp, NULL, NULL, NULL, NULL))
-							{
-								mused.jump_in_pattern = true;
-							}
-							
-							set_repeat_timer(NULL); // ugh
-						}
-					}
-					
-					else
-					{
-						if (sp && event->type == SDL_MOUSEBUTTONDOWN && tmp.y - header.y > HEADER_HEIGHT + 3)
-						{
-							check_event(event, &tmp, select_pattern_param, MAKEPTR(param), MAKEPTR(sp->position + step), MAKEPTR(channel));
-							
-							set_repeat_timer(NULL); // ugh
 						}
 					}
 					
