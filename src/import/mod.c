@@ -66,9 +66,9 @@ Uint16 find_command_pt(Uint16 command, int sample_length)
 	else if ((command & 0xfff0) == 0x0e90)
 		command = MUS_FX_EXT_RETRIGGER | (command & 0xf);
 	else if ((command & 0xfff0) == 0x0e10)
-		command = MUS_FX_EXT_FINE_PORTA_UP | (command & 0xf);
+		command = MUS_FX_EXT_PORTA_UP | (command & 0xf);
 	else if ((command & 0xfff0) == 0x0e20)
-		command = MUS_FX_EXT_FINE_PORTA_DN | (command & 0xf);
+		command = MUS_FX_EXT_PORTA_DN | (command & 0xf);
 	else if ((command & 0xfff0) == 0x0ea0 || (command & 0xfff0) == 0x0eb0)
 		command = ((command & 0xfff0) == 0x0ea0 ? 0x0eb0 : 0x0ea0) | (my_min(0xf, (command & 0x0f) * 2));
 	

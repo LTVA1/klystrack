@@ -291,20 +291,28 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 	
 	int mx, my;
 	
-	if (mused.focus == EDITENVELOPE && (SDL_GetMouseState(&mx, &my) & SDL_BUTTON(1)))
+	Uint32 buttons = SDL_GetMouseState(&mx, &my);
+	
+	mx /= mused.pixel_scale;
+	my /= mused.pixel_scale;
+	
+	if (mused.focus == EDITENVELOPE)
 	{
-		mx /= mused.pixel_scale;
-		my /= mused.pixel_scale;
-
+		if (mx >= vol_env_editor.x - 5 && mx <= vol_env_editor.x + vol_env_editor.w + 5 && my >= vol_env_editor.y - 5 && my <= vol_env_editor.y + vol_env_editor.h + 5)
+		{
+			if (event->type == SDL_MOUSEBUTTONDOWN)
+			{
+				snapshot(S_T_INSTRUMENT);
+			}
+		}
+	}
+	
+	if (mused.focus == EDITENVELOPE && (buttons & SDL_BUTTON(1)))
+	{
 		if (mx >= vol_env_editor.x - 5 && mx <= vol_env_editor.x + vol_env_editor.w + 5 && my >= vol_env_editor.y - 5 && my <= vol_env_editor.y + vol_env_editor.h + 5)
 		{
 			if (mused.prev_vol_env_x != -1)
 			{
-				if (event->type == SDL_MOUSEBUTTONUP)
-				{
-					snapshot(S_T_INSTRUMENT);
-				}
-				
 				int x = mused.song.instrument[mused.current_instrument].volume_envelope[mused.vol_env_point].x;
 				int y = mused.song.instrument[mused.current_instrument].volume_envelope[mused.vol_env_point].y;
 
@@ -341,7 +349,7 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 					mused.song.instrument[mused.current_instrument].volume_envelope[mused.vol_env_point].x = 0; //1st point always at 0
 				}
 			}
-
+			
 			mused.prev_vol_env_x = mx;
 			mused.prev_vol_env_y = my;
 		}
@@ -738,11 +746,24 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 	
 	//int mx, my;
 	
-	if (mused.focus == EDITENVELOPE && (SDL_GetMouseState(&mx, &my) & SDL_BUTTON(1)))
+	//buttons = SDL_GetMouseState(&mx, &my);
+	
+	//mx /= mused.pixel_scale;
+	//my /= mused.pixel_scale;
+	
+	if (mused.focus == EDITENVELOPE)
 	{
-		mx /= mused.pixel_scale;
-		my /= mused.pixel_scale;
-
+		if (mx >= pan_env_editor.x - 5 && mx <= pan_env_editor.x + pan_env_editor.w + 5 && my >= pan_env_editor.y - 5 && my <= pan_env_editor.y + pan_env_editor.h + 5)
+		{
+			if (event->type == SDL_MOUSEBUTTONDOWN)
+			{
+				snapshot(S_T_INSTRUMENT);
+			}
+		}
+	}
+	
+	if (mused.focus == EDITENVELOPE && (buttons & SDL_BUTTON(1)))
+	{
 		if (mx >= pan_env_editor.x - 5 && mx <= pan_env_editor.x + pan_env_editor.w + 5 && my >= pan_env_editor.y - 5 && my <= pan_env_editor.y + pan_env_editor.h + 5)
 		{
 			if (mused.prev_pan_env_x != -1)

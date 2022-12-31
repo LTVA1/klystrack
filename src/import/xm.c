@@ -40,17 +40,164 @@ typedef struct
 	Uint16 x, y;
 } vol_env_point;
 
-Uint16 find_command_xm(Uint16 command)
+void find_command_xm(Uint16 command, MusStep* step)
 {
-	if ((command & 0xff00) == 0x0100 || (command & 0xff00) == 0x0200)
-		command = (command & 0xff00) | my_min(0xff, (command & 0xff)); // assuming linear xm freqs
-	else if ((command >> 8) == 'G')
-		command = MUS_FX_SET_GLOBAL_VOLUME | ((command & 0xff) * 2);
-	else if ((command >> 8) == 'H')
-		command = MUS_FX_FADE_GLOBAL_VOLUME | ((command & 0xff) * 2);
-	else command = find_command_pt(command, 0);
+	if ((command & 0xff00) == 0x0000 && (command & 0xff) != 0)
+	{
+		step->command[0] = MUS_FX_SET_EXT_ARP | (command & 0xff); 
+		return;
+	}
 	
-	return command;
+	else if ((command & 0xff00) == 0x0100 || (command & 0xff00) == 0x0200 || (command & 0xff00) == 0x0300)
+	{
+		step->command[0] = (command & 0xff00) | my_min(0xff, (command & 0xff)); // assuming linear xm freqs
+		return;
+	}
+	
+	else if ((command & 0xff00) == 0x0400)
+	{
+		step->command[0] = MUS_FX_VIBRATO | (command & 0xff);
+		return;
+	}
+	
+	else if ((command & 0xff00) == 0x0500)
+	{
+		step->ctrl |= MUS_CTRL_SLIDE;
+		step->command[0] = MUS_FX_FADE_VOLUME | (my_min(0xf, (command & 0x0f) * 2)) | (my_min(0xf, ((command & 0xf0) >> 4) * 2) << 4);
+		return;
+	}
+	
+	else if ((command & 0xff00) == 0x0600)
+	{
+		step->ctrl |= MUS_CTRL_VIB;
+		step->command[0] = MUS_FX_FADE_VOLUME | (my_min(0xf, (command & 0x0f) * 2)) | (my_min(0xf, ((command & 0xf0) >> 4) * 2) << 4);
+		return;
+	}
+	
+	else if ((command & 0xff00) == 0x0700)
+	{
+		step->command[0] = MUS_FX_TREMOLO | (command & 0xff);
+		return;
+	}
+	
+	else if ((command & 0xff00) == 0x0800)
+	{
+		step->command[0] = MUS_FX_SET_PANNING | (command & 0xff);
+		return;
+	}
+	
+	if ((command & 0xff00) == 0x0900)
+	{ //the conversion will be finished later
+		step->command[0] = MUS_FX_WAVETABLE_OFFSET | (command & 0xff);
+		return;
+	}
+	
+	else if ((command & 0xff00) == 0x0a00)
+	{
+		step->command[0] = MUS_FX_FADE_VOLUME | (my_min(0xf, (command & 0x0f) * 2)) | (my_min(0xf, ((command & 0xf0) >> 4) * 2) << 4);
+		return;
+	}
+	
+	//Bxx not currently supported in klystrack
+	
+	if ((command & 0xff00) == 0x0c00)
+	{
+		step->command[0] = MUS_FX_SET_VOLUME | ((command & 0xff) * 2);
+		return;
+	}
+	
+	else if ((command & 0xff00) == 0x0d00)
+	{
+		step->command[0] = MUS_FX_SKIP_PATTERN | (command & 0xff);
+		return;
+	}
+	
+	else if ((command & 0xfff0) == 0x0e10)
+	{
+		step->command[0] = MUS_FX_EXT_PORTA_UP | (command & 0xf);
+		return;
+	}
+	
+	else if ((command & 0xfff0) == 0x0e20)
+	{
+		step->command[0] = MUS_FX_EXT_PORTA_DN | (command & 0xf);
+		return;
+	}
+	
+	else if ((command & 0xfff0) == 0x0e90)
+	{
+		step->command[0] = MUS_FX_EXT_RETRIGGER | (command & 0xf);
+		return;
+	}
+	
+	else if ((command & 0xfff0) == 0x0ea0 || (command & 0xfff0) == 0x0eb0)
+	{
+		step->command[0] = ((command & 0xfff0) == 0x0ea0 ? 0x0eb0 : 0x0ea0) | (my_min(0xf, (command & 0xf) * 2));
+		return;
+	}
+	
+	else if ((command & 0xfff0) == 0x0ec0)
+	{
+		step->command[0] = MUS_FX_EXT_NOTE_CUT | (command & 0xf);
+		return;
+	}
+	
+	else if ((command & 0xfff0) == 0x0ed0)
+	{
+		step->command[0] = MUS_FX_EXT_NOTE_DELAY | (command & 0xf);
+		return;
+	}
+	
+	else if ((command & 0xff00) == 0x0f00 && (command & 0xff) < 32)
+	{
+		step->command[0] = MUS_FX_SET_SPEED | my_min(0xf, (command & 0xff));
+		return;
+	}
+	
+	else if ((command & 0xff00) == 0x0f00 && (command & 0xff) >= 32)
+	{
+		step->command[0] = MUS_FX_SET_RATE | (((command & 0xff)) * 50 / 125);
+		return;
+	}
+	
+	else if ((command >> 8) == 'G')
+	{
+		step->command[0] = MUS_FX_SET_GLOBAL_VOLUME | ((command & 0xff) * 2);
+		return;
+	}
+	
+	else if ((command >> 8) == 'H')
+	{
+		step->command[0] = MUS_FX_FADE_GLOBAL_VOLUME | ((command & 0xff) * 2);
+		return;
+	}
+	
+	else if ((command >> 8) == 'K')
+	{
+		step->command[0] = MUS_FX_TRIGGER_RELEASE | (command & 0xff);
+		return;
+	}
+	
+	else if ((command >> 8) == 'X')
+	{
+		if(((command & 0xf0) >> 4) == 1)
+		{
+			step->command[0] = MUS_FX_EXT_FINE_PORTA_UP | (command & 0xf);
+			return;
+		}
+		
+		if(((command & 0xf0) >> 4) == 2)
+		{
+			step->command[0] = MUS_FX_EXT_FINE_PORTA_DN | (command & 0xf);
+			return;
+		}
+	}
+	
+	else
+	{
+		command = 0;
+		return;
+	}
 }
 
 
@@ -126,8 +273,9 @@ int import_xm(FILE *f)
 		fatal("Resulting song would have over %d sequence patterns", NUM_SEQUENCES);
 		return 0;
 	}
-		
-
+	
+	int pos = 0;
+	
 	int pattern_length[256];
 	
 	for (int p = 0; p < header.num_patterns; ++p)
@@ -216,27 +364,53 @@ int import_xm(FILE *f)
 				step->volume = MUS_NOTE_NO_VOLUME;
 				
 				if (volume >= 0x10 && volume <= 0x50)
+				{
 					step->volume = (volume - 0x10) * 2;
+					goto next;
+				}
 				
 				else if (volume >= 0xc0 && volume <= 0xcf)
+				{
 					step->volume = MUS_NOTE_VOLUME_SET_PAN | (volume & 0xf);
+					goto next;
+				}
 				
 				else if (volume >= 0xd0 && volume <= 0xdf)
+				{
 					step->volume = MUS_NOTE_VOLUME_PAN_LEFT | (volume & 0xf);
+					goto next;
+				}
 				else if (volume >= 0xe0 && volume <= 0xef)
+				{
 					step->volume = MUS_NOTE_VOLUME_PAN_RIGHT | (volume & 0xf);
+					goto next;
+				}
 				
 				else if (volume >= 0x60 && volume <= 0x6f)
+				{
 					step->volume = MUS_NOTE_VOLUME_FADE_DN | (volume & 0xf);
+					goto next;
+				}
 				else if (volume >= 0x70 && volume <= 0x7f)
+				{
 					step->volume = MUS_NOTE_VOLUME_FADE_UP | (volume & 0xf);
+					goto next;
+				}
 				
 				else if (volume >= 0xf0 && volume <= 0xff)
+				{
 					step->ctrl = MUS_CTRL_SLIDE|MUS_CTRL_LEGATO;
+					goto next;
+				}
 				else if (volume >= 0xb0 && volume <= 0xbf)
+				{
 					step->ctrl = MUS_CTRL_VIB;
+					goto next;
+				}
+				
+				next:;
 					
-				step->command[0] = find_command_xm((fx << 8) | param);
+				find_command_xm((fx << 8) | param, step);
 				
 				if (volume >= 0x80 && volume <= 0x8f)
 				{
@@ -245,11 +419,19 @@ int import_xm(FILE *f)
 					if(step->command[0] == 0)
 					{
 						step->command[0] = vol_command;
+						goto next2;
 					}
 					
-					else
+					else if(step->command[1] == 0)
 					{
 						step->command[1] = vol_command;
+						goto next2;
+					}
+					
+					else if(step->command[2] == 0)
+					{
+						step->command[2] = vol_command;
+						goto next2;
 					}
 				}
 				
@@ -260,16 +442,47 @@ int import_xm(FILE *f)
 					if(step->command[0] == 0)
 					{
 						step->command[0] = vol_command;
+						goto next2;
 					}
 					
-					else
+					else if(step->command[1] == 0)
 					{
 						step->command[1] = vol_command;
+						goto next2;
+					}
+					
+					else if(step->command[2] == 0)
+					{
+						step->command[2] = vol_command;
+						goto next2;
 					}
 				}
+				
+				next2:;
 			}
 		}
 	}
+	
+	for (int s = 0; s < header.song_length; ++s)
+	{
+		if (s == header.restart_position)
+			mused.song.loop_point = pos;
+	
+		for (int c = 0; c < header.num_channels; ++c)
+		{
+			add_sequence(c, pos, header.pattern_order[s] * header.num_channels + c, 0);
+		}
+		
+		pos += pattern_length[header.pattern_order[s]];
+	}
+	
+	strncpy(mused.song.title, header.name, 20);
+	mused.song.song_length = pos;
+	mused.song.song_speed = mused.song.song_speed2 = header.default_tempo;
+	mused.song.song_rate = (int)((double)header.default_bpm * 50.0 / 125.0);
+	mused.song.num_channels = header.num_channels;
+	mused.sequenceview_steps = 64;
+	mused.song.num_patterns = header.num_patterns * header.num_channels;
 	
 	int wt_e = 0;
 	
@@ -342,13 +555,13 @@ int import_xm(FILE *f)
 				mused.song.instrument[i].vol_env_fadeout = instrument_ext_hdr.vol_fadeout;
 				mused.song.instrument[i].num_vol_points = instrument_ext_hdr.num_volume;
 				mused.song.instrument[i].vol_env_loop_start = instrument_ext_hdr.vol_loop_start;
-				mused.song.instrument[i].vol_env_loop_end = instrument_ext_hdr.pan_loop_end;
+				mused.song.instrument[i].vol_env_loop_end = instrument_ext_hdr.vol_loop_end;
 				mused.song.instrument[i].vol_env_sustain = instrument_ext_hdr.vol_sustain;
 				mused.song.instrument[i].vol_env_flags = (instrument_ext_hdr.vol_type >> 1);
 				
 				for(int j = 0; j < mused.song.instrument[i].num_vol_points; ++j)
 				{
-					mused.song.instrument[i].volume_envelope[j].x = instrument_ext_hdr.vol_points[j].x << 1;
+					mused.song.instrument[i].volume_envelope[j].x = (Uint16)((double)(instrument_ext_hdr.vol_points[j].x << 1) * 50.0 / mused.song.song_rate);
 					mused.song.instrument[i].volume_envelope[j].y = instrument_ext_hdr.vol_points[j].y << 1;
 				}
 			}
@@ -365,7 +578,7 @@ int import_xm(FILE *f)
 				
 				for(int j = 0; j < mused.song.instrument[i].num_pan_points; ++j)
 				{
-					mused.song.instrument[i].panning_envelope[j].x = instrument_ext_hdr.pan_points[j].x << 1;
+					mused.song.instrument[i].panning_envelope[j].x = (Uint16)((double)(instrument_ext_hdr.pan_points[j].x << 1) * 50.0 / mused.song.song_rate);
 					mused.song.instrument[i].panning_envelope[j].y = instrument_ext_hdr.pan_points[j].y << 1;
 				}
 			}
@@ -504,28 +717,23 @@ int import_xm(FILE *f)
 		}
 	}
 	
-	int pos = 0;
-	
-	for (int s = 0; s < header.song_length; ++s)
-	{
-		if (s == header.restart_position)
-			mused.song.loop_point = pos;
-	
-		for (int c = 0; c < header.num_channels; ++c)
-		{
-			add_sequence(c, pos, header.pattern_order[s] * header.num_channels + c, 0);
+	for(int pat = 0; pat < mused.song.num_patterns; ++pat) //now we know sample length
+	{ //in FT2 `901` means 0x100 steps offset from sample start
+		for(int s = 0; s < mused.song.pattern[pat].num_steps; ++s)
+		{ //but in klystrack `5001` means 1/(0x1000)th of sample length so we need to recalculate
+			MusStep *step = &mused.song.pattern[pat].step[s];
+			
+			//if the instrument is specified and it actually has a sample
+			if((step->command[0] & 0xf000) == MUS_FX_WAVETABLE_OFFSET && step->instrument != MUS_NOTE_NO_INSTRUMENT && mused.mus.cyd->wavetable_entries[mused.song.instrument[step->instrument].wavetable_entry].data)
+			{
+				Uint8 init_offset = step->command[0] & 0xff;
+				
+				Uint16 klystrack_offset = (Uint64)(init_offset) * 256 * 0x1000 / (Uint64)mused.mus.cyd->wavetable_entries[mused.song.instrument[step->instrument].wavetable_entry].samples;
+				
+				step->command[0] = MUS_FX_WAVETABLE_OFFSET | (klystrack_offset & 0xfff);
+			}
 		}
-		
-		pos += pattern_length[header.pattern_order[s]];
 	}
-	
-	strncpy(mused.song.title, header.name, 20);
-	mused.song.song_length = pos;
-	mused.song.song_speed = mused.song.song_speed2 = header.default_tempo;
-	mused.song.song_rate = header.default_bpm * 50 / 125;
-	mused.song.num_channels = header.num_channels;
-	mused.sequenceview_steps = 64;
-	mused.song.num_patterns = header.num_patterns * header.num_channels;
 	
 	return 1;
 }
