@@ -56,9 +56,12 @@ Uint16 find_command_pt(Uint16 command, int sample_length)
 	else if ((command & 0xff00) == 0x0d00) 
 		command = MUS_FX_SKIP_PATTERN | (command & 0xff);
 	
-	
 	else if ((command & 0xff00) != 0x0400 && (command & 0xff00) != 0x0000) 
-		command = 0;	
+		command = 0;
+	else if ((command & 0xfff0) == 0x0e60)
+	{
+		command = MUS_FX_FT2_PATTERN_LOOP | (command & 0xf);
+	}
 	else if ((command & 0xfff0) == 0x0ec0)
 		command = MUS_FX_EXT_NOTE_CUT | (command & 0xf);
 	else if ((command & 0xfff0) == 0x0ed0)
