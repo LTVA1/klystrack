@@ -37,7 +37,8 @@ make -j10
 - ~~MIDI input support~~ lol it sort of was there from the very first fork release, but it was proven to work in 0.10.0-alpha2
 - `.mptm` import (OpenMPT file)
 - [`.fur`](https://github.com/tildearrow/furnace) import. I love how this tracker also uses 16-bit commands (and will probably steal some algorithms from it). Deflemask killer.
-- Custom envelope for instruments and thus more precise `.xm` (and maybe other formats) import. Maybe make Yamaha FM chips (YM2612 envelope, `TL-AR-D1R-TL1-D2R-RR` style) envelope as separate option.
+- maybe some other formats import because it is fun to code the import thing
+- ~~Custom envelope for instruments and thus more precise `.xm` (and maybe other formats) import. Maybe make Yamaha FM chips (YM2612 envelope, `TL-AR-D1R-TL1-D2R-RR` style) envelope as separate option.~~ done in 0.10.0-alpha3
 
 
 Below are links related to original klystrack. You will not find my releases there. Instead check releases of my fork. 
