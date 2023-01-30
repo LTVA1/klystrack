@@ -1070,6 +1070,18 @@ int open_song(FILE *f)
 	}
 
 	set_channels(mused.song.num_channels);
+	
+	if(mused.song.use_old_filter)
+	{
+		mused.cyd.flags |= CYD_USE_OLD_FILTER;
+		debug("Using old filter!");
+	}
+	
+	else
+	{
+		mused.cyd.flags &= ~CYD_USE_OLD_FILTER;
+		debug("Using new filter!");
+	}
 
 	return 1;
 }
@@ -1639,8 +1651,6 @@ void open_data(void *type, void *action, void *_ret)
 
 	if (f)
 	{
-		debug("if (f)");
-		
 		int return_val = 1;
 		void * tmp;
 
