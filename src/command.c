@@ -69,6 +69,7 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_FM_TREMOLO, 0xff00, "FM modulator tremolo", "FM trem", -1, -1}, //wasn't there
 	{MUS_FX_PWM, 0xff00, "Pulse width modification", "PWM", -1, -1}, //wasn't there
 	{MUS_FX_SLIDE, 0xff00, "Slide", "Slide", -1, -1},
+	{MUS_FX_FAST_SLIDE, 0xff00, "Fast slide (16x faster)", "FastSlide", -1, -1},
 	{MUS_FX_PORTA_UP_SEMI, 0xff00, "Portamento up (semitones)", "PortUpST", -1, -1},
 	{MUS_FX_PORTA_DN_SEMI, 0xff00, "Portamento down (semitones)", "PortDnST", -1, -1},
 	{MUS_FX_CUTOFF_UP, 0xff00, "Filter cutoff up", "CutoffUp", -1, -1},
