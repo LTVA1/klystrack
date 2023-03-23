@@ -197,6 +197,7 @@ void do_autosave(Uint32* timeout)
 			{
 				//fclose(f);
 				//SDL_RWclose(rw);
+				debug("Failed to rw struct from file \"%s\"!", filename);
 				goto error;
 			}
 			
