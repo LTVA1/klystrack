@@ -131,7 +131,17 @@ void do_autosave(Uint32* timeout)
 			//debug("motherfucker");
 			
 			char filename[5000] = {0};
-			char* song_name = (char*)&mused.song.title;
+			//char* song_name = (char*)&mused.song.title;
+			char* song_name = malloc(strlen((char*)&mused.song.title) + 2);
+			strcpy(song_name, (char*)&mused.song.title);
+			
+			for(int i = 0; i <= strlen((char*)&mused.song.title); i++)
+			{
+				if(song_name[i] == '\\' || song_name[i] == '/' || song_name[i] == ':' || song_name[i] == '*' || song_name[i] == '?' || song_name[i] == '\"' || song_name[i] == '<' || song_name[i] == '>' || song_name[i] == '|')
+				{
+					song_name[i] = '_';
+				}
+			}
 			
 			time_t now_time;
 			time(&now_time);
@@ -145,6 +155,8 @@ void do_autosave(Uint32* timeout)
 
 			snprintf(filename, sizeof(filename) - 1, "autosaves/%s.%04d%02d%02d-%02d%02d%02d.kt.autosave", strcmp(song_name, "") == 0 ? "[untitled_song]" : song_name,
 				now_tm->tm_year + 1900, now_tm->tm_mon + 1, now_tm->tm_mday, now_tm->tm_hour, now_tm->tm_min, now_tm->tm_sec);
+				
+			free(song_name);
 			
 			DIR* dir = opendir("autosaves");
 			
@@ -197,7 +209,7 @@ void do_autosave(Uint32* timeout)
 			{
 				//fclose(f);
 				//SDL_RWclose(rw);
-				debug("Failed to rw struct from file \"%s\"!", filename);
+				debug("Failed to create rw struct from file \"%s\"!", filename);
 				goto error;
 			}
 			
