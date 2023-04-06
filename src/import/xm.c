@@ -505,6 +505,8 @@ int import_xm(FILE *f)
 	mused.sequenceview_steps = 64;
 	mused.song.num_patterns = header.num_patterns * header.num_channels;
 	
+	mused.song.flags |= MUS_USE_OLD_SAMPLE_LOOP_BEHAVIOUR;
+	
 	int wt_e = 0;
 	
 	for (int i = 0; i < header.num_instruments; ++i)
