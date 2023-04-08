@@ -33,5 +33,6 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "../view.h"
 
 void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
+void fourop_point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
 
 #endif

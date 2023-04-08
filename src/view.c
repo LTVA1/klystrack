@@ -319,6 +319,10 @@ bool check_mouse_hit(const SDL_Event *e, const SDL_Rect *area, int focus, int pa
 			case EDITENVELOPE:
 				mused.env_selected_param = param;
 				break;
+				
+			case EDITENVELOPE4OP:
+				mused.fourop_env_selected_param = param;
+				break;
 			
 			case EDIT4OP:
 				mused.fourop_selected_param = param;
@@ -414,7 +418,7 @@ void generic_flags(const SDL_Event *e, const SDL_Rect *_area, int focus, int p, 
 	{
 		switch (focus)
 		{
-			case EDITINSTRUMENT: case EDIT4OP: case EDITENVELOPE: snapshot(S_T_INSTRUMENT); break;
+			case EDITINSTRUMENT: case EDIT4OP: case EDITENVELOPE: case EDITENVELOPE4OP: snapshot(S_T_INSTRUMENT); break;
 			case EDITFX: snapshot(S_T_FX); break;
 		}
 		*_flags = flags;
@@ -691,6 +695,25 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Enable panning envelope loop",
 					"Panning envelope loop begin point",
 					"Panning envelope loop end point",
+				};
+				
+				strcpy(text, param_desc[mused.env_selected_param]);
+				
+				break;
+			}
+			
+			case EDITENVELOPE4OP:
+			{
+				static const char * param_desc[] =
+				{
+					"Use custom volume envelope",
+					"Volume envelope fadeout (sort of release rate)",
+					"Volume envelope horizontal axis display scale",
+					"Enable volume envelope sustain",
+					"Volume envelope sustain point",
+					"Enable volume envelope loop",
+					"Volume envelope loop begin point",
+					"Volume envelope loop end point",
 				};
 				
 				strcpy(text, param_desc[mused.env_selected_param]);
@@ -2225,6 +2248,25 @@ void draw_op(SDL_Rect* op, int opx, int opy, int op_num, MusInstrument* inst)
 	op->y = opy;
 }
 
+void open_4op_prog(void *unused1, void *unused2, void *unused3)
+{
+	mused.show_4op_point_envelope_editor = false;
+	
+	mused.fourop_vol_env_point = -1;
+	mused.fourop_vol_env_scale = 1;
+	mused.fourop_vol_env_horiz_scroll = 0;
+	
+	mused.fourop_point_env_editor_scroll = 0;
+}
+
+void open_4op_env(void *unused1, void *unused2, void *unused3)
+{
+	mused.show_4op_point_envelope_editor = true;
+	
+	mused.fourop_current_volume_envelope_point = 0;
+	mused.fourop_env_selected_param = 0;
+}
+
 void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param) //4-op FM menu, filebox-like
 {
 	if(mused.show_four_op_menu)
@@ -3153,13 +3195,27 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			
 			four_op_flags(event, &r, FOUROP_LINK_CSM_TIMER_NOTE, "LINK TO OP NOTE", (Uint32*)&inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_LINK_CSM_TIMER_NOTE);
 			update_rect(&view2, &r);
+			
+			r.w = view2.w / 2 - 2;
+			r.h = 10;
+			r.y += 10;
+			r.x = view2.x;
+			
+			button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, !(mused.show_4op_point_envelope_editor) ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "PROGRAM", open_4op_prog, NULL, NULL, NULL);
+			update_rect(&view2, &r);
+			
+			button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, mused.show_4op_point_envelope_editor ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "ENVELOPE", open_4op_env, NULL, NULL, NULL);
+			update_rect(&view2, &r);
 		}
 	}
 }
 
+
 void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
 	//debug("four_op_program_view");
+	
+	if(mused.show_4op_point_envelope_editor) return;
 	
 	if(mused.show_four_op_menu)
 	{

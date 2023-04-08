@@ -548,6 +548,10 @@ int main(int argc, char **argv)
 							case EDITENVELOPE:
 							edit_env_editor_event(&e);
 							break;
+							
+							case EDITENVELOPE4OP:
+							edit_4op_env_editor_event(&e);
+							break;
 
 							case EDITPROG:
 							case EDITPROG4OP:

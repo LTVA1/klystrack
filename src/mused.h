@@ -50,6 +50,7 @@ enum
 	EDITSONGINFO,
 	
 	EDITENVELOPE,
+	EDITENVELOPE4OP,
 	
 	EDITSONGMESSAGE,
 	/* Virtual modes, i.e. what are not modes itself but should be considered happening "inside" prev_mode */
@@ -169,7 +170,7 @@ typedef struct
 	CydEngine cyd;
 	MusEngine mus;
 	
-	int octave, instrument_page, current_instrument, default_pattern_length, selected_param, env_selected_param, fourop_selected_param, selected_operator, editpos, mode, focus,
+	int octave, instrument_page, current_instrument, default_pattern_length, selected_param, env_selected_param, fourop_selected_param, fourop_env_selected_param, selected_operator, editpos, mode, focus,
 		current_patternx, current_patternpos, current_sequencepos, sequenceview_steps, single_pattern_edit, 
 		prev_mode, current_sequenceparam, instrument_list_position,
 		pattern_position, sequence_position, pattern_horiz_position, sequence_horiz_position,
@@ -190,6 +191,15 @@ typedef struct
 	int prev_vol_env_x, prev_vol_env_y;
 	int prev_pan_env_x, prev_pan_env_y;
 	
+	int fourop_point_env_editor_scroll;
+	
+	int fourop_vol_env_horiz_scroll;
+	int fourop_vol_env_scale; //-1 = 2x, 1 = 1x, 2 = 0.5x, 3 = 0.33x etc.
+	
+	int fourop_vol_env_point;
+	
+	int fourop_prev_vol_env_x, fourop_prev_vol_env_y;
+	
 	int fourop_program_position[CYD_FM_NUM_OPS];
 	
 	int current_instrument_program;
@@ -197,6 +207,8 @@ typedef struct
 	
 	int current_volume_envelope_point;
 	int current_panning_envelope_point;
+	
+	int fourop_current_volume_envelope_point;
 	
 	int current_sequencetrack;
 	Uint16 time_signature;
@@ -209,7 +221,7 @@ typedef struct
 	
 	int edit_buffer_size;
 	SliderParam sequence_slider_param, pattern_slider_param, program_slider_param, instrument_list_slider_param, 
-		pattern_horiz_slider_param, sequence_horiz_slider_param, wavetable_list_slider_param, four_op_slider_param, point_env_slider_param, vol_env_horiz_slider_param, pan_env_horiz_slider_param;
+		pattern_horiz_slider_param, sequence_horiz_slider_param, wavetable_list_slider_param, four_op_slider_param, point_env_slider_param, vol_env_horiz_slider_param, fourop_vol_env_horiz_slider_param, pan_env_horiz_slider_param;
 	char previous_song_filename[1000], previous_export_filename[1000], previous_filebox_path[OD_T_N_TYPES][1000];
 	/*---*/
 	char * edit_backup_buffer;
@@ -344,6 +356,7 @@ typedef struct
 	Uint32 time_between_autosaves; //in ms
 	
 	bool show_point_envelope_editor;
+	bool show_4op_point_envelope_editor;
 } Mused;
 
 extern Mused mused;

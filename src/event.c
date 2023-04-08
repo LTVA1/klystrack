@@ -909,6 +909,169 @@ void edit_env_editor_event(SDL_Event *e)
 	}
 }
 
+void fourop_env_editor_add_param(int a)
+{
+	MusInstrument *i = &mused.song.instrument[mused.current_instrument];
+
+	if (a < 0) a = -1; else if (a > 0) a = 1;
+
+	if (SDL_GetModState() & KMOD_SHIFT)
+	{
+		switch (mused.fourop_env_selected_param)
+		{
+			default: a *= 16; break;
+		}
+	}
+	
+	if (SDL_GetModState() & KMOD_CTRL) //wasn't there
+	{
+		switch (mused.fourop_env_selected_param)
+		{
+			default: a *= 256; break;
+		}
+	}
+
+	switch (mused.fourop_env_selected_param)
+	{
+		case FOUROP_ENV_ENABLE_VOLUME_ENVELOPE:
+		{
+			flipbit(i->ops[mused.selected_operator - 1].flags, MUS_FM_OP_USE_VOLUME_ENVELOPE);
+			break;
+		}
+		
+		case FOUROP_ENV_VOLUME_ENVELOPE_FADEOUT:
+		{
+			clamp(i->ops[mused.selected_operator - 1].vol_env_fadeout, a, 0, 0xFFF);
+			break;
+		}
+		
+		case FOUROP_ENV_VOLUME_ENVELOPE_SCALE:
+		{
+			a *= -1;
+			
+			if(mused.fourop_vol_env_scale + a == 0)
+			{
+				if(a > 0)
+				{
+					mused.fourop_vol_env_scale = 1;
+				}
+				
+				if(a < 0)
+				{
+					mused.fourop_vol_env_scale = -1;
+				}
+			}
+			
+			else
+			{
+				clamp(mused.fourop_vol_env_scale, a, -1, 5);
+			}
+			
+			break;
+		}
+		
+		case FOUROP_ENV_ENABLE_VOLUME_ENVELOPE_SUSTAIN:
+		{
+			flipbit(i->ops[mused.selected_operator - 1].vol_env_flags, MUS_ENV_SUSTAIN);
+			break;
+		}
+		
+		case FOUROP_ENV_VOLUME_ENVELOPE_SUSTAIN_POINT:
+		{
+			clamp(i->ops[mused.selected_operator - 1].vol_env_sustain, a, 0, mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].num_vol_points - 1);
+			break;
+		}
+		
+		case FOUROP_ENV_ENABLE_VOLUME_ENVELOPE_LOOP:
+		{
+			flipbit(i->ops[mused.selected_operator - 1].vol_env_flags, MUS_ENV_LOOP);
+			break;
+		}
+		
+		case FOUROP_ENV_VOLUME_ENVELOPE_LOOP_BEGIN:
+		{
+			clamp(i->ops[mused.selected_operator - 1].vol_env_loop_start, a, 0, mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].vol_env_loop_end);
+			break;
+		}
+		
+		case FOUROP_ENV_VOLUME_ENVELOPE_LOOP_END:
+		{
+			clamp(i->ops[mused.selected_operator - 1].vol_env_loop_end, a, i->ops[mused.selected_operator - 1].vol_env_loop_start, mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].num_vol_points - 1);
+			break;
+		}
+	}
+}
+
+void edit_4op_env_editor_event(SDL_Event *e)
+{
+	switch (e->type)
+	{
+		case SDL_KEYDOWN:
+
+		switch (e->key.keysym.sym)
+		{
+			case SDLK_RETURN:
+			{
+				//if (mused.selected_param == P_NAME)
+					//set_edit_buffer(mused.song.instrument[mused.current_instrument].name, sizeof(mused.song.instrument[mused.current_instrument].name));
+			}
+			break;
+
+			case SDLK_DOWN:
+			{
+				++mused.fourop_env_selected_param;
+
+				if (mused.focus == EDITENVELOPE4OP)
+				{
+					if (mused.fourop_env_selected_param >= FOUROP_ENV_PARAMS) mused.fourop_env_selected_param = FOUROP_ENV_PARAMS - 1;
+				}
+			}
+			break;
+
+			case SDLK_UP:
+			{
+				--mused.fourop_env_selected_param;
+
+				if (mused.fourop_env_selected_param < 0) mused.fourop_env_selected_param = 0;
+			}
+			break;
+
+			case SDLK_DELETE:
+			{
+				
+			}
+			break;
+
+			case SDLK_RIGHT:
+			{
+				fourop_env_editor_add_param(+1);
+			}
+			break;
+
+
+			case SDLK_LEFT:
+			{
+				fourop_env_editor_add_param(-1);
+			}
+			break;
+
+			default:
+			{
+				play_the_jams(e->key.keysym.sym, -1, 1);
+			}
+			break;
+		}
+
+		break;
+
+		case SDL_KEYUP:
+		
+			play_the_jams(e->key.keysym.sym, -1, 0);
+
+		break;
+	}
+}
+
 void instrument_add_param(int a)
 {
 	MusInstrument *i = &mused.song.instrument[mused.current_instrument];

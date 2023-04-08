@@ -80,6 +80,9 @@ void edit_fourop_event(SDL_Event *e);
 void four_op_add_param(int a);
 void env_editor_add_param(int a);
 
+void edit_env_editor_event(SDL_Event *e);
+void edit_4op_env_editor_event(SDL_Event *e);
+
 void do_autosave(Uint32* timeout);
 
 enum
@@ -153,6 +156,20 @@ enum
 	ENV_PANNING_ENVELOPE_LOOP_END,
 	/*----------*/
 	ENV_PARAMS
+};
+
+enum
+{
+	FOUROP_ENV_ENABLE_VOLUME_ENVELOPE,
+	FOUROP_ENV_VOLUME_ENVELOPE_FADEOUT,
+	FOUROP_ENV_VOLUME_ENVELOPE_SCALE,
+	FOUROP_ENV_ENABLE_VOLUME_ENVELOPE_SUSTAIN,
+	FOUROP_ENV_VOLUME_ENVELOPE_SUSTAIN_POINT,
+	FOUROP_ENV_ENABLE_VOLUME_ENVELOPE_LOOP,
+	FOUROP_ENV_VOLUME_ENVELOPE_LOOP_BEGIN,
+	FOUROP_ENV_VOLUME_ENVELOPE_LOOP_END,
+	/*----------*/
+	FOUROP_ENV_PARAMS
 };
 
 enum
