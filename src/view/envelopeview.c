@@ -89,7 +89,7 @@ void fourop_env_flags(const SDL_Event *e, const SDL_Rect *area, const SDL_Rect *
 {
 	generic_flags(e, area, EDITENVELOPE4OP, p, label, flags, mask);
 	
-	if (check_mouse_hit(e, area, EDITENVELOPE4OP, p) || (mused.env_selected_param == p && mused.focus == EDITENVELOPE4OP))
+	if (check_mouse_hit(e, area, EDITENVELOPE4OP, p) || (mused.fourop_env_selected_param == p && mused.focus == EDITENVELOPE4OP))
 	{
 		SDL_Rect cur;
 		copy_rect(&cur, area);
@@ -113,11 +113,11 @@ void fourop_env_text(const SDL_Event *e, const SDL_Rect *area, const SDL_Rect *d
 	
 	if (d)
 	{
-		if (p >= 0) mused.env_selected_param = p;
+		if (p >= 0) mused.fourop_env_selected_param = p;
 		//snapshot_cascade(S_T_INSTRUMENT, mused.current_instrument, p);
 		snapshot(S_T_INSTRUMENT);
-		if (d < 0) env_editor_add_param(-1);
-		else if (d > 0) env_editor_add_param(1);
+		if (d < 0) fourop_env_editor_add_param(-1);
+		else if (d > 0) fourop_env_editor_add_param(1);
 		
 		if(area->y >= dest->y && area->y <= dest->y + dest->h) {}
 		else
@@ -126,7 +126,7 @@ void fourop_env_text(const SDL_Event *e, const SDL_Rect *area, const SDL_Rect *d
 		}
 	}
 	
-	if (check_mouse_hit(e, area, EDITENVELOPE4OP, p) || (mused.env_selected_param == p && mused.focus == EDITENVELOPE4OP))
+	if (check_mouse_hit(e, area, EDITENVELOPE4OP, p) || (mused.fourop_env_selected_param == p && mused.focus == EDITENVELOPE4OP))
 	{
 		SDL_Rect cur;
 		copy_rect(&cur, area);
@@ -144,6 +144,7 @@ void fourop_env_text(const SDL_Event *e, const SDL_Rect *area, const SDL_Rect *d
 void fourop_point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
 	if(!(mused.show_4op_point_envelope_editor)) return;
+	if(!(mused.show_four_op_menu)) return;
 	
 	MusInstrument *inst = &mused.song.instrument[mused.current_instrument];
 	
@@ -232,7 +233,7 @@ void fourop_point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, c
 	
 	if(mused.fourop_vol_env_point != -1)
 	{
-		font_write_args(&mused.tinyfont, dest_surface, &vol_env_info, "TIME:%0.2fs\n VOL:%02X", (float)mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.fourop_vol_env_point].x / 100.0, mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.vol_env_point].y);
+		font_write_args(&mused.tinyfont, dest_surface, &vol_env_info, "TIME:%0.2fs\n VOL:%02X", (float)mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.fourop_vol_env_point].x / 100.0, mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.fourop_vol_env_point].y);
 	}
 	
 	//mused.song.instrument[mused.current_instrument].volume_envelope[mused.vol_env_point].x
@@ -243,7 +244,7 @@ void fourop_point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, c
 	{
 		if(mused.mus.channel[i].instrument != NULL)
 		{
-			if(mused.mus.channel[i].instrument == inst && (inst->flags & MUS_INST_USE_VOLUME_ENVELOPE))
+			if(mused.mus.channel[i].instrument == inst && (inst->ops[mused.selected_operator - 1].flags & MUS_FM_OP_USE_VOLUME_ENVELOPE))
 			{
 				if(mused.mus.cyd->channel[i].fm.ops[mused.selected_operator - 1].adsr.envelope > 0 && (mused.mus.cyd->channel[i].fm.ops[mused.selected_operator - 1].flags & CYD_FM_OP_ENABLE_GATE)) //if custom envelope is playing draw current position
 				{
@@ -316,7 +317,7 @@ void fourop_point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, c
 		}
 	}
 	
-	for(int i = 0; i < mused.song.instrument[mused.current_instrument].num_vol_points; ++i)
+	for(int i = 0; i < mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].num_vol_points; ++i)
 	{
 		int x = mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[i].x;
 		int y = mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[i].y;
@@ -336,7 +337,7 @@ void fourop_point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, c
 
 		if (event->type == SDL_MOUSEBUTTONDOWN)
 		{
-			if (check_event(event, &rr, NULL, 0, 0, 0) && vol_env_editor.x + (x - mused.vol_env_horiz_scroll) * vol_zoom_mult >= vol_env_editor.x && vol_env_editor.x + (x - mused.fourop_vol_env_horiz_scroll) * vol_zoom_mult <= vol_env_editor.x + vol_env_editor.w)
+			if (check_event(event, &rr, NULL, 0, 0, 0) && vol_env_editor.x + (x - mused.fourop_vol_env_horiz_scroll) * vol_zoom_mult >= vol_env_editor.x && vol_env_editor.x + (x - mused.fourop_vol_env_horiz_scroll) * vol_zoom_mult <= vol_env_editor.x + vol_env_editor.w)
 			{
 				mused.fourop_vol_env_point = i;
 			}
@@ -365,12 +366,12 @@ void fourop_point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, c
 	{
 		if (mx >= vol_env_editor.x - 5 && mx <= vol_env_editor.x + vol_env_editor.w + 5 && my >= vol_env_editor.y - 5 && my <= vol_env_editor.y + vol_env_editor.h + 5)
 		{
-			if (mused.prev_vol_env_x != -1)
+			if (mused.fourop_prev_vol_env_x != -1)
 			{
 				int x = mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.fourop_vol_env_point].x;
 				int y = mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.fourop_vol_env_point].y;
 
-				SDL_Rect rr = { vol_env_editor.x + (x - mused.vol_env_horiz_scroll) * vol_zoom_mult - mused.smallfont.w / 2,
+				SDL_Rect rr = { vol_env_editor.x + (x - mused.fourop_vol_env_horiz_scroll) * vol_zoom_mult - mused.smallfont.w / 2,
 					vol_env_editor.y + (ENV_WINDOW_HEIGHT - y) - mused.smallfont.h / 2 - 3, mused.smallfont.w, mused.smallfont.h };
 					
 				adjust_rect(&rr, -4);
@@ -380,14 +381,14 @@ void fourop_point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, c
 				
 				//debug("self dot x %d, dot x %d left edge %d right edge %d", x, vol_env_editor.x + (x - mused.vol_env_horiz_scroll) * vol_zoom_mult, vol_env_editor.x, vol_env_editor.x + vol_env_editor.w);
 				
-				if (mouse_x >= rr.x && mouse_x <= rr.x + rr.w && mouse_y >= rr.y && mouse_y <= rr.y + rr.h && vol_env_editor.x + (x - mused.vol_env_horiz_scroll) * vol_zoom_mult >= vol_env_editor.x && vol_env_editor.x + (x - mused.vol_env_horiz_scroll) * vol_zoom_mult <= vol_env_editor.x + vol_env_editor.w)
+				if (mouse_x >= rr.x && mouse_x <= rr.x + rr.w && mouse_y >= rr.y && mouse_y <= rr.y + rr.h && vol_env_editor.x + (x - mused.fourop_vol_env_horiz_scroll) * vol_zoom_mult >= vol_env_editor.x && vol_env_editor.x + (x - mused.fourop_vol_env_horiz_scroll) * vol_zoom_mult <= vol_env_editor.x + vol_env_editor.w)
 				{
-					mused.song.instrument[mused.current_instrument].volume_envelope[mused.fourop_vol_env_point].x = (mx - vol_env_editor.x) / vol_zoom_mult + mused.fourop_vol_env_horiz_scroll;
+					mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.fourop_vol_env_point].x = (mx - vol_env_editor.x) / vol_zoom_mult + mused.fourop_vol_env_horiz_scroll;
 					
 					clamp(mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.fourop_vol_env_point].x, 0, 0, MUS_MAX_ENVELOPE_POINT_X);
 					clamp(mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.fourop_vol_env_point].y, (mused.fourop_prev_vol_env_y - my), 0, vol_env_editor.h);
 					
-					if(mused.vol_env_point > 0 && mused.vol_env_point < mused.song.instrument[mused.current_instrument].num_vol_points - 1)
+					if(mused.fourop_vol_env_point > 0 && mused.fourop_vol_env_point < mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].num_vol_points - 1)
 					{
 						clamp(mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.fourop_vol_env_point].x, 0, mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.fourop_vol_env_point - 1].x + 1, mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.fourop_vol_env_point + 1].x - 1);
 					}
@@ -398,7 +399,7 @@ void fourop_point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, c
 					}
 				}
 				
-				if(mused.vol_env_point == 0)
+				if(mused.fourop_vol_env_point == 0)
 				{
 					mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.fourop_vol_env_point].x = 0; //1st point always at 0
 				}
@@ -474,7 +475,7 @@ void fourop_point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, c
 			{
 				snapshot(S_T_INSTRUMENT);
 				
-				for(int i = MUS_MAX_ENVELOPE_POINTS - 2; i >= mused.vol_env_point; --i)
+				for(int i = MUS_MAX_ENVELOPE_POINTS - 2; i >= mused.fourop_vol_env_point; --i)
 				{
 					mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[i + 1].x = mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[i].x;
 					mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[i + 1].y = mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[i].y;
@@ -482,8 +483,8 @@ void fourop_point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, c
 				
 				mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].num_vol_points++;
 				
-				mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.fourop_vol_env_point + 1].x = (mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.vol_env_point].x + mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.vol_env_point + 2].x) / 2;
-				mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.fourop_vol_env_point + 1].y = (mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.vol_env_point].y + mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.vol_env_point + 2].y) / 2;
+				mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.fourop_vol_env_point + 1].x = (mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.fourop_vol_env_point].x + mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.fourop_vol_env_point + 2].x) / 2;
+				mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.fourop_vol_env_point + 1].y = (mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.fourop_vol_env_point].y + mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].volume_envelope[mused.fourop_vol_env_point + 2].y) / 2;
 			}
 		}
 	}

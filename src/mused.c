@@ -130,7 +130,7 @@ void change_mode(int newmode)
 	
 	if(mused.show_four_op_menu && newmode == EDITINSTRUMENT)
 	{
-		debug("Change mode to %d", EDIT4OP);
+		//debug("Change mode to %d");
 		mused.mode = EDIT4OP;
 		mused.focus = EDIT4OP;
 	}
@@ -142,6 +142,8 @@ void change_mode(int newmode)
 	{
 		mused.selected_param = 0;
 	}
+	
+	debug("Change mode/focus to %d", mused.focus);
 }
 
 

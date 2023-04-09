@@ -140,7 +140,8 @@ void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain,
 					if((mused.show_four_op_menu && (m == 3 || m == 4) && i > 9) || (!(mused.show_four_op_menu) && (m != 3 || m != 4) && (i <= 9 || (i == 13 && !(mused.show_four_op_menu)))))
 					//if((mused.show_four_op_menu) || (!(mused.show_four_op_menu) && (m != 3 || m != 4) && i != 11))
 					{
-						if((mused.show_point_envelope_editor && (m == 3 || m == 4 || m == EDITPROG4OP) && i == 6) || (i == 13 && mused.show_four_op_menu) || (i == 7 && mused.show_point_envelope_editor && (m == EDITPROG || m == EDITINSTRUMENT)))
+						if((mused.show_point_envelope_editor && (m == 3 || m == 4 || m == EDITPROG4OP) && i == 6) || (i == 13 && mused.show_four_op_menu) || (i == 7 && mused.show_point_envelope_editor && (m == EDITPROG || m == EDITINSTRUMENT)) 
+							|| (mused.show_4op_point_envelope_editor && (i == 4 || i == 3 || i == 10 || i == 11) && (m == 3 || m == 4 || m == EDITPROG4OP)))
 						{
 							
 						}
@@ -154,7 +155,7 @@ void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain,
 						
 						if(!(mused.selection.drag_selection_program_4op))
 						{
-							clear_selection(0, 0, 0);
+							//clear_selection(0, 0, 0);
 						}
 					}
 				}
@@ -175,7 +176,8 @@ void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain,
 				{
 					if (orig_focus == EDITBUFFER)
 					{
-						if((mused.show_point_envelope_editor && (m == 3 || m == 4 || m == EDITPROG4OP) && i == 6) || (i == 13 && mused.show_four_op_menu) || (i == 7 && mused.show_point_envelope_editor && (m == EDITPROG || m == EDITINSTRUMENT)))
+						if((mused.show_point_envelope_editor && (m == 3 || m == 4 || m == EDITPROG4OP) && i == 6) || (i == 13 && mused.show_four_op_menu) || (i == 7 && mused.show_point_envelope_editor && (m == EDITPROG || m == EDITINSTRUMENT)) 
+							|| (mused.show_4op_point_envelope_editor && (i == 4 || i == 3 || i == 10 || i == 11) && (m == 3 || m == 4 || m == EDITPROG4OP)))
 						{
 							
 						}
@@ -188,7 +190,8 @@ void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain,
 						}
 					}
 					
-					if((mused.show_point_envelope_editor && (m == 3 || m == 4 || m == EDITPROG4OP) && i == 6) || (i == 13 && mused.show_four_op_menu) || (i == 7 && mused.show_point_envelope_editor && (m == EDITPROG || m == EDITINSTRUMENT)))
+					if((mused.show_point_envelope_editor && (m == 3 || m == 4 || m == EDITPROG4OP) && i == 6) || (i == 13 && mused.show_four_op_menu) || (i == 7 && mused.show_point_envelope_editor && (m == EDITPROG || m == EDITINSTRUMENT)) 
+							|| (mused.show_4op_point_envelope_editor && (i == 4 || i == 3 || i == 10 || i == 11) && (m == 3 || m == 4 || m == EDITPROG4OP)))
 					{
 						
 					}
@@ -197,17 +200,19 @@ void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain,
 					{
 						mused.focus = view->focus;
 						
-						//debug("200 new focus %d", mused.focus);
+						//debug("200 new focus %d i = %d m = %d", mused.focus, i, m);
 					}
 					
 					if(!(mused.selection.drag_selection_program_4op))
 					{
-						clear_selection(0, 0, 0);
+						//clear_selection(0, 0, 0);
 					}
 				}
 			}
 		}
 	}
+	
+	//debug("final focus %d", mused.focus);
 
 	mused.cursor.w = (mused.cursor_target.w + mused.cursor.w * 2) / 3;
 	mused.cursor.h = (mused.cursor_target.h + mused.cursor.h * 2) / 3;
@@ -706,7 +711,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 			{
 				static const char * param_desc[] =
 				{
-					"Use custom volume envelope",
+					"Use custom volume envelope for current FM operator",
 					"Volume envelope fadeout (sort of release rate)",
 					"Volume envelope horizontal axis display scale",
 					"Enable volume envelope sustain",
@@ -716,7 +721,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Volume envelope loop end point",
 				};
 				
-				strcpy(text, param_desc[mused.env_selected_param]);
+				strcpy(text, param_desc[mused.fourop_env_selected_param]);
 				
 				break;
 			}
@@ -1928,7 +1933,7 @@ void inst_field(const SDL_Event *e, const SDL_Rect *area, int p, int length, cha
 
 void instrument_name_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
-	if(!(mused.show_four_op_menu) || ((mused.focus != EDIT4OP) && (mused.focus != EDITPROG4OP)))
+	if(!(mused.show_four_op_menu) || ((mused.focus != EDIT4OP) && (mused.focus != EDITPROG4OP) && (mused.focus != EDITENVELOPE4OP)))
 	{
 		SDL_Rect farea, larea, tarea;
 		copy_rect(&farea, dest);
@@ -1967,7 +1972,7 @@ void instrument_name_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 
 void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
-	if(!(mused.show_four_op_menu) || ((mused.focus != EDIT4OP) && (mused.focus != EDITPROG4OP)))
+	if(!(mused.show_four_op_menu) || ((mused.focus != EDIT4OP) && (mused.focus != EDITPROG4OP) && (mused.focus != EDITENVELOPE4OP)))
 	{
 		MusInstrument *inst = &mused.song.instrument[mused.current_instrument];
 
@@ -2257,6 +2262,8 @@ void open_4op_prog(void *unused1, void *unused2, void *unused3)
 	mused.fourop_vol_env_horiz_scroll = 0;
 	
 	mused.fourop_point_env_editor_scroll = 0;
+	
+	mused.focus = EDITPROG4OP;
 }
 
 void open_4op_env(void *unused1, void *unused2, void *unused3)
@@ -2265,6 +2272,14 @@ void open_4op_env(void *unused1, void *unused2, void *unused3)
 	
 	mused.fourop_current_volume_envelope_point = 0;
 	mused.fourop_env_selected_param = 0;
+	
+	mused.fourop_vol_env_point = -1;
+	mused.fourop_vol_env_scale = 1;
+	mused.fourop_vol_env_horiz_scroll = 0;
+	
+	mused.fourop_point_env_editor_scroll = 0;
+	
+	mused.focus = EDITENVELOPE4OP;
 }
 
 void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param) //4-op FM menu, filebox-like
@@ -2365,6 +2380,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			snapshot(S_T_MODE);
 			
 			mused.show_four_op_menu = false;
+			mused.show_4op_point_envelope_editor = false;
 			
 			change_mode(EDITINSTRUMENT);
 			
@@ -3197,7 +3213,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			update_rect(&view2, &r);
 			
 			r.w = view2.w / 2 - 2;
-			r.h = 10;
+			r.h = 20;
 			r.y += 10;
 			r.x = view2.x;
 			
@@ -3596,7 +3612,7 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 
 void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
-	if(!(mused.show_four_op_menu) || ((mused.focus != EDIT4OP) && (mused.focus != EDITPROG4OP)))
+	if(!(mused.show_four_op_menu) || ((mused.focus != EDIT4OP) && (mused.focus != EDITPROG4OP) && (mused.focus != EDITENVELOPE4OP)))
 	{
 		MusInstrument *inst = &mused.song.instrument[mused.current_instrument];
 

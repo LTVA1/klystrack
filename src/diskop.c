@@ -663,6 +663,36 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 				inst->ops[i].adsr.s &= 0b00011111;
 				//inst->ops[i].adsr.r &= 0b00111111;
 				
+				if(inst->ops[i].flags & MUS_FM_OP_USE_VOLUME_ENVELOPE)
+				{
+					SDL_RWwrite(f, &inst->ops[i].vol_env_flags, sizeof(inst->ops[i].vol_env_flags), 1);
+					SDL_RWwrite(f, &inst->ops[i].num_vol_points, sizeof(inst->ops[i].num_vol_points), 1);
+					
+					Uint16 temp16 = inst->ops[i].vol_env_fadeout;
+					FIX_ENDIAN(temp16);
+					SDL_RWwrite(f, &temp16, sizeof(temp16), 1);
+					
+					if(inst->ops[i].vol_env_flags & MUS_ENV_SUSTAIN)
+					{
+						SDL_RWwrite(f, &inst->ops[i].vol_env_sustain, sizeof(inst->ops[i].vol_env_sustain), 1);
+					}
+				
+					if(inst->ops[i].vol_env_flags & MUS_ENV_LOOP)
+					{
+						SDL_RWwrite(f, &inst->ops[i].vol_env_loop_start, sizeof(inst->ops[i].vol_env_loop_start), 1);
+						SDL_RWwrite(f, &inst->ops[i].vol_env_loop_end, sizeof(inst->ops[i].vol_env_loop_end), 1);
+					}
+					
+					for(int j = 0; j < inst->ops[i].num_vol_points; ++j)
+					{
+						temp16 = inst->ops[i].volume_envelope[j].x;
+						FIX_ENDIAN(temp16);
+						SDL_RWwrite(f, &temp16, sizeof(temp16), 1);
+						
+						SDL_RWwrite(f, &inst->ops[i].volume_envelope[j].y, sizeof(inst->ops[i].volume_envelope[j].y), 1);
+					}
+				}
+				
 				if(inst->ops[i].cydflags & CYD_FM_OP_ENABLE_FIXED_NOISE_PITCH)
 				{
 					SDL_RWwrite(f, &inst->ops[i].noise_note, sizeof(inst->ops[i].noise_note), 1);

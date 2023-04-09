@@ -137,7 +137,9 @@ static const View instrument_view_tab[] =
 	{{154, 14 + INST_LIST + INST_VIEW2, 0 - SCROLLBAR, -INFO }, point_envelope_view, NULL, EDITENVELOPE },
 	{{0 - SCROLLBAR, 14 + INST_LIST + INST_VIEW2, SCROLLBAR, -INFO}, slider, &mused.point_env_slider_param, EDITENVELOPE },
 	
-	{{ 2 * ( - OSC_SIZE - (SCROLLBAR / 2) - 2), 14 + INST_LIST + INST_VIEW2 + 4, 2 * OSC_SIZE, OSC_SIZE }, oscilloscope_view, NULL, EDITINSTRUMENT }, //wasn't there
+	{{VIEW_WIDTH + 6, TOP_VIEW_H + ALG_VIEW_H + 19, 0 - SCROLLBAR_W - 10, -22}, fourop_point_envelope_view, NULL, EDITENVELOPE4OP },
+	
+	{{ 2 * ( - OSC_SIZE - (SCROLLBAR / 2) - 2), 14 + INST_LIST + INST_VIEW2 + 4, 2 * OSC_SIZE, OSC_SIZE }, oscilloscope_view, NULL, -1 }, //wasn't there
 	
 	{{0, 0, 0, 0}, NULL}
 };
