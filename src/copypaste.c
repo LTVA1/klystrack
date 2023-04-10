@@ -106,6 +106,7 @@ void copy()
 		break;
 		
 		case EDIT4OP:
+		case EDITENVELOPE4OP:
 		{
 			if(mused.cp.op)
 			{
@@ -507,6 +508,7 @@ void paste()
 		break;
 		
 		case EDIT4OP:
+		case EDITENVELOPE4OP:
 		{
 			if (mused.cp.type == CP_INSTRUMENT)
 			{

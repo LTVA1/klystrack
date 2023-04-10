@@ -4483,7 +4483,7 @@ void instrument_disk_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 {
 	//mused.import_mml_string = false;
 	
-	if(!(mused.show_four_op_menu) || ((mused.focus != EDIT4OP) && (mused.focus != EDITPROG4OP)))
+	if(!(mused.show_four_op_menu) || ((mused.focus != EDIT4OP) && (mused.focus != EDITPROG4OP) && (mused.focus != EDITENVELOPE4OP)))
 	{
 		SDL_Rect area;
 		copy_rect(&area, dest);
