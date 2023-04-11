@@ -357,6 +357,8 @@ typedef struct
 	
 	bool show_point_envelope_editor;
 	bool show_4op_point_envelope_editor;
+	
+	bool show_fm_settings; //false => show FX bus and LFO settingsz, true => show FM settings
 } Mused;
 
 extern Mused mused;

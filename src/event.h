@@ -230,9 +230,10 @@ enum
 	
 	P_BUZZ,
 	P_BUZZ_SEMI,
-	P_BUZZ_FINE,
 	P_BUZZ_SHAPE,
 	P_BUZZ_ENABLE_AY8930, //wasn't there
+	P_BUZZ_FINE,
+	
 	P_SYNC,
 	P_SYNCSRC,
 	P_RINGMOD,

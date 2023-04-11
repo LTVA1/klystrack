@@ -850,9 +850,9 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Envelope key scaling level", //wasn't there
 					"Buzz (AY/YM volume envelope)",
 					"Buzz semitone",
-					"Buzz fine",
 					"Buzz shape",
 					"Buzz toggle AY8930 mode", //wasn't there
+					"Buzz fine",
 					"Sync channel",
 					"Sync master channel",
 					"Ring modulation",
@@ -1800,7 +1800,7 @@ void oscilloscope_view(GfxDomain *dest_surface, SDL_Rect *dest, const SDL_Event 
 {
 	if(mused.show_four_op_menu)
 	{
-		dest->y -= 145;
+		dest->y -= 69; //nice
 		dest->x -= 10;
 	}
 	
@@ -2198,14 +2198,34 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 		}
 
 		my_separator(&frame, &r);
-		inst_flags(event, &r, P_SYNC, "SYNC", &inst->cydflags, CYD_CHN_ENABLE_SYNC);
+		
+		temp = r.w;
+		r.w = temp - 34 - 1;
+		
+		inst_flags(event, &r, P_SYNC, "H.S", &inst->cydflags, CYD_CHN_ENABLE_SYNC);
 		update_rect(&frame, &r);
-		inst_text(event, &r, P_SYNCSRC, "SRC", "%02X", MAKEPTR(inst->sync_source), 2);
+		
+		r.w = 34;
+		r.x -= 3;
+		
+		inst_text(event, &r, P_SYNCSRC, "", "%02X", MAKEPTR(inst->sync_source), 2);
 		update_rect(&frame, &r);
-		inst_flags(event, &r, P_RINGMOD, "RING MOD", &inst->cydflags, CYD_CHN_ENABLE_RING_MODULATION);
+		
+		r.w = temp - 34;
+		
+		inst_flags(event, &r, P_RINGMOD, "R.M", &inst->cydflags, CYD_CHN_ENABLE_RING_MODULATION);
 		update_rect(&frame, &r);
-		inst_text(event, &r, P_RINGMODSRC, "SRC", "%02X", MAKEPTR(inst->ring_mod), 2);
+		
+		r.w = 34;
+		r.x -= 3;
+		
+		r.y -= 10;
+		r.x += temp + temp - 34 + 7;
+		
+		inst_text(event, &r, P_RINGMODSRC, "", "%02X", MAKEPTR(inst->ring_mod), 2);
 		update_rect(&frame, &r);
+		
+		r.w = temp;
 
 		static const char *flttype[] = { "LPF", "HPF", "BPF", "LHP", "HBP", "LBP", "ALL" }; //was `{ "LP", "HP", "BP" };`
 		static const char *slope[] = { "12  dB/oct", "24  dB/oct", "48  dB/oct", "96  dB/oct", "192 dB/oct", "384 dB/oct" };
@@ -3210,10 +3230,10 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			r.y += 10;
 			
 			four_op_flags(event, &r, FOUROP_LINK_CSM_TIMER_NOTE, "LINK TO OP NOTE", (Uint32*)&inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_LINK_CSM_TIMER_NOTE);
-			update_rect(&view2, &r);
+			//update_rect(&view2, &r);
 			
 			r.w = view2.w / 2 - 2;
-			r.h = 20;
+			r.h = 19;
 			r.y += 10;
 			r.x = view2.x;
 			
@@ -3609,6 +3629,25 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 	}
 }
 
+void open_fx_lfo(void *unused1, void *unused2, void *unused3)
+{
+	mused.show_fm_settings = false;
+	
+	if(mused.selected_param >= P_FM_ENABLE && mused.selected_param <= P_FM_ENABLE_4OP)
+	{
+		mused.selected_param = P_FX;
+	}
+}
+
+void open_fm_set(void *unused1, void *unused2, void *unused3)
+{
+	mused.show_fm_settings = true;
+	
+	if(mused.selected_param >= P_FX && mused.selected_param <= P_SAVE_LFO_SETTINGS)
+	{
+		mused.selected_param = P_FM_ENABLE;
+	}
+}
 
 void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
@@ -3626,198 +3665,218 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 		
 		r.w = r.w / 2 - 2;
 		r.h = 10;
+		
+		button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, !(mused.show_fm_settings) ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "FX AND LFO", open_fx_lfo, NULL, NULL, NULL);
+		update_rect(&frame, &r);
+		button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, mused.show_fm_settings ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "FM", open_fm_set, NULL, NULL, NULL);
+		update_rect(&frame, &r);
+		
+		int temp666;
+		int temp2;
+		int tmp;
+		int temp;
+		
+		if(!(mused.show_fm_settings))
+		{
+			inst_flags(event, &r, P_FX, "FX", &inst->cydflags, CYD_CHN_ENABLE_FX);
+			update_rect(&frame, &r);
+			inst_text(event, &r, P_FXBUS,   "FXBUS", "%02X", MAKEPTR(inst->fx_bus), 2);
+			update_rect(&frame, &r);
+			inst_text(event, &r, P_VIBSPEED,   "VIB.S", "%02X", MAKEPTR(inst->vibrato_speed), 2);
+			update_rect(&frame, &r);
+			inst_text(event, &r, P_VIBDEPTH,   "VIB.D", "%02X", MAKEPTR(inst->vibrato_depth), 2);
+			update_rect(&frame, &r);
+			inst_text(event, &r, P_VIBSHAPE,   "VIB.SH", "%c", inst->vibrato_shape < 5 ? MAKEPTR(inst->vibrato_shape + 0xf4) : MAKEPTR(inst->vibrato_shape + 0xed), 1);
+			update_rect(&frame, &r);
+			inst_text(event, &r, P_VIBDELAY,   "V.DEL", "%02X", MAKEPTR(inst->vibrato_delay), 2);
+			update_rect(&frame, &r);
+			inst_text(event, &r, P_PWMSPEED,   "PWM.S", "%02X", MAKEPTR(inst->pwm_speed), 2);
+			update_rect(&frame, &r);
+			inst_text(event, &r, P_PWMDEPTH,   "PWM.D", "%02X", MAKEPTR(inst->pwm_depth), 2);
+			update_rect(&frame, &r);
+			inst_text(event, &r, P_PWMSHAPE,   "PWM.SH", "%c", inst->pwm_shape < 5 ? MAKEPTR(inst->pwm_shape + 0xf4) : MAKEPTR(inst->pwm_shape + 0xed), 1);
+			update_rect(&frame, &r);
+			inst_text(event, &r, P_PWMDELAY,   "PWM.DEL", "%02X", MAKEPTR(inst->pwm_delay), 2); //wasn't there
+			update_rect(&frame, &r);
+			
+			inst_text(event, &r, P_TREMSPEED,   "TR.S", "%02X", MAKEPTR(inst->tremolo_speed), 2); //wasn't there
+			update_rect(&frame, &r);
+			inst_text(event, &r, P_TREMDEPTH,   "TR.D", "%02X", MAKEPTR(inst->tremolo_depth), 2);
+			update_rect(&frame, &r);
+			inst_text(event, &r, P_TREMSHAPE,   "TR.SH", "%c", inst->tremolo_shape < 5 ? MAKEPTR(inst->tremolo_shape + 0xf4) : MAKEPTR(inst->tremolo_shape + 0xed), 1);
+			update_rect(&frame, &r);
+			inst_text(event, &r, P_TREMDELAY,   "TR.DEL", "%02X", MAKEPTR(inst->tremolo_delay), 2);
+			update_rect(&frame, &r);
+			
+			//inst_text(event, &r, P_PROGPERIOD, "P.PRD", "%02X", MAKEPTR(inst->prog_period[mused.current_instrument_program]), 2);
+			//update_rect(&frame, &r);
+			
+			temp666 = r.w;
+			r.w = 110;
+			
+			inst_flags(event, &r, P_NORESTART, "NO RESTART", &inst->flags, MUS_INST_NO_PROG_RESTART);
+			update_rect(&frame, &r);
+			inst_flags(event, &r, P_MULTIOSC, "MULTIOSC", &inst->flags, MUS_INST_MULTIOSC);
+			update_rect(&frame, &r);
+			
+			
+			inst_flags(event, &r, P_SAVE_LFO_SETTINGS, "SAVE LFO SET.", &inst->flags, MUS_INST_SAVE_LFO_SETTINGS);
+			//update_rect(&frame, &r);
+			
+			r.w = temp666;
+			
+			r.y += 10;
+			r.x = frame.x;
+		}
+		
+		//my_separator(&frame, &r);
+		
+		if(mused.show_fm_settings)
+		{
+			inst_flags(event, &r, P_FM_ENABLE, "FM", &inst->cydflags, CYD_CHN_ENABLE_FM);
+			update_rect(&frame, &r);
+			inst_text(event, &r, P_FM_MODULATION, "VOL", "%02X", MAKEPTR(inst->fm_modulation), 2);
+			update_rect(&frame, &r);
+			
+			temp2 = r.w;
+			
+			r.w = 7 * 8 + 15;
+			
+			inst_flags(event, &r, P_FM_VOL_KSL_ENABLE, "FM V.KSL", &inst->fm_flags, CYD_FM_ENABLE_VOLUME_KEY_SCALING);
+			update_rect(&frame, &r);
+			
+			r.w = 8 * 2 + 18;
+			r.x = frame.x + frame.w / 2 - r.w - 2;
+			
+			inst_text(event, &r, P_FM_VOL_KSL_LEVEL, "", "%02X", MAKEPTR(inst->fm_vol_ksl_level), 2);
+			update_rect(&frame, &r);
+			
+			r.x = frame.x + frame.w / 2 + 2;
+			r.w = 7 * 8 + 15;
+			
+			inst_flags(event, &r, P_FM_ENV_KSL_ENABLE, "FM E.KSL", &inst->fm_flags, CYD_FM_ENABLE_ENVELOPE_KEY_SCALING);
+			update_rect(&frame, &r);
+			
+			r.w = 8 * 2 + 18;
+			r.x = frame.x + frame.w - r.w;
+			
+			inst_text(event, &r, P_FM_ENV_KSL_LEVEL, "", "%02X", MAKEPTR(inst->fm_env_ksl_level), 2);
+			update_rect(&frame, &r);
+			
+			//r.y += 10;
+			//r.x = frame.x;
+			r.w = temp2;
+			
+			inst_text(event, &r, P_FM_FEEDBACK, "FEEDBACK", "%01X", MAKEPTR(inst->fm_feedback), 1);
+			update_rect(&frame, &r);
+			
+			tmp = r.w;
+			r.w -= 27;
+			inst_text(event, &r, P_FM_HARMONIC_CARRIER, "MUL", "%01X", MAKEPTR(inst->fm_harmonic >> 4), 1);
+			r.x += r.w + 11;
+			r.w = 16;
 
-		inst_flags(event, &r, P_FX, "FX", &inst->cydflags, CYD_CHN_ENABLE_FX);
-		update_rect(&frame, &r);
-		inst_text(event, &r, P_FXBUS,   "FXBUS", "%02X", MAKEPTR(inst->fx_bus), 2);
-		update_rect(&frame, &r);
-		inst_text(event, &r, P_VIBSPEED,   "VIB.S", "%02X", MAKEPTR(inst->vibrato_speed), 2);
-		update_rect(&frame, &r);
-		inst_text(event, &r, P_VIBDEPTH,   "VIB.D", "%02X", MAKEPTR(inst->vibrato_depth), 2);
-		update_rect(&frame, &r);
-		inst_text(event, &r, P_VIBSHAPE,   "VIB.SH", "%c", inst->vibrato_shape < 5 ? MAKEPTR(inst->vibrato_shape + 0xf4) : MAKEPTR(inst->vibrato_shape + 0xed), 1);
-		update_rect(&frame, &r);
-		inst_text(event, &r, P_VIBDELAY,   "V.DEL", "%02X", MAKEPTR(inst->vibrato_delay), 2);
-		update_rect(&frame, &r);
-		inst_text(event, &r, P_PWMSPEED,   "PWM.S", "%02X", MAKEPTR(inst->pwm_speed), 2);
-		update_rect(&frame, &r);
-		inst_text(event, &r, P_PWMDEPTH,   "PWM.D", "%02X", MAKEPTR(inst->pwm_depth), 2);
-		update_rect(&frame, &r);
-		inst_text(event, &r, P_PWMSHAPE,   "PWM.SH", "%c", inst->pwm_shape < 5 ? MAKEPTR(inst->pwm_shape + 0xf4) : MAKEPTR(inst->pwm_shape + 0xed), 1);
-		update_rect(&frame, &r);
-		inst_text(event, &r, P_PWMDELAY,   "PWM.DEL", "%02X", MAKEPTR(inst->pwm_delay), 2); //wasn't there
-		update_rect(&frame, &r);
-		
-		inst_text(event, &r, P_TREMSPEED,   "TR.S", "%02X", MAKEPTR(inst->tremolo_speed), 2); //wasn't there
-		update_rect(&frame, &r);
-		inst_text(event, &r, P_TREMDEPTH,   "TR.D", "%02X", MAKEPTR(inst->tremolo_depth), 2);
-		update_rect(&frame, &r);
-		inst_text(event, &r, P_TREMSHAPE,   "TR.SH", "%c", inst->tremolo_shape < 5 ? MAKEPTR(inst->tremolo_shape + 0xf4) : MAKEPTR(inst->tremolo_shape + 0xed), 1);
-		update_rect(&frame, &r);
-		inst_text(event, &r, P_TREMDELAY,   "TR.DEL", "%02X", MAKEPTR(inst->tremolo_delay), 2);
-		update_rect(&frame, &r);
-		
-		//inst_text(event, &r, P_PROGPERIOD, "P.PRD", "%02X", MAKEPTR(inst->prog_period[mused.current_instrument_program]), 2);
-		//update_rect(&frame, &r);
-		
-		int temp666 = r.w;
-		r.w = 110;
-		
-		inst_flags(event, &r, P_NORESTART, "NO RESTART", &inst->flags, MUS_INST_NO_PROG_RESTART);
-		update_rect(&frame, &r);
-		inst_flags(event, &r, P_MULTIOSC, "MULTIOSC", &inst->flags, MUS_INST_MULTIOSC);
-		update_rect(&frame, &r);
-		
-		
-		inst_flags(event, &r, P_SAVE_LFO_SETTINGS, "SAVE LFO SET.", &inst->flags, MUS_INST_SAVE_LFO_SETTINGS);
-		update_rect(&frame, &r);
-		
-		r.w = temp666;
-		
-		my_separator(&frame, &r);
-		inst_flags(event, &r, P_FM_ENABLE, "FM", &inst->cydflags, CYD_CHN_ENABLE_FM);
-		update_rect(&frame, &r);
-		inst_text(event, &r, P_FM_MODULATION, "VOL", "%02X", MAKEPTR(inst->fm_modulation), 2);
-		update_rect(&frame, &r);
-		
-		int temp2 = r.w;
-		
-		r.w = 7 * 8 + 15;
-		
-		inst_flags(event, &r, P_FM_VOL_KSL_ENABLE, "FM V.KSL", &inst->fm_flags, CYD_FM_ENABLE_VOLUME_KEY_SCALING);
-		update_rect(&frame, &r);
-		
-		r.w = 8 * 2 + 18;
-		r.x = frame.x + frame.w / 2 - r.w - 2;
-		
-		inst_text(event, &r, P_FM_VOL_KSL_LEVEL, "", "%02X", MAKEPTR(inst->fm_vol_ksl_level), 2);
-		update_rect(&frame, &r);
-		
-		r.x = frame.x + frame.w / 2 + 2;
-		r.w = 7 * 8 + 15;
-		
-		inst_flags(event, &r, P_FM_ENV_KSL_ENABLE, "FM E.KSL", &inst->fm_flags, CYD_FM_ENABLE_ENVELOPE_KEY_SCALING);
-		update_rect(&frame, &r);
-		
-		r.w = 8 * 2 + 18;
-		r.x = frame.x + frame.w - r.w;
-		
-		inst_text(event, &r, P_FM_ENV_KSL_LEVEL, "", "%02X", MAKEPTR(inst->fm_env_ksl_level), 2);
-		update_rect(&frame, &r);
-		
-		//r.y += 10;
-		//r.x = frame.x;
-		r.w = temp2;
-		
-		inst_text(event, &r, P_FM_FEEDBACK, "FEEDBACK", "%01X", MAKEPTR(inst->fm_feedback), 1);
-		update_rect(&frame, &r);
-		
-		int tmp = r.w;
-		r.w -= 27;
-		inst_text(event, &r, P_FM_HARMONIC_CARRIER, "MUL", "%01X", MAKEPTR(inst->fm_harmonic >> 4), 1);
-		r.x += r.w + 11;
-		r.w = 16;
+			inst_text(event, &r, P_FM_HARMONIC_MODULATOR, "", "%01X", MAKEPTR(inst->fm_harmonic & 15), 1);
+			update_rect(&frame, &r);
+			
+			r.w = 72; //wasn't there
 
-		inst_text(event, &r, P_FM_HARMONIC_MODULATOR, "", "%01X", MAKEPTR(inst->fm_harmonic & 15), 1);
-		update_rect(&frame, &r);
-		
-		r.w = 72; //wasn't there
-
-		inst_text(event, &r, P_FM_BASENOTE, "BASE", "%s", notename(inst->fm_base_note), 3);
-		update_rect(&frame, &r);
-		
-		r.w = 46;
-		inst_text(event, &r, P_FM_FINETUNE, "", "%+4d", MAKEPTR(inst->fm_finetune), 4);
-		update_rect(&frame, &r);
-		
-		r.w = init_width / 2 - 2;
-		
-		r.x = r.x - 124 + init_width / 2;
-		
-		const char* freq_luts[] = { "OPL", "OPN" };
-		
-		inst_text(event, &r, P_FM_FREQ_LUT, "FREQ. TABLE", "%s", (char*)freq_luts[inst->fm_freq_LUT], 3);
-		update_rect(&frame, &r);
-		
-		r.w = tmp;
-		
-		inst_text(event, &r, P_FM_ATTACK, "ATK", "%02X", MAKEPTR(inst->fm_adsr.a), 2);
-		update_rect(&frame, &r);
-		inst_text(event, &r, P_FM_DECAY, "DEC", "%02X", MAKEPTR(inst->fm_adsr.d), 2);
-		update_rect(&frame, &r);
-		inst_text(event, &r, P_FM_SUSTAIN, "SUS", "%02X", MAKEPTR(inst->fm_adsr.s), 2);
-		update_rect(&frame, &r);
-		inst_text(event, &r, P_FM_RELEASE, "REL", "%02X", MAKEPTR(inst->fm_adsr.r), 2);
-		update_rect(&frame, &r);
-		
-		int temp = r.w;
-		r.w = 82;
-		
-		inst_flags(event, &r, P_FM_EXP_VOL, "FM EXP.VOL", &inst->fm_flags, CYD_FM_ENABLE_EXPONENTIAL_VOLUME);
-		update_rect(&frame, &r);
-		
-		r.w = 35;
-		
-		inst_flags(event, &r, P_FM_EXP_ATTACK, "ATK", &inst->fm_flags, CYD_FM_ENABLE_EXPONENTIAL_ATTACK);
-		update_rect(&frame, &r);
-		
-		//r.w = init_width / 2 - 2;
-		
-		r.x = r.x - 123 + init_width / 2;
-		
-		inst_flags(event, &r, P_FM_EXP_DECAY, "DEC", &inst->fm_flags, CYD_FM_ENABLE_EXPONENTIAL_DECAY);
-		update_rect(&frame, &r);
-		
-		r.w = init_width / 2 - 39;
-		
-		inst_flags(event, &r, P_FM_EXP_RELEASE, "REL", &inst->fm_flags, CYD_FM_ENABLE_EXPONENTIAL_RELEASE);
-		update_rect(&frame, &r);
-		
-		r.w = temp;
-		
-		inst_text(event, &r, P_FM_ENV_START, "E.START", "%02X", MAKEPTR(inst->fm_attack_start), 2);
-		update_rect(&frame, &r);
-		tmp = r.w;
-		r.w = 42;
-		inst_flags(event, &r, P_FM_WAVE, "WAVE", &inst->fm_flags, CYD_FM_ENABLE_WAVE);
-		r.x += 44;
-		r.w = 32;
-		inst_text(event, &r, P_FM_WAVE_ENTRY, "", "%02X", MAKEPTR(inst->fm_wave), 2);
-		update_rect(&frame, &r);
-		
-		r.w = tmp;
-		r.y += 10;
-		r.x -= 42 + 32 + 2 + 8 + tmp;
-		
-		inst_text(event, &r, P_FM_VIBSPEED,   "FM VIB.S", "%02X", MAKEPTR(inst->fm_vibrato_speed), 2);
-		update_rect(&frame, &r);
-		inst_text(event, &r, P_FM_VIBDEPTH,   "FM VIB.D", "%02X", MAKEPTR(inst->fm_vibrato_depth), 2);
-		update_rect(&frame, &r);
-		inst_text(event, &r, P_FM_VIBSHAPE,   "FM VIB.SH", "%c", inst->fm_vibrato_shape < 5 ? MAKEPTR(inst->fm_vibrato_shape + 0xf4) : MAKEPTR(inst->fm_vibrato_shape + 0xed), 1);
-		update_rect(&frame, &r);
-		inst_text(event, &r, P_FM_VIBDELAY,   "FM V.DEL", "%02X", MAKEPTR(inst->fm_vibrato_delay), 2);
-		update_rect(&frame, &r);
-		
-		inst_text(event, &r, P_FM_TREMSPEED,   "FM TR.S", "%02X", MAKEPTR(inst->fm_tremolo_speed), 2); //wasn't there
-		update_rect(&frame, &r);
-		inst_text(event, &r, P_FM_TREMDEPTH,   "FM TR.D", "%02X", MAKEPTR(inst->fm_tremolo_depth), 2);
-		update_rect(&frame, &r);
-		inst_text(event, &r, P_FM_TREMSHAPE,   "FM TR.SH", "%c", inst->fm_tremolo_shape < 5 ? MAKEPTR(inst->fm_tremolo_shape + 0xf4) : MAKEPTR(inst->fm_tremolo_shape + 0xed), 1);
-		update_rect(&frame, &r);
-		inst_text(event, &r, P_FM_TREMDELAY,   "FM TR.DEL", "%02X", MAKEPTR(inst->fm_tremolo_delay), 2);
-		update_rect(&frame, &r);
-		
-		inst_flags(event, &r, P_FM_ADDITIVE, "ADDITIVE", &inst->fm_flags, CYD_FM_ENABLE_ADDITIVE);
-		update_rect(&frame, &r);
-		
-		inst_flags(event, &r, P_FM_SAVE_LFO_SETTINGS, "SAVE FM LFO SET.", &inst->fm_flags, CYD_FM_SAVE_LFO_SETTINGS);
-		update_rect(&frame, &r);
-		
-		inst_flags(event, &r, P_FM_ENABLE_4OP, "4-OP", &inst->fm_flags, CYD_FM_ENABLE_4OP);
-		update_rect(&frame, &r);
-		
-		button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "OPEN MENU", open_4op, NULL, NULL, NULL);
-		update_rect(&frame, &r);
+			inst_text(event, &r, P_FM_BASENOTE, "BASE", "%s", notename(inst->fm_base_note), 3);
+			update_rect(&frame, &r);
+			
+			r.w = 46;
+			inst_text(event, &r, P_FM_FINETUNE, "", "%+4d", MAKEPTR(inst->fm_finetune), 4);
+			update_rect(&frame, &r);
+			
+			r.w = init_width / 2 - 2;
+			
+			r.x = r.x - 124 + init_width / 2;
+			
+			const char* freq_luts[] = { "OPL", "OPN" };
+			
+			inst_text(event, &r, P_FM_FREQ_LUT, "FREQ. TABLE", "%s", (char*)freq_luts[inst->fm_freq_LUT], 3);
+			update_rect(&frame, &r);
+			
+			r.w = tmp;
+			
+			inst_text(event, &r, P_FM_ATTACK, "ATK", "%02X", MAKEPTR(inst->fm_adsr.a), 2);
+			update_rect(&frame, &r);
+			inst_text(event, &r, P_FM_DECAY, "DEC", "%02X", MAKEPTR(inst->fm_adsr.d), 2);
+			update_rect(&frame, &r);
+			inst_text(event, &r, P_FM_SUSTAIN, "SUS", "%02X", MAKEPTR(inst->fm_adsr.s), 2);
+			update_rect(&frame, &r);
+			inst_text(event, &r, P_FM_RELEASE, "REL", "%02X", MAKEPTR(inst->fm_adsr.r), 2);
+			update_rect(&frame, &r);
+			
+			temp = r.w;
+			r.w = 82;
+			
+			inst_flags(event, &r, P_FM_EXP_VOL, "FM EXP.VOL", &inst->fm_flags, CYD_FM_ENABLE_EXPONENTIAL_VOLUME);
+			update_rect(&frame, &r);
+			
+			r.w = 35;
+			
+			inst_flags(event, &r, P_FM_EXP_ATTACK, "ATK", &inst->fm_flags, CYD_FM_ENABLE_EXPONENTIAL_ATTACK);
+			update_rect(&frame, &r);
+			
+			//r.w = init_width / 2 - 2;
+			
+			r.x = r.x - 123 + init_width / 2;
+			
+			inst_flags(event, &r, P_FM_EXP_DECAY, "DEC", &inst->fm_flags, CYD_FM_ENABLE_EXPONENTIAL_DECAY);
+			update_rect(&frame, &r);
+			
+			r.w = init_width / 2 - 39;
+			
+			inst_flags(event, &r, P_FM_EXP_RELEASE, "REL", &inst->fm_flags, CYD_FM_ENABLE_EXPONENTIAL_RELEASE);
+			update_rect(&frame, &r);
+			
+			r.w = temp;
+			
+			inst_text(event, &r, P_FM_ENV_START, "E.START", "%02X", MAKEPTR(inst->fm_attack_start), 2);
+			update_rect(&frame, &r);
+			tmp = r.w;
+			r.w = 42;
+			inst_flags(event, &r, P_FM_WAVE, "WAVE", &inst->fm_flags, CYD_FM_ENABLE_WAVE);
+			r.x += 44;
+			r.w = 32;
+			inst_text(event, &r, P_FM_WAVE_ENTRY, "", "%02X", MAKEPTR(inst->fm_wave), 2);
+			update_rect(&frame, &r);
+			
+			r.w = tmp;
+			r.y += 10;
+			r.x -= 42 + 32 + 2 + 8 + tmp;
+			
+			inst_text(event, &r, P_FM_VIBSPEED,   "FM VIB.S", "%02X", MAKEPTR(inst->fm_vibrato_speed), 2);
+			update_rect(&frame, &r);
+			inst_text(event, &r, P_FM_VIBDEPTH,   "FM VIB.D", "%02X", MAKEPTR(inst->fm_vibrato_depth), 2);
+			update_rect(&frame, &r);
+			inst_text(event, &r, P_FM_VIBSHAPE,   "FM VIB.SH", "%c", inst->fm_vibrato_shape < 5 ? MAKEPTR(inst->fm_vibrato_shape + 0xf4) : MAKEPTR(inst->fm_vibrato_shape + 0xed), 1);
+			update_rect(&frame, &r);
+			inst_text(event, &r, P_FM_VIBDELAY,   "FM V.DEL", "%02X", MAKEPTR(inst->fm_vibrato_delay), 2);
+			update_rect(&frame, &r);
+			
+			inst_text(event, &r, P_FM_TREMSPEED,   "FM TR.S", "%02X", MAKEPTR(inst->fm_tremolo_speed), 2); //wasn't there
+			update_rect(&frame, &r);
+			inst_text(event, &r, P_FM_TREMDEPTH,   "FM TR.D", "%02X", MAKEPTR(inst->fm_tremolo_depth), 2);
+			update_rect(&frame, &r);
+			inst_text(event, &r, P_FM_TREMSHAPE,   "FM TR.SH", "%c", inst->fm_tremolo_shape < 5 ? MAKEPTR(inst->fm_tremolo_shape + 0xf4) : MAKEPTR(inst->fm_tremolo_shape + 0xed), 1);
+			update_rect(&frame, &r);
+			inst_text(event, &r, P_FM_TREMDELAY,   "FM TR.DEL", "%02X", MAKEPTR(inst->fm_tremolo_delay), 2);
+			update_rect(&frame, &r);
+			
+			inst_flags(event, &r, P_FM_ADDITIVE, "ADDITIVE", &inst->fm_flags, CYD_FM_ENABLE_ADDITIVE);
+			update_rect(&frame, &r);
+			
+			inst_flags(event, &r, P_FM_SAVE_LFO_SETTINGS, "SAVE FM LFO SET.", &inst->fm_flags, CYD_FM_SAVE_LFO_SETTINGS);
+			update_rect(&frame, &r);
+			
+			inst_flags(event, &r, P_FM_ENABLE_4OP, "4-OP", &inst->fm_flags, CYD_FM_ENABLE_4OP);
+			update_rect(&frame, &r);
+			
+			button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "OPEN MENU", open_4op, NULL, NULL, NULL);
+			update_rect(&frame, &r);
+		}
 		
 		button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, !(mused.show_point_envelope_editor) ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "PROGRAM", open_prog, NULL, NULL, NULL);
 		update_rect(&frame, &r);

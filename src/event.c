@@ -2660,6 +2660,16 @@ void edit_instrument_event(SDL_Event *e)
 				if (mused.mode == EDITINSTRUMENT)
 				{
 					if (mused.selected_param >= P_PARAMS) mused.selected_param = P_PARAMS - 1;
+					
+					if(mused.show_fm_settings)
+					{
+						if (mused.selected_param == P_FX) mused.selected_param = P_FM_ENABLE;
+					}
+					
+					else
+					{
+						if (mused.selected_param == P_FM_ENABLE) mused.selected_param = P_SAVE_LFO_SETTINGS;
+					}
 				}
 				
 				else
@@ -2674,6 +2684,11 @@ void edit_instrument_event(SDL_Event *e)
 				--mused.selected_param;
 
 				if (mused.selected_param < 0) mused.selected_param = 0;
+				
+				if(mused.show_fm_settings && mused.mode == EDITINSTRUMENT)
+				{
+					if (mused.selected_param == P_SAVE_LFO_SETTINGS) mused.selected_param = P_PROGPERIOD;
+				}
 			}
 			break;
 
