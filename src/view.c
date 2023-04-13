@@ -1439,6 +1439,13 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 		
 		SDL_Rect area, clip;
 		copy_rect(&area, dest);
+		
+		if(!(mused.show_fm_settings))
+		{
+			area.y -= 60;
+			area.h += 60;
+		}
+		
 		console_set_clip(mused.console, &area);
 		console_clear(mused.console);
 		bevelex(domain,&area, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
@@ -1802,6 +1809,11 @@ void oscilloscope_view(GfxDomain *dest_surface, SDL_Rect *dest, const SDL_Event 
 	{
 		dest->y -= 69; //nice
 		dest->x -= 10;
+	}
+	
+	if(!(mused.show_four_op_menu) && !(mused.show_fm_settings))
+	{
+		dest->y -= 60;
 	}
 	
 	if(mused.flags & SHOW_OSCILLOSCOPE_INST_EDITOR)
@@ -2661,22 +2673,27 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			update_rect(&view, &r);
 			four_op_flags(event, &r, FOUROP_RELVOL, "RELATIVE", (Uint32*)&inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_RELATIVE_VOLUME);
 			update_rect(&view, &r);
-			four_op_text(event, &r, FOUROP_ATTACK, "ATK", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].adsr.a), 2);
+			
+			int temp = r.w;
+			
+			r.w = view.w / 3 - 2;
+			
+			four_op_text(event, &r, FOUROP_ATTACK, "AT", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].adsr.a), 2);
 			update_rect(&view, &r);
-			four_op_text(event, &r, FOUROP_DECAY, "DEC", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].adsr.d), 2);
+			four_op_text(event, &r, FOUROP_DECAY, "DE", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].adsr.d), 2);
 			update_rect(&view, &r);
-			four_op_text(event, &r, FOUROP_SUSTAIN, "SUS", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].adsr.s), 2);
+			
+			r.x -= 1;
+			
+			four_op_text(event, &r, FOUROP_SUSTAIN, "SL", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].adsr.s), 2);
 			update_rect(&view, &r);
+			
+			r.w = temp;
 			
 			four_op_text(event, &r, FOUROP_SUSTAIN_RATE, "SUS.R", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].adsr.sr), 2);
 			update_rect(&view, &r);
 			
-			int temp = r.w;
-			
-			r.w *= 2;
-			r.w += 4;
-			
-			four_op_text(event, &r, FOUROP_RELEASE, "ENV.RELEASE RATE", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].adsr.r), 2);
+			four_op_text(event, &r, FOUROP_RELEASE, "REL", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].adsr.r), 2);
 			update_rect(&view, &r);
 			
 			
@@ -2718,14 +2735,35 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			r.w = temp;
 			
 			my_separator(&view, &r);
-			four_op_flags(event, &r, FOUROP_SYNC, "SYNC", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_SYNC);
+			
+			temp = r.w;
+			r.w = temp - 34 - 1;
+			
+			four_op_flags(event, &r, FOUROP_SYNC, "H.S", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_SYNC);
 			update_rect(&view, &r);
-			four_op_text(event, &r, FOUROP_SYNCSRC, "SRC", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].sync_source), 2);
+			
+			r.w = 34;
+			r.x -= 3;
+			
+			four_op_text(event, &r, FOUROP_SYNCSRC, "", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].sync_source), 2);
 			update_rect(&view, &r);
-			four_op_flags(event, &r, FOUROP_RINGMOD, "RING MOD", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_RING_MODULATION);
+			
+			r.w = temp - 34;
+			r.x += 1;
+			
+			four_op_flags(event, &r, FOUROP_RINGMOD, "R.M", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_RING_MODULATION);
 			update_rect(&view, &r);
-			four_op_text(event, &r, FOUROP_RINGMODSRC, "SRC", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].ring_mod), 2);
+			
+			r.w = 34;
+			r.x -= 3;
+			
+			r.y -= 10;
+			r.x += temp + temp - 34 + 7;
+			
+			four_op_text(event, &r, FOUROP_RINGMODSRC, "", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].ring_mod), 2);
 			update_rect(&view, &r);
+			
+			r.w = temp;
 
 			static const char *flttype_4op[] = { "LPF", "HPF", "BPF", "LHP", "HBP", "LBP", "ALL" }; //was `{ "LP", "HP", "BP" };`
 			static const char *slope_4op[] = { "12  dB/oct", "24  dB/oct", "48  dB/oct", "96  dB/oct", "192 dB/oct", "384 dB/oct" };
@@ -3657,6 +3695,12 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 
 		SDL_Rect r, frame;
 		copy_rect(&frame, dest);
+		
+		if(!(mused.show_fm_settings))
+		{
+			frame.h -= 60;
+		}
+		
 		bevelex(domain,&frame, mused.slider_bevel, BEV_BACKGROUND, BEV_F_STRETCH_ALL);
 		adjust_rect(&frame, 4);
 		copy_rect(&r, &frame);

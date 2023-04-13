@@ -202,6 +202,7 @@ static const Menu importmenu[] =
 	//{ 0, filemenu, "Import .MPTM", NULL, import_module, MAKEPTR(IMPORT_MPTM) },
 	{ 0, filemenu, "Import .ORG", NULL, import_module, MAKEPTR(IMPORT_ORG) },
 	{ 0, filemenu, "Import .SID (Rob Hubbard)", NULL, import_module, MAKEPTR(IMPORT_HUBBARD) },
+	{ 0, filemenu, "Import .FZT", NULL, import_module, MAKEPTR(IMPORT_FZT) },
 	//{ 0, filemenu, "Import FamiTracker", import_famitracker_menu },
 	//{ 0, filemenu, "Import .DMF", NULL, import_module, MAKEPTR(IMPORT_DMF) },
 	//{ 0, filemenu, "Import .FUR", NULL, import_module, MAKEPTR(IMPORT_FUR) },

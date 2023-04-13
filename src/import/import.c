@@ -31,6 +31,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "ahx.h"
 #include "xm.h"
 #include "org.h"
+#include "fzt.h"
 #include "hubbard.h"
 #include "gui/toolutil.h"
 #include "gui/msgbox.h"
@@ -59,8 +60,8 @@ void import_module(void *type, void* unused1, void* unused2)
 		if (!r) return;
 	}
 	
-	static const char *mod_name[] = {"a Protracker", "an OctaMED", "a Scream Tracker III", "an AHX", "a FastTracker II", "an Impulse Tracker", "an OpenMPT", "a Cave Story", "a Rob Hubbard", "a FamiTracker", "a 0CC-FamiTracker", "a Dn-FamiTracker", "an E-FamiTracker", "a DefleMask", "a Furnace", "an Adlib Tracker II", "a Raster Music Tracker"};
-	static const char *mod_ext[] = {"mod", "med", "s3m", "ahx", "xm", "it", "mptm", "org", "sid", "ftm", "0cc", "dnm", "eft", "dmf", "fur", "a2m", "rmt"};
+	static const char *mod_name[] = {"a Protracker", "an OctaMED", "a Scream Tracker III", "an AHX", "a FastTracker II", "an Impulse Tracker", "an OpenMPT", "a Cave Story", "a Rob Hubbard", "a FamiTracker", "a 0CC-FamiTracker", "a Dn-FamiTracker", "an E-FamiTracker", "a DefleMask", "a Furnace", "an Adlib Tracker II", "a Raster Music Tracker", "a Flizzer Tracker"};
+	static const char *mod_ext[] = {"mod", "med", "s3m", "ahx", "xm", "it", "mptm", "org", "sid", "ftm", "0cc", "dnm", "eft", "dmf", "fur", "a2m", "rmt", "fzt"};
 	
 	char buffer[100];
 	snprintf(buffer, sizeof(buffer), "Import %s song", mod_name[CASTPTR(int, type)]);
@@ -79,6 +80,7 @@ void import_module(void *type, void* unused1, void* unused2)
 		case IMPORT_XM: r = import_xm(f); break;
 		case IMPORT_ORG: r = import_org(f); break;
 		case IMPORT_HUBBARD: r = import_hubbard(f); break;
+		case IMPORT_FZT: r = import_fzt(f); break;
 		//others will be there I promise
 	}
 	
