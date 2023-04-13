@@ -52,6 +52,15 @@ OTHER DEALINGS IN THE SOFTWARE.
 #define timesig(i, bar, beat, normal) (((uppersig != 3) && (uppersig % 3) == 0) ? compoundtime(i, bar, beat, normal) : simpletime(i, bar, beat, normal))
 #define swap(a,b) { a ^= b; b ^= a; a ^= b; }
 
+
+/*
+
+Cyd envelope length in milliseconds
+
+*/
+
+#define envelope_length(slope) (slope!=0?(float)(((slope) * (slope) * 256 / (ENVELOPE_SCALE * ENVELOPE_SCALE))) / ((float)CYD_BASE_FREQ / 1000.0f) :0.0f)
+
 void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain, int m);
 int generic_field(const SDL_Event *e, const SDL_Rect *area, int focus, int param, const char *_label, const char *format, void *value, int width);
 void generic_flags(const SDL_Event *e, const SDL_Rect *_area, int focus, int p, const char *label, Uint32 *flags, Uint32 mask);

@@ -55,14 +55,6 @@ void open_4op(void *unused1, void *unused2, void *unused3);
 void open_prog(void *unused1, void *unused2, void *unused3);
 void open_env(void *unused1, void *unused2, void *unused3);
 
-/*
-
-Cyd envelope length in milliseconds
-
-*/
-
-#define envelope_length(slope) (slope!=0?(float)(((slope) * (slope) * 256 / (ENVELOPE_SCALE * ENVELOPE_SCALE))) / ((float)CYD_BASE_FREQ / 1000.0f) :0.0f)
-
 float percent_to_dB(float percent)
 {
 	return 10 * log10(percent);

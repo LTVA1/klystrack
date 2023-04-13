@@ -9,6 +9,7 @@
 #include "event.h"
 #include "SDL_endian.h"
 #include "snd/freqs.h"
+#include "view.h"
 
 #define FZT_SONG_SIG "FZT!SONG"
 #define FZT_SONG_MAX_CHANNELS 4
@@ -25,6 +26,13 @@
 
 #define FZT_MUS_NOTE_INSTRUMENT_NONE 31
 #define FZT_MUS_NOTE_VOLUME_NONE 31
+
+#define FZT_MAX_ADSR (0xff << 17)
+#define FZT_BASE_FREQ 22050
+#define FZT_SAMPLE_RATE 44100
+#define fzt_envspd(slope) ((slope) != 0 ? (((Uint64)FZT_MAX_ADSR / ((slope) * (slope)*256 / 8)) * FZT_BASE_FREQ / FZT_SAMPLE_RATE) : ((uint64_t)FZT_MAX_ADSR * FZT_BASE_FREQ / FZT_SAMPLE_RATE))
+
+#define fzt_envelope_length(slope) ((((double)FZT_MAX_ADSR / (double)fzt_envspd(slope)) / (double)FZT_SAMPLE_RATE) * 1000.0) /* so we have time in milliseconds */
 
 enum
 {
@@ -46,7 +54,7 @@ enum
     FZT_SE_WAVEFORM_PULSE = 2,
     FZT_SE_WAVEFORM_TRIANGLE = 4,
     FZT_SE_WAVEFORM_SAW = 8,
-    FZT_SE_WAVEFORM_NOIFZT_SE_METAL = 16,
+    FZT_SE_WAVEFORM_NOISE_METAL = 16,
     FZT_SE_WAVEFORM_SINE = 32,
 };
 
@@ -95,9 +103,9 @@ enum
     FZT_TE_EFFECT_EXT_RETRIGGER = 0x0e90,
     FZT_TE_EFFECT_EXT_FINE_VOLUME_DOWN = 0x0ea0,
     FZT_TE_EFFECT_EXT_FINE_VOLUME_UP = 0x0eb0,
-    FZT_TE_EFFECT_EXT_NOFZT_TE_CUT = 0x0ec0,
-    FZT_TE_EFFECT_EXT_NOFZT_TE_DELAY = 0x0ed0,
-    FZT_TE_EFFECT_EXT_PHAFZT_SE_RESET = 0x0ef0,
+    FZT_TE_EFFECT_EXT_NOTE_CUT = 0x0ec0,
+    FZT_TE_EFFECT_EXT_NOTE_DELAY = 0x0ed0,
+    FZT_TE_EFFECT_EXT_PHASE_RESET = 0x0ef0,
 
     FZT_TE_EFFECT_SET_SPEED_PROG_PERIOD = 0x0f00,
     FZT_TE_EFFECT_CUTOFF_UP = 0x1000, // Gxx
