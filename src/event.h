@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef EVENT_H
 #define EVENT_H
 
@@ -40,6 +42,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "import/xm.h"
 #include "import/org.h"
 #include "import/hubbard.h"
+#include "import/fzt.h"
 
 #include <dirent.h>
 #include <errno.h>

@@ -1199,11 +1199,11 @@ void change_default_pattern_length(void *length, void *unused1, void *unused2)
 	{
 		if (mused.song.pattern[i].num_steps == mused.default_pattern_length && is_pattern_empty(&mused.song.pattern[i]))
 		{
-			resize_pattern(&mused.song.pattern[i], CASTPTR(int,length));
+			resize_pattern(&mused.song.pattern[i], CASTPTR(int, length));
 		}
 	}
 
-	mused.sequenceview_steps = mused.default_pattern_length = CASTPTR(int,length);
+	mused.sequenceview_steps = mused.default_pattern_length = CASTPTR(int, length);
 
 	for (Menu *m = patternlengthmenu; m->text; ++m)
 	{

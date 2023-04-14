@@ -203,7 +203,8 @@ Uint16 convert_command(Uint16 fzt_command, bool in_program)
 
 		case FZT_TE_EFFECT_SET_VOLUME: 
 		{
-			return MUS_FX_SET_VOLUME | (fzt_command & 0xff);
+			//return MUS_FX_SET_VOLUME | (fzt_command & 0xff);
+			return MUS_FX_SET_ABSOLUTE_VOLUME | (fzt_command & 0xff);
 			break;
 		}
 		
@@ -219,7 +220,8 @@ Uint16 convert_command(Uint16 fzt_command, bool in_program)
 			{
 				case FZT_TE_EFFECT_EXT_TOGGLE_FILTER: 
 				{
-					return (in_program ? MUS_FX_NOP : 0); //not supported in klystrack yet
+					//return (in_program ? MUS_FX_NOP : 0); //not supported in klystrack yet
+					return MUS_FX_EXT_TOGGLE_FILTER | (fzt_command & 0xf);
 					break;
 				}
 
@@ -517,23 +519,17 @@ void convert_fzt_instrument(MusInstrument* inst, fzt_instrument* fzt_inst)
 		inst->cydflags |= CYD_CHN_ENABLE_SINE;
 	}
 	
-	if(fzt_inst->flags & FZT_TE_ENABLE_VIBRATO)
-	{
-		inst->vibrato_speed = fzt_inst->vibrato_speed / 8;
-		inst->vibrato_depth = fzt_inst->vibrato_depth;
-		inst->vibrato_delay = fzt_inst->vibrato_delay;
-		
-		inst->vibrato_shape = MUS_SHAPE_TRI_UP;
-	}
+	inst->vibrato_speed = fzt_inst->vibrato_speed / 8;
+	inst->vibrato_depth = fzt_inst->vibrato_depth;
+	inst->vibrato_delay = fzt_inst->vibrato_delay;
 	
-	if(fzt_inst->flags & FZT_TE_ENABLE_PWM)
-	{
-		inst->pwm_speed = fzt_inst->pwm_speed / 8;
-		inst->pwm_depth = fzt_inst->pwm_depth;
-		inst->pwm_delay = fzt_inst->pwm_delay;
-		
-		inst->pwm_shape = MUS_SHAPE_TRI_UP;
-	}
+	inst->vibrato_shape = MUS_SHAPE_TRI_UP;
+	
+	inst->pwm_speed = fzt_inst->pwm_speed / 8;
+	inst->pwm_depth = fzt_inst->pwm_depth;
+	inst->pwm_delay = fzt_inst->pwm_delay;
+	
+	inst->pwm_shape = MUS_SHAPE_TRI_UP;
 	
 	if(fzt_inst->flags & FZT_TE_PROG_NO_RESTART)
 	{
@@ -563,37 +559,37 @@ void convert_fzt_instrument(MusInstrument* inst, fzt_instrument* fzt_inst)
 	if(fzt_inst->sound_engine_flags & FZT_SE_ENABLE_FILTER)
 	{
 		inst->cydflags |= CYD_CHN_ENABLE_FILTER;
+	}
+	
+	inst->cutoff = (Uint16)fzt_inst->filter_cutoff << 4;
+	inst->resonance = fzt_inst->filter_resonance >> 4;
+	
+	switch(fzt_inst->filter_type)
+	{
+		case FZT_FIL_OUTPUT_LOWPASS: inst->flttype = FLT_LP; break;
+		case FZT_FIL_OUTPUT_HIGHPASS: inst->flttype = FLT_HP; break;
+		case FZT_FIL_OUTPUT_BANDPASS: inst->flttype = FLT_BP; break;
+		case FZT_FIL_OUTPUT_LOW_HIGH: inst->flttype = FLT_LH; break;
+		case FZT_FIL_OUTPUT_HIGH_BAND: inst->flttype = FLT_LB; break;
+		case FZT_FIL_OUTPUT_LOW_BAND: inst->flttype = FLT_LB; break;
+		case FZT_FIL_OUTPUT_LOW_HIGH_BAND: inst->flttype = FLT_ALL; break;
 		
-		inst->cutoff = (Uint16)fzt_inst->filter_cutoff << 4;
-		inst->resonance = fzt_inst->filter_resonance >> 4;
-		
-		switch(fzt_inst->filter_type)
-		{
-			case FZT_FIL_OUTPUT_LOWPASS: inst->flttype = FLT_LP; break;
-			case FZT_FIL_OUTPUT_HIGHPASS: inst->flttype = FLT_HP; break;
-			case FZT_FIL_OUTPUT_BANDPASS: inst->flttype = FLT_BP; break;
-			case FZT_FIL_OUTPUT_LOW_HIGH: inst->flttype = FLT_LH; break;
-			case FZT_FIL_OUTPUT_HIGH_BAND: inst->flttype = FLT_LB; break;
-			case FZT_FIL_OUTPUT_LOW_BAND: inst->flttype = FLT_LB; break;
-			case FZT_FIL_OUTPUT_LOW_HIGH_BAND: inst->flttype = FLT_ALL; break;
-			
-			default: break;
-		}
+		default: break;
 	}
 	
 	if(fzt_inst->sound_engine_flags & FZT_SE_ENABLE_RING_MOD)
 	{
 		inst->cydflags |= CYD_CHN_ENABLE_RING_MODULATION;
-		
-		inst->ring_mod = fzt_inst->ring_mod;
 	}
+	
+	inst->ring_mod = fzt_inst->ring_mod;
 	
 	if(fzt_inst->sound_engine_flags & FZT_SE_ENABLE_HARD_SYNC)
 	{
 		inst->cydflags |= CYD_CHN_ENABLE_SYNC;
-		
-		inst->sync_source = fzt_inst->hard_sync;
 	}
+	
+	inst->sync_source = fzt_inst->hard_sync;
 	
 	if(fzt_inst->sound_engine_flags & FZT_SE_ENABLE_KEYDOWN_SYNC)
 	{
@@ -716,6 +712,7 @@ int import_fzt(FILE *f)
 	fread(&header.num_patterns, 1, sizeof(header.num_patterns), f);
 	
 	strncpy(mused.song.title, header.song_name, FZT_SONG_NAME_LEN + 1);
+	
 	mused.song.song_length = header.num_sequence_steps * header.pattern_length;
 	mused.song.song_speed = mused.song.song_speed2 = header.speed;
 	mused.song.song_rate = header.rate;
@@ -746,6 +743,8 @@ int import_fzt(FILE *f)
 	{
 		set_default_fzt_instrument(inst);
 		load_fzt_instrument(f, inst, header.version);
+		
+		mus_get_default_instrument(&mused.song.instrument[i]);
 		
 		strncpy(mused.song.instrument[i].name, inst->name, FZT_MUS_INST_NAME_LEN + 1);
 		

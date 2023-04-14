@@ -4,12 +4,12 @@
 #define FZT_H
 
 #include <stdio.h>
-#include "edit.h"
-#include "mused.h"
-#include "event.h"
+#include "../edit.h"
+#include "../mused.h"
+#include "../event.h"
 #include "SDL_endian.h"
-#include "snd/freqs.h"
-#include "view.h"
+#include "../../klystron/src/snd/freqs.h"
+#include "../view.h"
 
 #define FZT_SONG_SIG "FZT!SONG"
 #define FZT_SONG_MAX_CHANNELS 4

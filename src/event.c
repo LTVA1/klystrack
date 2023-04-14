@@ -344,6 +344,7 @@ void dropfile_event(SDL_Event *e)
 							{
 								stop(0, 0, 0);
 								
+								new_song();
 								import_mod(f);
 								fclose(f);
 								
@@ -361,6 +362,7 @@ void dropfile_event(SDL_Event *e)
 						{
 							stop(0, 0, 0);
 							
+							new_song();
 							import_mod(f);
 							fclose(f);
 							
@@ -386,6 +388,7 @@ void dropfile_event(SDL_Event *e)
 							{
 								stop(0, 0, 0);
 								
+								new_song();
 								import_ahx(f);
 								fclose(f);
 								
@@ -403,6 +406,7 @@ void dropfile_event(SDL_Event *e)
 						{
 							stop(0, 0, 0);
 							
+							new_song();
 							import_ahx(f);
 							fclose(f);
 							
@@ -428,6 +432,7 @@ void dropfile_event(SDL_Event *e)
 							{
 								stop(0, 0, 0);
 								
+								new_song();
 								import_xm(f);
 								fclose(f);
 								
@@ -445,6 +450,7 @@ void dropfile_event(SDL_Event *e)
 						{
 							stop(0, 0, 0);
 							
+							new_song();
 							import_xm(f);
 							fclose(f);
 							
@@ -470,6 +476,7 @@ void dropfile_event(SDL_Event *e)
 							{
 								stop(0, 0, 0);
 								
+								new_song();
 								import_org(f);
 								fclose(f);
 								
@@ -487,6 +494,7 @@ void dropfile_event(SDL_Event *e)
 						{
 							stop(0, 0, 0);
 							
+							new_song();
 							import_org(f);
 							fclose(f);
 							
@@ -512,6 +520,7 @@ void dropfile_event(SDL_Event *e)
 							{
 								stop(0, 0, 0);
 								
+								new_song();
 								import_hubbard(f);
 								fclose(f);
 								
@@ -527,9 +536,54 @@ void dropfile_event(SDL_Event *e)
 						{
 							stop(0, 0, 0);
 							
+							new_song();
 							import_hubbard(f);
 							fclose(f);
 							
+							set_channels(mused.song.num_channels);
+							
+							mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
+							play(0, 0, 0);
+							stop(0, 0, 0);
+						}
+						
+						goto end;
+					}
+					
+					if((strcmp(".fzt", mod_extension)) == 0 || (strcmp(".fzt", mod_extension)) == 0)
+					{
+						debug("Dropped an .FZT file");
+					
+						if(mused.modified)
+						{
+							if(confirm(domain, mused.slider_bevel, &mused.largefont, "Overwrite current song?"))
+							{
+								stop(0, 0, 0);
+								
+								new_song();
+								import_fzt(f);
+								fclose(f);
+								
+								kill_empty_patterns(&mused.song, NULL); //wasn't there
+								optimize_duplicate_patterns(&mused.song, true);
+								set_channels(mused.song.num_channels);
+								
+								mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
+								play(0, 0, 0);
+								stop(0, 0, 0);
+							}
+						}
+						
+						else
+						{
+							stop(0, 0, 0);
+							
+							new_song();
+							import_fzt(f);
+							fclose(f);
+							
+							kill_empty_patterns(&mused.song, NULL); //wasn't there
+							optimize_duplicate_patterns(&mused.song, true);
 							set_channels(mused.song.num_channels);
 							
 							mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;

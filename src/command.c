@@ -72,6 +72,7 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_FAST_SLIDE, 0xff00, "Fast slide (16x faster)", "FastSlide", -1, -1},
 	{MUS_FX_PORTA_UP_SEMI, 0xff00, "Portamento up (semitones)", "PortUpST", -1, -1},
 	{MUS_FX_PORTA_DN_SEMI, 0xff00, "Portamento down (semitones)", "PortDnST", -1, -1},
+	{MUS_FX_EXT_TOGGLE_FILTER, 0xfff0, "Toggle filter", "ToggleFilt", -1, -1},
 	{MUS_FX_CUTOFF_UP, 0xff00, "Filter cutoff up", "CutoffUp", -1, -1},
 	{MUS_FX_CUTOFF_DN, 0xff00, "Filter cutoff down", "CutoffDn", -1, -1},
 	{MUS_FX_CUTOFF_SET, 0xff00, "Set filter cutoff", "Cutoff", 0, 0xff},
@@ -83,6 +84,7 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_PW_UP, 0xff00, "Pulse width up", "PWUp", -1, -1},
 	{MUS_FX_PW_SET, 0xff00, "Set pulse width", "PW", -1, -1},
 	{MUS_FX_SET_VOLUME, 0xff00, "Set volume", "Volume", 0, 0xff},
+	{MUS_FX_SET_ABSOLUTE_VOLUME, 0xff00, "Set absolute volume (doesn't obey \"relative\" flag)", "AbsVol", 0, 0xff},
 	{MUS_FX_FADE_GLOBAL_VOLUME, 0xff00, "Global volume fade", "GlobFade", -1, -1},
 	{MUS_FX_SET_GLOBAL_VOLUME, 0xff00, "Set global volume", "GlobVol", 0, MAX_VOLUME},
 	{MUS_FX_SET_CHANNEL_VOLUME, 0xff00, "Set channel volume", "ChnVol", 0, MAX_VOLUME},
@@ -333,7 +335,7 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst)
 		snprintf(text, buffer_size, "%s (%s)\n", name, mused.song.wavetable_names[(inst & 0xff)]);
 	}
 	
-	else if ((fi & 0xff00) == MUS_FX_SET_VOLUME)
+	else if ((fi & 0xff00) == MUS_FX_SET_VOLUME || (fi & 0xff00) == MUS_FX_SET_ABSOLUTE_VOLUME)
 	{
 		snprintf(text, buffer_size, "%s (%+.1f dB)\n", name, percent_to_dB((float)(inst & 0xff) / MAX_VOLUME));
 	}
@@ -404,6 +406,11 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst)
 	else if ((fi & 0xff00) == MUS_FX_SET_CSM_TIMER_FINETUNE)
 	{
 		snprintf(text, buffer_size, "%s (+%d)", name, (inst & 0xff));
+	}
+	
+	else if ((fi & 0xfff0) == MUS_FX_EXT_TOGGLE_FILTER)
+	{
+		snprintf(text, buffer_size, "%s (%s)", name, (inst & 0xf) ? "enable" : "disable");
 	}
 	
 	else if ((fi & 0xff00) == MUS_FX_SET_PANNING)
