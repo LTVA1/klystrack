@@ -155,13 +155,14 @@ Uint16 convert_command(Uint16 fzt_command, bool in_program)
 
 		case FZT_TE_EFFECT_VIBRATO: 
 		{
-			return MUS_FX_VIBRATO | (my_min((fzt_command & 0xf0 >> 4) * 2, 0xf) << 4) | my_min((fzt_command & 0xf) * 2, 0xf);
+			return MUS_FX_VIBRATO | ((((fzt_command & 0xf0) >> 4) / 2) << 4) | (fzt_command & 0xf);
+			//return MUS_FX_VIBRATO | (fzt_command & 0xff);
 			break;
 		}
 
 		case FZT_TE_EFFECT_PWM:
 		{
-			return MUS_FX_PWM | (my_min((fzt_command & 0xf0 >> 4) / 2, 0xf) << 4) | my_min((fzt_command & 0xf) / 2, 0xf);
+			return MUS_FX_PWM | ((((fzt_command & 0xf0) >> 4) / 2) << 4) | (fzt_command & 0xf);
 			break;
 		}
 
@@ -749,6 +750,44 @@ int import_fzt(FILE *f)
 		strncpy(mused.song.instrument[i].name, inst->name, FZT_MUS_INST_NAME_LEN + 1);
 		
 		convert_fzt_instrument(&mused.song.instrument[i], inst);
+	}
+	
+	for(int ch = 0; ch < FZT_SONG_MAX_CHANNELS; ch++) //filling in vibrato control bits between 0x04xy (begin) and 0x0400 (end); should work even across subsequent patterns
+	{
+		bool is_vibrato = false;
+		
+		for(int i = 0; i < header.num_sequence_steps; i++)
+		{
+			MusPattern* klystrack_pattern = &mused.song.pattern[mused.song.sequence[ch][i].pattern];
+			
+			for(int j = 0; j < header.pattern_length; j++)
+			{
+				MusStep* step = &klystrack_pattern->step[j];
+				
+				if((step->command[0] & 0xff00) == MUS_FX_VIBRATO)
+				{
+					if((step->command[0] & 0xff))
+					{
+						is_vibrato = true;
+					}
+					
+					else
+					{
+						is_vibrato = false;
+					}
+				}
+				
+				if(step->note != MUS_NOTE_NONE && step->note != MUS_NOTE_RELEASE && step->note != MUS_NOTE_CUT && step->instrument != MUS_NOTE_NO_INSTRUMENT)
+				{
+					is_vibrato = false;
+				}
+				
+				if(is_vibrato)
+				{
+					step->ctrl |= MUS_CTRL_VIB;
+				}
+			}
+		}
 	}
 	
 	abort:;
