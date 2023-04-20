@@ -54,9 +54,22 @@ void show_credits(void *unused0, void *unused1, void *unused2)
 	bool modified = mused.modified;
 	
 	char filename[5000] = {0};
-	char* song_name = (char*)&mused.song.title;
+	//char* song_name = (char*)&mused.song.title;
+	char* song_name = malloc(strlen((char*)&mused.song.title) + 2);
+	
+	strcpy(song_name, (char*)&mused.song.title);
+	
+	for(int i = 0; i <= strlen((char*)&mused.song.title); i++)
+	{
+		if(song_name[i] == '\\' || song_name[i] == '/' || song_name[i] == ':' || song_name[i] == '*' || song_name[i] == '?' || song_name[i] == '\"' || song_name[i] == '<' || song_name[i] == '>' || song_name[i] == '|')
+		{
+			song_name[i] = '_';
+		}
+	}
 
 	snprintf(filename, sizeof(filename) - 1, "%s.credits_backup.kt.autosave", strcmp(song_name, "") == 0 ? "[untitled_song]" : song_name);
+	
+	free(song_name);
 	
 	SDL_RWops* rw = SDL_RWFromFile(filename, "wb");
 	
