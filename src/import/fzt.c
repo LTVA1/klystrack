@@ -487,7 +487,7 @@ void convert_fzt_pattern(MusPattern* pattern, fzt_pattern* fzt_pat, Uint16 patte
 void convert_fzt_instrument(MusInstrument* inst, fzt_instrument* fzt_inst)
 {
 	inst->flags &= ~(MUS_INST_DRUM);
-	inst->flags |= MUS_INST_RELATIVE_VOLUME;
+	inst->flags |= MUS_INST_RELATIVE_VOLUME | MUS_INST_KEEP_VOLUME_ON_SLIDE_AND_LEGATO;
 	inst->cydflags &= ~(CYD_CHN_ENABLE_TRIANGLE);
 	
 	if(fzt_inst->waveform & FZT_SE_WAVEFORM_NOISE)
