@@ -16,8 +16,9 @@
 #define FZT_MAX_SEQUENCE_LENGTH 256
 #define FZT_SONG_NAME_LEN 16
 #define FZT_MUS_INST_NAME_LEN 13
+#define FZT_WAVE_NAME_LEN (32 - 8 + 1)
 #define FZT_INST_PROG_LEN 16
-#define FZT_VERSION 1
+#define FZT_VERSION 2
 #define FZT_MIDDLE_C (12 * 4)
 
 #define FZT_MUS_NOTE_NONE 127
@@ -65,6 +66,8 @@ enum
     FZT_SE_ENABLE_RING_MOD = 4,
     FZT_SE_ENABLE_HARD_SYNC = 8,
     FZT_SE_ENABLE_KEYDOWN_SYNC = 16, // sync oscillators on keydown
+	FZT_SE_ENABLE_SAMPLE = 32,
+	FZT_SE_SAMPLE_OVERRIDE_ENVELOPE = 64,
 };
 
 enum
@@ -75,6 +78,11 @@ enum
     FZT_TE_SET_CUTOFF = 8,
     FZT_TE_SET_PW = 16,
     FZT_TE_RETRIGGER_ON_SLIDE = 32, // call trigger instrument function even if slide command is there
+};
+
+enum
+{
+    FZT_SE_SAMPLE_LOOP = 1,
 };
 
 enum
@@ -119,9 +127,8 @@ enum
     FZT_TE_EFFECT_SET_SUSTAIN = 0x1700, // Nxx
     FZT_TE_EFFECT_SET_RELEASE = 0x1800, // Oxx
     FZT_TE_EFFECT_PROGRAM_RESTART = 0x1900, // Pxx
-    /*
-    FZT_TE_EFFECT_ = 0x1a00, //Qxx
-    */
+	
+    FZT_TE_EFFECT_SET_DPCM_SAMPLE = 0x1a00, //Qxx
 
     FZT_TE_EFFECT_SET_RING_MOD_SRC = 0x1b00, // Rxx
     FZT_TE_EFFECT_SET_HARD_SYNC_SRC = 0x1c00, // Sxx
@@ -172,6 +179,18 @@ typedef struct
     Uint8 a, d, s, r, volume;
 } fzt_instrument_adsr;
 
+typedef struct {
+    Uint32 length, loop_start, loop_end, position;
+    Uint8 delta_counter; //0-63
+    Uint8 initial_delta_counter_position;
+    Uint8 delta_counter_position_on_loop_start;
+    char name[FZT_WAVE_NAME_LEN];
+    Uint8* data;
+
+    Uint8 flags;
+    bool playing;
+} fzt_dpcm_sample;
+
 typedef struct 
 {
 	char name[FZT_MUS_INST_NAME_LEN + 1];
@@ -198,6 +217,8 @@ typedef struct
 
 	Uint8 base_note;
 	int8_t finetune;
+	
+	Uint8 sample;
 } fzt_instrument;
 
 int import_fzt(FILE *f);

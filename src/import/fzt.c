@@ -123,6 +123,39 @@ void load_fzt_instrument(FILE* f, fzt_instrument* inst, Uint8 version)
 		fread(&inst->filter_resonance, 1, sizeof(inst->filter_resonance), f);
 		fread(&inst->filter_type, 1, sizeof(inst->filter_type), f);
     }
+	
+	if(version > 1 && (inst->sound_engine_flags & FZT_SE_ENABLE_SAMPLE))
+	{
+		fread(&inst->sample, 1, sizeof(inst->sample), f);
+	}
+}
+
+void load_fzt_sample(FILE* f, fzt_dpcm_sample* sample, Uint8 version)
+{
+	fread(sample->name, 1, sizeof(sample->name), f);
+	fread(&sample->flags, 1, sizeof(sample->flags), f);
+	fread(&sample->initial_delta_counter_position, 1, sizeof(sample->initial_delta_counter_position), f);
+	
+	fread(&sample->length, 1, sizeof(sample->length), f);
+	
+	if(sample->data)
+	{
+		free(sample->data);
+	}
+	
+	if(sample->flags & FZT_SE_SAMPLE_LOOP)
+	{
+		fread(&sample->loop_start, 1, sizeof(sample->loop_start), f);
+		fread(&sample->loop_end, 1, sizeof(sample->loop_end), f);
+		fread(&sample->delta_counter_position_on_loop_start, 1, sizeof(sample->delta_counter_position_on_loop_start), f);
+	}
+	
+	if(sample->length > 0)
+	{
+		sample->data = (uint8_t*)calloc(1, sample->length / 8 + 1);
+
+		fread(sample->data, 1, sizeof(sample->data[0]) * sample->length / 8 + 1, f);
+	}
 }
 
 Uint16 convert_command(Uint16 fzt_command, bool in_program)
@@ -359,6 +392,12 @@ Uint16 convert_command(Uint16 fzt_command, bool in_program)
 		case FZT_TE_EFFECT_PROGRAM_RESTART:
 		{
 			return MUS_FX_RESTART_PROGRAM | (fzt_command & 0xff);
+			break;
+		}
+		
+		case FZT_TE_EFFECT_SET_DPCM_SAMPLE:
+		{
+			return MUS_FX_SET_WAVETABLE_ITEM | (fzt_command & 0xff);
 			break;
 		}
 
@@ -602,6 +641,19 @@ void convert_fzt_instrument(MusInstrument* inst, fzt_instrument* fzt_inst)
 		inst->cydflags &= ~(CYD_CHN_ENABLE_KEY_SYNC);
 	}
 	
+	if(fzt_inst->sound_engine_flags & FZT_SE_ENABLE_SAMPLE)
+	{
+		inst->cydflags |= CYD_CHN_ENABLE_WAVE;
+		inst->wavetable_entry = fzt_inst->sample;
+		
+		inst->flags |= MUS_INST_WAVE_LOCK_NOTE;
+	}
+	
+	if(fzt_inst->sound_engine_flags & FZT_SE_SAMPLE_OVERRIDE_ENVELOPE)
+	{
+		inst->cydflags |= CYD_CHN_WAVE_OVERRIDE_ENV;
+	}
+	
 	inst->base_note = fzt_inst->base_note + C_ZERO;
 	inst->finetune = fzt_inst->finetune;
 	inst->slide_speed = (Uint16)fzt_inst->slide_speed << 2;
@@ -625,6 +677,45 @@ void convert_fzt_instrument(MusInstrument* inst, fzt_instrument* fzt_inst)
 			inst->program_unite_bits[0][i / 8] |= (1 << (i & 7)); 
 		}
 	}
+}
+
+void convert_fzt_sample(CydWavetableEntry* sample, fzt_dpcm_sample* fzt_sample)
+{
+	//we know that sample is 6-bit range 1-bit per step DPCM
+	//and we scale it to 16 bit signed
+	uint8_t delta_counter = fzt_sample->initial_delta_counter_position;
+	
+	Sint16* data = (Sint16*)calloc(1, fzt_sample->length * sizeof(Sint16));
+	
+	for(int i = 0; i < fzt_sample->length; i++)
+	{
+		if(fzt_sample->data[i / 8] & (1 << (i & 7)))
+		{
+			delta_counter++;
+		}
+		
+		else
+		{
+			delta_counter--;
+		}
+		
+		data[i] = (Sint16)delta_counter * 4 * 256 - 32768; //0..63 to -32768..32767
+	}
+	
+	cyd_wave_entry_init(sample, data, fzt_sample->length, CYD_WAVE_TYPE_SINT16, 1, 1, 1);
+	
+	if(fzt_sample->flags & FZT_SE_SAMPLE_LOOP)
+	{
+		sample->flags |= CYD_WAVE_LOOP;
+		
+		sample->loop_begin = fzt_sample->loop_start;
+		sample->loop_end = fzt_sample->loop_end;
+	}
+	
+	sample->base_note = (MIDDLE_C << 8);
+	sample->sample_rate = FZT_SAMPLE_RATE;
+	
+	free(data);
 }
 
 int import_fzt(FILE *f)
@@ -752,6 +843,23 @@ int import_fzt(FILE *f)
 		convert_fzt_instrument(&mused.song.instrument[i], inst);
 	}
 	
+	Uint8 num_samples = 0;
+	
+	fzt_dpcm_sample* sample = (fzt_dpcm_sample*)calloc(1, sizeof(fzt_dpcm_sample));
+	
+	if(header.version > 1)
+	{
+		fread(&num_samples, 1, sizeof(num_samples), f);
+		
+		for(int i = 0; i < num_samples; i++)
+		{
+			load_fzt_sample(f, sample, header.version);
+			
+			cyd_wave_entry_deinit(&mused.mus.cyd->wavetable_entries[i]); //just in case
+			convert_fzt_sample(&mused.mus.cyd->wavetable_entries[i], sample);
+		}
+	}
+	
 	for(int ch = 0; ch < FZT_SONG_MAX_CHANNELS; ch++) //filling in vibrato control bits between 0x04xy (begin) and 0x0400 (end); should work even across subsequent patterns
 	{
 		bool is_vibrato = false;
@@ -810,6 +918,16 @@ int import_fzt(FILE *f)
 	if(inst)
 	{
 		free(inst);
+	}
+	
+	if(sample)
+	{
+		if(sample->data)
+		{
+			free(sample->data);
+		}
+		
+		free(sample);
 	}
 	
 	if(abort)
