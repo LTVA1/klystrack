@@ -104,6 +104,7 @@ enum
     FZT_TE_SET_CUTOFF = 8,
     FZT_TE_SET_PW = 16,
     FZT_TE_RETRIGGER_ON_SLIDE = 32, // call trigger instrument function even if slide command is there
+	FZT_TE_SAMPLE_LOCK_TO_BASE_NOTE = 64,
 };
 
 enum
@@ -177,6 +178,21 @@ enum
     FZT_TE_PROGRAM_NOP = 0x7ffe,
     FZT_TE_PROGRAM_END = 0x7fff,
 };
+
+typedef struct 
+{
+	char sig[sizeof(FZT_SONG_SIG) + 1];
+	Uint8 version;
+	char song_name[FZT_SONG_NAME_LEN + 1];
+	Uint8 loop_start;
+	Uint8 loop_end;
+	Uint16 pattern_length;
+	Uint8 speed;
+	Uint8 rate;
+	Uint16 num_sequence_steps;
+	Uint8 num_patterns;
+	Uint8 num_instruments;
+} fzt_header;
 
 typedef struct
 {

@@ -636,7 +636,7 @@ void convert_fzt_instrument(MusInstrument* inst, fzt_instrument* fzt_inst)
 		case FZT_FIL_OUTPUT_HIGHPASS: inst->flttype = FLT_HP; break;
 		case FZT_FIL_OUTPUT_BANDPASS: inst->flttype = FLT_BP; break;
 		case FZT_FIL_OUTPUT_LOW_HIGH: inst->flttype = FLT_LH; break;
-		case FZT_FIL_OUTPUT_HIGH_BAND: inst->flttype = FLT_LB; break;
+		case FZT_FIL_OUTPUT_HIGH_BAND: inst->flttype = FLT_HB; break;
 		case FZT_FIL_OUTPUT_LOW_BAND: inst->flttype = FLT_LB; break;
 		case FZT_FIL_OUTPUT_LOW_HIGH_BAND: inst->flttype = FLT_ALL; break;
 		
@@ -672,7 +672,10 @@ void convert_fzt_instrument(MusInstrument* inst, fzt_instrument* fzt_inst)
 		inst->cydflags |= CYD_CHN_ENABLE_WAVE;
 		inst->wavetable_entry = fzt_inst->sample;
 		
-		inst->flags |= MUS_INST_WAVE_LOCK_NOTE;
+		if(fzt_inst->flags & FZT_TE_SAMPLE_LOCK_TO_BASE_NOTE)
+		{
+			inst->flags |= MUS_INST_WAVE_LOCK_NOTE;
+		}
 	}
 	
 	if(fzt_inst->sound_engine_flags & FZT_SE_SAMPLE_OVERRIDE_ENVELOPE)
@@ -748,20 +751,7 @@ int import_fzt(FILE *f)
 {
 	bool abort = false;
 	
-	struct 
-	{
-		char sig[sizeof(FZT_SONG_SIG) + 1];
-		Uint8 version;
-		char song_name[FZT_SONG_NAME_LEN + 1];
-		Uint8 loop_start;
-		Uint8 loop_end;
-		Uint16 pattern_length;
-		Uint8 speed;
-		Uint8 rate;
-		Uint16 num_sequence_steps;
-		Uint8 num_patterns;
-		Uint8 num_instruments;
-	} header;
+	fzt_header header;
 	
 	fzt_sequence* sequence = NULL;
 	fzt_pattern* pattern = NULL;
