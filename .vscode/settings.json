@@ -1,4 +1,7 @@
 {
-    "files.encoding": "windows1252",
-    "files.autoGuessEncoding": false
+    "files.encoding": "utf8",
+    "files.autoGuessEncoding": false,
+    "files.associations": {
+        "wavegen.h": "c"
+    }
 }

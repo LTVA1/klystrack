@@ -232,7 +232,7 @@ static const Menu wavetablemenu[] =
 
 static const Menu exportmodulemenu[] =
 {
-	{ 0, filemenu, "Export .FZT", NULL, export_wav_action },
+	{ 0, filemenu, "Export .FZT", NULL, export_fzt_action },
 	{ 0, NULL, NULL }
 };
 
@@ -246,7 +246,7 @@ const Menu filemenu[] =
 	{ 0, mainmenu, "Export .WAV", NULL, export_wav_action },
 	{ 0, mainmenu, "Exp. hires .WAV (longer)", NULL, export_hires_wav_action },
 	{ 0, mainmenu, "Export tracks as .WAV", NULL, export_channels_action },
-	//{ 0, mainmenu, "Export module", exportmodulemenu },
+	{ 0, mainmenu, "Export module", exportmodulemenu },
 	{ 0, mainmenu, "Import", importmenu },
 	{ 0, mainmenu, "", NULL, NULL },
 	{ 0, mainmenu, "Instrument", instmenu },

@@ -805,6 +805,35 @@ void export_wav_action(void *a, void *b, void *c)
 	mused.song.flags &= ~MUS_NO_REPEAT; //wasn't there
 }
 
+void export_fzt_action(void *a, void *b, void *c)
+{
+	char def[1000];
+
+	if (strlen(mused.previous_song_filename) == 0)
+	{
+		snprintf(def, sizeof(def), "%s.fzt", mused.song.title);
+	}
+	
+	else
+	{
+		strncpy(def, mused.previous_export_filename, sizeof(mused.previous_export_filename) - 1);
+	}
+
+	char filename[5000];
+
+	if (open_dialog_fn("wb", "Export .FZT", "fzt", domain, mused.slider_bevel, &mused.largefont, &mused.smallfont, def, filename, sizeof(filename)))
+	{
+		strncpy(mused.previous_export_filename, filename, sizeof(mused.previous_export_filename) - 1);
+
+		FILE *f = fopen(filename, "wb");
+
+		if (f)
+		{
+			export_fzt(&mused.song, mused.mus.cyd->wavetable_entries, f);
+		}
+	}
+}
+
 void export_hires_wav_action(void *a, void*b, void*c)
 {
 	char def[1000];
