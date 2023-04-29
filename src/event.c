@@ -92,13 +92,27 @@ void editparambox(int v)
 
 int find_note(int sym, int oct)
 {
+	int n = 0;
+	
+	static const int alias_keys[] =
+	{
+	SDLK_z, SDLK_s, SDLK_x, SDLK_d, SDLK_c, SDLK_v, SDLK_g, SDLK_b, SDLK_h, SDLK_n, SDLK_j, SDLK_m,
+	SDLK_COMMA, SDLK_l, SDLK_w, SDLK_3, SDLK_e, SDLK_r, SDLK_5, SDLK_t, SDLK_6, SDLK_y, SDLK_7, SDLK_u,
+	SDLK_i, SDLK_9, SDLK_o, SDLK_0, SDLK_p, SDLK_LEFTBRACKET, 0, SDLK_RIGHTBRACKET, -1};
+	
+	for (const int *i = alias_keys; *i != -1; ++i, ++n)
+	{
+		if (*i == sym)
+			return n + (oct + 5) * 12;
+	}
+	
 	static const int keys[] =
 	{
 	SDLK_z, SDLK_s, SDLK_x, SDLK_d, SDLK_c, SDLK_v, SDLK_g, SDLK_b, SDLK_h, SDLK_n, SDLK_j, SDLK_m,
 	SDLK_q, SDLK_2, SDLK_w, SDLK_3, SDLK_e, SDLK_r, SDLK_5, SDLK_t, SDLK_6, SDLK_y, SDLK_7, SDLK_u,
-	SDLK_i, SDLK_9, SDLK_o, SDLK_0, SDLK_p, -1};
+	SDLK_i, SDLK_9, SDLK_o, SDLK_0, SDLK_p, SDLK_LEFTBRACKET, 0, SDLK_RIGHTBRACKET, -1};
 
-	int n = 0;
+	n = 0;
 	
 	for (const int *i = keys; *i != -1; ++i, ++n)
 	{
@@ -3965,9 +3979,9 @@ void pattern_event(SDL_Event *e)
 					{
 						if (e->key.keysym.sym == SDLK_PERIOD)
 						{
-							mused.song.pattern[current_pattern()].step[current_patternstep()].note = MUS_NOTE_NONE;
-
 							snapshot(S_T_PATTERN);
+							
+							mused.song.pattern[current_pattern()].step[current_patternstep()].note = MUS_NOTE_NONE;
 
 							update_pattern_slider(mused.note_jump);
 						}
@@ -4014,9 +4028,9 @@ void pattern_event(SDL_Event *e)
 					{
 						if (e->key.keysym.sym == SDLK_PERIOD)
 						{
-							mused.song.pattern[current_pattern()].step[current_patternstep()].instrument = MUS_NOTE_NO_INSTRUMENT;
-
 							snapshot(S_T_PATTERN);
+							
+							mused.song.pattern[current_pattern()].step[current_patternstep()].instrument = MUS_NOTE_NO_INSTRUMENT;
 
 							update_pattern_slider(mused.note_jump);
 						}
@@ -4077,7 +4091,7 @@ void pattern_event(SDL_Event *e)
 										default: break;
 									}
 
-									snapshot(S_T_PATTERN);
+									//snapshot(S_T_PATTERN);
 
 									if (cmd != 0)
 									{
@@ -4110,7 +4124,7 @@ void pattern_event(SDL_Event *e)
 										vol = (vol & 0xf0) | gethex(e->key.keysym.sym);
 										break;
 									}
-
+									
 									snapshot(S_T_PATTERN);
 
 									if ((vol & 0xf0) != MUS_NOTE_VOLUME_FADE_UP &&
