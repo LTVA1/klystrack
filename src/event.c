@@ -4143,7 +4143,36 @@ void pattern_event(SDL_Event *e)
 					
 					else if (mused.current_patternx >= PED_COMMAND1) //command input
 					{
-						if (gethex(e->key.keysym.sym) != -1)
+						if(e->key.keysym.sym == SDLK_PERIOD)
+						{
+							snapshot(S_T_PATTERN);
+							
+							Uint16 inst = mused.song.pattern[current_pattern()].step[current_patternstep()].command[(mused.current_patternx - PED_COMMAND1) / 4];
+							
+							switch ((mused.current_patternx - PED_COMMAND1) % 4)
+							{
+								case 0:
+								inst = (inst & 0x0fff);
+								break;
+
+								case 1:
+								inst = (inst & 0xf0ff);
+								break;
+
+								case 2:
+								inst = (inst & 0xff0f);
+								break;
+
+								case 3:
+								inst = (inst & 0xfff0);
+								break;
+							}
+							
+							mused.song.pattern[current_pattern()].step[current_patternstep()].command[(mused.current_patternx - PED_COMMAND1) / 4] = validate_command(inst);
+							update_pattern_slider(mused.note_jump);
+						}
+						
+						else if (gethex(e->key.keysym.sym) != -1)
 						{
 							Uint16 inst = mused.song.pattern[current_pattern()].step[current_patternstep()].command[(mused.current_patternx - PED_COMMAND1) / 4];
 
@@ -4168,7 +4197,7 @@ void pattern_event(SDL_Event *e)
 
 							snapshot(S_T_PATTERN);
 
-							mused.song.pattern[current_pattern()].step[current_patternstep()].command[(mused.current_patternx - PED_COMMAND1) / 4] = validate_command(inst) & 0xffff; //you need `0x7fff` there to return old command system
+							mused.song.pattern[current_pattern()].step[current_patternstep()].command[(mused.current_patternx - PED_COMMAND1) / 4] = validate_command(inst); //you need `& 0x7fff` there to return old command system
 
 							update_pattern_slider(mused.note_jump);
 						}

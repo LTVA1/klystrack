@@ -667,7 +667,10 @@ void write_pattern(FILE* f, MusPattern* pat, Uint8 length)
 
         Uint8 vol = ((step->volume == MUS_NOTE_NO_VOLUME) ? FZT_MUS_NOTE_VOLUME_NONE : step->volume / 4);
 
-        fzt_set_volume(&fzt_step, vol);
+        if(step->volume == MUS_NOTE_NO_VOLUME || step->volume < 0x90)
+        {
+            fzt_set_volume(&fzt_step, vol);
+        }
 
         Uint16 command = step->command[0]; //TODO: add command conversion
 
