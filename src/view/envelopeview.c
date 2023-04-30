@@ -150,6 +150,7 @@ void fourop_point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, c
 	
 	SDL_Rect area;
 	copy_rect(&area, dest);
+	
 	console_set_clip(mused.console, &area);
 	console_clear(mused.console);
 	//bevelex(domain, &area, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
@@ -589,6 +590,13 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 	
 	SDL_Rect area;
 	copy_rect(&area, dest);
+	
+	if(!(mused.show_fm_settings))
+	{
+		area.y -= 60;
+		area.h += 60;
+	}
+	
 	console_set_clip(mused.console, &area);
 	console_clear(mused.console);
 	//bevelex(domain, &area, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
