@@ -280,7 +280,6 @@ Uint16 convert_command(Uint16 fzt_command, bool in_program)
 			{
 				case FZT_TE_EFFECT_EXT_TOGGLE_FILTER: 
 				{
-					//return (in_program ? MUS_FX_NOP : 0); //not supported in klystrack yet
 					return MUS_FX_EXT_TOGGLE_FILTER | (fzt_command & 0xf);
 					break;
 				}
@@ -357,7 +356,7 @@ Uint16 convert_command(Uint16 fzt_command, bool in_program)
 
 		case FZT_TE_EFFECT_CUTOFF_DOWN:
 		{
-			return MUS_FX_CUTOFF_UP | (fzt_command & 0xff);
+			return MUS_FX_CUTOFF_DN | (fzt_command & 0xff);
 			break;
 		}
 

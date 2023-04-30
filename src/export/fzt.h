@@ -28,4 +28,10 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 #include "../mused.h"
 
+enum
+{
+    TYPE_PROGRAM = 0,
+    TYPE_PATTERN = 1,
+};
+
 bool export_fzt(MusSong *song, CydWavetableEntry * entry, FILE *f);

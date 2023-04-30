@@ -821,7 +821,7 @@ void export_fzt_action(void *a, void *b, void *c)
 
 	char filename[5000];
 
-	if (open_dialog_fn("wb", "Export .FZT", "fzt", domain, mused.slider_bevel, &mused.largefont, &mused.smallfont, def, filename, sizeof(filename)))
+	if (open_dialog_fn("wb", "Export .FZT (Flizzer Tracker module)", "fzt", domain, mused.slider_bevel, &mused.largefont, &mused.smallfont, def, filename, sizeof(filename)))
 	{
 		strncpy(mused.previous_export_filename, filename, sizeof(mused.previous_export_filename) - 1);
 

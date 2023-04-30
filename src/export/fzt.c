@@ -91,6 +91,347 @@ Uint8 convert_envelope_params(Uint8 param)
 	return min_index;
 }
 
+Uint16 convert_command_to_fzt(void* data, Uint8 type)
+{
+    Uint16 command = 0;
+    MusStep* step = NULL;
+
+    if(type == TYPE_PROGRAM)
+    {
+        command = CASTPTR(Uint16, data);
+    }
+
+    if(type == TYPE_PATTERN)
+    {
+        step = (MusStep*)data;
+
+        if(step->ctrl & MUS_CTRL_LEGATO)
+        {
+            return FZT_TE_EFFECT_LEGATO;
+        }
+
+        command = step->command[0];
+    }
+
+    switch(command & 0xff00)
+    {
+        case MUS_FX_ARPEGGIO:
+        {
+            return FZT_TE_EFFECT_ARPEGGIO | (command & 0xff);
+            break;
+        }
+
+        case MUS_FX_PORTA_UP:
+		{
+			return FZT_TE_EFFECT_PORTAMENTO_UP | (command & 0xff);
+			break;
+		}
+
+		case MUS_FX_PORTA_DN: 
+		{
+			return FZT_TE_EFFECT_PORTAMENTO_DOWN | (command & 0xff);
+			break;
+		}
+		
+		case MUS_FX_SLIDE:
+		{
+			return FZT_TE_EFFECT_SLIDE | ((command & 0xff) >> 2);
+			break;
+		}
+
+        case MUS_FX_FAST_SLIDE:
+		{
+			return FZT_TE_EFFECT_SLIDE | my_min(0xff, ((command & 0xff) << 2));
+			break;
+		}
+
+        case MUS_FX_VIBRATO:
+        {
+            return FZT_TE_EFFECT_VIBRATO | (my_min(0xf, (((command & 0xf0) >> 4) * 2)) << 4) | (command & 0xf);
+            break;
+        }
+
+        case MUS_FX_PWM:
+        {
+            return FZT_TE_EFFECT_PWM | (my_min(0xf, (((command & 0xf0) >> 4) * 2)) << 4) | (command & 0xf);
+        }
+
+        case MUS_FX_PW_SET:
+		{
+			return FZT_TE_EFFECT_SET_PW | (command & 0xff);
+			break;
+		}
+
+        case MUS_FX_PW_FINE_SET:
+		{
+			return FZT_TE_EFFECT_SET_PW | ((command & 0xfff) >> 4);
+			break;
+		}
+
+		case MUS_FX_PW_UP:
+		{
+			return FZT_TE_EFFECT_PW_UP | (command & 0xff);
+			break;
+		}
+
+		case MUS_FX_PW_DN:
+		{
+			return FZT_TE_EFFECT_PW_DOWN | (command & 0xff);
+			break;
+		}
+
+		case MUS_FX_CUTOFF_SET:
+		{
+			return FZT_TE_EFFECT_SET_CUTOFF | (command & 0xff);
+			break;
+		}
+
+        case MUS_FX_CUTOFF_FINE_SET:
+		{
+			return FZT_TE_EFFECT_SET_CUTOFF | ((command & 0xfff) >> 4);
+			break;
+		}
+
+		case MUS_FX_FADE_VOLUME:
+		{
+			return FZT_TE_EFFECT_VOLUME_FADE | (command & 0xff);
+			break;
+		}
+
+		case MUS_FX_SET_WAVEFORM:
+		{
+			return FZT_TE_EFFECT_SET_WAVEFORM | (command & 0xff);
+			break;
+		}
+
+		case MUS_FX_SET_ABSOLUTE_VOLUME:
+        case MUS_FX_SET_VOLUME:
+		{
+			return FZT_TE_EFFECT_SET_VOLUME | (command & 0xff);
+			break;
+		}
+		
+		case MUS_FX_SKIP_PATTERN: 
+		{
+			return FZT_TE_EFFECT_SKIP_PATTERN | (command & 0xff);
+			break;
+		}
+
+        case MUS_FX_FILTER_TYPE:
+        {
+            return FZT_TE_EFFECT_EXT_FILTER_MODE | (command & 0xf);
+            break;
+        }
+        
+        case (MUS_FX_EXT_TOGGLE_FILTER & 0xff00):
+        {
+            switch(command & 0xfff0) 
+            {
+                case MUS_FX_EXT_TOGGLE_FILTER: 
+                {
+                    return FZT_TE_EFFECT_EXT_TOGGLE_FILTER | (command & 0xf);
+                    break;
+                }
+
+                default: break;
+            }
+        }
+
+        case MUS_FX_EXT:
+		{
+			switch(command & 0xfff0) 
+			{
+				case MUS_FX_EXT_FINE_PORTA_DN:
+				{
+					return FZT_TE_EFFECT_EXT_PORTA_DN | (command & 0xf);
+					break;
+				}
+
+				case MUS_FX_EXT_FINE_PORTA_UP:
+				{
+					return FZT_TE_EFFECT_EXT_PORTA_UP | (command & 0xf);
+					break;
+				}
+
+				case MUS_FX_EXT_RETRIGGER:
+				{
+					return FZT_TE_EFFECT_EXT_RETRIGGER | (command & 0xf);
+					break;
+				}
+
+				case MUS_FX_EXT_FADE_VOLUME_DN:
+				{
+					return FZT_TE_EFFECT_EXT_FINE_VOLUME_DOWN | (command & 0xf);
+					break;
+				}
+
+				case MUS_FX_EXT_FADE_VOLUME_UP:
+				{
+					return FZT_TE_EFFECT_EXT_FINE_VOLUME_UP | (command & 0xf);
+					break;
+				}
+
+				case MUS_FX_EXT_NOTE_CUT:
+				{
+					return FZT_TE_EFFECT_EXT_NOTE_CUT | (command & 0xf);
+					break;
+				}
+
+				case MUS_FX_PHASE_RESET:
+				{
+					return FZT_TE_EFFECT_EXT_PHASE_RESET | (command & 0xf);
+					break;
+				}
+				
+				case MUS_FX_FT2_PATTERN_LOOP:
+				{
+					return FZT_TE_EFFECT_EXT_PATTERN_LOOP | (command & 0xf);
+					break;
+				}
+			}
+
+			break;
+		}
+
+        case MUS_FX_SET_SPEED:
+		{
+			return FZT_TE_EFFECT_SET_SPEED_PROG_PERIOD | (command & 0xff);
+			break;
+		}
+
+		case MUS_FX_CUTOFF_UP:
+		{
+			return FZT_TE_EFFECT_CUTOFF_UP | (command & 0xff);
+			break;
+		}
+
+		case MUS_FX_CUTOFF_DN:
+		{
+			return FZT_TE_EFFECT_CUTOFF_DOWN | (command & 0xff);
+			break;
+		}
+
+		case MUS_FX_RESONANCE_SET:
+		{
+			return FZT_TE_EFFECT_SET_RESONANCE | my_min(0xff, ((command & 0xff) << 4));
+			break;
+		}
+
+		case MUS_FX_SET_RINGSRC:
+		{
+			return FZT_TE_EFFECT_SET_RING_MOD_SRC | (command & 0xff);
+			break;
+		}
+
+		case MUS_FX_SET_SYNCSRC:
+		{
+			return FZT_TE_EFFECT_SET_HARD_SYNC_SRC | (command & 0xff);
+			break;
+		}
+
+		case MUS_FX_SET_ATTACK_RATE:
+		{
+			return FZT_TE_EFFECT_SET_ATTACK | convert_envelope_params(command & 0x3f);
+			break;
+		}
+
+		case MUS_FX_SET_DECAY_RATE:
+		{
+			return FZT_TE_EFFECT_SET_DECAY | convert_envelope_params(command & 0x3f);
+			break;
+		}
+
+		case MUS_FX_SET_SUSTAIN_LEVEL:
+		{
+			return FZT_TE_EFFECT_SET_SUSTAIN | ((command & 0x1f) * 8);
+			break;
+		}
+
+		case MUS_FX_SET_RELEASE_RATE:
+		{
+			return FZT_TE_EFFECT_SET_RELEASE | convert_envelope_params(command & 0x3f);
+			break;
+		}
+
+		case MUS_FX_RESTART_PROGRAM:
+		{
+			return FZT_TE_EFFECT_PROGRAM_RESTART | (command & 0xff);
+			break;
+		}
+		
+		case MUS_FX_SET_WAVETABLE_ITEM:
+		{
+			return FZT_TE_EFFECT_SET_DPCM_SAMPLE | (command & 0xff);
+			break;
+		}
+
+		case MUS_FX_PORTA_UP_SEMI:
+		{
+			return FZT_TE_EFFECT_PORTA_UP_SEMITONE | (command & 0xff);
+			break;
+		}
+
+		case MUS_FX_PORTA_DN_SEMI:
+		{
+			return FZT_TE_EFFECT_PORTA_DOWN_SEMITONE | (command & 0xff);
+			break;
+		}
+
+		case MUS_FX_ARPEGGIO_ABS:
+		{
+			return FZT_TE_EFFECT_ARPEGGIO_ABS | (command & 0xff);
+			break;
+		}
+
+		case MUS_FX_TRIGGER_RELEASE:
+		{
+			return FZT_TE_EFFECT_TRIGGER_RELEASE | (command & 0xff);
+			break;
+		}
+
+        // THESE ARE USED ONLY IN INSTRUMENT PROGRAM
+		
+		case MUS_FX_LABEL:
+		{
+			return FZT_TE_PROGRAM_LOOP_BEGIN | (command & 0xff);
+			break;
+		}
+		
+		case MUS_FX_LOOP:
+		{
+			return FZT_TE_PROGRAM_LOOP_END | (command & 0xff);
+			break;
+		}
+		
+		case MUS_FX_JUMP:
+		{
+			return FZT_TE_PROGRAM_JUMP | (command & 0xff);
+			break;
+		}
+
+        default: break;
+    }
+
+    switch(command)
+	{
+		case MUS_FX_NOP:
+		{
+			return FZT_TE_PROGRAM_NOP;
+			break;
+		}
+		
+		case MUS_FX_END:
+		{
+			return FZT_TE_PROGRAM_END;
+			break;
+		}
+		
+		default: break;
+	}
+
+    return type == TYPE_PROGRAM ? FZT_TE_PROGRAM_NOP : 0;
+}
+
 bool redraw_progress(const char* bottom_string, int progress)
 {
 	bool abort = false;
@@ -256,14 +597,6 @@ bool check_instrument(MusInstrument* inst, Uint8 number)
     if(inst->flags & MUS_INST_INVERT_TREMOLO_BIT)
     {
 		snprintf(buffer, sizeof(buffer), "Instrument %02X inverts tremolo bit!", number);
-        msgbox(domain, mused.slider_bevel, &mused.largefont, buffer, MB_OK);
-		success = false;
-        return success;
-    }
-
-    if(inst->flags & MUS_INST_INVERT_VIBRATO_BIT)
-    {
-		snprintf(buffer, sizeof(buffer), "Instrument %02X inverts vibrato bit!", number);
         msgbox(domain, mused.slider_bevel, &mused.largefont, buffer, MB_OK);
 		success = false;
         return success;
@@ -672,7 +1005,8 @@ void write_pattern(FILE* f, MusPattern* pat, Uint8 length)
             fzt_set_volume(&fzt_step, vol);
         }
 
-        Uint16 command = step->command[0]; //TODO: add command conversion
+        //Uint16 command = step->command[0]; //TODO: add command conversion
+        Uint16 command = convert_command_to_fzt((void*)step, TYPE_PATTERN);
 
         fzt_set_command(&fzt_step, command);
 
@@ -741,6 +1075,13 @@ void write_instrument(FILE* f, MusInstrument* inst)
     {
         fzt_inst->flags |= FZT_TE_SET_PW;
     }
+
+    if(inst->flags & MUS_INST_INVERT_VIBRATO_BIT)
+    {
+        fzt_inst->flags |= FZT_TE_ENABLE_VIBRATO;
+    }
+
+    fzt_inst->flags |= FZT_TE_ENABLE_PWM;
 
     if(inst->cydflags & CYD_CHN_ENABLE_FILTER)
     {
@@ -819,13 +1160,14 @@ void write_instrument(FILE* f, MusInstrument* inst)
     {
         if(inst->program[0][i] != MUS_FX_NOP)
         {
-            progsteps = i;
+            progsteps = i + 1;
         }
     }
 
     for(int i = 0; i < progsteps; i++)
     {
-        fzt_inst->program[i] = inst->program[0][i] & 0x7fff; //TODO: add commands conversion
+        //fzt_inst->program[i] = inst->program[0][i] & 0x7fff; //TODO: add commands conversion
+        fzt_inst->program[i] = convert_command_to_fzt(MAKEPTR(inst->program[0][i]), TYPE_PROGRAM);
 
         if(inst->program_unite_bits[0][i / 8] & (1 << (i & 7)))
         {
