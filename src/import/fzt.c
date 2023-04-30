@@ -28,22 +28,22 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 Uint8 fzt_get_note(fzt_pattern_step* step)
 {
-    return (step->note & 0x7f);
+	return (step->note & 0x7f);
 }
 
 Uint8 fzt_get_instrument(fzt_pattern_step* step)
 {
-    return ((step->note & 0x80) >> 3) | ((step->inst_vol & 0xf0) >> 4);
+	return ((step->note & 0x80) >> 3) | ((step->inst_vol & 0xf0) >> 4);
 }
 
 Uint8 fzt_get_volume(fzt_pattern_step* step)
 {
-    return (step->inst_vol & 0xf) | ((step->command & 0x8000) >> 11);
+	return (step->inst_vol & 0xf) | ((step->command & 0x8000) >> 11);
 }
 
 Uint16 fzt_get_command(fzt_pattern_step* step)
 {
-    return (step->command & 0x7fff);
+	return (step->command & 0x7fff);
 }
 
 Uint8 convert_fzt_envelope_params(Uint8 fzt_env_param)
@@ -69,31 +69,31 @@ void set_default_fzt_instrument(fzt_instrument* inst)
 {
 	memset(inst, 0, sizeof(fzt_instrument));
 
-    inst->flags = FZT_TE_SET_CUTOFF | FZT_TE_SET_PW | FZT_TE_ENABLE_VIBRATO;
-    inst->sound_engine_flags = FZT_SE_ENABLE_KEYDOWN_SYNC;
+	inst->flags = FZT_TE_SET_CUTOFF | FZT_TE_SET_PW | FZT_TE_ENABLE_VIBRATO;
+	inst->sound_engine_flags = FZT_SE_ENABLE_KEYDOWN_SYNC;
 
-    inst->base_note = FZT_MIDDLE_C;
+	inst->base_note = FZT_MIDDLE_C;
 
-    inst->waveform = FZT_SE_WAVEFORM_PULSE;
-    inst->pw = 0x80;
+	inst->waveform = FZT_SE_WAVEFORM_PULSE;
+	inst->pw = 0x80;
 
-    inst->adsr.a = 0x4;
-    inst->adsr.d = 0x28;
-    inst->adsr.volume = 0x80;
+	inst->adsr.a = 0x4;
+	inst->adsr.d = 0x28;
+	inst->adsr.volume = 0x80;
 
-    inst->filter_type = FZT_FIL_OUTPUT_LOWPASS;
-    inst->filter_cutoff = 0xff;
+	inst->filter_type = FZT_FIL_OUTPUT_LOWPASS;
+	inst->filter_cutoff = 0xff;
 
-    inst->program_period = 1;
+	inst->program_period = 1;
 
-    for(int i = 0; i < FZT_INST_PROG_LEN; i++) 
+	for(int i = 0; i < FZT_INST_PROG_LEN; i++) 
 	{
-        inst->program[i] = FZT_TE_PROGRAM_NOP;
-    }
+		inst->program[i] = FZT_TE_PROGRAM_NOP;
+	}
 
-    inst->vibrato_speed = 0x60;
-    inst->vibrato_depth = 0x20;
-    inst->vibrato_delay = 0x20;
+	inst->vibrato_speed = 0x60;
+	inst->vibrato_depth = 0x20;
+	inst->vibrato_delay = 0x20;
 }
 
 void load_fzt_instrument(FILE* f, fzt_instrument* inst, Uint8 version)
@@ -108,47 +108,47 @@ void load_fzt_instrument(FILE* f, fzt_instrument* inst, Uint8 version)
 	fread(&inst->adsr, 1, sizeof(inst->adsr), f);
 	fread(&inst->pw, 1, sizeof(inst->pw), f);
 
-    if(inst->sound_engine_flags & FZT_SE_ENABLE_RING_MOD)
+	if(inst->sound_engine_flags & FZT_SE_ENABLE_RING_MOD)
 	{
 		fread(&inst->ring_mod, 1, sizeof(inst->ring_mod), f);
-    }
+	}
 
-    if(inst->sound_engine_flags & FZT_SE_ENABLE_HARD_SYNC)
+	if(inst->sound_engine_flags & FZT_SE_ENABLE_HARD_SYNC)
 	{
 		fread(&inst->hard_sync, 1, sizeof(inst->hard_sync), f);
-    }
+	}
 
-    Uint8 progsteps = 0;
+	Uint8 progsteps = 0;
 	
 	fread(&progsteps, 1, sizeof(progsteps), f);
 
-    if(progsteps > 0)
+	if(progsteps > 0)
 	{
 		fread(&inst->program[0], 1, (int)progsteps * sizeof(inst->program[0]), f);
-    }
+	}
 	
 	fread(&inst->program_period, 1, sizeof(inst->program_period), f);
 
-    if(inst->flags & FZT_TE_ENABLE_VIBRATO)
+	if(inst->flags & FZT_TE_ENABLE_VIBRATO)
 	{
 		fread(&inst->vibrato_speed, 1, sizeof(inst->vibrato_speed), f);
 		fread(&inst->vibrato_depth, 1, sizeof(inst->vibrato_depth), f);
 		fread(&inst->vibrato_delay, 1, sizeof(inst->vibrato_delay), f);
-    }
+	}
 
-    if(inst->flags & FZT_TE_ENABLE_PWM)
+	if(inst->flags & FZT_TE_ENABLE_PWM)
 	{
 		fread(&inst->pwm_speed, 1, sizeof(inst->pwm_speed), f);
 		fread(&inst->pwm_depth, 1, sizeof(inst->pwm_depth), f);
 		fread(&inst->pwm_delay, 1, sizeof(inst->pwm_delay), f);
-    }
+	}
 
-    if(inst->sound_engine_flags & FZT_SE_ENABLE_FILTER)
+	if(inst->sound_engine_flags & FZT_SE_ENABLE_FILTER)
 	{
 		fread(&inst->filter_cutoff, 1, sizeof(inst->filter_cutoff), f);
 		fread(&inst->filter_resonance, 1, sizeof(inst->filter_resonance), f);
 		fread(&inst->filter_type, 1, sizeof(inst->filter_type), f);
-    }
+	}
 	
 	if(version > 1 && (inst->sound_engine_flags & FZT_SE_ENABLE_SAMPLE))
 	{
@@ -806,7 +806,7 @@ int import_fzt(FILE *f)
 	
 	for(int i = 0; i < header.num_sequence_steps; i++) 
 	{
-        fread(&sequence->sequence_step[i], 1, sizeof(sequence->sequence_step[0]), f);
+		fread(&sequence->sequence_step[i], 1, sizeof(sequence->sequence_step[0]), f);
 		
 		for(int j = 0; j < FZT_SONG_MAX_CHANNELS; j++)
 		{
@@ -814,7 +814,7 @@ int import_fzt(FILE *f)
 		}
 		
 		sequence_pos += header.pattern_length;
-    }
+	}
 	
 	fread(&header.num_patterns, 1, sizeof(header.num_patterns), f);
 	
@@ -840,7 +840,7 @@ int import_fzt(FILE *f)
 		resize_pattern(&mused.song.pattern[i], header.pattern_length);
 		
 		convert_fzt_pattern(&mused.song.pattern[i], pattern, header.pattern_length);
-    }
+	}
 	
 	fread(&header.num_instruments, 1, sizeof(header.num_instruments), f);
 	
