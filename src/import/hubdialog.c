@@ -165,6 +165,30 @@ int hub_view(hubbard_t *hub)
 				
 				break;
 				
+				case SDL_WINDOWEVENT:
+				{
+					switch (e.window.event) 
+					{
+						case SDL_WINDOWEVENT_RESIZED:
+						{
+							debug("SDL_WINDOWEVENT_RESIZED %dx%d", e.window.data1, e.window.data2);
+
+							domain->screen_w = my_max(320, e.window.data1 / domain->scale);
+							domain->screen_h = my_max(240, e.window.data2 / domain->scale);
+							
+							if (!(mused.flags & FULLSCREEN))
+							{
+								mused.window_w = domain->screen_w * domain->scale;
+								mused.window_h = domain->screen_h * domain->scale;
+							}
+							
+							gfx_domain_update(domain, false);
+						}
+						break;
+					}
+					break;
+				}
+				
 				case SDL_KEYDOWN:
 				{
 					switch (e.key.keysym.sym)
