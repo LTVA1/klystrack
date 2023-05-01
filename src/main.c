@@ -397,6 +397,16 @@ int main(int argc, char **argv)
 	
 	Uint32 timeout = SDL_GetTicks() + mused.time_between_autosaves; //for autosave
 	
+	//test groove
+	
+	mused.song.num_grooves = 1;
+	mused.song.groove_length[0] = 4;
+	
+	mused.song.grooves[0][0] = 3;
+	mused.song.grooves[0][1] = 6;
+	mused.song.grooves[0][2] = 9;
+	mused.song.grooves[0][3] = 12;
+	
 	while (1)
 	{
 		SDL_Event e = { 0 };

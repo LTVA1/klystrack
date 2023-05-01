@@ -667,7 +667,22 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 	
 	if((mused.flags & SONG_PLAYING) && (mused.flags2 & SMOOTH_SCROLL) && (mused.flags & FOLLOW_PLAY_POSITION))
 	{
-		pixel_offset = (Uint32)mused.mus.song_counter * (Uint32)8 / (((Uint32)mused.mus.song_position & (Uint32)1) ? (Uint32)mused.song.song_speed2 : (Uint32)mused.song.song_speed) - ((Uint32)mused.draw_passes_since_song_start == (Uint32)0 ? (Uint32)0 : ((Uint32)mused.draw_passes_since_song_start < (Uint32)4 ? (Uint32)mused.draw_passes_since_song_start : (Uint32)4));
+		if(!(mused.mus.flags & MUS_ENGINE_USE_GROOVE))
+		{
+			pixel_offset = (Uint32)mused.mus.song_counter * (Uint32)8 / (((Uint32)mused.mus.song_position & (Uint32)1) ? (Uint32)mused.song.song_speed2 : (Uint32)mused.song.song_speed) - ((Uint32)mused.draw_passes_since_song_start == (Uint32)0 ? (Uint32)0 : ((Uint32)mused.draw_passes_since_song_start < (Uint32)4 ? (Uint32)mused.draw_passes_since_song_start : (Uint32)4));
+		}
+		
+		else
+		{
+			Uint8 speed_thing = 1;
+			
+			if(mused.song.groove_length[mused.mus.groove_number] > 0)
+			{
+				speed_thing = mused.song.grooves[mused.mus.groove_number][mused.mus.song_position % mused.song.groove_length[mused.mus.groove_number]];
+			}
+			
+			pixel_offset = (Uint32)mused.mus.song_counter * (Uint32)8 / speed_thing - ((Uint32)mused.draw_passes_since_song_start == (Uint32)0 ? (Uint32)0 : ((Uint32)mused.draw_passes_since_song_start < (Uint32)4 ? (Uint32)mused.draw_passes_since_song_start : (Uint32)4));
+		}
 		
 		if(mused.draw_passes_since_song_start < 5) mused.draw_passes_since_song_start++;
 	}
@@ -1606,7 +1621,22 @@ static void pattern_view_stepcounter(GfxDomain *dest_surface, const SDL_Rect *de
 	
 	if((mused.flags & SONG_PLAYING) && (mused.flags2 & SMOOTH_SCROLL) && (mused.flags & FOLLOW_PLAY_POSITION))
 	{
-		pixel_offset = (Uint32)mused.mus.song_counter * (Uint32)8 / (((Uint32)mused.mus.song_position & (Uint32)1) ? (Uint32)mused.song.song_speed2 : (Uint32)mused.song.song_speed) - ((Uint32)mused.draw_passes_since_song_start == (Uint32)0 ? (Uint32)0 : ((Uint32)mused.draw_passes_since_song_start < (Uint32)4 ? (Uint32)mused.draw_passes_since_song_start : (Uint32)4));
+		if(!(mused.mus.flags & MUS_ENGINE_USE_GROOVE))
+		{
+			pixel_offset = (Uint32)mused.mus.song_counter * (Uint32)8 / (((Uint32)mused.mus.song_position & (Uint32)1) ? (Uint32)mused.song.song_speed2 : (Uint32)mused.song.song_speed) - ((Uint32)mused.draw_passes_since_song_start == (Uint32)0 ? (Uint32)0 : ((Uint32)mused.draw_passes_since_song_start < (Uint32)4 ? (Uint32)mused.draw_passes_since_song_start : (Uint32)4));
+		}
+		
+		else
+		{
+			Uint8 speed_thing = 1;
+			
+			if(mused.song.groove_length[mused.mus.groove_number] > 0)
+			{
+				speed_thing = mused.song.grooves[mused.mus.groove_number][mused.mus.song_position % mused.song.groove_length[mused.mus.groove_number]];
+			}
+			
+			pixel_offset = (Uint32)mused.mus.song_counter * (Uint32)8 / speed_thing - ((Uint32)mused.draw_passes_since_song_start == (Uint32)0 ? (Uint32)0 : ((Uint32)mused.draw_passes_since_song_start < (Uint32)4 ? (Uint32)mused.draw_passes_since_song_start : (Uint32)4));
+		}
 	}
 	
 	content.y -= pixel_offset;

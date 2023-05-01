@@ -1283,7 +1283,29 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 	
 	if((m == EDITCLASSIC || m == EDITPATTERN || m == EDITSEQUENCE || m == EDITSONGINFO) && (mused.flags2 & SHOW_BPM))
 	{
-		float bpm = (float)3600 / ((float)(mused.song.song_speed + mused.song.song_speed2) / (float)2 / (float)mused.song.song_rate * (float)(mused.time_signature & 0xff) * (float)60);
+		float bpm = 0;
+		
+		if(mused.mus.flags & MUS_ENGINE_USE_GROOVE)
+		{
+			float av_speed = 1.0;
+			
+			if(mused.song.groove_length[mused.mus.groove_number] > 0)
+			{
+				for(int i = 0; i < mused.song.groove_length[mused.mus.groove_number]; i++)
+				{
+					av_speed += (float)mused.song.grooves[mused.mus.groove_number][i];
+				}
+				
+				av_speed /= (float)mused.song.groove_length[mused.mus.groove_number];
+			}
+			
+			bpm = (float)3600 / (av_speed / (float)mused.song.song_rate * (float)(mused.time_signature & 0xff) * (float)60);
+		}
+		
+		else
+		{
+			bpm = (float)3600 / ((float)(mused.song.song_speed + mused.song.song_speed2) / (float)2 / (float)mused.song.song_rate * (float)(mused.time_signature & 0xff) * (float)60);
+		}
 		
 		int offset = 8 * 9 - 3 + (bpm >= 10.0 ? 8 : 0) +  (bpm >= 100.0 ? 8 : 0) + (bpm >= 1000.0 ? 8 : 0) + (bpm >= 10000.0 ? 8 : 0) + (bpm >= 100000.0 ? 8 : 0);
 		
