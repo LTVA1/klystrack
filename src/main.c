@@ -109,8 +109,8 @@ void change_pixel_scale(void *, void*, void*);
 
 #define CLASSIC_PAT (0 / 2 + 20 - 2 - 7)
 #define CLASSIC_SONG_INFO (102)
-#define SONG_INFO1_H (24+10)
-#define SONG_INFO2_H (24+10)
+#define SONG_INFO1_H (25+10)
+#define SONG_INFO2_H (25+10+10)
 #define SONG_INFO3_H (15+10)
 #define TOOLBAR_H 12
 #define CLASSIC_SONG_INFO_H (SONG_INFO1_H+SONG_INFO2_H+SONG_INFO3_H+TOOLBAR_H)
