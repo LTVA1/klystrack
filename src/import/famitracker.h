@@ -1,6 +1,3 @@
-#ifndef CREDITS_H
-#define CREDITS_H
-
 /*
 Copyright (c) 2009-2010 Tero Lindeman (kometbomb)
 Copyright (c) 2021-2023 Georgy Saraykin (LTVA1 a.k.a. LTVA) and contributors
@@ -27,32 +24,19 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "SDL.h"
+#pragma once
 
-#define TIMEOUT 50 /* 20 FPS */
+#ifndef FAMITRACKER_H
+#define FAMITRACKER_H
 
-#define RGB(r, g, b) ((r << 16) | (g << 8) | (b))
+#include <stdio.h>
+#include "../edit.h"
+#include "../mused.h"
+#include "../event.h"
+#include "SDL_endian.h"
+#include "../../klystron/src/snd/freqs.h"
+#include "../view.h"
 
-#define NUM_DOTS 30
-
-#define NUM_PREV_COORDS 96
-
-typedef struct
-{
-	Sint16 x, y;
-} Prev_coords;
-
-typedef struct
-{
-	double x, y;
-	double vx, vy;
-	
-	struct
-	{
-		Sint16 x, y;
-	} prev_coords[NUM_PREV_COORDS];
-} Dot;
-
-void show_credits(void *unused0, void *unused1, void *unused2);
+int import_famitracker(FILE *f, int type);
 
 #endif

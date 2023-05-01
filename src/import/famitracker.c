@@ -1,6 +1,3 @@
-#ifndef CREDITS_H
-#define CREDITS_H
-
 /*
 Copyright (c) 2009-2010 Tero Lindeman (kometbomb)
 Copyright (c) 2021-2023 Georgy Saraykin (LTVA1 a.k.a. LTVA) and contributors
@@ -27,32 +24,10 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "SDL.h"
+#include "famitracker.h"
 
-#define TIMEOUT 50 /* 20 FPS */
-
-#define RGB(r, g, b) ((r << 16) | (g << 8) | (b))
-
-#define NUM_DOTS 30
-
-#define NUM_PREV_COORDS 96
-
-typedef struct
+int import_famitracker(FILE *f, int type)
 {
-	Sint16 x, y;
-} Prev_coords;
-
-typedef struct
-{
-	double x, y;
-	double vx, vy;
 	
-	struct
-	{
-		Sint16 x, y;
-	} prev_coords[NUM_PREV_COORDS];
-} Dot;
-
-void show_credits(void *unused0, void *unused1, void *unused2);
-
-#endif
+	return 1;
+}

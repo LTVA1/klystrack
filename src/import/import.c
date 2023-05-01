@@ -1,6 +1,6 @@
 /*
 Copyright (c) 2009-2010 Tero Lindeman (kometbomb)
-Copyright (c) 2021-2022 Georgy Saraykin (LTVA1 a.k.a. LTVA) and contributors
+Copyright (c) 2021-2023 Georgy Saraykin (LTVA1 a.k.a. LTVA) and contributors
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "xm.h"
 #include "org.h"
 #include "fzt.h"
+#include "famitracker.h"
 #include "hubbard.h"
 #include "gui/toolutil.h"
 #include "gui/msgbox.h"
@@ -60,7 +61,7 @@ void import_module(void *type, void* unused1, void* unused2)
 		if (!r) return;
 	}
 	
-	static const char *mod_name[] = {"a Protracker", "an OctaMED", "a Scream Tracker III", "an AHX", "a FastTracker II", "an Impulse Tracker", "an OpenMPT", "a Cave Story", "a Rob Hubbard", "a FamiTracker", "a 0CC-FamiTracker", "a Dn-FamiTracker", "an E-FamiTracker", "a DefleMask", "a Furnace", "an Adlib Tracker II", "a Raster Music Tracker", "a Flizzer Tracker"};
+	static const char *mod_name[] = {"a Protracker", "an OctaMED", "a Scream Tracker III", "an AHX", "a FastTracker II", "an Impulse Tracker", "an OpenMPT", "a Cave Story", "a Rob Hubbard", "a FamiTracker", "a 0CC-FamiTracker (j0CC-FamiTracker)", "a Dn-FamiTracker", "an E-FamiTracker", "a DefleMask", "a Furnace", "an Adlib Tracker II", "a Raster Music Tracker", "a Flizzer Tracker"};
 	static const char *mod_ext[] = {"mod", "med", "s3m", "ahx", "xm", "it", "mptm", "org", "sid", "ftm", "0cc", "dnm", "eft", "dmf", "fur", "a2m", "rmt", "fzt"};
 	
 	char buffer[100];
@@ -81,6 +82,11 @@ void import_module(void *type, void* unused1, void* unused2)
 		case IMPORT_ORG: r = import_org(f); break;
 		case IMPORT_HUBBARD: r = import_hubbard(f); break;
 		case IMPORT_FZT: r = import_fzt(f); break;
+
+		case IMPORT_FTM: r = import_famitracker(f, IMPORT_FTM); break;
+		case IMPORT_0CC: r = import_famitracker(f, IMPORT_0CC); break;
+		case IMPORT_DNM: r = import_famitracker(f, IMPORT_DNM); break;
+		case IMPORT_EFT: r = import_famitracker(f, IMPORT_EFT); break;
 		//others will be there I promise
 	}
 	

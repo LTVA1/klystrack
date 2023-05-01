@@ -2,6 +2,8 @@
     "files.encoding": "utf8",
     "files.autoGuessEncoding": false,
     "files.associations": {
-        "wavegen.h": "c"
+        "wavegen.h": "c",
+        "event.h": "c",
+        "slider.h": "c"
     }
 }

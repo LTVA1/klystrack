@@ -1,6 +1,6 @@
 /*
 Copyright (c) 2009-2010 Tero Lindeman (kometbomb)
-Copyright (c) 2021-2022 Georgy Saraykin (LTVA1 a.k.a. LTVA) and contributors
+Copyright (c) 2021-2023 Georgy Saraykin (LTVA1 a.k.a. LTVA) and contributors
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -327,7 +327,7 @@ void process_mml_string(MusInstrument* inst, int dialect, char* mml_string)
 			Uint16 passes = 0;
 			
 			char* current_param; //parsed
-			char* mml_string_copy = (char*)malloc(strlen(mml_string) + 1);
+			char* mml_string_copy = (char*)calloc(1, strlen(mml_string) + 1);
 			strcpy(mml_string_copy, mml_string);
 			
 			debug("Selected PMD dialect");
