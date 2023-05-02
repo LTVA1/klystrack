@@ -359,6 +359,10 @@ typedef struct
 	bool show_4op_point_envelope_editor;
 	
 	bool show_fm_settings; //false => show FX bus and LFO settingsz, true => show FM settings
+	
+	bool open_groove_settings;
+	
+	char groove_string[MUS_MAX_GROOVE_LENGTH * 8];
 } Mused;
 
 extern Mused mused;

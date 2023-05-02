@@ -1661,7 +1661,7 @@ void instrument_add_param(int a)
 
 		case P_RESONANCE:
 
-		clamp(i->resonance, a, 0, 15);  //was `0, 3)`
+		clamp(i->resonance, a, 0, 0xff);  //was `0, 3)`
 
 		break;
 		
@@ -2410,7 +2410,7 @@ void four_op_add_param(int a)
 
 		case FOUROP_RESONANCE:
 
-		clamp(i->ops[mused.selected_operator - 1].resonance, a, 0, 15);  //was `0, 3)`
+		clamp(i->ops[mused.selected_operator - 1].resonance, a, 0, 0xff);  //was `0, 3)`
 
 		break;
 		

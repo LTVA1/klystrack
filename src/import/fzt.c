@@ -362,19 +362,19 @@ Uint16 convert_command(Uint16 fzt_command, bool in_program)
 
 		case FZT_TE_EFFECT_SET_RESONANCE:
 		{
-			return MUS_FX_RESONANCE_SET | ((fzt_command & 0xff) >> 4);
+			return MUS_FX_RESONANCE_SET | (fzt_command & 0xff);
 			break;
 		}
 
 		case FZT_TE_EFFECT_RESONANCE_UP:
 		{
-			return (in_program ? MUS_FX_NOP : 0); //not supported in klystrack yet
+			return MUS_FX_RESONANCE_UP | (fzt_command & 0xff);
 			break;
 		}
 
 		case FZT_TE_EFFECT_RESONANCE_DOWN:
 		{
-			return (in_program ? MUS_FX_NOP : 0); //not supported in klystrack yet
+			return MUS_FX_RESONANCE_DOWN | (fzt_command & 0xff);
 			break;
 		}
 
@@ -627,7 +627,7 @@ void convert_fzt_instrument(MusInstrument* inst, fzt_instrument* fzt_inst)
 	}
 	
 	inst->cutoff = (Uint16)fzt_inst->filter_cutoff << 4;
-	inst->resonance = fzt_inst->filter_resonance >> 4;
+	inst->resonance = fzt_inst->filter_resonance;
 	
 	switch(fzt_inst->filter_type)
 	{

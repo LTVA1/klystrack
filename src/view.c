@@ -37,6 +37,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "snd/freqs.h"
 #include "view/visu.h"
 #include "view/sequence.h"
+#include "view/grooveview.h"
 #include <stdbool.h>
 #include "edit.h"
 #include "mymsg.h"
@@ -494,7 +495,7 @@ void songinfo1_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 
 void open_groove_editor(void* unused_1, void* unused_2, void* unused_3)
 {
-
+	mused.open_groove_settings = true;
 }
 
 
@@ -1367,6 +1368,12 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 		DECAL_MODE_PATTERN + EDITWAVETABLE - 1 + (mused.mode == EDITWAVETABLE ? DECAL_MODE_PATTERN_SELECTED - DECAL_MODE_PATTERN : 0), (mused.mode != EDITWAVETABLE) ? change_mode_action : NULL, (mused.mode != EDITWAVETABLE) ? MAKEPTR(EDITWAVETABLE) : 0, 0, 0);
 	
 	button.x += button.w;
+	
+	if(mused.open_groove_settings)
+	{
+		groove_view();
+		mused.open_groove_settings = false;
+	}
 }
 
 Uint32 char_to_hex(char c)
@@ -2277,7 +2284,7 @@ void instrument_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 		update_rect(&frame, &r);
 		inst_text(event, &r, P_CUTOFF, "CUT", "%03X", MAKEPTR(inst->cutoff), 3);
 		update_rect(&frame, &r);
-		inst_text(event, &r, P_RESONANCE, "RES", "%1X", MAKEPTR(inst->resonance), 1);
+		inst_text(event, &r, P_RESONANCE, "RES", "%02X", MAKEPTR(inst->resonance), 2);
 		update_rect(&frame, &r);
 		
 		r.w = frame.w;
@@ -2803,7 +2810,7 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			update_rect(&view, &r);
 			four_op_text(event, &r, FOUROP_CUTOFF, "CUT", "%03X", MAKEPTR(inst->ops[mused.selected_operator - 1].cutoff), 3);
 			update_rect(&view, &r);
-			four_op_text(event, &r, FOUROP_RESONANCE, "RES", "%1X", MAKEPTR(inst->ops[mused.selected_operator - 1].resonance), 1);
+			four_op_text(event, &r, FOUROP_RESONANCE, "RES", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].resonance), 2);
 			update_rect(&view, &r);
 			
 			r.w = view.w;

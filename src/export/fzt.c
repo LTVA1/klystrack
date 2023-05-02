@@ -313,7 +313,19 @@ Uint16 convert_command_to_fzt(void* data, Uint8 type)
 
 		case MUS_FX_RESONANCE_SET:
 		{
-			return FZT_TE_EFFECT_SET_RESONANCE | my_min(0xff, ((command & 0xff) << 4));
+			return FZT_TE_EFFECT_SET_RESONANCE | (command & 0xff);
+			break;
+		}
+		
+		case MUS_FX_RESONANCE_UP:
+		{
+			return FZT_TE_EFFECT_RESONANCE_UP | (command & 0xff);
+			break;
+		}
+
+		case MUS_FX_RESONANCE_DOWN:
+		{
+			return FZT_TE_EFFECT_RESONANCE_DOWN | (command & 0xff);
 			break;
 		}
 
@@ -1089,7 +1101,7 @@ void write_instrument(FILE* f, MusInstrument* inst)
 	}
 
 	fzt_inst->filter_cutoff = inst->cutoff >> 4;
-	fzt_inst->filter_resonance = inst->resonance << 4;
+	fzt_inst->filter_resonance = inst->resonance;
 
 	switch(inst->flttype)
 	{

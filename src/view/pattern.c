@@ -303,7 +303,7 @@ static void pattern_view_registers_map(GfxDomain *dest_surface, const SDL_Rect *
 		current_registers[6] |= mused.mus.song_track[i].filter_cutoff & 0xff;
 		
 		current_registers[7] |= ((mused.cyd.channel[i].flt_slope & 0x7) << 5);
-		current_registers[7] |= ((mused.mus.song_track[i].filter_resonance & 0xf) << 1);
+		current_registers[7] |= ((mused.mus.song_track[i].filter_resonance >> 4) << 1);
 		current_registers[7] |= ((mused.cyd.channel[i].musflags & MUS_INST_QUARTER_FREQ) ? 1 : 0);
 		
 		font_write_args(&mused.tinyfont, dest_surface, &row, "#%04X: #%02X #%02X #%02X #%02X #%02X #%02X #%02X #%02X", current_registers_row, current_registers[0], current_registers[1], 
