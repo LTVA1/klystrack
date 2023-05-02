@@ -1550,7 +1550,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 			{
 				if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE) || ((mused.cyd.channel[c].flags & CYD_CHN_ENABLE_FM) && (mused.cyd.channel[c].fm.adsr.envelope != 0) && !(mused.cyd.channel[c].flags & CYD_CHN_ENABLE_GATE))) && (mused.channel[c].program_flags & (1 << mused.current_instrument_program)) && mused.channel[c].program_tick[mused.current_instrument_program] == i)
 				{
-					cur = '�'; //where arrow pointing at current instrument program step is drawn
+					cur = '½'; //where arrow pointing at current instrument program step is drawn
 					pointing_at_command = true;
 				}
 			}
@@ -1622,20 +1622,18 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 				{
 					if(mused.jump_in_program)
 					{
-						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", (!(inst->program_unite_bits[mused.current_instrument_program][i / 8] & (1 << (i & 7)))) ? '�' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '�' : '|'),
-							select_program_step, MAKEPTR(i), 0, 0);
+						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", (!(inst->program_unite_bits[mused.current_instrument_program][i / 8] & (1 << (i & 7)))) ? '\xd' : '|'), select_program_step, MAKEPTR(i), 0, 0);
 					}
 					
 					else
 					{
-						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", (!(inst->program_unite_bits[mused.current_instrument_program][i / 8] & (1 << (i & 7)))) ? '�' : '|'), NULL, NULL, NULL, NULL);
+						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", (!(inst->program_unite_bits[mused.current_instrument_program][i / 8] & (1 << (i & 7)))) ? '\xd' : '|'), NULL, NULL, NULL, NULL);
 					}
 				}
 				
 				else
 				{
-					check_event(event, console_write_args(mused.console, "%c ", (!(inst->program_unite_bits[mused.current_instrument_program][i / 8] & (1 << (i & 7)))) ? '�' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '�' : '|'),
-							select_program_step, MAKEPTR(i), 0, 0);
+					check_event(event, console_write_args(mused.console, "%c ", (!(inst->program_unite_bits[mused.current_instrument_program][i / 8] & (1 << (i & 7)))) ? '\xd' : '|'), select_program_step, MAKEPTR(i), 0, 0);
 				}
 			}
 			
@@ -1931,7 +1929,7 @@ void inst_field(const SDL_Event *e, const SDL_Rect *area, int p, int length, cha
 		
 		for (; text[i] && c < my_min(length, field.w / mused.console->font.w); ++i, ++c)
 		{
-			const SDL_Rect *r = console_write_args(mused.console, "%c", mused.editpos == i ? '�' : text[i]);
+			const SDL_Rect *r = console_write_args(mused.console, "%c", mused.editpos == i ? '½' : text[i]);
 			
 			if (check_event(e, r, NULL, NULL, NULL, NULL))
 			{
@@ -3405,7 +3403,7 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 				if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].adsr.envelope > 0 || (mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].flags & CYD_FM_OP_ENABLE_GATE) /* so arrow does not blink when CSM timer is used */) && (mused.channel[c].ops[mused.selected_operator - 1].program_flags & (1 << (mused.current_fourop_program[mused.selected_operator - 1]))) && mused.channel[c].ops[mused.selected_operator - 1].program_tick[mused.current_fourop_program[mused.selected_operator - 1]] == i))
 				//if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].flags & CYD_FM_OP_ENABLE_GATE) && (mused.channel[c].ops[mused.selected_operator - 1].flags & MUS_FM_OP_PROGRAM_RUNNING) && mused.channel[c].ops[mused.selected_operator - 1].program_tick == i) && !(inst->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG))
 				{
-					cur = '�'; //where arrow pointing at current instrument (operator) program step is drawn
+					cur = '½'; //where arrow pointing at current instrument (operator) program step is drawn
 					pointing_at_command = true;
 				}
 			}
@@ -3477,20 +3475,20 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 				{
 					if(mused.jump_in_program_4op)
 					{
-						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7)))) ? '�' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '�' : '|'),
+						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7)))) ? '\xd' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '�' : '|'),
 							select_program_step, MAKEPTR(i), 0, 0);
 					}
 					
 					else
 					{
-						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7)))) ? '�' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '�' : '|'),
+						check_event_mousebuttonup(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7)))) ? '\xd' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '�' : '|'),
 							NULL, 0, 0, 0);
 					}
 				}
 				
 				else
 				{
-					check_event(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7)))) ? '�' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '�' : '|'),
+					check_event(event, console_write_args(mused.console, "%c ", (!(inst->ops[mused.selected_operator - 1].program_unite_bits[mused.current_fourop_program[mused.selected_operator - 1]][i / 8] & (1 << (i & 7)))) ? '\xd' : '|'), //old command check_event(event, console_write_args(mused.console, "%c ", (!(inst->program[i] & 0x8000) || (inst->program[i] & 0xf000) == 0xf000) ? '�' : '|'),
 							select_program_step, MAKEPTR(i), 0, 0);
 				}
 			}

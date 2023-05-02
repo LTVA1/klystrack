@@ -133,7 +133,8 @@ res/$(1): themes/$(1)/* #themes/$(1)/font/* themes/$(1)/font7x6/* themes/$(1)/ti
 	$(Q)rm -rf themetemp.$(1)
 	
 	$(Q)mkdir -p res/Fonts
-	$(Q)cp -f Fonts/* res/Fonts
+	$(Q)cp -f Fonts/font16x16.* res/Fonts
+	$(Q)cp -f Fonts/font24x24.* res/Fonts
 	
 endef
 
