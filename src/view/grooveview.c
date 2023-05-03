@@ -16,8 +16,8 @@
 #define TOP_RIGHT 0
 #define MARGIN 8
 #define SCREENMARGIN 64
-#define DIALOG_WIDTH 480
-#define DIALOG_HEIGHT 320
+#define DIALOG_WIDTH 320
+#define DIALOG_HEIGHT 160
 #define TITLE 14
 #define FIELD 14
 #define CLOSE_BUTTON 12
@@ -31,6 +31,9 @@ static struct
 	int quit;
 	const Font *largefont, *smallfont;
 	GfxSurface *gfx;
+	
+	Uint8 speed_nom;
+	Uint8 speed_denom;
 } data;
 
 extern const KeyShortcut shortcuts[];
@@ -118,8 +121,6 @@ static void update_groove_string()
 		current_string_position += size + 1;
 	}
 	
-	mused.current_groove_position = 0;
-	
 	free(number);
 }
 
@@ -149,6 +150,8 @@ static void ok_action(void *unused0, void *unused1, void *unused2)
 {
 	parse_groove_string();
 	update_groove_string();
+	
+	mused.current_groove_position = 0;
 }
 
 static void move_up_action(void *unused0, void *unused1, void *unused2)
@@ -181,6 +184,37 @@ static void move_down_action(void *unused0, void *unused1, void *unused2)
 		
 		update_groove_string();
 	}
+}
+
+static void generate_groove_action(void *unused0, void *unused1, void *unused2)
+{
+	if(data.speed_nom != 0 && data.speed_denom != 0) //shamelessly stolen from Dn-FamiTracker source code
+	{
+		if(data.speed_denom < 1 || data.speed_denom > MUS_MAX_GROOVE_LENGTH || data.speed_nom < data.speed_denom || data.speed_nom > data.speed_denom * 255) return;
+		
+		memset(&mused.song.grooves[mused.current_groove][0], 0, sizeof(mused.song.grooves[mused.current_groove][0]) * MUS_MAX_GROOVE_LENGTH);
+		
+		mused.song.groove_length[mused.current_groove] = data.speed_denom;
+		
+		for(int i = 0; i < (int)data.speed_denom * data.speed_nom; i += data.speed_nom)
+		{
+			mused.song.grooves[mused.current_groove][data.speed_denom - i / data.speed_nom - 1] = (i + data.speed_nom) / data.speed_denom - i / data.speed_denom;
+		}
+		
+		update_groove_string();
+		
+		mused.current_groove_position = 0;
+	}
+}
+
+static void delete_groove_action(void *unused0, void *unused1, void *unused2)
+{
+	memset(&mused.song.grooves[mused.current_groove][0], 0, sizeof(mused.song.grooves[mused.current_groove][0]) * MUS_MAX_GROOVE_LENGTH);
+	mused.song.groove_length[mused.current_groove] = 0;
+	
+	update_groove_string();
+	
+	mused.current_groove_position = 0;
 }
 
 static void text_field(const SDL_Event *e, const SDL_Rect *area, int length, char *text)
@@ -361,24 +395,6 @@ static void parameters_view(GfxDomain *dest_surface, const SDL_Rect *area, const
 	
 	slider(dest_surface, &list, event, &mused.groove_editor_slider_param);
 	
-	//data.subsong += generic_field(event, &button, -1, -1, "SUBSONG", "%02d", MAKEPTR(data.subsong), 2);
-	//button.y += button.h;
-	
-	//data.hub->n_tracks += generic_field(event, &button, -1, -1, "TRACKS", "%d", MAKEPTR(data.hub->n_tracks), 1);
-	//button.y += button.h;
-	
-	//data.hub->addr.patternptrlo += generic_field(event, &button, -1, -1, "PAT LO", "%04X", MAKEPTR(data.hub->addr.patternptrlo), 4);
-	//button.y += button.h;
-	
-	//data.hub->addr.patternptrhi += generic_field(event, &button, -1, -1, "PAT HI", "%04X", MAKEPTR(data.hub->addr.patternptrhi), 4);
-	//button.y += button.h;
-	
-	//data.hub->addr.songtab += generic_field(event, &button, -1, -1, "SONGS", "%04X", MAKEPTR(data.hub->addr.songtab), 4);
-	//button.y += button.h;
-	
-	//data.hub->addr.instruments += generic_field(event, &button, -1, -1, "INSTRUMENTS", "%04X", MAKEPTR(data.hub->addr.instruments), 4);
-	//button.y += button.h;
-	
 	SDL_Rect button;
 	
 	copy_rect(&button, area);
@@ -395,8 +411,44 @@ static void parameters_view(GfxDomain *dest_surface, const SDL_Rect *area, const
 	
 	button.w = strlen("OK") * data.largefont->w + 32;
 	button_text_event(dest_surface, event, &button, data.gfx, data.largefont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "UP", move_up_action, 0, 0, 0);
+	
+	button.x += button.w + 20;
+	button.w += data.largefont->w * 2;
+	button_text_event(dest_surface, event, &button, data.gfx, data.largefont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "DELETE", delete_groove_action, 0, 0, 0);
+	button.w -= data.largefont->w * 2;
+	button.x -= button.w + 20;
+	
 	button.y += 12;
 	button_text_event(dest_surface, event, &button, data.gfx, data.largefont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "DOWN", move_down_action, 0, 0, 0);
+	
+	int temp = button.x;
+	
+	button.y += 15;
+	button.w = 90;
+	button.h = 10;
+	
+	data.speed_nom += generic_field(event, &button, -1, -1, "SPEED", "%3d", MAKEPTR(data.speed_nom), 3);
+	
+	char string[200];
+	
+	button.x += 90 + 2;
+	button.w = data.largefont->w * 3 + 4 * 2;
+	
+	snprintf(string, sizeof(string), "/");
+	font_write(data.largefont, dest_surface, &button, string);
+	
+	button.x += data.largefont->w + 12;
+	
+	data.speed_denom += generic_field(event, &button, -1, -1, "", "%3d", MAKEPTR(data.speed_denom), 3);
+	
+	button.x -= 90 + 2 + data.largefont->w + 12;
+	button.w = 90;
+	button.y += 12;
+	button.h = 12;
+	
+	button_text_event(dest_surface, event, &button, data.gfx, data.largefont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "GENERATE", generate_groove_action, 0, 0, 0);
+	
+	button.x = temp;
 	
 	button.y = area->y + area->h - 10 - BUTTONS - 10 - 3 - 12;
 	button.w = DIALOG_WIDTH - MARGIN * 2 - 2;
@@ -413,11 +465,7 @@ static void parameters_view(GfxDomain *dest_surface, const SDL_Rect *area, const
 		speed /= mused.song.groove_length[mused.current_groove];
 	}
 	
-	char string[200];
-	
 	snprintf(string, sizeof(string), "Speed: %.3f", speed);
-	
-	//console_write_args(mused.console, "Speed: %.3f", speed);
 	font_write(data.largefont, dest_surface, &button, string);
 }
 
@@ -473,6 +521,9 @@ void groove_view()
 	data.largefont = &mused.largefont;
 	data.smallfont = &mused.smallfont;
 	data.gfx = mused.slider_bevel;
+	
+	data.speed_nom = 12;
+	data.speed_denom = 2;
 	
 	while (!data.quit)
 	{

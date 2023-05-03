@@ -106,6 +106,7 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_SET_SPEED, 0xff00, "Set speed (program period in instrument program)", "ProgPeriod", -1, -1},
 	{MUS_FX_SET_SPEED1, 0xff00, "Set speed 1 (00-FF)", "Speed1Full", -1, -1}, //wasn't there
 	{MUS_FX_SET_SPEED2, 0xff00, "Set speed 2 (00-FF)", "Speed2Full", -1, -1}, //wasn't there
+	{MUS_FX_SET_GROOVE, 0xff00, "Set groove", "Groove", 0, MUS_MAX_GROOVES - 1}, //wasn't there
 	{MUS_FX_SET_RATE, 0xff00, "Set rate lower byte", "RateLowByte", -1, -1},
 	{MUS_FX_SET_RATE_HIGHER_BYTE, 0xff00, "Set rate higher byte", "RateHighByte", -1, -1}, //wasn't there
 	{MUS_FX_LOOP_PATTERN, 0xff00, "Loop pattern", "PatLoop", -1, -1},
