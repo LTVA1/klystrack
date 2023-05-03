@@ -1284,6 +1284,21 @@ int save_song_inner(SDL_RWops *f, SongStats *stats, bool confirm_save /* if no c
 		temp32 |= MUS_16_BIT_RATE;
 	}
 	
+	Uint8 num_grooves = 0;
+	
+	for(int i = 0; i < MUS_MAX_GROOVES; i++)
+	{
+		if(mused.song.groove_length[i] > 0)
+		{
+			num_grooves = i + 1;
+		}
+	}
+	
+	if(num_grooves > 0)
+	{
+		temp32 |= MUS_SAVE_GROOVE;
+	}
+	
 	FIX_ENDIAN(temp32);
 	SDL_RWwrite(f, &temp32, 1, sizeof(mused.song.flags));
 	
@@ -1292,6 +1307,21 @@ int save_song_inner(SDL_RWops *f, SongStats *stats, bool confirm_save /* if no c
 		temp16 = mused.song.song_rate;
 		FIX_ENDIAN(temp16);
 		SDL_RWwrite(f, &temp16, 1, sizeof(mused.song.song_rate));
+	}
+	
+	if(temp32 & MUS_SAVE_GROOVE)
+	{
+		SDL_RWwrite(f, &num_grooves, 1, sizeof(num_grooves));
+		
+		for(int i = 0; i < num_grooves; i++)
+		{
+			SDL_RWwrite(f, &mused.song.groove_length[i], 1, sizeof(mused.song.groove_length[i]));
+			
+			for(int j = 0; j < mused.song.groove_length[i]; j++)
+			{
+				SDL_RWwrite(f, &mused.song.grooves[i][j], 1, sizeof(mused.song.grooves[i][j]));
+			}
+		}
 	}
 	
 	SDL_RWwrite(f, &mused.song.multiplex_period, 1, sizeof(mused.song.multiplex_period));
@@ -1350,10 +1380,6 @@ int save_song_inner(SDL_RWops *f, SongStats *stats, bool confirm_save /* if no c
 			SDL_RWwrite(f, &temp16, 1, sizeof(temp16));
 
 			used_pattern[mused.song.sequence[i][s].pattern] = true;
-
-			//temp16 = mused.song.sequence[i][s].pattern;
-			//FIX_ENDIAN(temp16);
-			//SDL_RWwrite(f, &temp16, 1, sizeof(temp16));
 			
 			if(temp32 & MUS_8_BIT_PATTERN_INDEX)
 			{
