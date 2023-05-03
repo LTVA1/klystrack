@@ -4033,7 +4033,7 @@ void instrument_list(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Ev
 
 			if (i == mused.current_instrument)
 			{
-				bevel(domain,&row, mused.slider_bevel, BEV_SELECTED_PATTERN_ROW);
+				bevel(domain, &row, mused.slider_bevel, BEV_SELECTED_PATTERN_ROW);
 				console_set_color(mused.console, colors[COLOR_INSTRUMENT_SELECTED]);
 			}
 			

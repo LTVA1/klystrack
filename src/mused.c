@@ -387,6 +387,9 @@ void init_scrollbars()
 	slider_set_params(&mused.pan_env_horiz_slider_param, 0, 0, 0, 0, &mused.point_env_editor_scroll, 1, SLIDER_VERTICAL, mused.slider_bevel);
 	
 	slider_set_params(&mused.fourop_vol_env_horiz_slider_param, 0, 0, 0, 0, &mused.fourop_point_env_editor_scroll, 1, SLIDER_VERTICAL, mused.slider_bevel);
+	
+	slider_set_params(&mused.groove_list_slider_param, 0, 0, 0, 0, &mused.fourop_point_env_editor_scroll, 1, SLIDER_VERTICAL, mused.slider_bevel);
+	slider_set_params(&mused.groove_editor_slider_param, 0, 0, 0, 0, &mused.fourop_point_env_editor_scroll, 1, SLIDER_VERTICAL, mused.slider_bevel);
 }
 
 

@@ -109,7 +109,7 @@ void select_instrument(void *idx, void *relative, void *pagey)
 		if (relative)
 			mused.current_instrument += CASTPTR(int,idx);
 		else
-			mused.current_instrument = CASTPTR(int,idx);
+			mused.current_instrument = CASTPTR(int, idx);
 	}
 
 	if (mused.current_instrument >= NUM_INSTRUMENTS)

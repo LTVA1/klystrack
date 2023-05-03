@@ -54,15 +54,134 @@ static const View groove_view_array[] =
 
 static void parse_groove_string()
 {
+	char* temp_string = (char*)calloc(1, sizeof(mused.groove_string) + 1);
+	strcpy(temp_string, mused.groove_string);
 	
+	const char delimiters[] = " .,!?";
+	
+	char* current_number;
+	
+	Uint8 groove_index = 0;
+	
+	int passes = 0;
+	
+	while(current_number != NULL)
+	{
+		current_number = strtok(passes > 0 ? NULL : temp_string, delimiters);
+		passes++;
+		
+		if(current_number)
+		{
+			Sint64 number = atoi(current_number);
+			
+			if(number > 0 && number <= 0xff)
+			{
+				mused.song.grooves[mused.current_groove][groove_index] = number;
+				groove_index++;
+			}
+		}
+	}
+	
+	if(groove_index > 0)
+	{
+		for(int i = groove_index; i < MUS_MAX_GROOVE_LENGTH; i++)
+		{
+			mused.song.grooves[mused.current_groove][i] = 0;
+		}
+	}
+	
+	mused.song.groove_length[mused.current_groove] = groove_index;
+	
+	free(temp_string);
+}
+
+static void update_groove_string()
+{
+	char* number = calloc(1, 6);
+	
+	int current_string_position = 0;
+	
+	memset(mused.groove_string, 0, sizeof(mused.groove_string));
+	
+	for(int i = 0; i < mused.song.groove_length[mused.current_groove]; i++)
+	{
+		memset(number, 0, 6);
+		
+		number = my_itoa(mused.song.grooves[mused.current_groove][i], number);
+		
+		Uint8 size = 1 + (mused.song.grooves[mused.current_groove][i] > 10 ? 1 : 0) + (mused.song.grooves[mused.current_groove][i] > 100 ? 1 : 0);
+		
+		number[size] = ' ';
+		
+		memcpy(&mused.groove_string[current_string_position], number, ((i == mused.song.groove_length[mused.current_groove] - 1) ? size : (size + 1)));
+		
+		current_string_position += size + 1;
+	}
+	
+	mused.current_groove_position = 0;
+	
+	free(number);
+}
+
+static void copy_action(void *unused0, void *unused1, void *unused2)
+{
+	SDL_SetClipboardText(mused.groove_string);
+}
+
+static void paste_action(void *unused0, void *unused1, void *unused2)
+{
+	char* temp = SDL_GetClipboardText();
+	
+	if(temp)
+	{
+		if(strlen(temp) < sizeof(mused.groove_string))
+		{
+			strcpy(mused.groove_string, temp);
+		}
+		
+		SDL_free(temp);
+		
+		mused.editpos = strlen(mused.groove_string);
+	}
 }
 
 static void ok_action(void *unused0, void *unused1, void *unused2)
 {
 	parse_groove_string();
-	data.quit = 1;
+	update_groove_string();
 }
 
+static void move_up_action(void *unused0, void *unused1, void *unused2)
+{
+	if(mused.current_groove_position > 0 && mused.song.groove_length[mused.current_groove] > 1)
+	{
+		Uint8 current_num = mused.song.grooves[mused.current_groove][mused.current_groove_position];
+		Uint8 prev_num = mused.song.grooves[mused.current_groove][mused.current_groove_position - 1];
+		
+		mused.song.grooves[mused.current_groove][mused.current_groove_position] = prev_num;
+		mused.song.grooves[mused.current_groove][mused.current_groove_position - 1] = current_num;
+		
+		mused.current_groove_position--;
+		
+		update_groove_string();
+	}
+}
+
+static void move_down_action(void *unused0, void *unused1, void *unused2)
+{
+	if(mused.current_groove_position < mused.song.groove_length[mused.current_groove] - 1 && mused.song.groove_length[mused.current_groove] > 1)
+	{
+		Uint8 current_num = mused.song.grooves[mused.current_groove][mused.current_groove_position];
+		Uint8 next_num = mused.song.grooves[mused.current_groove][mused.current_groove_position + 1];
+		
+		mused.song.grooves[mused.current_groove][mused.current_groove_position + 1] = current_num;
+		mused.song.grooves[mused.current_groove][mused.current_groove_position] = next_num;
+		
+		mused.current_groove_position++;
+		
+		update_groove_string();
+	}
+}
 
 static void text_field(const SDL_Event *e, const SDL_Rect *area, int length, char *text)
 {
@@ -86,7 +205,7 @@ static void text_field(const SDL_Event *e, const SDL_Rect *area, int length, cha
 		
 		for (; text[i] && c < my_min(length, field.w / mused.console->font.w); ++i, ++c)
 		{
-			const SDL_Rect *r = console_write_args(mused.console, "%c", mused.editpos == i ? '�' : text[i]);
+			const SDL_Rect *r = console_write_args(mused.console, "%c", mused.editpos == i ? 'Ѕ' : text[i]);
 			
 			if (check_event(e, r, NULL, NULL, NULL, NULL))
 			{
@@ -124,38 +243,182 @@ static void text_field(const SDL_Event *e, const SDL_Rect *area, int length, cha
 	if (!c && mused.focus == EDITBUFFER && e->type == SDL_MOUSEBUTTONDOWN) mused.focus = 0;//change_mode(mused.prev_mode);
 }
 
+void select_groove(void *idx, void *unused2, void *unused3)
+{
+	if(CASTPTR(int, idx) >= 0 && CASTPTR(int, idx) < MUS_MAX_GROOVES)
+	{
+		mused.current_groove = CASTPTR(int, idx);
+		mused.current_groove_position = 0;
+		update_groove_string();
+	}
+}
+
+void select_groove_position(void *idx, void *unused2, void *unused3)
+{
+	if(CASTPTR(int, idx) >= 0 && CASTPTR(int, idx) < mused.song.groove_length[mused.current_groove])
+	{
+		mused.current_groove_position = CASTPTR(int, idx);
+	}
+}
+
+void groove_list(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
+{
+	SDL_Rect area;
+	copy_rect(&area, dest);
+	console_set_clip(mused.console, &area);
+	console_clear(mused.console);
+	bevelex(domain,&area, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
+	adjust_rect(&area, 3);
+	console_set_clip(mused.console, &area);
+
+	int y = area.y;
+
+	int start = mused.groove_list_position;
+
+	for (int i = start; i < MUS_MAX_GROOVES && y < area.h + area.y; ++i, y += mused.console->font.h)
+	{
+		SDL_Rect row = { area.x - 1, y - 1, area.w + 2, mused.console->font.h + 1};
+
+		if (i == mused.current_groove)
+		{
+			bevel(domain, &row, mused.slider_bevel, BEV_SELECTED_PATTERN_ROW);
+			console_set_color(mused.console, colors[COLOR_INSTRUMENT_SELECTED]);
+		}
+		
+		else
+		{
+			console_set_color(mused.console, colors[COLOR_INSTRUMENT_NORMAL]);
+		}
+
+		console_write_args(mused.console, "%02X %c\n", i, mused.song.groove_length[i] == 0 ? ' ' : '#');
+
+		check_event(event, &row, select_groove, MAKEPTR(i), 0, 0);
+
+		slider_set_params(&mused.groove_list_slider_param, 0, MUS_MAX_GROOVES - 1, start, i, &mused.groove_list_position, 1, SLIDER_VERTICAL, mused.slider_bevel);
+	}
+}
+
+void current_groove_list(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
+{
+	SDL_Rect area;
+	copy_rect(&area, dest);
+	console_set_clip(mused.console, &area);
+	console_clear(mused.console);
+	bevelex(domain,&area, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
+	adjust_rect(&area, 3);
+	console_set_clip(mused.console, &area);
+
+	int y = area.y;
+
+	int start = mused.current_groove_list_position;
+
+	for (int i = start; i < mused.song.groove_length[mused.current_groove] && y < area.h + area.y; ++i, y += mused.console->font.h)
+	{
+		SDL_Rect row = { area.x - 1, y - 1, area.w + 2, mused.console->font.h + 1};
+
+		if (i == mused.current_groove_position)
+		{
+			bevel(domain, &row, mused.slider_bevel, BEV_SELECTED_PATTERN_ROW);
+			console_set_color(mused.console, colors[COLOR_INSTRUMENT_SELECTED]);
+		}
+		
+		else
+		{
+			console_set_color(mused.console, colors[COLOR_INSTRUMENT_NORMAL]);
+		}
+
+		console_write_args(mused.console, "%02X: %d\n", i, mused.song.grooves[mused.current_groove][i]);
+
+		check_event(event, &row, select_groove_position, MAKEPTR(i), 0, 0);
+
+		slider_set_params(&mused.groove_editor_slider_param, 0, mused.song.groove_length[mused.current_groove] - 1, start, i, &mused.current_groove_list_position, 1, SLIDER_VERTICAL, mused.slider_bevel);
+	}
+}
+
 
 static void parameters_view(GfxDomain *dest_surface, const SDL_Rect *area, const SDL_Event *event, void *param)
 {
+	SDL_Rect list;
+	copy_rect(&list, area);
+	
+	list.w = data.largefont->w * 5 + 4;
+	list.h -= 40;
+	
+	groove_list(dest_surface, &list, event, param);
+	
+	list.x += list.w;
+	list.w = 10;
+	
+	slider(dest_surface, &list, event, &mused.groove_list_slider_param);
+	
+	list.w = data.largefont->w * 8 + 4;
+	list.x += 30;
+	
+	current_groove_list(dest_surface, &list, event, param);
+	
+	list.x += list.w;
+	list.w = 10;
+	
+	slider(dest_surface, &list, event, &mused.groove_editor_slider_param);
+	
+	//data.subsong += generic_field(event, &button, -1, -1, "SUBSONG", "%02d", MAKEPTR(data.subsong), 2);
+	//button.y += button.h;
+	
+	//data.hub->n_tracks += generic_field(event, &button, -1, -1, "TRACKS", "%d", MAKEPTR(data.hub->n_tracks), 1);
+	//button.y += button.h;
+	
+	//data.hub->addr.patternptrlo += generic_field(event, &button, -1, -1, "PAT LO", "%04X", MAKEPTR(data.hub->addr.patternptrlo), 4);
+	//button.y += button.h;
+	
+	//data.hub->addr.patternptrhi += generic_field(event, &button, -1, -1, "PAT HI", "%04X", MAKEPTR(data.hub->addr.patternptrhi), 4);
+	//button.y += button.h;
+	
+	//data.hub->addr.songtab += generic_field(event, &button, -1, -1, "SONGS", "%04X", MAKEPTR(data.hub->addr.songtab), 4);
+	//button.y += button.h;
+	
+	//data.hub->addr.instruments += generic_field(event, &button, -1, -1, "INSTRUMENTS", "%04X", MAKEPTR(data.hub->addr.instruments), 4);
+	//button.y += button.h;
+	
 	SDL_Rect button;
 	
 	copy_rect(&button, area);
 	
-	
-	
-	//data.subsong += generic_field(event, &button, -1, -1, "SUBSONG", "%02d", MAKEPTR(data.subsong), 2);
-	button.y += button.h;
-	
-	//data.hub->n_tracks += generic_field(event, &button, -1, -1, "TRACKS", "%d", MAKEPTR(data.hub->n_tracks), 1);
-	button.y += button.h;
-	
-	//data.hub->addr.patternptrlo += generic_field(event, &button, -1, -1, "PAT LO", "%04X", MAKEPTR(data.hub->addr.patternptrlo), 4);
-	button.y += button.h;
-	
-	//data.hub->addr.patternptrhi += generic_field(event, &button, -1, -1, "PAT HI", "%04X", MAKEPTR(data.hub->addr.patternptrhi), 4);
-	button.y += button.h;
-	
-	//data.hub->addr.songtab += generic_field(event, &button, -1, -1, "SONGS", "%04X", MAKEPTR(data.hub->addr.songtab), 4);
-	button.y += button.h;
-	
-	//data.hub->addr.instruments += generic_field(event, &button, -1, -1, "INSTRUMENTS", "%04X", MAKEPTR(data.hub->addr.instruments), 4);
-	button.y += button.h;
-	
-	button.w = DIALOG_WIDTH - MARGIN * 2;
+	button.w = DIALOG_WIDTH - MARGIN * 2 - 2;
 	button.y = area->y + area->h - 10 - BUTTONS - 10 - 3;
 	button.h = 10;
 	
 	text_field(event, &button, sizeof(mused.groove_string), mused.groove_string);
+	
+	button.x = list.x + 20;
+	button.y = list.y;
+	button.h = 12;
+	
+	button.w = strlen("OK") * data.largefont->w + 32;
+	button_text_event(dest_surface, event, &button, data.gfx, data.largefont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "UP", move_up_action, 0, 0, 0);
+	button.y += 12;
+	button_text_event(dest_surface, event, &button, data.gfx, data.largefont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "DOWN", move_down_action, 0, 0, 0);
+	
+	button.y = area->y + area->h - 10 - BUTTONS - 10 - 3 - 12;
+	button.w = DIALOG_WIDTH - MARGIN * 2 - 2;
+	
+	float speed = 0.0;
+	
+	for(int i = 0; i < mused.song.groove_length[mused.current_groove]; i++)
+	{
+		speed += (float)mused.song.grooves[mused.current_groove][i];
+	}
+	
+	if(speed > 0.0 && mused.song.groove_length[mused.current_groove] > 0)
+	{
+		speed /= mused.song.groove_length[mused.current_groove];
+	}
+	
+	char string[200];
+	
+	snprintf(string, sizeof(string), "Speed: %.3f", speed);
+	
+	//console_write_args(mused.console, "Speed: %.3f", speed);
+	font_write(data.largefont, dest_surface, &button, string);
 }
 
 
@@ -165,8 +428,12 @@ static void buttons_view(GfxDomain *dest_surface, const SDL_Rect *area, const SD
 	
 	copy_rect(&button, area);
 	
-	button.w = strlen("OK") * data.largefont->w + 24;
-	button.x = area->w + area->x - button.w;
+	button.w = strlen("OK") * data.largefont->w + 32;
+	button.x = area->w + area->x - button.w * 3 - 10 - 3;
+	button_text_event(dest_surface, event, &button, data.gfx, data.largefont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "COPY", copy_action, 0, 0, 0);
+	button.x += button.w + 1;
+	button_text_event(dest_surface, event, &button, data.gfx, data.largefont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "PASTE", paste_action, 0, 0, 0);
+	button.x += button.w + 10;
 	button_text_event(dest_surface, event, &button, data.gfx, data.largefont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "OK", ok_action, 0, 0, 0);
 	button.x += button.w + 1;
 }

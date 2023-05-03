@@ -108,4 +108,6 @@ void wave_disk_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 
 bool check_mouse_hit(const SDL_Event *e, const SDL_Rect *area, int focus, int param);
 
+char* my_itoa(int num, char *str);
+
 #endif
