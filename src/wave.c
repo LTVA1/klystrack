@@ -104,7 +104,7 @@ Wave * wave_load(FILE *f)
 		return NULL;
 	}
 	
-	Wave *w = malloc(sizeof(*w));
+	Wave *w = calloc(1, sizeof(*w));
 	
 	w->format = WAVE.wFormatTag;
 	w->channels = WAVE.nChannels;

@@ -55,6 +55,7 @@ extern int event_hit;
 void open_4op(void *unused1, void *unused2, void *unused3);
 void open_prog(void *unused1, void *unused2, void *unused3);
 void open_env(void *unused1, void *unused2, void *unused3);
+void open_local_samples(void *unused1, void *unused2, void *unused3);
 
 float percent_to_dB(float percent)
 {
@@ -666,7 +667,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 {
 	SDL_Rect area;
 	copy_rect(&area, dest);
-	area.w -= (N_VIEWS - 1) * dest->h;
+	area.w -= (N_VIEWS - 1 - 1) * dest->h;
 	console_set_clip(mused.console, &area);
 	console_clear(mused.console);
 	bevelex(domain,&area, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
@@ -3955,11 +3956,17 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 			update_rect(&frame, &r);
 		}
 		
-		button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, !(mused.show_point_envelope_editor) ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "PROGRAM", open_prog, NULL, NULL, NULL);
+		r.w = init_width / 3 - 2;
+		
+		button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, (!(mused.show_point_envelope_editor) && !(mused.show_local_samples)) ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "PROGRAM", open_prog, NULL, NULL, NULL);
 		update_rect(&frame, &r);
 		
-		button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, mused.show_point_envelope_editor ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "ENVELOPE", open_env, NULL, NULL, NULL);
+		button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, (mused.show_point_envelope_editor && !(mused.show_local_samples)) ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "ENVELOPE", open_env, NULL, NULL, NULL);
 		update_rect(&frame, &r);
+		
+		r.w = frame.x + frame.w - r.x;
+		
+		button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, (!(mused.show_point_envelope_editor) && mused.show_local_samples) ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "LOCAL SAMPLES", open_local_samples, NULL, NULL, NULL);
 	}
 }
 
@@ -3999,6 +4006,8 @@ void open_prog(void *unused1, void *unused2, void *unused3)
 	mused.pan_env_horiz_scroll = 0;
 	
 	mused.point_env_editor_scroll = 0;
+	
+	mused.show_local_samples = false;
 }
 
 void open_env(void *unused1, void *unused2, void *unused3)
@@ -4008,6 +4017,15 @@ void open_env(void *unused1, void *unused2, void *unused3)
 	mused.current_volume_envelope_point = 0;
 	mused.current_panning_envelope_point = 0;
 	mused.env_selected_param = 0;
+	
+	mused.show_local_samples = false;
+}
+
+void open_local_samples(void *unused1, void *unused2, void *unused3)
+{
+	mused.show_local_samples = true;
+	
+	change_mode(EDITLOCALSAMPLE);
 }
 
 
@@ -4676,6 +4694,26 @@ void fx_disk_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 }
 
 void wave_disk_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
+{
+	SDL_Rect area;
+	copy_rect(&area, dest);
+	console_set_clip(mused.console, &area);
+	console_clear(mused.console);
+	bevelex(domain,&area, mused.slider_bevel, BEV_BACKGROUND, BEV_F_STRETCH_ALL);
+	adjust_rect(&area, 2);
+
+	SDL_Rect button = { area.x + 2, area.y, area.w / 2 - 4, area.h };
+
+	int open = button_text_event(domain, event, &button, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "LOAD", NULL, MAKEPTR(1), NULL, NULL);
+	update_rect(&area, &button);
+	int save = button_text_event(domain, event, &button, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "SAVE", NULL, MAKEPTR(2), NULL, NULL);
+	update_rect(&area, &button);
+
+	if (open & 1) open_data(param, MAKEPTR(OD_A_OPEN), 0);
+	else if (save & 1) open_data(param, MAKEPTR(OD_A_SAVE), 0);
+}
+
+void local_sample_disk_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
 	SDL_Rect area;
 	copy_rect(&area, dest);

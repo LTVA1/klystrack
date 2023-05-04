@@ -53,6 +53,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "view/sequence.h"
 #include "view/wavetableview.h"
 #include "view/envelopeview.h"
+#include "view/localsample.h"
 #include "view/timer.h"
 #include "mymsg.h"
 #include "key.h"
@@ -115,7 +116,7 @@ void change_pixel_scale(void *, void*, void*);
 #define TOOLBAR_H 12
 #define CLASSIC_SONG_INFO_H (SONG_INFO1_H+SONG_INFO2_H+SONG_INFO3_H+TOOLBAR_H)
 #define TIMER_W (8*7+4)
-#define SEQ_VIEW_INFO_H (24+10)
+#define SEQ_VIEW_INFO_H (25+10+10)
 
 static const View instrument_view_tab[] =
 {
@@ -200,7 +201,7 @@ static const View fx_view_tab[] =
 	{{0, 0, 0, 0}, NULL}
 };
 
-#define SAMPLEVIEW 148 //was 128, 8 pixels per string
+#define SAMPLEVIEW 148 /*was 128, 8 pixels per string*/
 
 static const View wavetable_view_tab[] =
 {
@@ -216,6 +217,27 @@ static const View wavetable_view_tab[] =
 	{{0, 0, 0, 0}, NULL}
 };
 
+#define LOCAL_SAMPLEVIEW (118)
+#define LOCAL_SAMPLE_VIEW_TOP_MARGIN (22 + 13)
+#define LOCAL_SAMPLE_VIEW_SIDE_MARGIN (6)
+
+static const View local_sample_view_tab[] =
+{
+	{{0, 0, -130, 14}, bevel_view, (void*)BEV_BACKGROUND, -1},
+	{{0, 0, 0, -INFO}, local_sample_bevel, NULL, -1},
+	{{LOCAL_SAMPLE_VIEW_SIDE_MARGIN, LOCAL_SAMPLE_VIEW_TOP_MARGIN - 14, - LOCAL_SAMPLE_VIEW_SIDE_MARGIN, 14}, local_sample_header_view, NULL, -1},
+	{{LOCAL_SAMPLE_VIEW_SIDE_MARGIN, LOCAL_SAMPLE_VIEW_TOP_MARGIN, -130 - LOCAL_SAMPLE_VIEW_SIDE_MARGIN, 14}, bevel_view, (void*)BEV_BACKGROUND, -1},
+	{{2 + LOCAL_SAMPLE_VIEW_SIDE_MARGIN, LOCAL_SAMPLE_VIEW_TOP_MARGIN + 2, -132 - LOCAL_SAMPLE_VIEW_SIDE_MARGIN, 10}, local_sample_name_view, NULL, -1},
+	{{-130 - LOCAL_SAMPLE_VIEW_SIDE_MARGIN, LOCAL_SAMPLE_VIEW_TOP_MARGIN, 130, 14}, local_sample_disk_view, MAKEPTR(OD_T_WAVETABLE), -1},
+	{{LOCAL_SAMPLE_VIEW_SIDE_MARGIN, LOCAL_SAMPLE_VIEW_TOP_MARGIN + 14, 204, -INFO-LOCAL_SAMPLEVIEW-LOCAL_SAMPLE_VIEW_SIDE_MARGIN}, local_sample_view, NULL, -1},
+	{{204 + LOCAL_SAMPLE_VIEW_SIDE_MARGIN, LOCAL_SAMPLE_VIEW_TOP_MARGIN + 14, -SCROLLBAR - LOCAL_SAMPLE_VIEW_SIDE_MARGIN, -INFO-LOCAL_SAMPLEVIEW-LOCAL_SAMPLE_VIEW_SIDE_MARGIN}, local_samplelist_view, NULL, -1},
+	{{0 - SCROLLBAR-LOCAL_SAMPLE_VIEW_SIDE_MARGIN, LOCAL_SAMPLE_VIEW_TOP_MARGIN + 14, SCROLLBAR, -INFO-LOCAL_SAMPLEVIEW-LOCAL_SAMPLE_VIEW_SIDE_MARGIN }, slider, &mused.wavetable_list_slider_param, EDITWAVETABLE },
+	{{LOCAL_SAMPLE_VIEW_SIDE_MARGIN, -INFO-LOCAL_SAMPLEVIEW-LOCAL_SAMPLE_VIEW_SIDE_MARGIN, -180-LOCAL_SAMPLE_VIEW_SIDE_MARGIN, LOCAL_SAMPLEVIEW}, local_sample_sample_area, NULL, -1}, //was {{0, -INFO-SAMPLEVIEW, -148, SAMPLEVIEW}, wavetable_sample_area, NULL, -1},
+	{{-180-LOCAL_SAMPLE_VIEW_SIDE_MARGIN, -INFO-LOCAL_SAMPLEVIEW-LOCAL_SAMPLE_VIEW_SIDE_MARGIN, 180, LOCAL_SAMPLEVIEW}, local_sample_edit_area, NULL, -1}, //was {{-148, -INFO-SAMPLEVIEW, 148, SAMPLEVIEW}, wavetable_edit_area, NULL, -1},
+	{{0, - INFO, 0, INFO }, info_line, NULL, -1},
+	{{0, 0, 0, 0}, NULL}
+};
+
 const View *tab[] =
 {
 	pattern_view_tab,
@@ -227,6 +249,8 @@ const View *tab[] =
 	
 	fx_view_tab,
 	wavetable_view_tab,
+	
+	local_sample_view_tab,
 };
 
 
@@ -296,21 +320,21 @@ int main(int argc, char **argv)
 	gfx_domain_update(domain, false);
 
 	//MusInstrument instrument[NUM_INSTRUMENTS];
-	MusInstrument* instrument = (MusInstrument*)malloc(NUM_INSTRUMENTS * sizeof(MusInstrument));
+	MusInstrument* instrument = (MusInstrument*)calloc(1, NUM_INSTRUMENTS * sizeof(MusInstrument));
 	
 	//MusPattern pattern[NUM_PATTERNS];
-	MusPattern* pattern = (MusPattern*)malloc(NUM_PATTERNS * sizeof(MusPattern));
+	MusPattern* pattern = (MusPattern*)calloc(1, NUM_PATTERNS * sizeof(MusPattern));
 	memset(pattern, 0, NUM_PATTERNS * sizeof(MusPattern));
 	
 	//MusChannel channel[CYD_MAX_CHANNELS];
-	MusChannel* channel = (MusChannel*)malloc(CYD_MAX_CHANNELS * sizeof(MusChannel));
+	MusChannel* channel = (MusChannel*)calloc(1, CYD_MAX_CHANNELS * sizeof(MusChannel));
 	
 	//MusSeqPattern sequence[MUS_MAX_CHANNELS][NUM_SEQUENCES];
-	MusSeqPattern** sequence = (MusSeqPattern**)malloc(MUS_MAX_CHANNELS * sizeof(MusSeqPattern*));
+	MusSeqPattern** sequence = (MusSeqPattern**)calloc(1, MUS_MAX_CHANNELS * sizeof(MusSeqPattern*));
 	
 	for(int i = 0; i < MUS_MAX_CHANNELS; ++i)
 	{
-		sequence[i] = (MusSeqPattern*)malloc(NUM_SEQUENCES * sizeof(MusSeqPattern));
+		sequence[i] = (MusSeqPattern*)calloc(1, NUM_SEQUENCES * sizeof(MusSeqPattern));
 	}
 
 	init(instrument, pattern, sequence, channel);
@@ -396,16 +420,6 @@ int main(int argc, char **argv)
 	font_load_file(domain, &mused.font24, "res/Fonts/font24x24.fnt");
 	
 	Uint32 timeout = SDL_GetTicks() + mused.time_between_autosaves; //for autosave
-	
-	//test groove
-	
-	/*mused.song.num_grooves = 1;
-	mused.song.groove_length[0] = 4;
-	
-	mused.song.grooves[0][0] = 3;
-	mused.song.grooves[0][1] = 6;
-	mused.song.grooves[0][2] = 9;
-	mused.song.grooves[0][3] = 12;*/
 	
 	while (1)
 	{

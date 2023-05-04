@@ -331,9 +331,6 @@ void invalidate_wavetable_view()
 	mused.wavetable_bits = 0;
 }
 
-
-
-
 void wavetable_tools_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
 	SDL_Rect r, frame;

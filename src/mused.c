@@ -88,6 +88,8 @@ void change_mode(int newmode)
 		mused.cursor.w = mused.cursor.h = mused.cursor_target.w = mused.cursor_target.h = 0;
 
 		if (newmode != mused.mode && newmode < VIRTUAL_MODE) snapshot(S_T_MODE);
+		
+		mused.show_local_samples = false;
 	}
 
 	switch (newmode)

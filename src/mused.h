@@ -44,6 +44,8 @@ enum
 	
 	EDITFX,
 	EDITWAVETABLE,
+	
+	EDITLOCALSAMPLE,
 	/* Focuses */
 	EDITPROG,
 	EDITPROG4OP,
@@ -366,6 +368,8 @@ typedef struct
 	char groove_string[MUS_MAX_GROOVE_LENGTH * 8];
 	
 	Uint8 current_groove, current_groove_position, groove_list_position, current_groove_list_position;
+	
+	bool show_local_samples;
 } Mused;
 
 extern Mused mused;
