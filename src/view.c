@@ -4024,6 +4024,7 @@ void open_env(void *unused1, void *unused2, void *unused3)
 void open_local_samples(void *unused1, void *unused2, void *unused3)
 {
 	mused.show_local_samples = true;
+	mused.local_sample_list_position = 0;
 	
 	change_mode(EDITLOCALSAMPLE);
 }

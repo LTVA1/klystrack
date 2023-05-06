@@ -131,6 +131,22 @@ void select_wavetable(void *idx, void *unused1, void *unused2)
 
 }
 
+void select_local_sample(void *idx, void *unused1, void *unused2)
+{
+	int prev = mused.selected_local_sample;
+	
+	mused.selected_local_sample = CASTPTR(int, idx);
+
+	if (mused.selected_local_sample >= MUS_MAX_INST_SAMPLES)
+		mused.selected_local_sample = MUS_MAX_INST_SAMPLES-1;
+	else if (mused.selected_local_sample < 0)
+		mused.selected_local_sample = 0;
+	
+	if(mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample]) //don't allow to get invalid pointer
+	{
+		mused.selected_local_sample = prev;
+	}
+}
 
 void change_octave(void *delta, void *unused1, void *unused2)
 {

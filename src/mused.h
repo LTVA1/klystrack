@@ -177,8 +177,8 @@ typedef struct
 		prev_mode, current_sequenceparam, instrument_list_position,
 		pattern_position, sequence_position, pattern_horiz_position, sequence_horiz_position,
 		program_position, current_program_step,
-		edit_reverb_param, selected_wavetable, wavetable_param, songinfo_param,
-		loop_store_length, loop_store_loop, note_jump, wavetable_list_position, wavetable_preview_idx, sequence_digit;
+		edit_reverb_param, selected_wavetable, selected_local_sample, wavetable_param, local_sample_param, songinfo_param,
+		loop_store_length, loop_store_loop, note_jump, wavetable_list_position, local_sample_list_position, wavetable_preview_idx, sequence_digit;
 		
 	int point_env_editor_scroll;
 	
@@ -223,7 +223,7 @@ typedef struct
 	
 	int edit_buffer_size;
 	SliderParam sequence_slider_param, pattern_slider_param, program_slider_param, instrument_list_slider_param, 
-		pattern_horiz_slider_param, sequence_horiz_slider_param, wavetable_list_slider_param, four_op_slider_param, point_env_slider_param, vol_env_horiz_slider_param, fourop_vol_env_horiz_slider_param, pan_env_horiz_slider_param,
+		pattern_horiz_slider_param, sequence_horiz_slider_param, wavetable_list_slider_param, local_sample_list_slider_param, four_op_slider_param, point_env_slider_param, vol_env_horiz_slider_param, fourop_vol_env_horiz_slider_param, pan_env_horiz_slider_param,
 		groove_list_slider_param, groove_editor_slider_param;
 	char previous_song_filename[1000], previous_export_filename[1000], previous_filebox_path[OD_T_N_TYPES][1000];
 	/*---*/

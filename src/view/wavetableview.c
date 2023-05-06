@@ -87,9 +87,6 @@ void wavetable_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Eve
 		
 		update_rect(&frame, &r);
 		
-		
-		
-		
 		r.w = 138;
 		
 		static const char *interpolations[] = { "NO INT", "LINEAR", "COSINE", "CUBIC", "GAUSS", "SINC" };
@@ -184,8 +181,6 @@ void wavetablelist_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 	}
 	
 	gfx_domain_set_clip(dest_surface, NULL);
-	
-	//check_mouse_wheel_event(event, dest, &mused.wavetable_list_slider_param);
 	
 	if (event->type == SDL_MOUSEWHEEL && mused.focus == EDITWAVETABLE)
 	{
@@ -317,6 +312,7 @@ void wavetable_sample_view(GfxDomain *dest_surface, const SDL_Rect *dest, const 
 		mused.prev_wavetable_x = mx;
 		mused.prev_wavetable_y = my;
 	}
+	
 	else
 	{
 		mused.prev_wavetable_x = -1;

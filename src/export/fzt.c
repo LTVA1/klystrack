@@ -1033,7 +1033,8 @@ void write_instrument(FILE* f, MusInstrument* inst)
 	fzt_instrument* fzt_inst = (fzt_instrument*)calloc(1, sizeof(fzt_instrument));
 	memset(fzt_inst, 0, sizeof(fzt_instrument));
 
-	strcpy(fzt_inst->name, inst->name);
+	memcpy(fzt_inst->name, inst->name, FZT_MUS_INST_NAME_LEN);
+	fzt_inst->name[FZT_MUS_INST_NAME_LEN] = '\0';
 
 	if(inst->cydflags & CYD_CHN_ENABLE_NOISE)
 	{
@@ -1382,7 +1383,9 @@ bool export_fzt(MusSong* song, CydWavetableEntry* wavetable_entries, FILE *f)
 		}
 	}
 
-	fwrite(&song->num_wavetables, 1, sizeof(song->num_wavetables), f);
+	//fwrite(&song->num_wavetables, 1, sizeof(song->num_wavetables), f);
+	Uint8 waves = 0;
+	fwrite(&waves, 1, sizeof(waves), f);
 	
 	abort:;
 
