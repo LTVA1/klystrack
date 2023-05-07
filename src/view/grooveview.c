@@ -328,7 +328,7 @@ void groove_list(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event 
 
 		check_event(event, &row, select_groove, MAKEPTR(i), 0, 0);
 
-		slider_set_params(&mused.groove_list_slider_param, 0, MUS_MAX_GROOVES - 1, start, i, &mused.groove_list_position, 1, SLIDER_VERTICAL, mused.slider_bevel);
+		slider_set_params(&mused.groove_list_slider_param, 0, MUS_MAX_GROOVES - 1, start, i, (int*)&mused.groove_list_position, 1, SLIDER_VERTICAL, mused.slider_bevel);
 	}
 }
 
@@ -365,7 +365,7 @@ void current_groove_list(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 
 		check_event(event, &row, select_groove_position, MAKEPTR(i), 0, 0);
 
-		slider_set_params(&mused.groove_editor_slider_param, 0, mused.song.groove_length[mused.current_groove] - 1, start, i, &mused.current_groove_list_position, 1, SLIDER_VERTICAL, mused.slider_bevel);
+		slider_set_params(&mused.groove_editor_slider_param, 0, mused.song.groove_length[mused.current_groove] - 1, start, i, (int*)&mused.current_groove_list_position, 1, SLIDER_VERTICAL, mused.slider_bevel);
 	}
 }
 

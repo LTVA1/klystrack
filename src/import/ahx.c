@@ -534,7 +534,7 @@ int import_ahx(FILE *f)
 	fseek(f, 0, SEEK_END);
 	size_t bytes = ftell(f) - begin_names;
 
-	char *txt = malloc(bytes);
+	char *txt = calloc(1, bytes);
 
 	fseek(f, begin_names, SEEK_SET);
 

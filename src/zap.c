@@ -123,11 +123,11 @@ void zap_wavetable(void* no_confirm, void* b, void* c)
 		free(mused.song.wavetable_names);
 	}
 	
-	mused.song.wavetable_names = malloc(CYD_WAVE_MAX_ENTRIES * sizeof(char*));
+	mused.song.wavetable_names = calloc(1, CYD_WAVE_MAX_ENTRIES * sizeof(char*));
 	
 	for (int i = 0; i < CYD_WAVE_MAX_ENTRIES; ++i)
 	{
-		mused.song.wavetable_names[i] = malloc(MUS_WAVETABLE_NAME_LEN + 1);
+		mused.song.wavetable_names[i] = calloc(1, MUS_WAVETABLE_NAME_LEN + 1);
 		strcpy(mused.song.wavetable_names[i], "");
 	}
 	

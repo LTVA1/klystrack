@@ -82,6 +82,10 @@ bool is_selected_param(int focus, int p)
 		case EDITWAVETABLE:
 			return p == mused.wavetable_param;
 			break;
+			
+		case EDITLOCALSAMPLE:
+			return p == mused.local_sample_param;
+			break;
 
 		case EDITSONGINFO:
 			return p == mused.songinfo_param;
@@ -142,7 +146,10 @@ void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain,
 						
 						else //so we don't focus on program editor when point envelope editor is open
 						{
-							mused.focus = view->focus;
+							if(mused.mode != EDITLOCALSAMPLE && view->focus != EDITINSTRUMENT)
+							{
+								mused.focus = view->focus;
+							}
 							
 							//debug("152 new focus %d", mused.focus);
 						}
@@ -192,7 +199,10 @@ void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain,
 					
 					else
 					{
-						mused.focus = view->focus;
+						if(mused.mode != EDITLOCALSAMPLE && view->focus != EDITINSTRUMENT)
+						{
+							mused.focus = view->focus;
+						}
 						
 						//debug("200 new focus %d i = %d m = %d", mused.focus, i, m);
 					}
@@ -333,6 +343,10 @@ bool check_mouse_hit(const SDL_Event *e, const SDL_Rect *area, int focus, int pa
 
 			case EDITWAVETABLE:
 				mused.wavetable_param = param;
+				break;
+				
+			case EDITLOCALSAMPLE:
+				mused.local_sample_param = param;
 				break;
 
 			case EDITSONGINFO:
@@ -1710,6 +1724,8 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 					int mouse_x, mouse_y;
 					
 					Uint32 buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+					UNUSED(buttons);
+					
 					gfx_convert_mouse_coordinates(domain, &mouse_x, &mouse_y);
 					
 					if ((mouse_x > row1.x) && (mouse_y > row1.y) && (mouse_x <= row1.x + row1.w) && (mouse_y < row1.y + row1.h - 1))
@@ -1857,7 +1873,7 @@ void oscilloscope_view(GfxDomain *dest_surface, SDL_Rect *dest, const SDL_Event 
 		bevelex(domain, &area, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
 		adjust_rect(&area, 2);
 		
-		int *pointer = &mused.output_buffer_counter;
+		int *pointer = (int*)&mused.output_buffer_counter;
 		
 		update_oscillscope_view(dest_surface, &area, mused.output_buffer, OSC_SIZE, pointer, true, (bool)(mused.flags2 & SHOW_OSCILLOSCOPE_MIDLINES));
 	}
@@ -2463,6 +2479,8 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 		gfx_rect(dest_surface, &frame, 0x0);
 		
 		SDL_Rect top_view, view, view2, op_alg_view, program_view, slider;
+		UNUSED(slider);
+		UNUSED(program_view);
 			
 		{
 			SDL_Rect r;
@@ -3567,6 +3585,8 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 					int mouse_x, mouse_y;
 					
 					Uint32 buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+					UNUSED(buttons);
+					
 					gfx_convert_mouse_coordinates(domain, &mouse_x, &mouse_y);
 					
 					if ((mouse_x > row1.x) && (mouse_y > row1.y) && (mouse_x <= row1.x + row1.w) && (mouse_y < row1.y + row1.h - 1))
@@ -3978,8 +3998,6 @@ void open_4op(void *unused1, void *unused2, void *unused3)
 
 	change_mode(EDIT4OP);
 	
-	snapshot(S_T_MODE);
-	
 	mused.selected_operator = 1;
 	
 	if(mused.song.instrument[mused.current_instrument].alg == 0)
@@ -4023,10 +4041,15 @@ void open_env(void *unused1, void *unused2, void *unused3)
 
 void open_local_samples(void *unused1, void *unused2, void *unused3)
 {
+	snapshot(S_T_MODE);
+	
 	mused.show_local_samples = true;
 	mused.local_sample_list_position = 0;
+	mused.show_local_samples_list = true;
 	
 	change_mode(EDITLOCALSAMPLE);
+	
+	mused.local_sample_param = LS_ENABLE;
 }
 
 

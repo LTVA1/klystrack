@@ -207,7 +207,7 @@ void wavetable_chord(void *transpose, void *unused2, void *unused3)
 		
 		if (new_length < 100000000)
 		{
-			Sint16 *new_data = malloc(sizeof(Sint16) * new_length);
+			Sint16 *new_data = calloc(1, sizeof(Sint16) * new_length);
 			
 			if (new_data)
 			{
@@ -252,7 +252,7 @@ void wavetable_create_one_cycle(void *_settings, void *unused2, void *unused3)
 	}
 	
 	int new_length = settings->length;
-	Sint16 *new_data = malloc(sizeof(Sint16) * new_length);
+	Sint16 *new_data = calloc(1, sizeof(Sint16) * new_length);
 	
 	int lowest_mul = 999;
 	
@@ -436,7 +436,7 @@ void wavetable_filter(void *_filter_type, void *unused2, void *unused3)
 	{
 		int filter_type = CASTPTR(int, _filter_type);
 		
-		Sint16 * temp = malloc(sizeof(Sint16) * w->samples);
+		Sint16 * temp = calloc(1, sizeof(Sint16) * w->samples);
 		memcpy(temp, w->data, sizeof(Sint16) * w->samples);
 		
 		for (int s = 0; s < w->samples; ++s)
@@ -479,7 +479,7 @@ void wavetable_find_zero(void *unused1, void *unused2, void *unused3)
 		
 		if (zero_crossing > 0)
 		{
-			Sint16 * temp = malloc(sizeof(Sint16) * w->samples);
+			Sint16 * temp = calloc(1, sizeof(Sint16) * w->samples);
 			memcpy(temp, w->data, sizeof(Sint16) * w->samples);
 		
 			for (int s = 0; s < w->samples; ++s)

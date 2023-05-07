@@ -146,7 +146,7 @@ void do_autosave(Uint32* timeout)
 			
 			char filename[5000] = {0};
 			//char* song_name = (char*)&mused.song.title;
-			char* song_name = malloc(strlen((char*)&mused.song.title) + 2);
+			char* song_name = calloc(1, strlen((char*)&mused.song.title) + 2);
 			strcpy(song_name, (char*)&mused.song.title);
 			
 			for(int i = 0; i <= strlen((char*)&mused.song.title); i++)
@@ -1687,8 +1687,8 @@ void instrument_add_param(int a)
 					{
 						i->num_macros++;
 						
-						i->program[i->num_macros - 1] = (Uint16*)malloc(MUS_PROG_LEN * sizeof(Uint16));
-						i->program_unite_bits[i->num_macros - 1] = (Uint8*)malloc((MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
+						i->program[i->num_macros - 1] = (Uint16*)calloc(1, MUS_PROG_LEN * sizeof(Uint16));
+						i->program_unite_bits[i->num_macros - 1] = (Uint8*)calloc(1, (MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
 						
 						for (int p = 0; p < MUS_PROG_LEN; ++p)
 						{
@@ -2434,8 +2434,8 @@ void four_op_add_param(int a)
 					{
 						i->ops[mused.selected_operator - 1].num_macros++;
 						
-						i->ops[mused.selected_operator - 1].program[i->ops[mused.selected_operator - 1].num_macros - 1] = (Uint16*)malloc(MUS_PROG_LEN * sizeof(Uint16));
-						i->ops[mused.selected_operator - 1].program_unite_bits[i->ops[mused.selected_operator - 1].num_macros - 1] = (Uint8*)malloc((MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
+						i->ops[mused.selected_operator - 1].program[i->ops[mused.selected_operator - 1].num_macros - 1] = (Uint16*)calloc(1, MUS_PROG_LEN * sizeof(Uint16));
+						i->ops[mused.selected_operator - 1].program_unite_bits[i->ops[mused.selected_operator - 1].num_macros - 1] = (Uint8*)calloc(1, (MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
 						
 						for (int p = 0; p < MUS_PROG_LEN; ++p)
 						{
@@ -4892,14 +4892,41 @@ void fx_event(SDL_Event *e)
 
 void wave_add_param(int d)
 {
-	CydWavetableEntry *w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	CydWavetableEntry *w = NULL;
+	
+	if(mused.focus == EDITLOCALSAMPLE && !(mused.show_local_samples_list))
+	{
+		w = &mused.mus.cyd->wavetable_entries[mused.selected_local_sample];
+	}
+	
+	else
+	{
+		w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	}
+	
 	WgOsc *osc = &mused.wgset.chain[mused.selected_wg_osc];
-
+	
+	//MusInstrument* inst = &mused.song.instrument[mused.current_instrument];
+	
+	//debug("d = %d, lsp = %d wp = %d LS_WAVE = %d, lsp - LS_WAVE %d", d, mused.local_sample_param, mused.wavetable_param, LS_WAVE, mused.local_sample_param - LS_WAVE);
+	
 	if (d < 0) d = -1; else if (d > 0) d = 1;
+	
+	int param = 0;
+	
+	if(mused.focus == EDITLOCALSAMPLE && !(mused.show_local_samples_list))
+	{
+		param = mused.local_sample_param - LS_WAVE;
+	}
+	
+	else
+	{
+		param = mused.wavetable_param;
+	}
 
 	if (SDL_GetModState() & KMOD_SHIFT)
 	{
-		switch (mused.wavetable_param)
+		switch (param)
 		{
 			case W_BASE: d *= 12; break;
 			case W_BASEFINE: d *= 16; break;
@@ -4909,7 +4936,7 @@ void wave_add_param(int d)
 	
 	if (SDL_GetModState() & KMOD_CTRL) //wasn't there
 	{
-		switch (mused.wavetable_param)
+		switch (param)
 		{
 			case W_OSCVOL: d *= 256; break;
 			default: d *= 4096; break;
@@ -4918,15 +4945,18 @@ void wave_add_param(int d)
 	
 	if (SDL_GetModState() & KMOD_ALT) //wasn't there
 	{
-		switch (mused.wavetable_param)
+		switch (param)
 		{
 			default: d *= 65536; break;
 		}
 	}
+	
+	if(!(mused.show_local_samples_list))
+	{
+		snapshot_cascade(S_T_WAVE_PARAM, mused.selected_wavetable, mused.wavetable_param);
+	}
 
-	snapshot_cascade(S_T_WAVE_PARAM, mused.selected_wavetable, mused.wavetable_param);
-
-	switch (mused.wavetable_param)
+	switch (param)
 	{
 		case W_INTERPOLATE:
 		{
@@ -4945,7 +4975,15 @@ void wave_add_param(int d)
 
 		case W_WAVE:
 		{
-			clamp(mused.selected_wavetable, d, 0, CYD_WAVE_MAX_ENTRIES - 1);
+			if(mused.focus == EDITLOCALSAMPLE && !(mused.show_local_samples_list))
+			{
+				clamp(mused.selected_local_sample, d, 0, CYD_WAVE_MAX_ENTRIES - 1);
+			}
+			
+			else
+			{
+				clamp(mused.selected_wavetable, d, 0, CYD_WAVE_MAX_ENTRIES - 1);
+			}
 		}
 		break;
 
@@ -5070,7 +5108,132 @@ void wave_add_param(int d)
 		}
 		break;
 	}
+}
 
+void local_sample_add_param(int d)
+{
+	if(!(mused.show_local_samples_list))
+	{
+		wave_add_param(d);
+		return;
+	}
+	
+	CydWavetableEntry *w = mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample];
+	
+	MusInstrument* inst = &mused.song.instrument[mused.current_instrument];
+	
+	if(w == NULL)
+	{
+		return;
+	}
+
+	if (d < 0) d = -1; else if (d > 0) d = 1;
+
+	if (SDL_GetModState() & KMOD_SHIFT)
+	{
+		switch (mused.local_sample_param)
+		{
+			case LS_BASE: d *= 12; break;
+			case LS_BASEFINE: d *= 16; break;
+			default: d *= 16; break;
+		}
+	}
+	
+	if (SDL_GetModState() & KMOD_CTRL) //wasn't there
+	{
+		switch (mused.local_sample_param)
+		{
+			default: d *= 4096; break;
+		}
+	}
+	
+	if (SDL_GetModState() & KMOD_ALT) //wasn't there
+	{
+		switch (mused.local_sample_param)
+		{
+			default: d *= 65536; break;
+		}
+	}
+
+	switch (mused.local_sample_param)
+	{
+		case LS_ENABLE:
+		{
+			flipbit(inst->flags, MUS_INST_USE_LOCAL_SAMPLES);
+		}
+		break;
+		
+		case LS_LOCAL_SAMPLE:
+		{
+			clamp(inst->local_sample, d, 0, inst->num_local_samples - 1);
+		}
+		break;
+		
+		case LS_INTERPOLATE:
+		{
+			flipbit(w->flags, CYD_WAVE_NO_INTERPOLATION);
+		}
+		break;
+		
+		case LS_INTERPOLATION_TYPE:
+		{
+			if(((w->flags & (CYD_WAVE_INTERPOLATION_BIT_1|CYD_WAVE_INTERPOLATION_BIT_2|CYD_WAVE_INTERPOLATION_BIT_3)) >> 5) + d >= 0 && ((w->flags & (CYD_WAVE_INTERPOLATION_BIT_1|CYD_WAVE_INTERPOLATION_BIT_2|CYD_WAVE_INTERPOLATION_BIT_3)) >> 5) + d <= 1 && (w->flags & CYD_WAVE_NO_INTERPOLATION) == 0)
+			{
+				w->flags += d << 5;
+			}
+		}
+		break;
+
+		case LS_WAVE:
+		{
+			clamp(mused.selected_local_sample, d, 0, inst->num_local_samples - 1);
+		}
+		break;
+
+		case LS_RATE:
+		{
+			clamp(w->sample_rate, d, 1, 192000);
+		}
+		break;
+
+		case LS_BASE:
+		{
+			clamp(w->base_note, d * 256, 0, (FREQ_TAB_SIZE - 1) * 256);
+		}
+		break;
+
+		case LS_BASEFINE:
+		{
+			clamp(w->base_note, d, 0, (FREQ_TAB_SIZE - 1) * 256);
+		}
+		break;
+
+		case LS_LOOP:
+		{
+			flipbit(w->flags, CYD_WAVE_LOOP);
+		}
+		break;
+
+		case LS_LOOPPINGPONG:
+		{
+			flipbit(w->flags, CYD_WAVE_PINGPONG);
+		}
+		break;
+
+		case LS_LOOPBEGIN:
+		{
+			clamp(w->loop_begin, d, 0, my_min(w->samples, w->loop_end));
+			clamp(w->loop_end, 0, w->loop_begin, w->samples);
+		}
+		break;
+
+		case LS_LOOPEND:
+		{
+			clamp(w->loop_end, d, w->loop_begin, w->samples);
+			clamp(w->loop_begin, 0, 0, my_min(w->samples, w->loop_end));
+		}
+		break;
+	}
 }
 
 void wave_event(SDL_Event *e)
@@ -5115,6 +5278,8 @@ void wave_event(SDL_Event *e)
 					free(wave->data);
 					wave->data = NULL;
 					
+					cyd_wave_entry_init(wave, NULL, 0, 0, 0, 0, 0);
+					
 					memset(mused.song.wavetable_names[mused.selected_wavetable], 0, MUS_WAVETABLE_NAME_LEN + 1);
 					
 					if (!(mused.flags & SHOW_WAVEGEN))
@@ -5149,6 +5314,102 @@ void wave_event(SDL_Event *e)
 			case SDLK_LEFT:
 			{
 				wave_add_param(-1);
+			}
+			break;
+
+			default:
+				wave_the_jams(e->key.keysym.sym);
+			break;
+		}
+
+		break;
+	}
+}
+
+
+void local_sample_event(SDL_Event *e)
+{
+	switch (e->type)
+	{
+		case SDL_KEYDOWN:
+
+		switch (e->key.keysym.sym)
+		{
+			case SDLK_DOWN:
+			{
+				++mused.local_sample_param;
+
+				if (mused.local_sample_param >= LS_N_PARAMS) mused.local_sample_param = LS_N_PARAMS - 1;
+			}
+			break;
+			
+			case SDLK_DELETE:
+			{
+				char buffer[500];
+				
+				snprintf(buffer, 499, "Delete selected wavetable (%s)?", (mused.show_local_samples_list ? mused.song.instrument[mused.current_instrument].local_sample_names[mused.selected_local_sample] : mused.song.wavetable_names[mused.selected_local_sample]));
+				
+				if (confirm(domain, mused.slider_bevel, &mused.largefont, buffer))
+				{
+					CydWavetableEntry *wave = NULL;
+					
+					if(mused.show_local_samples_list)
+					{
+						wave = mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample];
+					}
+					
+					else
+					{
+						wave = &mused.mus.cyd->wavetable_entries[mused.selected_local_sample];
+					}
+					
+					if(wave == NULL)
+					{
+						return;
+					}
+					
+					wave->flags = 0;
+					wave->sample_rate = 0;
+					wave->samples = 0;
+					wave->loop_begin = 0;
+					wave->loop_end = 0;
+					wave->loop_point = 0;
+					wave->base_note = C_ZERO;
+					
+					free(wave->data);
+					wave->data = NULL;
+					
+					cyd_wave_entry_init(wave, NULL, 0, 0, 0, 0, 0);
+					
+					memset(mused.show_local_samples_list ? mused.song.instrument[mused.current_instrument].local_sample_names[mused.selected_local_sample] : mused.song.wavetable_names[mused.selected_local_sample], 0, MUS_WAVETABLE_NAME_LEN + 1);
+					
+					if (!(mused.flags & SHOW_WAVEGEN))
+					{
+						SDL_FillRect(mused.wavetable_preview->surface, NULL, SDL_MapRGB(mused.wavetable_preview->surface->format, (colors[COLOR_WAVETABLE_BACKGROUND] >> 16) & 255, (colors[COLOR_WAVETABLE_BACKGROUND] >> 8) & 255, colors[COLOR_WAVETABLE_BACKGROUND] & 255));
+						
+						gfx_update_texture(domain, mused.wavetable_preview);
+					}
+				}
+			}
+			break;
+
+			case SDLK_UP:
+			{
+				--mused.local_sample_param;
+
+				if (mused.local_sample_param < 0) mused.local_sample_param = 0;
+			}
+			break;
+
+			case SDLK_RIGHT:
+			{
+				local_sample_add_param(+1);
+			}
+			break;
+
+			case SDLK_LEFT:
+			{
+				local_sample_add_param(-1);
 			}
 			break;
 

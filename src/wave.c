@@ -112,7 +112,7 @@ Wave * wave_load(FILE *f)
 	w->length = peek.cksize / (WAVE.wBitsPerSample / 8) / WAVE.nChannels;
 	w->bits_per_sample = WAVE.wBitsPerSample;
 	
-	w->data = malloc(peek.cksize);
+	w->data = calloc(1, peek.cksize);
 	
 	debug("Reading %d bytes (chn = %d, bits = %d)", peek.cksize, w->channels, w->bits_per_sample);
 	

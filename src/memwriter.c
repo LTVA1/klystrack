@@ -87,7 +87,7 @@ static int mw_close(SDL_RWops *ops)
 
 SDL_RWops * create_memwriter(FILE *flush)
 {
-	MemWriter *mem = malloc(sizeof(*mem));
+	MemWriter *mem = calloc(1, sizeof(*mem));
 	mem->position = 0;
 	mem->data = NULL;
 	mem->size = 0;

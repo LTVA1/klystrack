@@ -411,8 +411,8 @@ int main(int argc, char **argv)
 	
 	//debug("%d", mused.song.song_info[0]);
 	
-	float* re = (float*)malloc(sizeof(float) * 8192);
-	float* im = (float*)malloc(sizeof(float) * 8192);
+	float* re = (float*)calloc(1, sizeof(float) * 8192);
+	float* im = (float*)calloc(1, sizeof(float) * 8192);
 	mused.real_buffer = re;
 	mused.imaginary_buffer = im;
 	
@@ -606,6 +606,10 @@ int main(int argc, char **argv)
 
 							case EDITWAVETABLE:
 							wave_event(&e);
+							break;
+							
+							case EDITLOCALSAMPLE:
+							local_sample_event(&e);
 							break;
 
 							case EDITSONGINFO:

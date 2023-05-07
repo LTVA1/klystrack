@@ -74,14 +74,14 @@ int load_orgsamp(orgsamp_t *data)
 
 		data->sample_length = temp32;
 		
-		data->data = malloc(data->sample_length * data->n_samples);
+		data->data = calloc(1, data->sample_length * data->n_samples);
 		
 		fread(data->data, 1, data->sample_length * data->n_samples, f);
 		
 		fread(&temp8, 1, sizeof(temp8), f);
 		
 		data->n_drums = temp8;
-		data->drum = malloc(sizeof(data->drum[0]) * data->n_drums);
+		data->drum = calloc(1, sizeof(data->drum[0]) * data->n_drums);
 		
 		fread(&temp16, 1, sizeof(temp16), f);
 		
@@ -97,7 +97,7 @@ int load_orgsamp(orgsamp_t *data)
 			temp32 |= temp8;
 			
 			data->drum[i].length = temp32;
-			data->drum[i].data = malloc(temp32);
+			data->drum[i].data = calloc(1, temp32);
 			
 			fread(data->drum[i].data, 1, data->drum[i].length, f);
 		}

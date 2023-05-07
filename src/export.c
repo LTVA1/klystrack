@@ -43,8 +43,8 @@ bool export_wav(MusSong *song, CydWavetableEntry * entry, FILE *f, int channel)
 	/*MusEngine mus;
 	CydEngine cyd;*/
 	
-	MusEngine* mus = (MusEngine*)malloc(sizeof(MusEngine));
-	CydEngine* cyd = (CydEngine*)malloc(sizeof(CydEngine));
+	MusEngine* mus = (MusEngine*)calloc(1, sizeof(MusEngine));
+	CydEngine* cyd = (CydEngine*)calloc(1, sizeof(CydEngine));
 	
 	if(mus == NULL || cyd == NULL)
 	{
@@ -180,8 +180,8 @@ bool export_wav_hires(MusSong *song, CydWavetableEntry * entry, FILE *f, int cha
 	/*MusEngine mus;
 	CydEngine cyd;*/
 	
-	MusEngine* mus = (MusEngine*)malloc(sizeof(MusEngine));
-	CydEngine* cyd = (CydEngine*)malloc(sizeof(CydEngine));
+	MusEngine* mus = (MusEngine*)calloc(1, sizeof(MusEngine));
+	CydEngine* cyd = (CydEngine*)calloc(1, sizeof(CydEngine));
 	
 	if(mus == NULL || cyd == NULL)
 	{

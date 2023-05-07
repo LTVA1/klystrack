@@ -1101,7 +1101,7 @@ int open_song(FILE *f)
 
 	for (int i = mused.song.num_wavetables; i < CYD_WAVE_MAX_ENTRIES; ++i)
 	{
-		mused.song.wavetable_names[i] = malloc(MUS_WAVETABLE_NAME_LEN + 1);
+		mused.song.wavetable_names[i] = calloc(1, MUS_WAVETABLE_NAME_LEN + 1);
 		memset(mused.song.wavetable_names[i], 0, MUS_WAVETABLE_NAME_LEN + 1);
 	}
 
@@ -1769,7 +1769,7 @@ void open_data(void *type, void *action, void *_ret)
 			{
 				if(t == OD_T_SONG)
 				{
-					snprintf(str, sizeof(str), "              Could not open song!\nMaybe it is too new for this version of klystrack.", open_stuff[t].name);
+					snprintf(str, sizeof(str), "              Could not open song!\nMaybe it is too new for this version of klystrack.");
 				}
 				
 				else

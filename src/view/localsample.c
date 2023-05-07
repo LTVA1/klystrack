@@ -46,8 +46,6 @@ void local_sample_bevel(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 		mused.show_local_samples = false;
 		
 		change_mode(EDITINSTRUMENT);
-		
-		snapshot(S_T_MODE);
 	}
 	
 	frame.y += 15;
@@ -60,9 +58,132 @@ void local_sample_bevel(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 
 void local_sample_header_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
+	CydWavetableEntry *w = NULL;
+	
+	if(mused.show_local_samples_list)
+	{
+		w = mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample];
+	}
+	
+	else
+	{
+		w = &mused.mus.cyd->wavetable_entries[mused.selected_local_sample];
+	}
+	
+	if(w == NULL)
+	{
+		return;
+	}
+	
+	MusInstrument* inst = &mused.song.instrument[mused.current_instrument];
+	
 	SDL_Rect r, frame;
 	copy_rect(&frame, dest);
 	bevelex(domain, &frame, mused.slider_bevel, BEV_BACKGROUND, BEV_F_STRETCH_ALL);
+	
+	adjust_rect(&frame, 2);
+	copy_rect(&r, &frame);
+	
+	r.h = 10;
+	
+	int d;
+	
+	r.w = 134;
+	
+	generic_flags(event, &r, EDITLOCALSAMPLE, LS_ENABLE, "USE LOCAL SAMPLES", &inst->flags, MUS_INST_USE_LOCAL_SAMPLES);
+	update_rect(&frame, &r);
+	r.x += 10;
+	
+	r.w = 34;
+	
+	if ((d = generic_field(event, &r, EDITLOCALSAMPLE, LS_LOCAL_SAMPLE, "", "%02X", MAKEPTR(inst->local_sample), 2)) != 0)
+	{
+		local_sample_add_param(d);
+	}
+	
+	update_rect(&frame, &r);
+	
+	r.w = 70;
+	
+	int change_to_local = button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, mused.show_local_samples_list ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "LOCAL S.", NULL, MAKEPTR(1), NULL, NULL);
+	
+	update_rect(&frame, &r);
+	
+	int change_to_global = button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, !(mused.show_local_samples_list) ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "GLOBAL S.", NULL, MAKEPTR(1), NULL, NULL);
+	
+	update_rect(&frame, &r);
+	
+	if (event->type == SDL_MOUSEBUTTONDOWN)
+	{
+		if(change_to_local > 0)
+		{
+			mused.show_local_samples_list = true;
+			invalidate_wavetable_view();
+			
+			if(mused.selected_local_sample > inst->num_local_samples - 1)
+			{
+				mused.selected_local_sample = inst->num_local_samples - 1;
+			}
+		}
+		
+		if(change_to_global > 0)
+		{
+			mused.show_local_samples_list = false;
+			invalidate_wavetable_view();
+		}
+	}
+	
+	r.x += 30;
+	r.w = 30;
+	
+	int add_local = button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "ADD", NULL, MAKEPTR(1), NULL, NULL);
+	update_rect(&frame, &r);
+	
+	r.w = 50;
+	
+	int delete_local = button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "DELETE", NULL, MAKEPTR(1), NULL, NULL);
+	update_rect(&frame, &r);
+	
+	if (event->type == SDL_MOUSEBUTTONDOWN && mused.show_local_samples_list)
+	{
+		if(add_local > 0)
+		{
+			if(inst->num_local_samples < 0xff)
+			{
+				inst->num_local_samples++;
+				
+				inst->local_samples = (CydWavetableEntry**)realloc(inst->local_samples, sizeof(inst->local_samples[0]) * inst->num_local_samples);
+				inst->local_samples[inst->num_local_samples - 1] = (CydWavetableEntry*)calloc(1, sizeof(CydWavetableEntry));
+				cyd_wave_entry_init(inst->local_samples[inst->num_local_samples - 1], NULL, 0, 0, 0, 0, 0);
+				
+				inst->local_sample_names = (char**)realloc(inst->local_sample_names, sizeof(inst->local_sample_names[0]) * inst->num_local_samples);
+				inst->local_sample_names[inst->num_local_samples - 1] = (char*)calloc(1, sizeof(char) * MUS_WAVETABLE_NAME_LEN);
+				memset(inst->local_sample_names[inst->num_local_samples - 1], 0, sizeof(inst->local_sample_names[0][0]) * MUS_WAVETABLE_NAME_LEN);
+			}
+		}
+		
+		if(delete_local > 0)
+		{
+			if(inst->num_local_samples > 1)
+			{
+				inst->num_local_samples--;
+				
+				cyd_wave_entry_deinit(inst->local_samples[inst->num_local_samples]);
+				free(inst->local_samples[inst->num_local_samples]);
+				
+				inst->local_samples = (CydWavetableEntry**)realloc(inst->local_samples, sizeof(inst->local_samples[0]) * inst->num_local_samples);
+				
+				free(inst->local_sample_names[inst->num_local_samples]);
+				
+				inst->local_sample_names = (char**)realloc(inst->local_sample_names, sizeof(inst->local_sample_names[0]) * inst->num_local_samples);
+				
+				if(mused.selected_local_sample > inst->num_local_samples - 1)
+				{
+					mused.selected_local_sample = inst->num_local_samples - 1;
+				}
+			}
+		}
+	}
 }
 
 void local_sample_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
@@ -73,19 +194,34 @@ void local_sample_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 	adjust_rect(&frame, 4);
 	copy_rect(&r, &frame);
 	
-	CydWavetableEntry *w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	CydWavetableEntry *w = NULL;
+	
+	if(mused.show_local_samples_list)
+	{
+		w = mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample];
+	}
+	
+	else
+	{
+		w = &mused.mus.cyd->wavetable_entries[mused.selected_local_sample];
+	}
+	
+	if(w == NULL)
+	{
+		return;
+	}
 	
 	{
 		r.w = 64;
 		r.h = 10;
 		
 		int d;
-				
+		
 		r.w = 128;
 		
-		if ((d = generic_field(event, &r, EDITWAVETABLE, W_RATE, "RATE", "%6d Hz", MAKEPTR(w->sample_rate), 9)) != 0)
+		if ((d = generic_field(event, &r, EDITLOCALSAMPLE, LS_RATE, "RATE", "%6d Hz", MAKEPTR(w->sample_rate), 9)) != 0)
 		{
-			wave_add_param(d);
+			local_sample_add_param(d);
 		}
 		
 		update_rect(&frame, &r);
@@ -93,24 +229,24 @@ void local_sample_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 		r.w = 72;
 		r.h = 10;
 		
-		if ((d = generic_field(event, &r, EDITWAVETABLE, W_BASE, "BASE", "%s", notename((w->base_note + 0x80) >> 8), 3)) != 0)
+		if ((d = generic_field(event, &r, EDITLOCALSAMPLE, LS_BASE, "BASE", "%s", notename((w->base_note + 0x80) >> 8), 3)) != 0)
 		{
-			wave_add_param(d);
+			local_sample_add_param(d);
 		}
 		
 		update_rect(&frame, &r);
 		r.w = 48;
 		
-		if ((d = generic_field(event, &r, EDITWAVETABLE, W_BASEFINE, "", "%+4d", MAKEPTR((Sint8)w->base_note), 4)) != 0)
+		if ((d = generic_field(event, &r, EDITLOCALSAMPLE, LS_BASEFINE, "", "%+4d", MAKEPTR((Sint8)w->base_note), 4)) != 0)
 		{
-			wave_add_param(d);
+			local_sample_add_param(d);
 		}
 		
 		r.w = 128;
 		
 		update_rect(&frame, &r);
 		
-		generic_flags(event, &r, EDITWAVETABLE, W_INTERPOLATE, "NO INTERPOLATION", &w->flags, CYD_WAVE_NO_INTERPOLATION);
+		generic_flags(event, &r, EDITLOCALSAMPLE, LS_INTERPOLATE, "NO INTERPOLATION", &w->flags, CYD_WAVE_NO_INTERPOLATION);
 		
 		update_rect(&frame, &r);
 		
@@ -118,9 +254,9 @@ void local_sample_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 		
 		static const char *interpolations[] = { "NO INT", "LINEAR", "COSINE", "CUBIC", "GAUSS", "SINC" };
 		
-		if ((d = generic_field(event, &r, EDITWAVETABLE, W_INTERPOLATION_TYPE, "INT. TYPE", "%s", MAKEPTR(interpolations[w->flags & CYD_WAVE_NO_INTERPOLATION ? 0 : ((w->flags & (CYD_WAVE_INTERPOLATION_BIT_1|CYD_WAVE_INTERPOLATION_BIT_2|CYD_WAVE_INTERPOLATION_BIT_3)) >> 5) + 1]), 6)) != 0)
+		if ((d = generic_field(event, &r, EDITLOCALSAMPLE, LS_INTERPOLATION_TYPE, "INT. TYPE", "%s", MAKEPTR(interpolations[w->flags & CYD_WAVE_NO_INTERPOLATION ? 0 : ((w->flags & (CYD_WAVE_INTERPOLATION_BIT_1|CYD_WAVE_INTERPOLATION_BIT_2|CYD_WAVE_INTERPOLATION_BIT_3)) >> 5) + 1]), 6)) != 0)
 		{
-			wave_add_param(d);
+			local_sample_add_param(d);
 		}
 		
 		update_rect(&frame, &r);
@@ -131,7 +267,7 @@ void local_sample_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 	{
 		r.w = 80;
 		
-		generic_flags(event, &r, EDITWAVETABLE, W_LOOP, "LOOP", &w->flags, CYD_WAVE_LOOP);
+		generic_flags(event, &r, EDITLOCALSAMPLE, LS_LOOP, "LOOP", &w->flags, CYD_WAVE_LOOP);
 		
 		update_rect(&frame, &r);
 		
@@ -139,25 +275,25 @@ void local_sample_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 		
 		int d;
 		
-		if ((d = generic_field(event, &r, EDITWAVETABLE, W_LOOPBEGIN, "BEGIN", "%7d", MAKEPTR(w->loop_begin), 7)) != 0)
+		if ((d = generic_field(event, &r, EDITLOCALSAMPLE, LS_LOOPBEGIN, "BEGIN", "%7d", MAKEPTR(w->loop_begin), 7)) != 0)
 		{
-			wave_add_param(d);
+			local_sample_add_param(d);
 		}
 		
 		update_rect(&frame, &r);
 		
 		r.w = 80;
 		
-		generic_flags(event, &r, EDITWAVETABLE, W_LOOPPINGPONG, "PINGPONG", &w->flags, CYD_WAVE_PINGPONG);
+		generic_flags(event, &r, EDITLOCALSAMPLE, LS_LOOPPINGPONG, "PINGPONG", &w->flags, CYD_WAVE_PINGPONG);
 		
 		update_rect(&frame, &r);
 		
 		
 		r.w = 112;
 		
-		if ((d = generic_field(event, &r, EDITWAVETABLE, W_LOOPEND, "END", "%7d", MAKEPTR(w->loop_end), 7)) != 0)
+		if ((d = generic_field(event, &r, EDITLOCALSAMPLE, LS_LOOPEND, "END", "%7d", MAKEPTR(w->loop_end), 7)) != 0)
 		{
-			wave_add_param(d);
+			local_sample_add_param(d);
 		}
 		
 		update_rect(&frame, &r);
@@ -181,7 +317,24 @@ void local_samplelist_view(GfxDomain *dest_surface, const SDL_Rect *dest, const 
 	
 	int start = mused.local_sample_list_position;
 	
-	for (int i = start; i < mused.song.instrument[mused.current_instrument].num_local_samples && y < area.h + area.y && mused.song.instrument[mused.current_instrument].local_samples[i] && mused.song.instrument[mused.current_instrument].local_sample_names[i]; ++i, y += mused.console->font.h)
+	CydWavetableEntry* w = NULL;
+	
+	if(mused.show_local_samples_list)
+	{
+		w = mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample];
+	}
+	
+	else
+	{
+		w = &mused.mus.cyd->wavetable_entries[mused.selected_local_sample];
+	}
+	
+	if(w == NULL)
+	{
+		return;
+	}
+	
+	for (int i = start; i < (mused.show_local_samples_list ? mused.song.instrument[mused.current_instrument].num_local_samples : (CYD_WAVE_MAX_ENTRIES - 1)) && y < area.h + area.y; ++i, y += mused.console->font.h)
 	{
 		SDL_Rect row = { area.x - 1, y - 1, area.w + 2, mused.console->font.h + 1};
 		if (i == mused.selected_local_sample)
@@ -194,21 +347,34 @@ void local_samplelist_view(GfxDomain *dest_surface, const SDL_Rect *dest, const 
 		{
 			console_set_color(mused.console, colors[COLOR_INSTRUMENT_NORMAL]);
 		}
-			
-		const CydWavetableEntry *w = mused.song.instrument[mused.current_instrument].local_samples[i];
+		
+		CydWavetableEntry *w = NULL;
+		
+		if(mused.show_local_samples_list)
+		{
+			w = mused.song.instrument[mused.current_instrument].local_samples[i];
+		}
+		
+		else
+		{
+			w = &mused.mus.cyd->wavetable_entries[i];
+		}
+		
 		char temp[1000] = "";
 		
 		if(w)
 		{
-			if (w->samples > 0 || mused.song.instrument[mused.current_instrument].local_sample_names[i][0])
-				snprintf(temp, chars, "%s (%u smp)", mused.song.instrument[mused.current_instrument].local_sample_names[i][0] ? mused.song.instrument[mused.current_instrument].local_sample_names[i] : "No name", w->samples);
+			if (w->samples > 0 || (mused.show_local_samples_list ? mused.song.instrument[mused.current_instrument].local_sample_names[i][0] : mused.song.wavetable_names[i][0]))
+			{
+				snprintf(temp, chars, "%s (%u smp)", (mused.show_local_samples_list ? (mused.song.instrument[mused.current_instrument].local_sample_names[i][0] ? mused.song.instrument[mused.current_instrument].local_sample_names[i] : "No name") : (mused.song.wavetable_names[i][0] ? mused.song.wavetable_names[i] : "No name")), w->samples);
+			}
 			
 			console_write_args(mused.console, "%02X %s\n", i, temp);
 			
 			check_event(event, &row, select_local_sample, MAKEPTR(i), 0, 0);
 		}
 		
-		slider_set_params(&mused.local_sample_list_slider_param, 0, mused.song.instrument[mused.current_instrument].num_local_samples - 1, start, i, &mused.local_sample_list_position, 1, SLIDER_VERTICAL, mused.slider_bevel);
+		slider_set_params(&mused.local_sample_list_slider_param, 0, (mused.show_local_samples_list ? (mused.song.instrument[mused.current_instrument].num_local_samples - 1) : (CYD_WAVE_MAX_ENTRIES - 1)), start, i, &mused.local_sample_list_position, 1, SLIDER_VERTICAL, mused.slider_bevel);
 	}
 	
 	gfx_domain_set_clip(dest_surface, NULL);
@@ -227,8 +393,10 @@ void local_samplelist_view(GfxDomain *dest_surface, const SDL_Rect *dest, const 
 			*(mused.local_sample_list_slider_param.position) += 4;
 		}
 		
-		mused.local_sample_list_position = my_max(0, my_min(CYD_WAVE_MAX_ENTRIES - area.h / 8, mused.local_sample_list_position));
-		*(mused.local_sample_list_slider_param.position) = my_max(0, my_min(CYD_WAVE_MAX_ENTRIES - area.h / 8, *(mused.local_sample_list_slider_param.position)));
+		int max_num = mused.show_local_samples_list ? (mused.song.instrument[mused.current_instrument].num_local_samples) : (CYD_WAVE_MAX_ENTRIES);
+		
+		mused.local_sample_list_position = my_max(0, my_min(max_num - area.h / 8, mused.local_sample_list_position));
+		*(mused.local_sample_list_slider_param.position) = my_max(0, my_min(max_num - area.h / 8, *(mused.local_sample_list_slider_param.position)));
 	}
 }
 
@@ -247,10 +415,20 @@ static void update_local_sample_preview(GfxDomain *dest, const SDL_Rect* area)
 	mused.wavetable_preview_idx = mused.selected_local_sample;
 	
 	SDL_FillRect(mused.wavetable_preview->surface, NULL, SDL_MapRGB(mused.wavetable_preview->surface->format, (colors[COLOR_WAVETABLE_BACKGROUND] >> 16) & 255, (colors[COLOR_WAVETABLE_BACKGROUND] >> 8) & 255, colors[COLOR_WAVETABLE_BACKGROUND] & 255));
-
-	const CydWavetableEntry *w = mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample];
 	
-	if(2 == NULL)
+	CydWavetableEntry *w = NULL;
+	
+	if(mused.show_local_samples_list)
+	{
+		w = mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample];
+	}
+	
+	else
+	{
+		w = &mused.mus.cyd->wavetable_entries[mused.selected_local_sample];
+	}
+	
+	if(w == NULL)
 	{
 		return;
 	}
@@ -304,7 +482,17 @@ static void update_local_sample_preview(GfxDomain *dest, const SDL_Rect* area)
 
 void local_sample_draw(float x, float y, float width)
 {
-	CydWavetableEntry *w = mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample];
+	CydWavetableEntry *w = NULL;
+	
+	if(mused.show_local_samples_list)
+	{
+		w = mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample];
+	}
+	
+	else
+	{
+		w = &mused.mus.cyd->wavetable_entries[mused.selected_local_sample];
+	}
 	
 	if(w == NULL)
 	{
@@ -539,14 +727,14 @@ void local_sample_name_view(GfxDomain *dest_surface, const SDL_Rect *dest, const
 
 	int d;
 	
-	if ((d = generic_field(event, &farea, EDITWAVETABLE, W_WAVE, "WAVE", "%02X", MAKEPTR(mused.selected_wavetable), 2)) != 0)
+	if ((d = generic_field(event, &farea, EDITLOCALSAMPLE, LS_WAVE, "WAVE", "%02X", MAKEPTR(mused.selected_local_sample), 2)) != 0)
 	{
-		wave_add_param(d);
+		local_sample_add_param(d);
 	}
 	
-	inst_field(event, &tarea, W_NAME, MUS_WAVETABLE_NAME_LEN + 1, mused.song.wavetable_names[mused.selected_wavetable]);
+	inst_field(event, &tarea, LS_NAME, MUS_WAVETABLE_NAME_LEN + 1, (mused.show_local_samples_list ? mused.song.instrument[mused.current_instrument].local_sample_names[mused.selected_local_sample] : mused.song.wavetable_names[mused.selected_local_sample]));
 	
-	if (is_selected_param(EDITWAVETABLE, W_NAME) || (mused.mode == EDITWAVETABLE && (mused.edit_buffer == mused.song.wavetable_names[mused.selected_wavetable] && mused.focus == EDITBUFFER)))
+	if (is_selected_param(EDITLOCALSAMPLE, LS_NAME) || (mused.mode == EDITLOCALSAMPLE && ((mused.edit_buffer == (mused.show_local_samples_list ? mused.song.instrument[mused.current_instrument].local_sample_names[mused.selected_local_sample] : mused.song.wavetable_names[mused.selected_local_sample]) && mused.focus == EDITBUFFER))))
 	{
 		SDL_Rect r;
 		copy_rect(&r, &tarea);

@@ -249,7 +249,7 @@ unsigned short int load16(FILE *f)
 
 sid_t * load_sid(FILE *f)
 {
-	sid_t *sid = malloc(sizeof(sid_t));
+	sid_t *sid = calloc(1, sizeof(sid_t));
 	
 	fread(&sid->magicID, 1, sizeof(sid->magicID), f);
 	
@@ -283,7 +283,7 @@ sid_t * load_sid(FILE *f)
 
 hubbard_t * load_hubbard(sid_t *sid)
 {
-	hubbard_t * hub = malloc(sizeof(hubbard_t));
+	hubbard_t * hub = calloc(1, sizeof(hubbard_t));
 	
 	memset(hub->data, 0, 65536);
 	

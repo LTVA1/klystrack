@@ -200,14 +200,14 @@ void undo_store_instrument(UndoStack *stack, int idx, const MusInstrument *instr
 	
 	frame->instrument.idx = idx;
 	
-	frame->instrument.instrument = (MusInstrument*)malloc(sizeof(MusInstrument));
+	frame->instrument.instrument = (MusInstrument*)calloc(1, sizeof(MusInstrument));
 	
 	memcpy(frame->instrument.instrument, instrument, sizeof(*instrument));
 	
 	for(int i = 0; i < instrument->num_macros; ++i)
 	{
-		frame->instrument.instrument->program[i] = (Uint16*)malloc(MUS_PROG_LEN * sizeof(Uint16));
-		frame->instrument.instrument->program_unite_bits[i] = (Uint8*)malloc((MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
+		frame->instrument.instrument->program[i] = (Uint16*)calloc(1, MUS_PROG_LEN * sizeof(Uint16));
+		frame->instrument.instrument->program_unite_bits[i] = (Uint8*)calloc(1, (MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
 		
 		memcpy(frame->instrument.instrument->program[i], instrument->program[i], MUS_PROG_LEN * sizeof(Uint16));
 		memcpy(frame->instrument.instrument->program_unite_bits[i], instrument->program_unite_bits[i], (MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
@@ -217,8 +217,8 @@ void undo_store_instrument(UndoStack *stack, int idx, const MusInstrument *instr
 	{
 		for(int i = 0; i < instrument->ops[op].num_macros; ++i)
 		{
-			frame->instrument.instrument->ops[op].program[i] = (Uint16*)malloc(MUS_PROG_LEN * sizeof(Uint16));
-			frame->instrument.instrument->ops[op].program_unite_bits[i] = (Uint8*)malloc((MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
+			frame->instrument.instrument->ops[op].program[i] = (Uint16*)calloc(1, MUS_PROG_LEN * sizeof(Uint16));
+			frame->instrument.instrument->ops[op].program_unite_bits[i] = (Uint8*)calloc(1, (MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
 			
 			memcpy(frame->instrument.instrument->ops[op].program[i], instrument->ops[op].program[i], MUS_PROG_LEN * sizeof(Uint16));
 			memcpy(frame->instrument.instrument->ops[op].program_unite_bits[i], instrument->ops[op].program_unite_bits[i], (MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
@@ -251,7 +251,7 @@ void undo_store_pattern(UndoStack *stack, int idx, const MusPattern *pattern, bo
 	
 	frame->pattern.idx = idx;
 	frame->pattern.n_steps = pattern->num_steps;
-	frame->pattern.step = malloc(pattern->num_steps * sizeof(frame->pattern.step[0]));
+	frame->pattern.step = calloc(1, pattern->num_steps * sizeof(frame->pattern.step[0]));
 	memcpy(frame->pattern.step, pattern->step, pattern->num_steps * sizeof(frame->pattern.step[0]));
 }
 
@@ -264,7 +264,7 @@ void undo_store_sequence(UndoStack *stack, int channel, const MusSeqPattern *seq
 	
 	frame->sequence.channel = channel;
 	frame->sequence.n_seq = n_seq;
-	frame->sequence.seq = malloc(n_seq * sizeof(frame->sequence.seq[0]));
+	frame->sequence.seq = calloc(1, n_seq * sizeof(frame->sequence.seq[0]));
 	memcpy(frame->sequence.seq, sequence, n_seq * sizeof(frame->sequence.seq[0]));
 }
 
@@ -373,7 +373,7 @@ void undo_store_wave_data(UndoStack *stack, int idx, const CydWavetableEntry *en
 	frame->wave_data.loop_end = entry->loop_end;
 	frame->wave_data.flags = entry->flags;
 	frame->wave_data.base_note = entry->base_note;
-	frame->wave_data.data = malloc(entry->samples * sizeof(entry->data[0]));
+	frame->wave_data.data = calloc(1, entry->samples * sizeof(entry->data[0]));
 	memcpy(frame->wave_data.data, entry->data, entry->samples * sizeof(entry->data[0]));
 }
 

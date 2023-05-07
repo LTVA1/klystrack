@@ -55,7 +55,7 @@ void show_credits(void *unused0, void *unused1, void *unused2)
 	
 	char filename[5000] = {0};
 	//char* song_name = (char*)&mused.song.title;
-	char* song_name = malloc(strlen((char*)&mused.song.title) + 2);
+	char* song_name = calloc(1, strlen((char*)&mused.song.title) + 2);
 	
 	strcpy(song_name, (char*)&mused.song.title);
 	
@@ -120,12 +120,13 @@ void show_credits(void *unused0, void *unused1, void *unused2)
 	bool quit = false;
 	
 	Uint32 timeout = SDL_GetTicks() + TIMEOUT; //20 fps
+	UNUSED(timeout);
 	
 	Uint32 frames = 0;
 	
-	Uint32* grey = (Uint32*)malloc(256 * sizeof(Uint32));
+	Uint32* grey = (Uint32*)calloc(1, 256 * sizeof(Uint32));
 	
-	Dot* dots = (Dot*)malloc(NUM_DOTS * 8 * sizeof(Dot));
+	Dot* dots = (Dot*)calloc(1, NUM_DOTS * 8 * sizeof(Dot));
 	
 	for(int i = 0; i < NUM_DOTS; ++i)
 	{

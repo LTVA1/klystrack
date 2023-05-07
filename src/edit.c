@@ -198,7 +198,7 @@ void expand_pattern(void *factor, void *unused2, void *unused3)
 	if (!pattern)
 		return;
 
-	MusStep *temp = malloc(pattern->num_steps * sizeof(pattern->step[0]));
+	MusStep *temp = calloc(1, pattern->num_steps * sizeof(pattern->step[0]));
 	
 	memcpy(temp, pattern->step, pattern->num_steps * sizeof(pattern->step[0]));
 

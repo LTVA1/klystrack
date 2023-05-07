@@ -181,7 +181,7 @@ void fourop_point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, c
 	r.h = 10;
 	r.y -= 2;
 	
-	fourop_env_flags(event, &r, dest, FOUROP_ENV_ENABLE_VOLUME_ENVELOPE, "USE VOLUME ENVELOPE", &inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_USE_VOLUME_ENVELOPE);
+	fourop_env_flags(event, &r, dest, FOUROP_ENV_ENABLE_VOLUME_ENVELOPE, "USE VOLUME ENVELOPE", (Uint32*)&inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_USE_VOLUME_ENVELOPE);
 	update_rect(&vol_env_header, &r);
 	
 	r.w = 95;

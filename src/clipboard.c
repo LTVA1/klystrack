@@ -39,7 +39,7 @@ void cp_clear(Clipboard *cp)
 void cp_copy(Clipboard *cp, int type, void *data, const size_t size, int position)
 {
 	if (cp->data != NULL) free(cp->data);
-	cp->data = malloc(size);
+	cp->data = calloc(1, size);
 	memcpy(cp->data, data, size);
 	cp->size = size;
 	cp->type = type;

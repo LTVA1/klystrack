@@ -365,11 +365,13 @@ typedef struct
 	
 	bool open_groove_settings;
 	
-	char groove_string[MUS_MAX_GROOVE_LENGTH * 8];
+	char groove_string[MUS_MAX_GROOVE_LENGTH * 6];
 	
 	Uint8 current_groove, current_groove_position, groove_list_position, current_groove_list_position;
 	
 	bool show_local_samples;
+	
+	bool show_local_samples_list;
 } Mused;
 
 extern Mused mused;

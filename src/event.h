@@ -64,7 +64,9 @@ int generic_edit_text(SDL_Event *e, char *edit_buffer, size_t edit_buffer_size, 
 void fx_event(SDL_Event *e);
 void fx_add_param(int d);
 void wave_event(SDL_Event *e);
+void local_sample_event(SDL_Event *e);
 void wave_add_param(int d);
+void local_sample_add_param(int d);
 void songinfo_event(SDL_Event *e);
 void songinfo_add_param(int d);
 void instrument_add_param(int a);
@@ -84,6 +86,7 @@ void four_op_add_param(int a);
 void env_editor_add_param(int a);
 
 void edit_env_editor_event(SDL_Event *e);
+void fourop_env_editor_add_param(int a);
 void edit_4op_env_editor_event(SDL_Event *e);
 
 void do_autosave(Uint32* timeout);
@@ -458,6 +461,26 @@ enum
 	W_TOOLBOX,
 	/* ----- */
 	W_N_PARAMS
+};
+
+enum
+{
+	LS_ENABLE,
+	LS_LOCAL_SAMPLE,
+	
+	LS_WAVE,
+	LS_NAME,
+	LS_RATE,
+	LS_BASE,
+	LS_BASEFINE,
+	LS_INTERPOLATE,
+	LS_INTERPOLATION_TYPE, //wasn't there
+	LS_LOOP,
+	LS_LOOPBEGIN,
+	LS_LOOPPINGPONG,
+	LS_LOOPEND,
+	/* ----- */
+	LS_N_PARAMS
 };
 
 enum

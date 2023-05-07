@@ -254,7 +254,7 @@ int import_mod(FILE *f)
 		}
 	}
 	
-	Sint8 *sample_data = malloc(65536 * sizeof(sample_data[0]));
+	Sint8 *sample_data = calloc(1, 65536 * sizeof(sample_data[0]));
 	
 	wt_e = 0;
 	

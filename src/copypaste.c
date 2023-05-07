@@ -76,14 +76,14 @@ void copy()
 				free(inst);
 			}
 			
-			mused.cp.inst = (MusInstrument*)malloc(sizeof(MusInstrument));
+			mused.cp.inst = (MusInstrument*)calloc(1, sizeof(MusInstrument));
 			
 			memcpy(mused.cp.inst, &mused.song.instrument[mused.current_instrument], sizeof(mused.song.instrument[mused.current_instrument]));
 			
 			for(int i = 0; i < mused.cp.inst->num_macros; ++i)
 			{
-				mused.cp.inst->program[i] = (Uint16*)malloc(MUS_PROG_LEN * sizeof(Uint16));
-				mused.cp.inst->program_unite_bits[i] = (Uint8*)malloc((MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
+				mused.cp.inst->program[i] = (Uint16*)calloc(1, MUS_PROG_LEN * sizeof(Uint16));
+				mused.cp.inst->program_unite_bits[i] = (Uint8*)calloc(1, (MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
 				
 				memcpy(mused.cp.inst->program[i], mused.song.instrument[mused.current_instrument].program[i], MUS_PROG_LEN * sizeof(Uint16));
 				memcpy(mused.cp.inst->program_unite_bits[i], mused.song.instrument[mused.current_instrument].program_unite_bits[i], (MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
@@ -93,8 +93,8 @@ void copy()
 			{
 				for(int i = 0; i < mused.cp.inst->ops[op].num_macros; ++i)
 				{
-					mused.cp.inst->ops[op].program[i] = (Uint16*)malloc(MUS_PROG_LEN * sizeof(Uint16));
-					mused.cp.inst->ops[op].program_unite_bits[i] = (Uint8*)malloc((MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
+					mused.cp.inst->ops[op].program[i] = (Uint16*)calloc(1, MUS_PROG_LEN * sizeof(Uint16));
+					mused.cp.inst->ops[op].program_unite_bits[i] = (Uint8*)calloc(1, (MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
 					
 					memcpy(mused.cp.inst->ops[op].program[i], mused.song.instrument[mused.current_instrument].ops[op].program[i], MUS_PROG_LEN * sizeof(Uint16));
 					memcpy(mused.cp.inst->ops[op].program_unite_bits[i], mused.song.instrument[mused.current_instrument].ops[op].program_unite_bits[i], (MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
@@ -128,14 +128,14 @@ void copy()
 				free(op);
 			}
 			
-			mused.cp.op = (MusFmOp*)malloc(sizeof(MusFmOp));
+			mused.cp.op = (MusFmOp*)calloc(1, sizeof(MusFmOp));
 			
 			memcpy(mused.cp.op, &mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1], sizeof(mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1]));
 			
 			for(int i = 0; i < mused.cp.op->num_macros; ++i)
 			{
-				mused.cp.op->program[i] = (Uint16*)malloc(MUS_PROG_LEN * sizeof(Uint16));
-				mused.cp.op->program_unite_bits[i] = (Uint8*)malloc((MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
+				mused.cp.op->program[i] = (Uint16*)calloc(1, MUS_PROG_LEN * sizeof(Uint16));
+				mused.cp.op->program_unite_bits[i] = (Uint8*)calloc(1, (MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
 				
 				memcpy(mused.cp.op->program[i], mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[i], MUS_PROG_LEN * sizeof(Uint16));
 				memcpy(mused.cp.op->program_unite_bits[i], mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[i], (MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
@@ -485,8 +485,8 @@ void paste()
 				
 				for(int i = 0; i < mused.cp.inst->num_macros; ++i)
 				{
-					mused.song.instrument[mused.current_instrument].program[i] = (Uint16*)malloc(MUS_PROG_LEN * sizeof(Uint16));
-					mused.song.instrument[mused.current_instrument].program_unite_bits[i] = (Uint8*)malloc((MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
+					mused.song.instrument[mused.current_instrument].program[i] = (Uint16*)calloc(1, MUS_PROG_LEN * sizeof(Uint16));
+					mused.song.instrument[mused.current_instrument].program_unite_bits[i] = (Uint8*)calloc(1, (MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
 					
 					memcpy(mused.song.instrument[mused.current_instrument].program[i], mused.cp.inst->program[i], MUS_PROG_LEN * sizeof(Uint16));
 					memcpy(mused.song.instrument[mused.current_instrument].program_unite_bits[i], mused.cp.inst->program_unite_bits[i], (MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
@@ -496,8 +496,8 @@ void paste()
 				{
 					for(int i = 0; i < mused.cp.inst->ops[op].num_macros; ++i)
 					{
-						mused.song.instrument[mused.current_instrument].ops[op].program[i] = (Uint16*)malloc(MUS_PROG_LEN * sizeof(Uint16));
-						mused.song.instrument[mused.current_instrument].ops[op].program_unite_bits[i] = (Uint8*)malloc((MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
+						mused.song.instrument[mused.current_instrument].ops[op].program[i] = (Uint16*)calloc(1, MUS_PROG_LEN * sizeof(Uint16));
+						mused.song.instrument[mused.current_instrument].ops[op].program_unite_bits[i] = (Uint8*)calloc(1, (MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
 						
 						memcpy(mused.song.instrument[mused.current_instrument].ops[op].program[i], mused.cp.inst->ops[op].program[i], MUS_PROG_LEN * sizeof(Uint16));
 						memcpy(mused.song.instrument[mused.current_instrument].ops[op].program_unite_bits[i], mused.cp.inst->ops[op].program_unite_bits[i], (MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
@@ -533,8 +533,8 @@ void paste()
 				
 				for(int i = 0; i < mused.cp.op->num_macros; ++i)
 				{
-					mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[i] = (Uint16*)malloc(MUS_PROG_LEN * sizeof(Uint16));
-					mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[i] = (Uint8*)malloc((MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
+					mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[i] = (Uint16*)calloc(1, MUS_PROG_LEN * sizeof(Uint16));
+					mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[i] = (Uint8*)calloc(1, (MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));
 					
 					memcpy(mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program[i], mused.cp.op->program[i], MUS_PROG_LEN * sizeof(Uint16));
 					memcpy(mused.song.instrument[mused.current_instrument].ops[mused.selected_operator - 1].program_unite_bits[i], mused.cp.op->program_unite_bits[i], (MUS_PROG_LEN / 8 + 1) * sizeof(Uint8));

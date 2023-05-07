@@ -4,7 +4,7 @@
 
 WaveWriter * ww_create(FILE * file, int sample_rate, int channels)
 {
-	WaveWriter * ww = malloc(sizeof(WaveWriter));
+	WaveWriter * ww = calloc(1, sizeof(WaveWriter));
 	
 	ww->file = file;
 	ww->channels = channels;

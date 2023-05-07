@@ -112,6 +112,8 @@ void sequence_view_inner(GfxDomain *dest_surface, const SDL_Rect *_dest, const S
 					int mouse_x, mouse_y;
 					
 					Uint32 buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+					UNUSED(buttons);
+					
 					gfx_convert_mouse_coordinates(domain, &mouse_x, &mouse_y);
 					
 					if ((mouse_x >= pos.x) && (mouse_y >= pos.y) && (mouse_x <= pos.x + pos.w) && (mouse_y < pos.y + pos.h))

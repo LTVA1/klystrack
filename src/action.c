@@ -44,6 +44,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "help.h"
 #include <string.h>
 
+#include "export/fzt.h"
+
 #include "../klystron/src/snd/music.c"
 
 extern Mused mused;
@@ -142,7 +144,7 @@ void select_local_sample(void *idx, void *unused1, void *unused2)
 	else if (mused.selected_local_sample < 0)
 		mused.selected_local_sample = 0;
 	
-	if(mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample]) //don't allow to get invalid pointer
+	if(!(mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample])) //don't allow to get invalid pointer
 	{
 		mused.selected_local_sample = prev;
 	}

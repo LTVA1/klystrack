@@ -662,7 +662,7 @@ int import_xm(FILE *f)
 			
 			if (first_length > 0)
 			{
-				Sint8 *smp = malloc(first_length);
+				Sint8 *smp = calloc(1, first_length);
 				
 				fread(smp, 1, first_length, f);
 				

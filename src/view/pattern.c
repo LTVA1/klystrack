@@ -1355,6 +1355,8 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 									int mouse_x, mouse_y;
 									
 									Uint32 buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+									UNUSED(buttons);
+									
 									gfx_convert_mouse_coordinates(domain, &mouse_x, &mouse_y);
 									
 									if ((mouse_x >= tmp.x - SPACER) && (mouse_y >= tmp.y) && (mouse_x <= tmp.x + tmp.w + SPACER / 2) && (mouse_y < tmp.y + tmp.h))
