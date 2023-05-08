@@ -186,6 +186,95 @@ void local_sample_header_view(GfxDomain *dest_surface, const SDL_Rect *dest, con
 	}
 }
 
+void local_sample_notes_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
+{
+	SDL_Rect area;
+	copy_rect(&area, dest);
+	area.w -= 10;
+	area.h -= 12;
+	console_set_clip(mused.console, &area);
+	console_clear(mused.console);
+	bevelex(dest_surface, &area, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
+	adjust_rect(&area, 3);
+	console_set_clip(mused.console, &area);
+	gfx_domain_set_clip(dest_surface, &area);
+
+	int y = area.y;
+	
+	int start = mused.local_sample_note_list_position;
+	
+	MusInstrument* inst = &mused.song.instrument[mused.current_instrument];
+	
+	for (int i = start; i <= FREQ_TAB_SIZE && y < area.h + area.y; ++i, y += mused.console->font.h)
+	{
+		SDL_Rect row = { area.x - 1, y - 1, area.w + 2, mused.console->font.h + 1};
+		
+		if (i == mused.selected_local_sample_note)
+		{
+			bevel(dest_surface, &row, mused.slider_bevel, BEV_SELECTED_PATTERN_ROW);
+			console_set_color(mused.console, colors[COLOR_INSTRUMENT_SELECTED]);
+		}
+		
+		else
+		{
+			console_set_color(mused.console, colors[COLOR_INSTRUMENT_NORMAL]);
+		}
+		
+		char temp[1000] = "";
+		
+		char sample_info[1000] = "";
+		
+		char* sample_name = NULL;
+		
+		if(inst->note_to_sample_array[i].sample != MUS_NOTE_TO_SAMPLE_NONE)
+		{
+			if(inst->note_to_sample_array[i].flags & MUS_NOTE_TO_SAMPLE_GLOBAL)
+			{
+				sample_name = mused.song.wavetable_names[inst->note_to_sample_array[i].sample];
+			}
+			
+			else
+			{
+				sample_name = mused.song.instrument[mused.current_instrument].local_sample_names[inst->note_to_sample_array[i].sample];
+			}
+		}
+		
+		snprintf(sample_info, sizeof(sample_info), "[%c] %s", ((inst->note_to_sample_array[i].sample == MUS_NOTE_TO_SAMPLE_NONE) ? ' ' : ((inst->note_to_sample_array[i].flags & MUS_NOTE_TO_SAMPLE_GLOBAL) ? 'G' : 'L')), ((sample_name != NULL) ? sample_name : ""));
+		
+		if(i < FREQ_TAB_SIZE)
+		{
+			console_write_args(mused.console, "%s - %s\n", notename(i), sample_info);
+		}
+		
+		check_event(event, &row, select_local_sample_note, MAKEPTR(i), 0, 0);
+		
+		slider_set_params(&mused.local_sample_note_list_slider_param, 0, FREQ_TAB_SIZE, start, i, &mused.local_sample_note_list_position, 1, SLIDER_VERTICAL, mused.slider_bevel);
+	}
+	
+	gfx_domain_set_clip(dest_surface, NULL);
+	
+	adjust_rect(&area, -3);
+	
+	int temp = area.w;
+	
+	area.x += area.w;
+	area.w = 10;
+	
+	slider(dest_surface, &area, event, &mused.local_sample_note_list_slider_param);
+	
+	area.y += area.h;
+	
+	area.h = 12;
+	area.w = (temp + 10) / 2;
+	area.x = dest->x;
+	
+	int add_to_list = button_text_event(domain, event, &area, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "\xb8\xb6\xb6\xb6", NULL, MAKEPTR(1), NULL, NULL);
+	
+	area.x += area.w;
+	
+	int remove_from_list = button_text_event(domain, event, &area, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "\xb6\xb6\xb6\xb7", NULL, MAKEPTR(1), NULL, NULL);
+}
+
 void local_sample_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)
 {
 	SDL_Rect r, frame;
@@ -195,6 +284,8 @@ void local_sample_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 	copy_rect(&r, &frame);
 	
 	CydWavetableEntry *w = NULL;
+	
+	MusInstrument* inst = &mused.song.instrument[mused.current_instrument];
 	
 	if(mused.show_local_samples_list)
 	{
@@ -298,6 +389,23 @@ void local_sample_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 		
 		update_rect(&frame, &r);
 	}
+	
+	my_separator(&frame, &r);
+	
+	r.w = 110;
+	
+	generic_flags(event, &r, EDITLOCALSAMPLE, LS_BINDTONOTES, "BIND TO NOTES", &inst->flags, MUS_INST_BIND_LOCAL_SAMPLES_TO_NOTES);
+	
+	//update_rect(&frame, &r);
+	
+	r.y += 10;
+	
+	r.w = frame.w;
+	r.x = frame.x;
+	
+	r.h = frame.h - (r.y - frame.y);
+	
+	local_sample_notes_view(dest_surface, &r, event, param);
 }
 
 
@@ -441,7 +549,9 @@ static void update_local_sample_preview(GfxDomain *dest, const SDL_Rect* area)
 		const int dadd = my_max(res, w->samples * res / area->w);
 		const int gadd = my_max(res, (Uint32)area->w * res / w->samples);
 		int c = 0, d = 0;
-				
+		
+		int prevmin = -66666;
+		
 		for (int x = 0; x < area->w * res; )
 		{
 			int min = 32768;
@@ -456,11 +566,11 @@ static void update_local_sample_preview(GfxDomain *dest, const SDL_Rect* area)
 			
 			c -= dadd;
 			
-			if (min < 0 && max < 0)
-				max = 0;
+			//if (min < 0 && max < 0)
+				//max = 0;
 				
-			if (min > 0 && max > 0)
-				min = 0;
+			//if (min > 0 && max > 0)
+				//min = 0;
 			
 			min = (32768 + min) * area->h / 65536;
 			max = (32768 + max) * area->h / 65536 - min;
@@ -468,9 +578,19 @@ static void update_local_sample_preview(GfxDomain *dest, const SDL_Rect* area)
 			int prev_x = x - 1;
 			x += gadd;
 			
-			SDL_Rect r = { prev_x / res, min, my_max(1, x / res - prev_x / res), max + 1 };
+			//SDL_Rect r = { prev_x / res, min, my_max(1, x / res - prev_x / res), max + 1 };
+			SDL_Rect r = { prev_x / res, min, my_max(1, x / res - prev_x / res), 1 };
 			
 			SDL_FillRect(mused.wavetable_preview->surface, &r, SDL_MapRGB(mused.wavetable_preview->surface->format, (colors[COLOR_WAVETABLE_SAMPLE] >> 16) & 255, (colors[COLOR_WAVETABLE_SAMPLE] >> 8) & 255, colors[COLOR_WAVETABLE_SAMPLE] & 255));
+			
+			if(prevmin != -66666)
+			{
+				r = (SDL_Rect) { prev_x / res, (min - prevmin) > 0 ? prevmin : min, 1, abs(min - prevmin) + 1 };
+				
+				SDL_FillRect(mused.wavetable_preview->surface, &r, SDL_MapRGB(mused.wavetable_preview->surface->format, (colors[COLOR_WAVETABLE_SAMPLE] >> 16) & 255, (colors[COLOR_WAVETABLE_SAMPLE] >> 8) & 255, colors[COLOR_WAVETABLE_SAMPLE] & 255));
+			}
+			
+			prevmin = min;
 		}
 		
 		debug("Wavetable item bitmask = %x, lowest bit = %d", mused.wavetable_bits, __builtin_ffs(mused.wavetable_bits) - 1);

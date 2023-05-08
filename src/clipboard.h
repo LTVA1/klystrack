@@ -58,6 +58,7 @@ enum
 	CP_WAVETABLE = 0xFF,
 	
 	CP_PATTERNSEGMENT,
+	CP_LOCALSAMPLE,
 };
 
 #define ALL_ITEMS 0xffffffff

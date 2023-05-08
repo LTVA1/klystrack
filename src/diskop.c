@@ -1462,21 +1462,40 @@ int save_song_inner(SDL_RWops *f, SongStats *stats, bool confirm_save /* if no c
 	return 1;
 }
 
-
 int open_wavetable(FILE *f)
 {
 	Wave *w = wave_load(f);
+	
+	CydWavetableEntry* cyd_wave = NULL;
+	
+	if(mused.mode == EDITWAVETABLE)
+	{
+		cyd_wave = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	}
+	
+	if(mused.mode == EDITLOCALSAMPLE)
+	{
+		if(mused.show_local_samples_list)
+		{
+			cyd_wave = mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample];
+		}
+		
+		else
+		{
+			cyd_wave = &mused.mus.cyd->wavetable_entries[mused.selected_local_sample];
+		}
+	}
 
-	if (w)
+	if (w && cyd_wave)
 	{
     // http://soundfile.sapp.org/doc/WaveFormat/ says: "8-bit samples are stored as unsigned bytes, ranging from 0 to 255.
     // 16-bit samples are stored as 2's-complement signed integers, ranging from -32768 to 32767."
 
-		cyd_wave_entry_init(&mused.mus.cyd->wavetable_entries[mused.selected_wavetable], w->data, w->length, w->bits_per_sample == 16 ? CYD_WAVE_TYPE_SINT16 : CYD_WAVE_TYPE_UINT8, w->channels, 1, 1);
+		cyd_wave_entry_init(cyd_wave, w->data, w->length, w->bits_per_sample == 16 ? CYD_WAVE_TYPE_SINT16 : CYD_WAVE_TYPE_UINT8, w->channels, 1, 1);
 
-		mused.mus.cyd->wavetable_entries[mused.selected_wavetable].flags = 0;
-		mused.mus.cyd->wavetable_entries[mused.selected_wavetable].sample_rate = w->sample_rate;
-		mused.mus.cyd->wavetable_entries[mused.selected_wavetable].base_note = MIDDLE_C << 8;
+		cyd_wave->flags = 0;
+		cyd_wave->sample_rate = w->sample_rate;
+		cyd_wave->base_note = MIDDLE_C << 8;
 
 		wave_destroy(w);
 
@@ -1571,8 +1590,24 @@ int save_song(SDL_RWops *ops, bool confirm_save /* if no confirm save all, even 
 int save_wavetable(FILE *ops)
 {
 	WaveWriter *ww = ww_create(ops, mused.mus.cyd->wavetable_entries[mused.selected_wavetable].sample_rate, 1);
-
-	ww_write(ww, mused.mus.cyd->wavetable_entries[mused.selected_wavetable].data, mused.mus.cyd->wavetable_entries[mused.selected_wavetable].samples);
+	
+	if(mused.mode == EDITWAVETABLE)
+	{
+		ww_write(ww, mused.mus.cyd->wavetable_entries[mused.selected_wavetable].data, mused.mus.cyd->wavetable_entries[mused.selected_wavetable].samples);
+	}
+	
+	if(mused.mode == EDITLOCALSAMPLE)
+	{
+		if(mused.show_local_samples_list)
+		{
+			ww_write(ww, mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample]->data, mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample]->samples);
+		}
+		
+		else
+		{
+			ww_write(ww, mused.mus.cyd->wavetable_entries[mused.selected_local_sample].data, mused.mus.cyd->wavetable_entries[mused.selected_local_sample].samples);
+		}
+	}
 
 	ww_finish(ww);
 	return 1;

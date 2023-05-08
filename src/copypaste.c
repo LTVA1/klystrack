@@ -117,11 +117,13 @@ void copy()
 					if(op->program[i])
 					{
 						free(op->program[i]);
+						op->program[i] = NULL;
 					}
 					
 					if(op->program_unite_bits[i])
 					{
 						free(op->program_unite_bits[i]);
+						op->program_unite_bits[i] = NULL;
 					}
 				}
 				
@@ -223,6 +225,32 @@ void copy()
 				cp_copy(&mused.cp, CP_WAVETABLE, &mused.mus.cyd->wavetable_entries[mused.selected_wavetable], sizeof(mused.mus.cyd->wavetable_entries[mused.selected_wavetable]), 0);
 				
 				mused.selection.prev_name_index = mused.selected_wavetable;
+				
+				mused.selection.is_local_sample = false;
+			}
+		}
+		break;
+		
+		case EDITLOCALSAMPLE:
+		{
+			if(mused.show_local_samples_list)
+			{
+				mused.selection.is_local_sample = true;
+				mused.selection.local_sample_instrument = mused.current_instrument;
+				
+				mused.selection.prev_name_index = mused.selected_local_sample;
+				
+				cp_copy(&mused.cp, CP_LOCALSAMPLE, mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample], sizeof(mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample][0]), 0);
+			}
+			
+			else
+			{
+				mused.selection.is_local_sample = false;
+				mused.selection.local_sample_instrument = 0;
+				
+				mused.selection.prev_name_index = mused.selected_local_sample;
+				
+				cp_copy(&mused.cp, CP_LOCALSAMPLE, &mused.mus.cyd->wavetable_entries[mused.selected_local_sample], sizeof(mused.mus.cyd->wavetable_entries[mused.selected_local_sample]), 0);
 			}
 		}
 		break;
@@ -603,7 +631,6 @@ void paste()
 		
 		case EDITWAVETABLE:
 		{
-			//cp_copy(&mused.cp, CP_WAVEGEN, &mused.wgset.chain[mused.selected_wg_osc], sizeof(mused.wgset.chain[mused.selected_wg_osc]), 0);
 			if(mused.flags & SHOW_WAVEGEN)
 			{
 				cp_paste_items(&mused.cp, CP_WAVEGEN, &mused.wgset.chain[mused.selected_wg_osc], 1, sizeof(mused.wgset.chain[mused.selected_wg_osc]));
@@ -647,6 +674,99 @@ void paste()
 						
 						mused.wavetable_preview_idx = 0xff;
 					}
+				}
+			}
+		}
+		break;
+		
+		case EDITLOCALSAMPLE:
+		{
+			if(mused.cp.type == CP_LOCALSAMPLE)
+			{
+				CydWavetableEntry* source_wave = NULL;
+				char* source_wave_name = NULL;
+				
+				CydWavetableEntry* wave = NULL;
+				char* wave_name = NULL;
+				
+				if(mused.selection.is_local_sample)
+				{
+					if(mused.song.instrument[mused.selection.local_sample_instrument].num_local_samples >= mused.selection.prev_name_index + 1)
+					{
+						source_wave = mused.song.instrument[mused.selection.local_sample_instrument].local_samples[mused.selection.prev_name_index];
+						source_wave_name = mused.song.instrument[mused.selection.local_sample_instrument].local_sample_names[mused.selection.prev_name_index];
+					}
+				}
+				
+				else
+				{
+					source_wave = &mused.mus.cyd->wavetable_entries[mused.selection.prev_name_index];
+					source_wave_name = mused.song.wavetable_names[mused.selection.prev_name_index];
+				}
+				
+				if(mused.show_local_samples_list)
+				{
+					wave = mused.song.instrument[mused.selection.local_sample_instrument].local_samples[mused.selected_local_sample];
+					wave_name = mused.song.instrument[mused.selection.local_sample_instrument].local_sample_names[mused.selected_local_sample];
+				}
+				
+				else
+				{
+					wave = &mused.mus.cyd->wavetable_entries[mused.selected_local_sample];
+					wave_name = mused.song.wavetable_names[mused.selected_local_sample];
+				}
+				
+				if(source_wave == NULL || source_wave_name == NULL || wave == NULL || wave_name == NULL) return;
+				
+				bool need_to_paste = false;
+				
+				if(mused.show_local_samples_list)
+				{
+					if(mused.selection.prev_name_index != mused.selected_local_sample || mused.selection.local_sample_instrument != mused.current_instrument || !(mused.selection.is_local_sample))
+					{
+						need_to_paste = true;
+					}
+				}
+				
+				else
+				{
+					if(mused.selection.prev_name_index != mused.selected_local_sample || mused.selection.is_local_sample)
+					{
+						need_to_paste = true;
+					}
+				}
+				
+				if(need_to_paste)
+				{
+					if(wave->data)
+					{
+						free(wave->data);
+						wave->data = NULL;
+					}
+					
+					cp_paste_items(&mused.cp, CP_LOCALSAMPLE, wave, 1, sizeof(*wave));
+					
+					memset(wave_name, 0, MUS_WAVETABLE_NAME_LEN + 1);
+					
+					memcpy(wave_name, source_wave_name, MUS_WAVETABLE_NAME_LEN + 1);
+					
+					//CydWavetableEntry *wave = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+					
+					Sint16* old_data = wave->data;
+					
+					wave->data = calloc(wave->samples, sizeof(Sint16));
+					
+					if(wave->data)
+					{
+						memcpy(wave->data, old_data, wave->samples * sizeof(Sint16));
+					}
+					
+					else
+					{
+						set_info_message("Out of memory!");
+					}
+					
+					mused.wavetable_preview_idx = 0xff;
 				}
 			}
 		}

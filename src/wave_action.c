@@ -13,10 +13,30 @@ void wavetable_drop_lowest_bit(void *unused1, void *unused2, void *unused3)
 		debug("Wave is silent");
 		return;
 	}
-		
+	
 	snapshot(S_T_WAVE_DATA);
+	
+	CydWavetableEntry *w = NULL;
+	
+	if(mused.focus == EDITLOCALSAMPLE)
+	{
+		if(mused.show_local_samples_list)
+		{
+			w = mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample];
+		}
 		
-	const CydWavetableEntry *w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+		else
+		{
+			w = &mused.mus.cyd->wavetable_entries[mused.selected_local_sample];
+		}
+	}
+	
+	else
+	{
+		w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	}
+	
+	if(w == NULL) return;
 	
 	Uint16 mask = 0xffff << (__builtin_ffs(mused.wavetable_bits));
 	
@@ -37,7 +57,27 @@ void wavetable_halve_samplerate(void *unused1, void *unused2, void *unused3)
 {
 	snapshot(S_T_WAVE_DATA);
 	
-	CydWavetableEntry *w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	CydWavetableEntry *w = NULL;
+	
+	if(mused.focus == EDITLOCALSAMPLE)
+	{
+		if(mused.show_local_samples_list)
+		{
+			w = mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample];
+		}
+		
+		else
+		{
+			w = &mused.mus.cyd->wavetable_entries[mused.selected_local_sample];
+		}
+	}
+	
+	else
+	{
+		w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	}
+	
+	if(w == NULL) return;
 	
 	if (w->samples > 0)
 	{
@@ -62,7 +102,27 @@ void wavetable_normalize(void *vol, void *unused2, void *unused3)
 {
 	snapshot(S_T_WAVE_DATA);
 		
-	CydWavetableEntry *w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	CydWavetableEntry *w = NULL;
+	
+	if(mused.focus == EDITLOCALSAMPLE)
+	{
+		if(mused.show_local_samples_list)
+		{
+			w = mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample];
+		}
+		
+		else
+		{
+			w = &mused.mus.cyd->wavetable_entries[mused.selected_local_sample];
+		}
+	}
+	
+	else
+	{
+		w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	}
+	
+	if(w == NULL) return;
 	
 	if (w->samples > 0)
 	{
@@ -92,7 +152,27 @@ void wavetable_remove_dc(void *unused1, void *unused2, void *unused3)
 {
 	snapshot(S_T_WAVE_DATA);
 		
-	CydWavetableEntry *w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	CydWavetableEntry *w = NULL;
+	
+	if(mused.focus == EDITLOCALSAMPLE)
+	{
+		if(mused.show_local_samples_list)
+		{
+			w = mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample];
+		}
+		
+		else
+		{
+			w = &mused.mus.cyd->wavetable_entries[mused.selected_local_sample];
+		}
+	}
+	
+	else
+	{
+		w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	}
+	
+	if(w == NULL) return;
 	
 	if (w->samples > 0)
 	{
@@ -126,7 +206,27 @@ void wavetable_cut_tail(void *unused1, void *unused2, void *unused3)
 {
 	snapshot(S_T_WAVE_DATA);
 		
-	CydWavetableEntry *w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	CydWavetableEntry *w = NULL;
+	
+	if(mused.focus == EDITLOCALSAMPLE)
+	{
+		if(mused.show_local_samples_list)
+		{
+			w = mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample];
+		}
+		
+		else
+		{
+			w = &mused.mus.cyd->wavetable_entries[mused.selected_local_sample];
+		}
+	}
+	
+	else
+	{
+		w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	}
+	
+	if(w == NULL) return;
 	
 	if (w->samples > 0)
 	{
@@ -152,7 +252,27 @@ void wavetable_cut_head(void *unused1, void *unused2, void *unused3)
 {
 	snapshot(S_T_WAVE_DATA);
 		
-	CydWavetableEntry *w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	CydWavetableEntry *w = NULL;
+	
+	if(mused.focus == EDITLOCALSAMPLE)
+	{
+		if(mused.show_local_samples_list)
+		{
+			w = mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample];
+		}
+		
+		else
+		{
+			w = &mused.mus.cyd->wavetable_entries[mused.selected_local_sample];
+		}
+	}
+	
+	else
+	{
+		w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	}
+	
+	if(w == NULL) return;
 	
 	if (w->samples > 0)
 	{
@@ -179,7 +299,27 @@ void wavetable_cut_head(void *unused1, void *unused2, void *unused3)
 
 void wavetable_chord(void *transpose, void *unused2, void *unused3)
 {
-	CydWavetableEntry *w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	CydWavetableEntry *w = NULL;
+	
+	if(mused.focus == EDITLOCALSAMPLE)
+	{
+		if(mused.show_local_samples_list)
+		{
+			w = mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample];
+		}
+		
+		else
+		{
+			w = &mused.mus.cyd->wavetable_entries[mused.selected_local_sample];
+		}
+	}
+	
+	else
+	{
+		w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	}
+	
+	if(w == NULL) return;
 	
 	if (w->samples > 0)
 	{
@@ -377,7 +517,27 @@ void wavetable_amp(void *_amp, void *unused2, void *unused3)
 {
 	snapshot(S_T_WAVE_DATA);
 		
-	CydWavetableEntry *w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	CydWavetableEntry *w = NULL;
+	
+	if(mused.focus == EDITLOCALSAMPLE)
+	{
+		if(mused.show_local_samples_list)
+		{
+			w = mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample];
+		}
+		
+		else
+		{
+			w = &mused.mus.cyd->wavetable_entries[mused.selected_local_sample];
+		}
+	}
+	
+	else
+	{
+		w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	}
+	
+	if(w == NULL) return;
 	
 	if (w->samples > 0)
 	{
@@ -399,7 +559,27 @@ void wavetable_distort(void *_amp, void *unused2, void *unused3)
 {
 	snapshot(S_T_WAVE_DATA);
 		
-	CydWavetableEntry *w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	CydWavetableEntry *w = NULL;
+	
+	if(mused.focus == EDITLOCALSAMPLE)
+	{
+		if(mused.show_local_samples_list)
+		{
+			w = mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample];
+		}
+		
+		else
+		{
+			w = &mused.mus.cyd->wavetable_entries[mused.selected_local_sample];
+		}
+	}
+	
+	else
+	{
+		w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	}
+	
+	if(w == NULL) return;
 	
 	if (w->samples > 0)
 	{
@@ -430,7 +610,27 @@ void wavetable_filter(void *_filter_type, void *unused2, void *unused3)
 {
 	snapshot(S_T_WAVE_DATA);
 		
-	CydWavetableEntry *w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	CydWavetableEntry *w = NULL;
+	
+	if(mused.focus == EDITLOCALSAMPLE)
+	{
+		if(mused.show_local_samples_list)
+		{
+			w = mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample];
+		}
+		
+		else
+		{
+			w = &mused.mus.cyd->wavetable_entries[mused.selected_local_sample];
+		}
+	}
+	
+	else
+	{
+		w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	}
+	
+	if(w == NULL) return;
 	
 	if (w->samples > 0)
 	{
@@ -460,7 +660,27 @@ void wavetable_find_zero(void *unused1, void *unused2, void *unused3)
 {
 	snapshot(S_T_WAVE_DATA);
 		
-	CydWavetableEntry *w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	CydWavetableEntry *w = NULL;
+	
+	if(mused.focus == EDITLOCALSAMPLE)
+	{
+		if(mused.show_local_samples_list)
+		{
+			w = mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample];
+		}
+		
+		else
+		{
+			w = &mused.mus.cyd->wavetable_entries[mused.selected_local_sample];
+		}
+	}
+	
+	else
+	{
+		w = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
+	}
+	
+	if(w == NULL) return;
 	
 	if (w->samples > 1)
 	{

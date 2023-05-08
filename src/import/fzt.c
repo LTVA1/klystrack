@@ -707,10 +707,12 @@ void convert_fzt_instrument(MusInstrument* inst, fzt_instrument* fzt_inst)
 	}
 }
 
-void convert_fzt_sample(CydWavetableEntry* sample, fzt_dpcm_sample* fzt_sample)
+void convert_fzt_sample(CydWavetableEntry* sample, char* wave_name, fzt_dpcm_sample* fzt_sample)
 {
 	//we know that sample is 6-bit range 1-bit per step DPCM
 	//and we scale it to 16 bit signed
+	memcpy(wave_name, fzt_sample->name, FZT_WAVE_NAME_LEN - 1);
+	
 	uint8_t delta_counter = fzt_sample->initial_delta_counter_position;
 	
 	Sint16* data = (Sint16*)calloc(1, fzt_sample->length * sizeof(Sint16));
@@ -731,6 +733,8 @@ void convert_fzt_sample(CydWavetableEntry* sample, fzt_dpcm_sample* fzt_sample)
 	}
 	
 	cyd_wave_entry_init(sample, data, fzt_sample->length, CYD_WAVE_TYPE_SINT16, 1, 1, 1);
+	
+	sample->flags |= CYD_WAVE_NO_INTERPOLATION;
 	
 	if(fzt_sample->flags & FZT_SE_SAMPLE_LOOP)
 	{
@@ -871,7 +875,7 @@ int import_fzt(FILE *f)
 			load_fzt_sample(f, sample, header.version);
 			
 			cyd_wave_entry_deinit(&mused.mus.cyd->wavetable_entries[i]); //just in case
-			convert_fzt_sample(&mused.mus.cyd->wavetable_entries[i], sample);
+			convert_fzt_sample(&mused.mus.cyd->wavetable_entries[i], mused.song.wavetable_names[i], sample);
 		}
 	}
 	

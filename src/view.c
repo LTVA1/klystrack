@@ -820,6 +820,33 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 				strcpy(text, param_desc[mused.wavetable_param]);
 			}
 			break;
+			
+			case EDITLOCALSAMPLE:
+			{
+				static const char * param_desc[] =
+				{
+					"Enable local samples",
+					"Local/global sample",
+					
+					"Sample number",
+					
+					"Sample name",
+					"Sample rate",
+					"Base note",
+					"Base note finetune",
+					"Interpolate",
+					"Interpolation type", //wasn't there
+					"Enable looping",
+					"Loop begin",
+					"Ping-pong looping",
+					"Loop end",
+					
+					"Connect specific samples to specific notes",
+				};
+				
+				strcpy(text, param_desc[mused.local_sample_param]);
+			}
+			break;
 
 			case EDITINSTRUMENT:
 			{
@@ -4045,6 +4072,9 @@ void open_local_samples(void *unused1, void *unused2, void *unused3)
 	
 	mused.show_local_samples = true;
 	mused.local_sample_list_position = 0;
+	
+	mused.local_sample_note_list_position = MIDDLE_C;
+	
 	mused.show_local_samples_list = true;
 	
 	change_mode(EDITLOCALSAMPLE);

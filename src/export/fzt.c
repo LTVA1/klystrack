@@ -1035,6 +1035,11 @@ void write_instrument(FILE* f, MusInstrument* inst)
 
 	memcpy(fzt_inst->name, inst->name, FZT_MUS_INST_NAME_LEN);
 	fzt_inst->name[FZT_MUS_INST_NAME_LEN] = '\0';
+	
+	for(int i = 0; i < FZT_MUS_INST_NAME_LEN; i++)
+	{
+		fzt_inst->name[i] = toupper(fzt_inst->name[i]);
+	}
 
 	if(inst->cydflags & CYD_CHN_ENABLE_NOISE)
 	{
@@ -1248,6 +1253,97 @@ void write_instrument(FILE* f, MusInstrument* inst)
 	free(fzt_inst);
 }
 
+#define SCALE_SAMPLE(x) (((x) + 32767) / 4 / 256)
+
+void write_dpcm_sample(FILE* f, CydWavetableEntry* wave, char* wave_name)
+{
+	char name[FZT_WAVE_NAME_LEN] = { 0 };
+	
+	Uint8 initial_delta_counter_position = 0;
+	Uint8 delta_counter_position_on_loop_start = 0;
+	Uint8 flags = 0;
+	Uint32 length = 0;
+	Uint32 loop_start = 0;
+	Uint32 loop_end = 0;
+	
+	memcpy(&name, wave_name, FZT_WAVE_NAME_LEN - 1);
+	
+	for(int i = 0; i < FZT_WAVE_NAME_LEN; i++)
+	{
+		name[i] = toupper(name[i]);
+	}
+	
+	initial_delta_counter_position = SCALE_SAMPLE(wave->data[0]);
+	
+	if(wave->flags & CYD_WAVE_LOOP)
+	{
+		delta_counter_position_on_loop_start = SCALE_SAMPLE(wave->data[wave->loop_begin]);
+		flags |= FZT_SE_SAMPLE_LOOP;
+	}
+	
+	length = wave->samples;
+	loop_start = wave->loop_begin;
+	loop_end = wave->loop_end;
+	
+	Uint8* sample_data = calloc(1, length / 8 + 1);
+	memset(sample_data, 0, length / 8 + 1);
+	
+	fwrite(name, 1, sizeof(name), f);
+	
+	fwrite(&flags, 1, sizeof(flags), f);
+	fwrite(&initial_delta_counter_position, 1, sizeof(initial_delta_counter_position), f);
+	fwrite(&length, 1, sizeof(length), f);
+	
+	if(flags & FZT_SE_SAMPLE_LOOP)
+	{
+		fwrite(&loop_start, 1, sizeof(loop_start), f);
+		fwrite(&loop_end, 1, sizeof(loop_end), f);
+		fwrite(&delta_counter_position_on_loop_start, 1, sizeof(delta_counter_position_on_loop_start), f);
+	}
+	
+	Uint8 delta_counter = initial_delta_counter_position;
+	
+	for(int i = 0; i < length; i++)
+	{
+		Uint8 sample_value = SCALE_SAMPLE(wave->data[i]);
+
+		if(delta_counter <= sample_value)
+		{
+			if(delta_counter < 63)
+			{
+				delta_counter++;
+				sample_data[i / 8] |= (1 << (i & 7));
+			}
+
+			else
+			{
+				delta_counter--;
+			}
+		}
+
+		else
+		{
+			if(delta_counter > 0)
+			{
+				delta_counter--;
+			}
+
+			else
+			{
+				delta_counter++;
+				sample_data[i / 8] |= (1 << (i & 7));
+			}
+		}
+	}
+	
+	for(int i = 0; i < length / 8 + 1; i++)
+	{
+		fwrite(&sample_data[i], 1, sizeof(sample_data[i]), f);
+	}
+	
+	free(sample_data);
+}
+
 bool export_fzt(MusSong* song, CydWavetableEntry* wavetable_entries, FILE *f)
 {
 	bool success = true;
@@ -1382,10 +1478,26 @@ bool export_fzt(MusSong* song, CydWavetableEntry* wavetable_entries, FILE *f)
 			goto abort;
 		}
 	}
+	
+	Uint8 max_wt = 0;
 
-	//fwrite(&song->num_wavetables, 1, sizeof(song->num_wavetables), f);
-	Uint8 waves = 0;
-	fwrite(&waves, 1, sizeof(waves), f);
+	for (int i = 0; i < CYD_WAVE_MAX_ENTRIES; ++i)
+	{
+		if (mused.mus.cyd->wavetable_entries[i].samples)
+			max_wt = my_max(max_wt, i + 1);
+	}
+
+	fwrite(&max_wt, 1, sizeof(max_wt), f);
+	//Uint8 waves = 0;
+	//fwrite(&waves, 1, sizeof(waves), f);
+	
+	for(int i = 0; i < max_wt; i++)
+	{
+		write_dpcm_sample(f, &mused.mus.cyd->wavetable_entries[i], mused.song.wavetable_names[i]);
+		
+		snprintf(buffer, sizeof(buffer), "Writing sample %02X", i);
+		success = redraw_progress(buffer, 90 + i * 10 / max_wt);
+	}
 	
 	abort:;
 

@@ -150,6 +150,11 @@ void select_local_sample(void *idx, void *unused1, void *unused2)
 	}
 }
 
+void select_local_sample_note(void *idx, void *unused1, void *unused2)
+{
+	mused.selected_local_sample_note = my_min(FREQ_TAB_SIZE - 1, CASTPTR(int, idx));
+}
+
 void change_octave(void *delta, void *unused1, void *unused2)
 {
 	mused.octave += CASTPTR(int,delta);

@@ -33,6 +33,7 @@ void select_instrument_param(void *idx, void *, void *);
 void select_instrument(void *idx, void *relative, void *pagey);
 void select_wavetable(void *idx, void *, void *);
 void select_local_sample(void *idx, void *unused1, void *unused2);
+void select_local_sample_note(void *idx, void *unused1, void *unused2);
 void select_instrument_page(void *page, void *relative, void *);
 void change_default_pattern_length(void *length, void *, void *);
 void select_program_step(void *idx, void *, void *);

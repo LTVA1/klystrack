@@ -38,42 +38,88 @@ extern Mused mused;
 Uint16 find_command_pt(Uint16 command, int sample_length)
 {
 	if ((command & 0xff00) == 0x0c00)
+	{
 		command = MUS_FX_SET_VOLUME | ((command & 0xff) * 2);
+		return command;
+	}
 	else if ((command & 0xff00) == 0x0a00)
+	{
 		command = MUS_FX_FADE_VOLUME | (my_min(0xf, (command & 0x0f) * 2)) | (my_min(0xf, ((command & 0xf0) >> 4) * 2) << 4);
+		return command;
+	}
 	else if ((command & 0xff00) == 0x0f00 && (command & 0xff) < 32)
+	{
 		command = MUS_FX_SET_SPEED | my_min(0xf, (command & 0xff));
+		return command;
+	}
 	else if ((command & 0xff00) == 0x0f00 && (command & 0xff) >= 32)
+	{
 		command = MUS_FX_SET_RATE | (((command & 0xff)) * 50 / 125);
-	else if ((command & 0xff00) == 0x0100 || (command & 0xff00) == 0x0200 || (command & 0xff00) == 0x0300) 
+		return command;
+	}
+	else if ((command & 0xff00) == 0x0100 || (command & 0xff00) == 0x0200 || (command & 0xff00) == 0x0300)
+	{
 		command = (command & 0xff00) | my_min(0xff, (command & 0xff) * 8);
-	else if ((command & 0xff00) == 0x0900 && sample_length) 
+		return command;
+	}
+	else if ((command & 0xff00) == 0x0900 && sample_length)
+	{
 		command = MUS_FX_WAVETABLE_OFFSET | ((Uint64)(command & 0xff) * 256 * 0x1000 / (Uint64)sample_length);
-	else if ((command & 0xff00) == 0x0000 && (command & 0xff) != 0) 
+		return command;
+	}
+	else if ((command & 0xff00) == 0x0000 && (command & 0xff) != 0)
+	{
 		command = MUS_FX_SET_EXT_ARP | (command & 0xff);
+		return command;
+	}
 	
 	
-	else if ((command & 0xff00) == 0x0d00) 
+	else if ((command & 0xff00) == 0x0d00)
+	{
 		command = MUS_FX_SKIP_PATTERN | (command & 0xff);
+		return command;
+	}
 	
 	else if ((command & 0xff00) != 0x0400 && (command & 0xff00) != 0x0000) 
+	{
 		command = 0;
+		return command;
+	}
 	else if ((command & 0xfff0) == 0x0e60)
 	{
 		command = MUS_FX_FT2_PATTERN_LOOP | (command & 0xf);
+		return command;
 	}
 	else if ((command & 0xfff0) == 0x0ec0)
+	{
 		command = MUS_FX_EXT_NOTE_CUT | (command & 0xf);
+		return command;
+	}
 	else if ((command & 0xfff0) == 0x0ed0)
+	{
 		command = MUS_FX_EXT_NOTE_DELAY | (command & 0xf);
+		return command;
+	}
 	else if ((command & 0xfff0) == 0x0e90)
+	{
 		command = MUS_FX_EXT_RETRIGGER | (command & 0xf);
+		return command;
+	}
 	else if ((command & 0xfff0) == 0x0e10)
+	{
 		command = MUS_FX_EXT_PORTA_UP | (command & 0xf);
+		return command;
+	}
 	else if ((command & 0xfff0) == 0x0e20)
+	{
 		command = MUS_FX_EXT_PORTA_DN | (command & 0xf);
+		return command;
+	}
 	else if ((command & 0xfff0) == 0x0ea0 || (command & 0xfff0) == 0x0eb0)
+	{
 		command = ((command & 0xfff0) == 0x0ea0 ? 0x0eb0 : 0x0ea0) | (my_min(0xf, (command & 0x0f) * 2));
+		return command;
+	}
 	
 	return command;
 }
@@ -249,8 +295,6 @@ int import_mod(FILE *f)
 				mused.song.pattern[pat].step[s].command[0] = find_command_pt(lp[c][command] | ((Uint16)command << 8), sl[c]);
 				++pat;
 			}
-		
-		
 		}
 	}
 	

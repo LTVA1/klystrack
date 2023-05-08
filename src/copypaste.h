@@ -47,6 +47,9 @@ typedef struct
 	
 	int prev_name_index;
 	
+	bool is_local_sample;
+	Uint8 local_sample_instrument;
+	
 } Selection;
 
 
