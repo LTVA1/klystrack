@@ -288,8 +288,6 @@ void import_wavetable_string(MusInstrument* inst)
 			
 			wavetable_length = wavetable_position;
 			
-			debug("wavetable %d length %d", i, wavetable_length);
-			
 			wavetable_lengths[i] = wavetable_length;
 		}
 		
@@ -385,6 +383,14 @@ void import_wavetable_string(MusInstrument* inst)
 			}
 		}
 		
+		for(int i = 0; i < wavetables; i++)
+		{
+			if(wavetable_arrays[i])
+			{
+				free(wavetable_arrays[i]);
+			}
+		}
+		
 		end:;
 		
 		if(wave_data)
@@ -407,6 +413,11 @@ void import_wavetable_string(MusInstrument* inst)
 		if(wave_string_copy)
 		{
 			free(wave_string_copy);
+		}
+		
+		if(wavetable_arrays)
+		{
+			free(wavetable_arrays);
 		}
 	}
 }
