@@ -383,6 +383,8 @@ void import_wavetable_string(MusInstrument* inst)
 			}
 		}
 		
+		invalidate_wavetable_view();
+		
 		for(int i = 0; i < wavetables; i++)
 		{
 			if(wavetable_arrays[i])
