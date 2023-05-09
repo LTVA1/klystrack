@@ -331,7 +331,7 @@ void import_wavetable_string(MusInstrument* inst)
 			inst->local_samples[i]->flags |= CYD_WAVE_LOOP | CYD_WAVE_NO_INTERPOLATION;
 			
 			inst->local_samples[i]->loop_begin = 0;
-			inst->local_samples[i]->loop_end = wavetable_length - 1;
+			inst->local_samples[i]->loop_end = wavetable_length;
 			
 			inst->local_samples[i]->sample_rate = get_freq(inst->base_note << 8 + inst->finetune) / 1024 * wavetable_length;
 		}

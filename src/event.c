@@ -5258,6 +5258,7 @@ void local_sample_add_param(int d)
 			clamp(w->loop_end, d, w->loop_begin, w->samples);
 			clamp(w->loop_begin, 0, 0, my_min(w->samples, w->loop_end));
 		}
+		break;
 		
 		case LS_BINDTONOTES:
 		{
