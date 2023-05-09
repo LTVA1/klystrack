@@ -273,6 +273,27 @@ void local_sample_notes_view(GfxDomain *dest_surface, const SDL_Rect *dest, cons
 	area.x += area.w;
 	
 	int remove_from_list = button_text_event(domain, event, &area, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "\xb6\xb6\xb6\xb7", NULL, MAKEPTR(1), NULL, NULL);
+	
+	if(add_to_list > 0)
+	{
+		if(mused.show_local_samples_list)
+		{
+			mused.song.instrument[mused.current_instrument].note_to_sample_array[mused.selected_local_sample_note].flags &= ~MUS_NOTE_TO_SAMPLE_GLOBAL;
+			mused.song.instrument[mused.current_instrument].note_to_sample_array[mused.selected_local_sample_note].sample = mused.selected_local_sample;
+		}
+		
+		else
+		{
+			mused.song.instrument[mused.current_instrument].note_to_sample_array[mused.selected_local_sample_note].flags |= MUS_NOTE_TO_SAMPLE_GLOBAL;
+			mused.song.instrument[mused.current_instrument].note_to_sample_array[mused.selected_local_sample_note].sample = mused.selected_local_sample;
+		}
+	}
+	
+	if(remove_from_list > 0)
+	{
+		mused.song.instrument[mused.current_instrument].note_to_sample_array[mused.selected_local_sample_note].flags = 0;
+		mused.song.instrument[mused.current_instrument].note_to_sample_array[mused.selected_local_sample_note].sample = MUS_NOTE_TO_SAMPLE_NONE;
+	}
 }
 
 void local_sample_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)

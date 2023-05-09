@@ -284,6 +284,7 @@ void dropfile_event(SDL_Event *e)
 				}
 				
 				case EDITWAVETABLE:
+				case EDITLOCALSAMPLE:
 				{
 					goto load_wave;
 				}
@@ -682,12 +683,13 @@ void dropfile_event(SDL_Event *e)
 		}
 		
 		case EDITWAVETABLE:
+		case EDITLOCALSAMPLE:
 		{
 			load_wave:;
 			
 			if(f)
 			{
-				if(mused.flags & SHOW_WAVEGEN)
+				if((mused.flags & SHOW_WAVEGEN) && mused.mode != EDITLOCALSAMPLE)
 				{
 					if(strcmp(".kw", extension) == 0)
 					{
@@ -2729,26 +2731,6 @@ static void wave_the_jams(int sym)
 		}
 	}
 }
-
-/*if(mused.mode == EDITWAVETABLE)
-	{
-		ww_write(ww, mused.mus.cyd->wavetable_entries[mused.selected_wavetable].data, mused.mus.cyd->wavetable_entries[mused.selected_wavetable].samples);
-	}
-	
-	if(mused.mode == EDITLOCALSAMPLE)
-	{
-		if(mused.show_local_samples_list)
-		{
-			ww_write(ww, mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample]->data, mused.song.instrument[mused.current_instrument].local_samples[mused.selected_local_sample]->samples);
-		}
-		
-		else
-		{
-			ww_write(ww, mused.mus.cyd->wavetable_entries[mused.selected_local_sample].data, mused.mus.cyd->wavetable_entries[mused.selected_local_sample].samples);
-		}
-	}*/
-
-
 
 void edit_instrument_event(SDL_Event *e)
 {

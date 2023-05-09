@@ -47,6 +47,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "view/oscilloscope.h" //wasn't there
 
 #include "import/mml_string.h" //wasn't there
+#include "import/wavetable_string.h" //wasn't there
 
 extern Mused mused;
 
@@ -1415,6 +1416,13 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 	{
 		groove_view();
 		mused.open_groove_settings = false;
+	}
+	
+	if(mused.import_wavetable_string)
+	{
+		import_wavetable_string(&mused.song.instrument[mused.current_instrument]);
+		
+		mused.import_wavetable_string = false;
 	}
 }
 
@@ -4776,15 +4784,24 @@ void local_sample_disk_view(GfxDomain *dest_surface, const SDL_Rect *dest, const
 	bevelex(domain,&area, mused.slider_bevel, BEV_BACKGROUND, BEV_F_STRETCH_ALL);
 	adjust_rect(&area, 2);
 
-	SDL_Rect button = { area.x + 2, area.y, area.w / 2 - 4, area.h };
+	SDL_Rect button = { area.x + 2, area.y, 34, area.h };
 
 	int open = button_text_event(domain, event, &button, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "LOAD", NULL, MAKEPTR(1), NULL, NULL);
-	update_rect(&area, &button);
+	button.x += button.w;
 	int save = button_text_event(domain, event, &button, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "SAVE", NULL, MAKEPTR(2), NULL, NULL);
-	update_rect(&area, &button);
+	button.x += button.w;
+	
+	button.w = area.w - 34 * 2 - 4;
+	
+	int import_wavetable_sequence = button_text_event(domain, event, &button, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "IMP.WAVETABLE", NULL, MAKEPTR(2), NULL, NULL);
 
 	if (open & 1) open_data(param, MAKEPTR(OD_A_OPEN), 0);
 	else if (save & 1) open_data(param, MAKEPTR(OD_A_SAVE), 0);
+	
+	if(import_wavetable_sequence & 1)
+	{
+		mused.import_wavetable_string = true;
+	}
 }
 
 void song_name_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param)

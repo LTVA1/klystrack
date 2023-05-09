@@ -370,6 +370,8 @@ typedef struct
 	bool show_local_samples_list;
 	
 	MusInstrument inst;
+	
+	bool import_wavetable_string;
 } Mused;
 
 extern Mused mused;

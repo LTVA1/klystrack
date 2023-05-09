@@ -249,7 +249,6 @@ static void write_wavetable_entry(SDL_RWops *f, const CydWavetableEntry *write_w
 	SDL_RWwrite(f, &loop_end, sizeof(loop_end), 1);
 	SDL_RWwrite(f, &base_note, sizeof(base_note), 1);
 
-
 	if (packed)
 	{
 		FIX_ENDIAN(packed_size);
@@ -533,6 +532,61 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 	else
 	{
 		SDL_RWwrite(f, &inst->wavetable_entry, sizeof(inst->wavetable_entry), 1);
+	}
+	
+	if(inst->flags & MUS_INST_USE_LOCAL_SAMPLES)
+	{
+		SDL_RWwrite(f, &inst->num_local_samples, sizeof(inst->num_local_samples), 1);
+		
+		for(int i = 0; i < inst->num_local_samples; i++)
+		{
+			Uint8 wave_name_len = 0;
+			
+			for(int j = 0; j < MUS_WAVETABLE_NAME_LEN; j++)
+			{
+				if(inst->local_sample_names[i][j] == '\0')
+				{
+					wave_name_len = j;
+					goto skip;
+				}
+			}
+			
+			skip:;
+			
+			SDL_RWwrite(f, &wave_name_len, sizeof(wave_name_len), 1);
+			
+			if(wave_name_len > 0)
+			{
+				SDL_RWwrite(f, inst->local_sample_names[i], sizeof(inst->local_sample_names[i][0]) * wave_name_len, 1);
+			}
+			
+			write_wavetable_entry(f, inst->local_samples[i], true);
+		}
+		
+		if(inst->flags & MUS_INST_BIND_LOCAL_SAMPLES_TO_NOTES)
+		{
+			Uint8 num_note_binds = 0;
+			
+			for(int i = 0; i < FREQ_TAB_SIZE; i++)
+			{
+				if(inst->note_to_sample_array[i].sample != MUS_NOTE_TO_SAMPLE_NONE)
+				{
+					num_note_binds++;
+				}
+			}
+			
+			SDL_RWwrite(f, &num_note_binds, sizeof(num_note_binds), 1);
+			
+			for(int i = 0; i < FREQ_TAB_SIZE; i++)
+			{
+				if(inst->note_to_sample_array[i].sample != MUS_NOTE_TO_SAMPLE_NONE)
+				{
+					SDL_RWwrite(f, &inst->note_to_sample_array[i].note, sizeof(inst->note_to_sample_array[i].note), 1);
+					SDL_RWwrite(f, &inst->note_to_sample_array[i].flags, sizeof(inst->note_to_sample_array[i].flags), 1);
+					SDL_RWwrite(f, &inst->note_to_sample_array[i].sample, sizeof(inst->note_to_sample_array[i].sample), 1);
+				}
+			}
+		}
 	}
 	
 	if(inst->cydflags & CYD_CHN_ENABLE_FM)

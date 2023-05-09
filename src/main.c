@@ -226,9 +226,9 @@ static const View local_sample_view_tab[] =
 	{{0, 0, -130, 14}, bevel_view, (void*)BEV_BACKGROUND, -1},
 	{{0, 0, 0, -INFO}, local_sample_bevel, NULL, -1},
 	{{LOCAL_SAMPLE_VIEW_SIDE_MARGIN, LOCAL_SAMPLE_VIEW_TOP_MARGIN - 14, - LOCAL_SAMPLE_VIEW_SIDE_MARGIN, 14}, local_sample_header_view, NULL, -1},
-	{{LOCAL_SAMPLE_VIEW_SIDE_MARGIN, LOCAL_SAMPLE_VIEW_TOP_MARGIN, -130 - LOCAL_SAMPLE_VIEW_SIDE_MARGIN, 14}, bevel_view, (void*)BEV_BACKGROUND, -1},
-	{{2 + LOCAL_SAMPLE_VIEW_SIDE_MARGIN, LOCAL_SAMPLE_VIEW_TOP_MARGIN + 2, -132 - LOCAL_SAMPLE_VIEW_SIDE_MARGIN, 10}, local_sample_name_view, NULL, -1},
-	{{-130 - LOCAL_SAMPLE_VIEW_SIDE_MARGIN, LOCAL_SAMPLE_VIEW_TOP_MARGIN, 130, 14}, local_sample_disk_view, MAKEPTR(OD_T_WAVETABLE), -1},
+	{{LOCAL_SAMPLE_VIEW_SIDE_MARGIN, LOCAL_SAMPLE_VIEW_TOP_MARGIN, -180 - LOCAL_SAMPLE_VIEW_SIDE_MARGIN, 14}, bevel_view, (void*)BEV_BACKGROUND, -1},
+	{{2 + LOCAL_SAMPLE_VIEW_SIDE_MARGIN, LOCAL_SAMPLE_VIEW_TOP_MARGIN + 2, -182 - LOCAL_SAMPLE_VIEW_SIDE_MARGIN, 10}, local_sample_name_view, NULL, -1},
+	{{-180 - LOCAL_SAMPLE_VIEW_SIDE_MARGIN, LOCAL_SAMPLE_VIEW_TOP_MARGIN, 180, 14}, local_sample_disk_view, MAKEPTR(OD_T_WAVETABLE), -1},
 	{{LOCAL_SAMPLE_VIEW_SIDE_MARGIN, LOCAL_SAMPLE_VIEW_TOP_MARGIN + 14, 304, -INFO-LOCAL_SAMPLEVIEW-LOCAL_SAMPLE_VIEW_SIDE_MARGIN}, local_sample_view, NULL, -1},
 	{{304 + LOCAL_SAMPLE_VIEW_SIDE_MARGIN, LOCAL_SAMPLE_VIEW_TOP_MARGIN + 14, -SCROLLBAR - LOCAL_SAMPLE_VIEW_SIDE_MARGIN, -INFO-LOCAL_SAMPLEVIEW-LOCAL_SAMPLE_VIEW_SIDE_MARGIN}, local_samplelist_view, NULL, -1},
 	{{0 - SCROLLBAR-LOCAL_SAMPLE_VIEW_SIDE_MARGIN, LOCAL_SAMPLE_VIEW_TOP_MARGIN + 14, SCROLLBAR, -INFO-LOCAL_SAMPLEVIEW-LOCAL_SAMPLE_VIEW_SIDE_MARGIN }, slider, &mused.local_sample_list_slider_param, EDITLOCALSAMPLE },
@@ -288,9 +288,9 @@ int main(int argc, char **argv)
 	
 	debug("Starting %s", VERSION_STRING);
 	
-	/*debug("size of MusInstrument %d", sizeof(MusInstrument));
+	debug("size of MusInstrument %d", sizeof(MusInstrument));
 	debug("size of CydFxSerialized %d", sizeof(CydFxSerialized));
-	debug("size of UndoEvent %d", sizeof(UndoEvent));*/
+	debug("size of UndoEvent %d", sizeof(UndoEvent));
 	
 	mused.output_buffer_counter = 0; //wasn't there
 	mused.flags = 0;
@@ -312,24 +312,19 @@ int main(int argc, char **argv)
 	domain = gfx_create_domain(VERSION_STRING, SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | ((mused.flags & WINDOW_MAXIMIZED) ? SDL_WINDOW_MAXIMIZED : 0), mused.window_w, mused.window_h, mused.pixel_scale);
 	
 	domain->fps = 30;
-	//domain->fps = mused.fps;
 	domain->scale = mused.pixel_scale;
 	domain->window_min_w = 320;
 	domain->window_min_h = 240;
 	
 	gfx_domain_update(domain, false);
-
-	//MusInstrument instrument[NUM_INSTRUMENTS];
+	
 	MusInstrument* instrument = (MusInstrument*)calloc(1, NUM_INSTRUMENTS * sizeof(MusInstrument));
 	
-	//MusPattern pattern[NUM_PATTERNS];
 	MusPattern* pattern = (MusPattern*)calloc(1, NUM_PATTERNS * sizeof(MusPattern));
 	memset(pattern, 0, NUM_PATTERNS * sizeof(MusPattern));
 	
-	//MusChannel channel[CYD_MAX_CHANNELS];
 	MusChannel* channel = (MusChannel*)calloc(1, CYD_MAX_CHANNELS * sizeof(MusChannel));
 	
-	//MusSeqPattern sequence[MUS_MAX_CHANNELS][NUM_SEQUENCES];
 	MusSeqPattern** sequence = (MusSeqPattern**)calloc(1, MUS_MAX_CHANNELS * sizeof(MusSeqPattern*));
 	
 	for(int i = 0; i < MUS_MAX_CHANNELS; ++i)
@@ -359,9 +354,6 @@ int main(int argc, char **argv)
 		cydfx_set(&mused.cyd.fx[i], &mused.song.fx[i], mused.cyd.sample_rate);
 
 	cyd_register(&mused.cyd, mused.mix_buffer);
-	
-	//SDL_Delay(3000);
-	//debug("Cyd registered");
 
 	if (argc > 1)
 	{
@@ -666,10 +658,6 @@ int main(int argc, char **argv)
 				mused.current_patternpos = mused.stat_song_position;
 				update_position_sliders(); //orig
 			}
-			
-			//update_position_sliders();
-	
-			//slider_move_position(&mused.current_sequencepos, &mused.sequence_position, &mused.sequence_slider_param, 0);
 
 			for (int i = 0; i < MUS_MAX_CHANNELS; ++i)
 			{
@@ -780,9 +768,7 @@ int main(int argc, char **argv)
 	
 	free(mused.imaginary_buffer);
 
-	save_config(".klystrack"); //was `save_config(TOSTRING(CONFIG_PATH));`
-	
-	//debug("Saving config to " + TOSTRING(CONFIG_PATH)); //wasn't there
+	save_config(".klystrack");
 
 	debug("deinit");
 	deinit();
@@ -792,6 +778,7 @@ int main(int argc, char **argv)
 		MusInstrument* inst = &mused.song.instrument[k];
 		
 		mus_free_inst_programs(inst);
+		mus_free_inst_samples(inst);
 	}
 	
 	free(instrument);

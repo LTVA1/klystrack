@@ -99,6 +99,7 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_EXT_OSC_MIX, 0xfff0, "Set oscillators' mix mode", "OscMix", 0, 4}, //wasn't there
 	{MUS_FX_EXT_SINE_ACC_SHIFT, 0xfff0, "Set sine wave phase shift", "SinePhaseShift", 0, 0xF}, //wasn't there
 	{MUS_FX_SET_WAVETABLE_ITEM, 0xff00, "Set wavetable item", "Wavetable", 0, CYD_WAVE_MAX_ENTRIES - 1},
+	{MUS_FX_SET_LOCAL_SAMPLE, 0xff00, "Set local sample", "LocalSample", 0, MUS_MAX_INST_SAMPLES - 1},
 	{MUS_FX_SET_FXBUS, 0xff00, "Set FX bus", "SetFxBus", 0, CYD_MAX_FX_CHANNELS - 1},
 	{MUS_FX_SET_RINGSRC, 0xff00, "Set ring modulation source (FF=off)", "SetRingSrc", 0, 0xff},
 	{MUS_FX_SET_SYNCSRC, 0xff00, "Set sync source (FF=off)", "SetSyncSrc", 0, 0xff},
@@ -336,6 +337,11 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst)
 	else if ((fi & 0xff00) == MUS_FX_SET_WAVETABLE_ITEM)
 	{
 		snprintf(text, buffer_size, "%s (%s)\n", name, mused.song.wavetable_names[(inst & 0xff)]);
+	}
+	
+	else if ((fi & 0xff00) == MUS_FX_SET_LOCAL_SAMPLE)
+	{
+		snprintf(text, buffer_size, "%s (%s)\n", name, mused.song.instrument[mused.current_instrument].num_local_samples > (inst & 0xff) ? mused.song.instrument[mused.current_instrument].local_sample_names[(inst & 0xff)] : "");
 	}
 	
 	else if ((fi & 0xff00) == MUS_FX_SET_VOLUME || (fi & 0xff00) == MUS_FX_SET_ABSOLUTE_VOLUME)
