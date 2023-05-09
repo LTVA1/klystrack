@@ -301,7 +301,7 @@ void groove_list(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event 
 	copy_rect(&area, dest);
 	console_set_clip(mused.console, &area);
 	console_clear(mused.console);
-	bevelex(domain,&area, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
+	bevelex(domain, &area, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
 	adjust_rect(&area, 3);
 	console_set_clip(mused.console, &area);
 
@@ -338,7 +338,7 @@ void current_groove_list(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 	copy_rect(&area, dest);
 	console_set_clip(mused.console, &area);
 	console_clear(mused.console);
-	bevelex(domain,&area, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
+	bevelex(domain, &area, mused.slider_bevel, BEV_THIN_FRAME, BEV_F_STRETCH_ALL);
 	adjust_rect(&area, 3);
 	console_set_clip(mused.console, &area);
 

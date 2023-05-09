@@ -5303,7 +5303,6 @@ void wave_event(SDL_Event *e)
 					wave->samples = 0;
 					wave->loop_begin = 0;
 					wave->loop_end = 0;
-					wave->loop_point = 0;
 					wave->base_note = C_ZERO;
 					
 					free(wave->data);
@@ -5404,7 +5403,6 @@ void local_sample_event(SDL_Event *e)
 					wave->samples = 0;
 					wave->loop_begin = 0;
 					wave->loop_end = 0;
-					wave->loop_point = 0;
 					wave->base_note = C_ZERO;
 					
 					free(wave->data);
