@@ -4114,6 +4114,9 @@ void pattern_event(SDL_Event *e)
 										case SDLK_p: cmd = MUS_NOTE_VOLUME_SET_PAN; break;
 										case SDLK_l: cmd = MUS_NOTE_VOLUME_PAN_LEFT; break;
 										case SDLK_r: cmd = MUS_NOTE_VOLUME_PAN_RIGHT; break;
+										
+										case SDLK_w: cmd = MUS_NOTE_VOLUME_FADE_UP_FINE; break; 
+										case SDLK_s: cmd = MUS_NOTE_VOLUME_FADE_DN_FINE; break;
 										default: break;
 									}
 
@@ -4125,9 +4128,16 @@ void pattern_event(SDL_Event *e)
 											mused.song.pattern[current_pattern()].step[current_patternstep()].volume = 0;
 
 										if (mused.current_patternx == PED_VOLUME1)
+										{
 											mused.song.pattern[current_pattern()].step[current_patternstep()].volume =
 												(mused.song.pattern[current_pattern()].step[current_patternstep()].volume & 0xf)
 												| cmd;
+											
+											if(e->key.keysym.sym == SDLK_w && (mused.song.pattern[current_pattern()].step[current_patternstep()].volume & 0xf) == 0)
+											{
+												mused.song.pattern[current_pattern()].step[current_patternstep()].volume += 1; //without "+1" it would be 0x80 which is volume value lol
+											}
+										}
 
 										update_pattern_slider(mused.note_jump);
 
@@ -4157,7 +4167,9 @@ void pattern_event(SDL_Event *e)
 										(vol & 0xf0) != MUS_NOTE_VOLUME_FADE_DN &&
 										(vol & 0xf0) != MUS_NOTE_VOLUME_PAN_LEFT &&
 										(vol & 0xf0) != MUS_NOTE_VOLUME_PAN_RIGHT &&
-										(vol & 0xf0) != MUS_NOTE_VOLUME_SET_PAN)
+										(vol & 0xf0) != MUS_NOTE_VOLUME_SET_PAN &&
+										((vol & 0xf0) != MUS_NOTE_VOLUME_FADE_UP_FINE && (vol & 0xf) != 0) &&
+										(vol & 0xf0) != MUS_NOTE_VOLUME_FADE_DN_FINE)
 										mused.song.pattern[current_pattern()].step[current_patternstep()].volume = my_min(MAX_VOLUME, vol);
 									else mused.song.pattern[current_pattern()].step[current_patternstep()].volume = vol;
 

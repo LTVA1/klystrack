@@ -1078,6 +1078,14 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 										case MUS_NOTE_VOLUME_FADE_DN:
 											c = 0xfc;
 											break;
+											
+										case MUS_NOTE_VOLUME_FADE_UP_FINE:
+											c = 'b';
+											break;
+											
+										case MUS_NOTE_VOLUME_FADE_DN_FINE:
+											c = 'a';
+											break;
 									}
 									
 									font_write_args(&mused.console->font, dest_surface, &pos, "%c", c);

@@ -385,6 +385,8 @@ void import_wavetable_string(MusInstrument* inst)
 		
 		invalidate_wavetable_view();
 		
+		inst->flags |= MUS_INST_USE_LOCAL_SAMPLES;
+		
 		for(int i = 0; i < wavetables; i++)
 		{
 			if(wavetable_arrays[i])
