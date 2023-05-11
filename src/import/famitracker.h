@@ -37,6 +37,26 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "../../klystron/src/snd/freqs.h"
 #include "../view.h"
 
+#define FAMITRACKER_BLOCK_SIGNATURE_LENGTH 16
+
+#define FT_BLOCK_TYPES 18
+
+#define FT_FILE_VER 0x0450
+#define FT_FILE_LOWEST_VER 0x0100
+
+#define FT_HEADER_SIG "FamiTracker Module"
+#define DN_FT_HEADER_SIG "Dn-FamiTracker Module"
+#define END_SIG "END"
+
+typedef struct
+{
+	char name[FAMITRACKER_BLOCK_SIGNATURE_LENGTH + 1];
+	Uint32 version;
+	Uint32 length;
+	
+	Uint32 position; // position of actual data so 16+4+4 bytes after block start
+} ftm_block;
+
 int import_famitracker(FILE *f, int type);
 
 #endif

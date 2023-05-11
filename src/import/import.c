@@ -100,7 +100,7 @@ void import_module(void *type, void* unused1, void* unused2)
 		
 		else
 		{
-			kill_empty_patterns(&mused.song, NULL); //wasn't there
+			//kill_empty_patterns(&mused.song, NULL); //wasn't there
 			optimize_duplicate_patterns(&mused.song, true);
 		}
 	}
