@@ -112,6 +112,8 @@ void import_module(void *type, void* unused1, void* unused2)
 	
 	mused.song.num_patterns = NUM_PATTERNS;
 	
+	mused.time_signature = mused.song.time_signature;
+	
 	fclose(f);
 	
 	set_channels(mused.song.num_channels);

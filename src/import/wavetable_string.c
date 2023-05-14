@@ -327,13 +327,13 @@ void import_wavetable_string(MusInstrument* inst)
 			
 			cyd_wave_entry_init(inst->local_samples[i], wave_data, wavetable_length, CYD_WAVE_TYPE_SINT16, 1, 1, 1);
 			
-			inst->local_samples[i]->base_note = inst->base_note << 8 + inst->finetune;
+			inst->local_samples[i]->base_note = (inst->base_note << 8) + inst->finetune;
 			inst->local_samples[i]->flags |= CYD_WAVE_LOOP | CYD_WAVE_NO_INTERPOLATION;
 			
 			inst->local_samples[i]->loop_begin = 0;
 			inst->local_samples[i]->loop_end = wavetable_length;
 			
-			inst->local_samples[i]->sample_rate = get_freq(inst->base_note << 8 + inst->finetune) / 1024 * wavetable_length;
+			inst->local_samples[i]->sample_rate = get_freq((inst->base_note << 8) + inst->finetune) / 1024 * wavetable_length;
 		}
 		
 		if(generate_macro)
