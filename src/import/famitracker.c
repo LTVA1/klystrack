@@ -55,6 +55,23 @@ const char* block_sigs[FT_BLOCK_TYPES] =
 	"PARAMS_EXTRA",
 };
 
+const Uint8 convert_volumes_16[16] = 
+{ 0, 9, 17, 26, 34, 43, 51, 60, 68, 77, 85, 94, 102, 111, 119, 128 };
+
+const Uint8 convert_volumes_32[32] = 
+{ 
+	0, 4, 8, 12, 17, 21, 25, 29, 33, 37, 41, 45, 50, 54, 58, 62,
+	66, 70, 74, 78, 83, 87, 91, 95, 99, 103, 107, 111, 116, 120, 124, 128
+};
+
+const Uint8 convert_volumes_64[64] = 
+{ 
+	0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30,
+	32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62,
+	65, 67, 69, 71, 73, 75, 77, 79, 81, 83, 85, 87, 89, 91, 93, 95,
+	97, 99, 101, 103, 105, 107, 109, 111, 113, 115, 117, 119, 121, 123, 125, 128
+};
+
 void read_uint32(FILE *f, Uint32* number) //little-endian
 {
 	*number = 0;
@@ -73,6 +90,15 @@ Uint8 expansion_chips;
 Uint8 namco_channels;
 Uint32 version;
 
+Uint16 pattern_length;
+
+Uint16 sequence_length;
+Uint8 selected_subsong;
+
+Uint8 num_subsongs;
+
+Uint8 machine;
+
 bool** seq_inst_enable;
 Uint8** seq_inst_index;
 
@@ -84,7 +110,12 @@ Uint8* initial_delta_counter_positions;
 
 Uint8* instrument_types;
 
+Uint8* effect_columns;
+
 ft_inst* ft_instruments;
+
+Uint8** ft_sequence;
+Uint16** klystrack_sequence;
 
 void load_sequence_indices(FILE* f, Uint8 inst_num) //bool CSeqInstrument::Load(CDocumentFile *pDocFile)
 {
@@ -139,7 +170,7 @@ bool load_inst_2a03(FILE* f, ftm_block* block, MusInstrument* inst, Uint8 inst_n
 {
 	bool success = true;
 
-	debug("loading 2A03 instrument");
+	//debug("loading 2A03 instrument");
 
 	load_sequence_indices(f, inst_num);
 
@@ -174,7 +205,7 @@ bool load_inst_vrc6(FILE* f, ftm_block* block, MusInstrument* inst, Uint8 inst_n
 {
 	bool success = true;
 
-	debug("loading VRC6 instrument");
+	//debug("loading VRC6 instrument");
 
 	load_sequence_indices(f, inst_num);
 
@@ -185,7 +216,7 @@ bool load_inst_vrc7(FILE* f, ftm_block* block, MusInstrument* inst, Uint8 inst_n
 {
 	bool success = true;
 
-	debug("loading VRC7 instrument");
+	//debug("loading VRC7 instrument");
 
 	Uint32 patch_number = 0;
 	read_uint32(f, &patch_number);
@@ -234,7 +265,7 @@ bool load_inst_fds(FILE* f, ftm_block* block, MusInstrument* inst, Uint8 inst_nu
 {
 	bool success = true;
 
-	debug("loading FDS instrument");
+	//debug("loading FDS instrument");
 
 	for (int i = 0; i < FT_FDS_WAVE_SIZE; ++i)
 	{
@@ -301,7 +332,7 @@ bool load_inst_n163(FILE* f, ftm_block* block, MusInstrument* inst, Uint8 inst_n
 {
 	bool success = true;
 
-	debug("loading N163 instrument");
+	//debug("loading N163 instrument");
 
 	load_sequence_indices(f, inst_num);
 
@@ -330,7 +361,7 @@ bool load_inst_s5b(FILE* f, ftm_block* block, MusInstrument* inst, Uint8 inst_nu
 {
 	bool success = true;
 
-	debug("loading S5B instrument");
+	//debug("loading S5B instrument");
 
 	load_sequence_indices(f, inst_num);
 
@@ -341,10 +372,10 @@ bool ft_process_params_block(FILE* f, ftm_block* block)
 {
 	bool success = true;
 	
-	debug("processing params block");
+	//debug("processing params block");
 	
 	Uint32 song_speed = 0;
-	Uint32 machine = 0;
+	Uint32 t_machine = 0;
 	Uint32 num_channels = 0;
 	expansion_chips = 0;
 	namco_channels = 0;
@@ -365,14 +396,16 @@ bool ft_process_params_block(FILE* f, ftm_block* block)
 	
 	mused.song.num_channels = num_channels;
 	
-	read_uint32(f, &machine);
+	read_uint32(f, &t_machine);
+
+	machine = t_machine;
 	
-	if(machine == FT_MACHINE_NTSC)
+	if(t_machine == FT_MACHINE_NTSC)
 	{
 		mused.song.song_rate = 60;
 	}
 	
-	else if(machine == FT_MACHINE_PAL)
+	else if(t_machine == FT_MACHINE_PAL)
 	{
 		mused.song.song_rate = 50;
 	}
@@ -557,7 +590,7 @@ bool ft_process_instruments_block(FILE* f, ftm_block* block)
 
 	num_instruments = num_insts;
 
-	debug("song has %d instruments", num_insts);
+	//debug("song has %d instruments", num_insts);
 
 	for(int i = 0; i < num_insts; i++)
 	{
@@ -574,7 +607,7 @@ bool ft_process_instruments_block(FILE* f, ftm_block* block)
 		
 		//load instrument
 
-		debug("instrument type %d", inst_type);
+		//debug("instrument type %d", inst_type);
 		
 		switch(inst_type)
 		{
@@ -620,7 +653,7 @@ bool ft_process_instruments_block(FILE* f, ftm_block* block)
 		Uint32 inst_name_len = 0;
 		read_uint32(f, &inst_name_len);
 		
-		debug("inst name len %d", inst_name_len);
+		//debug("inst name len %d", inst_name_len);
 
 		fread(mused.song.instrument[i].name, inst_name_len, 1, f);
 	}
@@ -633,6 +666,204 @@ bool ft_process_instruments_block(FILE* f, ftm_block* block)
 bool ft_process_sequencies_block(FILE* f, ftm_block* block)
 {
 	bool success = true;
+
+	//debug("Processing 2A03 sequencies");
+
+	Uint32 seq_count = 0;
+
+	read_uint32(f, &seq_count);
+
+	ft_inst_macro* temp_macro = (ft_inst_macro*)calloc(1, sizeof(ft_inst_macro));
+
+	if(block->version == 1)
+	{
+		for(int i = 0; i < seq_count; i++)
+		{
+			Uint32 index = 0;
+			read_uint32(f, &index);
+
+			Uint8 size = 0;
+			fread(&size, sizeof(size), 1, f);
+
+			memset(temp_macro, 0, sizeof(ft_inst_macro));
+
+			temp_macro->loop = -1;
+			temp_macro->release = -1;
+
+			temp_macro->sequence_size = size;
+			temp_macro->setting = 0;
+
+			for(int j = 0; j < size; j++)
+			{
+				fread(&temp_macro->sequence[j], sizeof(Uint8), 1, f);
+
+				Uint8 pos = 0;
+				fread(&pos, sizeof(pos), 1, f); //unused here but kept for proper alignment
+			}
+
+			for(int j = 0; j < num_instruments; j++)
+			{
+				if(seq_inst_index[j][0] == index && instrument_types[j] == INST_2A03) //idk bruh no macro type is provided in version 1 so maybe it's volume?
+				{
+					//TODO: reorder sequencies or whatever shit
+					memcpy(&ft_instruments[j].macros[0], temp_macro, sizeof(ft_inst_macro));
+				}
+			}
+		}
+	}
+
+	if(block->version == 2)
+	{
+		for(int i = 0; i < seq_count; i++)
+		{
+			Uint32 index = 0;
+			read_uint32(f, &index);
+
+			Uint32 type = 0;
+			read_uint32(f, &type);
+
+			Uint8 size = 0;
+			fread(&size, sizeof(size), 1, f);
+
+			memset(temp_macro, 0, sizeof(ft_inst_macro));
+
+			temp_macro->loop = -1;
+			temp_macro->release = -1;
+
+			temp_macro->sequence_size = size;
+			temp_macro->setting = 0;
+
+			for(int j = 0; j < size; j++)
+			{
+				fread(&temp_macro->sequence[j], sizeof(Uint8), 1, f);
+
+				Uint8 pos = 0;
+				fread(&pos, sizeof(pos), 1, f); //unused here but kept for proper alignment
+			}
+
+			for(int j = 0; j < num_instruments; j++)
+			{
+				if(seq_inst_index[j][type] == index && instrument_types[j] == INST_2A03) //finally we were blessed with sequence type!
+				{
+					memcpy(&ft_instruments[j].macros[type], temp_macro, sizeof(ft_inst_macro));
+				}
+			}
+		}
+	}
+
+	if(block->version >= 3)
+	{
+		Uint8* Indices = (Uint8*)calloc(1, sizeof(Uint8) * FT_MAX_SEQUENCES * FT_SEQ_CNT);
+		Uint8* Types = (Uint8*)calloc(1, sizeof(Uint8) * FT_MAX_SEQUENCES * FT_SEQ_CNT);
+
+		for(int i = 0; i < seq_count; i++)
+		{
+			Uint32 index = 0;
+			read_uint32(f, &index);
+			Indices[i] = index;
+
+			Uint32 type = 0;
+			read_uint32(f, &type);
+			Types[i] = type;
+
+			Uint8 size = 0;
+			fread(&size, sizeof(size), 1, f);
+
+			memset(temp_macro, 0, sizeof(ft_inst_macro));
+
+			temp_macro->loop = -1;
+			temp_macro->release = -1;
+
+			temp_macro->sequence_size = size;
+			temp_macro->setting = 0;
+
+			Sint32 loop_point = 0;
+			Sint32 release_point = 0;
+
+			Uint32 setting = 0;
+
+			read_uint32(f, (Uint32*)&loop_point);
+
+			temp_macro->loop = loop_point;
+
+			if(block->version == 4)
+			{
+				read_uint32(f, (Uint32*)&release_point);
+				read_uint32(f, &setting);
+
+				temp_macro->release = release_point;
+				temp_macro->setting = setting;
+			}
+
+			for(int j = 0; j < size; j++)
+			{
+				fread(&temp_macro->sequence[j], sizeof(Uint8), 1, f);
+			}
+
+			for(int j = 0; j < num_instruments; j++)
+			{
+				if(seq_inst_index[j][type] == index && instrument_types[j] == INST_2A03)
+				{
+					memcpy(&ft_instruments[j].macros[type], temp_macro, sizeof(ft_inst_macro));
+
+					/*debug("Macro %d type %d", Indices[i], Types[i]);
+
+					for(int k = 0; k < ft_instruments[j].macros[type].sequence_size; k++)
+					{
+						debug("%d", ft_instruments[j].macros[type].sequence[k]);
+					}*/
+				}
+			}
+		}
+
+		if(block->version == 5) // Version 5 saved the release points incorrectly, this is fixed in ver 6
+		{
+			for(int i = 0; i < FT_MAX_SEQUENCES; i++)
+			{
+				for(int j = 0; j < FT_SEQ_CNT; j++)
+				{
+					Sint32 release_point = 0;
+					Uint32 setting = 0;
+					read_uint32(f, (Uint32*)&release_point);
+					read_uint32(f, &setting);
+
+					for(int k = 0; k < num_instruments; k++)
+					{
+						if(seq_inst_index[k][j] == i && instrument_types[k] == INST_2A03)
+						{
+							ft_instruments[k].macros[j].release = release_point;
+							ft_instruments[k].macros[j].setting = setting;
+						}
+					}
+				}
+			}
+		}
+
+		if(block->version >= 6) // Read release points correctly stored
+		{
+			for(int i = 0; i < seq_count; i++)
+			{
+				Sint32 release_point = 0;
+				Uint32 setting = 0;
+				read_uint32(f, (Uint32*)&release_point);
+				read_uint32(f, &setting);
+
+				for(int j = 0; j < num_instruments; j++)
+				{
+					if(seq_inst_index[j][Types[i]] == Indices[i] && instrument_types[j] == INST_2A03)
+					{
+						ft_instruments[j].macros[Types[i]].release = release_point;
+						ft_instruments[j].macros[Types[i]].setting = setting;
+					}
+				}
+			}
+		}
+
+		free(Indices);
+		free(Types);
+	}
+
+	free(temp_macro);
 	
 	return success;
 };
@@ -640,6 +871,88 @@ bool ft_process_sequencies_block(FILE* f, ftm_block* block)
 bool ft_process_frames_block(FILE* f, ftm_block* block)
 {
 	bool success = true;
+
+	//debug("Processing song pattern orders");
+
+	if(block->version == 1)
+	{
+		Uint32 seq_len = 0;
+		Uint32 num_ch = 0;
+
+		read_uint32(f, &seq_len);
+		read_uint32(f, &num_ch);
+
+		sequence_length = seq_len;
+
+		mused.song.num_channels = num_ch; // maybe in version 1 there isn't params block and we read it from here?
+
+		for(int i = 0; i < seq_len; i++)
+		{
+			for(int j = 0; j < num_ch; j++)
+			{
+				Uint8 pattern = 0;
+				fread(&pattern, sizeof(pattern), 1, f);
+
+				ft_sequence[i][j] = pattern;
+			}
+		}
+	}
+
+	if(block->version >= 1)
+	{
+		for(int i = 0; i < num_subsongs; i++)
+		{
+			debug("Subsong %d", i + 1);
+
+			Uint32 seq_len = 0;
+			Uint32 speed = 0;
+
+			read_uint32(f, &seq_len);
+			read_uint32(f, &speed);
+
+			sequence_length = seq_len;
+
+			if(block->version >= 3)
+			{
+				Uint32 tempo = 0;
+
+				read_uint32(f, &tempo);
+
+				mused.song.song_speed = mused.song.song_speed2 = speed;
+			}
+
+			else
+			{
+				if(speed < 20)
+				{
+					mused.song.song_rate = ((machine == FT_MACHINE_NTSC) ? 60 : 50);
+					mused.song.song_speed = mused.song.song_speed2 = speed;
+				}
+
+				else
+				{
+					mused.song.song_speed = mused.song.song_speed2 = 6;
+					mused.song.song_rate = 50;
+				}
+			}
+
+			Uint32 pat_len = 0;
+			read_uint32(f, &pat_len);
+
+			pattern_length = pat_len;
+
+			for(int j = 0; j < seq_len; j++)
+			{
+				for(int k = 0; k < mused.song.num_channels; k++)
+				{
+					Uint8 pattern = 0;
+					fread(&pattern, sizeof(pattern), 1, f);
+
+					ft_sequence[j][k] = pattern;
+				}
+			}
+		}
+	}
 	
 	return success;
 };
@@ -647,6 +960,197 @@ bool ft_process_frames_block(FILE* f, ftm_block* block)
 bool ft_process_patterns_block(FILE* f, ftm_block* block)
 {
 	bool success = true;
+
+	if(block->version == 1)
+	{
+		Uint32 pat_len = 0;
+		read_uint32(f, &pat_len);
+		pattern_length = pat_len;
+	}
+
+	//here we process the sequence block actually
+	//since we don't have the pattern length from early version block above
+	//and thus can't populate klystrack sequencies properly
+
+	Uint16 ref_pattern = 0;
+	Uint16 max_pattern = 0; //these are used to increment pattern number when we go to next channel since klystrack pattern indices are global
+	//so we don't have intersecting sequencies
+	//hope 4096 unique patterns are enough for any Famitracker song
+
+	for(int i = 0; i < mused.song.num_channels; i++)
+	{
+		max_pattern = 0;
+
+		for(int j = 0; j < sequence_length; j++)
+		{
+			add_sequence(i, j * pattern_length, ft_sequence[j][i] + ref_pattern, 0);
+			resize_pattern(&mused.song.pattern[ft_sequence[j][i] + ref_pattern], pattern_length);
+
+			klystrack_sequence[j][i] = ft_sequence[j][i] + ref_pattern;
+
+			if(max_pattern < ft_sequence[j][i])
+			{
+				max_pattern = ft_sequence[j][i];
+			}
+		}
+
+		if(max_pattern == 0)
+		{
+			max_pattern = 1; //so we don't have one pattern across multiple channels if one of the channels in sequence has just a bunch of `00` patterns
+		}
+
+		ref_pattern += max_pattern;
+	}
+
+	mused.song.song_length = sequence_length * pattern_length;
+	mused.sequenceview_steps = pattern_length;
+	mused.song.sequence_step = pattern_length;
+
+	while(ftell(f) < block->position + block->length) // while (!pDocFile->BlockDone())
+	{
+		//bruh famitracker jank
+		//can't fucking store number of patterns so go the hard way lol
+		//remember if import crashes it's the famitracker jank fault most probably
+		//or you have broken/corrupted/invalid file
+
+		Uint32 subsong_index = 0;
+
+		if(block->version > 1)
+		{
+			read_uint32(f, &subsong_index);
+		}
+
+		Uint32 channel = 0;
+		Uint32 pattern = 0;
+		Uint32 len = 0;
+
+		read_uint32(f, &channel);
+		read_uint32(f, &pattern);
+		read_uint32(f, &len);
+
+		debug("channel %d pattern %d len %d", channel, pattern, len);
+
+		MusPattern* pat = &mused.song.pattern[0];
+
+		for(int j = 0; j < sequence_length; j++)
+		{
+			if(ft_sequence[j][channel] == pattern)
+			{
+				pat = &mused.song.pattern[klystrack_sequence[j][channel]];
+				break;
+			}
+		}
+
+		for(int i = 0; i < len; i++)
+		{
+			Uint32 row = 0;
+
+			if(block->version >= 6 || version == 0x0200)
+			{
+				Uint8 row_8 = 0;
+				fread(&row_8, sizeof(row_8), 1, f);
+
+				row = row_8;
+			}
+
+			else
+			{
+				read_uint32(f, &row);
+			}
+
+			Uint8 note = 0;
+			Uint8 octave = 0;
+			Uint8 inst = 0;
+			Uint8 vol = 0;
+			Uint8 effect = 0;
+			Uint8 param = 0;
+
+			fread(&note, sizeof(note), 1, f);
+			fread(&octave, sizeof(octave), 1, f);
+			fread(&inst, sizeof(inst), 1, f);
+			fread(&vol, sizeof(vol), 1, f);
+
+			if(note == FT_NOTE_NONE)
+			{
+				pat->step[row].note = MUS_NOTE_NONE;
+			}
+
+			else if (note == FT_NOTE_RELEASE)
+			{
+				pat->step[row].note = MUS_NOTE_RELEASE;
+			}
+			
+			else if (note == FT_NOTE_CUT)
+			{
+				pat->step[row].note = MUS_NOTE_CUT;
+			}
+
+			else
+			{
+				pat->step[row].note = (note - 1) + octave * 12 + C_ZERO;
+			}
+
+			//=========================================================
+
+			if(inst == FT_INSTRUMENT_NONE)
+			{
+				pat->step[row].instrument = MUS_NOTE_NO_INSTRUMENT;
+			}
+
+			else
+			{
+				pat->step[row].instrument = inst;
+			}
+
+			if(note == FT_NOTE_CUT || note == FT_NOTE_RELEASE)
+			{
+				pat->step[row].instrument = MUS_NOTE_NO_INSTRUMENT;
+			}
+
+			if(inst >= FT_MAX_INSTRUMENTS)
+			{
+				pat->step[row].instrument = MUS_NOTE_NO_INSTRUMENT;
+			}
+
+			//=========================================================
+
+			if(vol == FT_VOLUME_NONE)
+			{
+				pat->step[row].volume = MUS_NOTE_NO_VOLUME;
+			}
+
+			else
+			{
+				pat->step[row].volume = convert_volumes_16[vol];
+			}
+
+			//=========================================================
+
+			Uint8 num_fx = ((version == 0x0200) ? 1 : ((block->version >= 6) ? FT_MAX_EFFECT_COLUMNS : (effect_columns[channel] + 1)));
+
+			//debug("num fx %d", num_fx);
+
+			for(int j = 0; j < num_fx; j++)
+			{
+				fread(&effect, sizeof(effect), 1, f);
+
+				if(effect)
+				{
+					fread(&param, sizeof(param), 1, f);
+				}
+
+				else if(block->version < 6)
+				{
+					Uint8 unused = 0;
+					fread(&unused, sizeof(unused), 1, f); // unused blank parameter
+					//bruh then how do you have the actual effect?!
+				}
+
+				pat->step[row].command[j] = ((Uint16)effect << 8) + param;
+				//TODO: add effect conversion
+			}
+		}
+	}
 	
 	return success;
 };
@@ -661,6 +1165,68 @@ bool ft_process_dpcm_samples_block(FILE* f, ftm_block* block)
 bool ft_process_header_block(FILE* f, ftm_block* block)
 {
 	bool success = true;
+
+	if(block->version == 1)
+	{
+		for(int i = 0; i < mused.song.num_channels; i++)
+		{
+			Uint8 channel_type = 0; // unused lol why FT has so many crap left, it leaves even the klystrack behind, hey, I am personally insulted
+			Uint8 effect_cols = 0;
+
+			fread(&channel_type, sizeof(channel_type), 1, f);
+			fread(&effect_cols, sizeof(effect_cols), 1, f);
+
+			effect_columns[i] = effect_cols;
+		}
+	}
+
+	if(block->version >= 2)
+	{
+		fread(&num_subsongs, sizeof(num_subsongs), 1, f);
+		num_subsongs++;
+		//TODO: add subsong selection dialog, import sequence and patterns accordingly
+
+		if(block->version >= 3)
+		{
+			for(int i = 0; i < num_subsongs; i++) //track names, fuck it, reading just to stay aligned
+			{
+				//pDocFile->ReadString())
+				Uint8 charaa = 1;
+
+				do //hope this works as null-terminated string reader mockup
+				{
+					fread(&charaa, sizeof(charaa), 1, f);
+				} while(charaa != 0);
+			}
+		}
+
+		for(int i = 0; i < mused.song.num_channels; i++)
+		{
+			Uint8 channel_type = 0;
+			fread(&channel_type, sizeof(channel_type), 1, f);
+
+			for(int j = 0; j < num_subsongs; j++)
+			{
+				Uint8 effect_cols = 0;
+				fread(&effect_cols, sizeof(effect_cols), 1, f);
+
+				effect_columns[i] = effect_cols;
+			}
+		}
+
+		if(block->version >= 4)
+		{
+			Uint8 highlight_first = 0;
+			Uint8 highlight_second = 0;
+			
+			fread(&highlight_first, sizeof(highlight_first), 1, f);
+			fread(&highlight_second, sizeof(highlight_second), 1, f);
+			
+			mused.song.time_signature = ((((Uint32)highlight_second / (Uint32)highlight_first) & 0xff) << 8) | (((Uint32)highlight_first) & 0xff);
+			
+			debug("seting time signature from header block");
+		}
+	}
 	
 	return success;
 };
@@ -759,7 +1325,7 @@ bool process_block(FILE* f, ftm_block* block)
 	{
 		if(strcmp(block->name, block_sigs[i]) == 0)
 		{
-			debug("calling block processing function");
+			debug("calling block processing function %d", i);
 			success = (*block_parse_functions[i])(f, block);
 			break;
 		}
@@ -794,11 +1360,27 @@ bool import_ft_new(FILE* f, int type, ftm_block* blocks, bool is_dn_ft_sig)
 		inst_numbers_to_inst_indices[i] = (Uint8*)calloc(1, sizeof(Uint8) * 2);
 	}
 
+	ft_sequence = (Uint8**)calloc(1, sizeof(Uint8*) * FT_MAX_FRAMES);
+
+	for(int i = 0; i < FT_MAX_FRAMES; i++)
+	{
+		ft_sequence[i] = (Uint8*)calloc(1, sizeof(Uint8) * FT_MAX_CHANNELS);
+	}
+
+	klystrack_sequence = (Uint16**)calloc(1, sizeof(Uint16*) * FT_MAX_FRAMES);
+
+	for(int i = 0; i < FT_MAX_FRAMES; i++)
+	{
+		klystrack_sequence[i] = (Uint16*)calloc(1, sizeof(Uint16) * FT_MAX_CHANNELS);
+	}
+
 	initial_delta_counter_positions = (Uint8*)calloc(1, sizeof(Uint8) * FT_MAX_INSTRUMENTS);
 
 	instrument_types = (Uint8*)calloc(1, sizeof(Uint8) * FT_MAX_INSTRUMENTS);
 
-	ft_instruments = (Uint8*)calloc(1, sizeof(ft_inst) * FT_MAX_INSTRUMENTS);
+	effect_columns = (Uint8*)calloc(1, sizeof(Uint8) * FT_MAX_CHANNELS);
+
+	ft_instruments = (ft_inst*)calloc(1, sizeof(ft_inst) * FT_MAX_INSTRUMENTS);
 	
 	Uint16 num_blocks = 1;
 	Uint16 current_block = 0;
@@ -840,7 +1422,7 @@ bool import_ft_new(FILE* f, int type, ftm_block* blocks, bool is_dn_ft_sig)
 	
 	for(int i = 0; i < num_blocks; i++)
 	{
-		debug("processing block %d", i);
+		//debug("processing block %d", i);
 		success = process_block(f, &blocks[i]);
 	}
 	
@@ -860,12 +1442,27 @@ int import_famitracker(FILE *f, int type)
 	seq_inst_index = NULL;
 	num_instruments = 0;
 
+	selected_subsong = 0;
+	sequence_length = 0;
+
+	version = 0;
+	namco_channels = 0;
+	expansion_chips = 0;
+	pattern_length = 0;
+	num_subsongs = 1; // at least 1
+	machine = 0;
+
 	initial_delta_counter_positions = NULL;
 	instrument_types = NULL;
+
+	effect_columns = NULL;
 
 	ft_instruments = NULL;
 
 	inst_numbers_to_inst_indices = NULL;
+
+	ft_sequence = NULL;
+	klystrack_sequence = NULL;
 	
 	Uint32 version = 0;
 	
@@ -948,6 +1545,11 @@ int import_famitracker(FILE *f, int type)
 		free(ft_instruments);
 	}
 
+	if(effect_columns)
+	{
+		free(effect_columns);
+	}
+
 	if(seq_inst_enable)
 	{
 		for(int i = 0; i < FT_MAX_INSTRUMENTS; i++)
@@ -976,6 +1578,26 @@ int import_famitracker(FILE *f, int type)
 		}
 
 		free(inst_numbers_to_inst_indices);
+	}
+
+	if(ft_sequence)
+	{
+		for(int i = 0; i < FT_MAX_FRAMES; i++)
+		{
+			free(ft_sequence[i]);
+		}
+
+		free(ft_sequence);
+	}
+
+	if(klystrack_sequence)
+	{
+		for(int i = 0; i < FT_MAX_FRAMES; i++)
+		{
+			free(klystrack_sequence[i]);
+		}
+
+		free(klystrack_sequence);
 	}
 
 	if(success == false)

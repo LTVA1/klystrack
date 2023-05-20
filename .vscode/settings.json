@@ -4,6 +4,20 @@
     "files.associations": {
         "wavegen.h": "c",
         "event.h": "c",
-        "slider.h": "c"
+        "slider.h": "c",
+        "algorithm": "c",
+        "random": "c",
+        "array": "c",
+        "deque": "c",
+        "initializer_list": "c",
+        "list": "c",
+        "queue": "c",
+        "type_traits": "c",
+        "vector": "c",
+        "xhash": "c",
+        "xstring": "c",
+        "xutility": "c",
+        "string_view": "c",
+        "utility": "c"
     }
 }

@@ -101,7 +101,11 @@ void import_module(void *type, void* unused1, void* unused2)
 		else
 		{
 			//kill_empty_patterns(&mused.song, NULL); //wasn't there
-			optimize_duplicate_patterns(&mused.song, true);
+
+			if(CASTPTR(int, type) != IMPORT_FTM && CASTPTR(int, type) != IMPORT_0CC && CASTPTR(int, type) != IMPORT_DNM && CASTPTR(int, type) != IMPORT_EFT)
+			{
+				optimize_duplicate_patterns(&mused.song, true);
+			}
 		}
 	}
 	

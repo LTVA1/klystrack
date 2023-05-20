@@ -50,13 +50,13 @@ OTHER DEALINGS IN THE SOFTWARE.
 #define FT_MACHINE_NTSC 0
 #define FT_MACHINE_PAL 1
 
-#define FT_SNDCHIP_NONE 0		// just NES that got no expansion chips broke mf lol
-#define FT_SNDCHIP_VRC6 1		// Konami VRCVI (bruh it's VRC6 and VRC7 respectively, what perv uses Roman numbers there lol)
-#define FT_SNDCHIP_VRC7 2		// Konami VRCVII
-#define FT_SNDCHIP_FDS  4		// Famicom Disk Sound
-#define FT_SNDCHIP_MMC5 8		// Nintendo MMC5
-#define FT_SNDCHIP_N163 16		// Namco N-163 (N-106 or however the fuck you freaks call it)
-#define FT_SNDCHIP_S5B  32		// Sunsoft 5B
+#define FT_SNDCHIP_NONE 0		/* just NES that got no expansion chips broke mf lol */
+#define FT_SNDCHIP_VRC6 1		/* Konami VRCVI (bruh it's VRC6 and VRC7 respectively, what perv uses Roman numbers there lol) */
+#define FT_SNDCHIP_VRC7 2		/* Konami VRCVII */
+#define FT_SNDCHIP_FDS  4		/* Famicom Disk Sound */
+#define FT_SNDCHIP_MMC5 8		/* Nintendo MMC5 */
+#define FT_SNDCHIP_N163 16		/* Namco N-163 (N-106 or however the fuck you freaks call it) */
+#define FT_SNDCHIP_S5B  32		/* Sunsoft 5B */
 
 #define FT_SEQ_CNT 5
 
@@ -69,16 +69,23 @@ enum
 	FT_SEQ_DUTYCYCLE,
 };
 
+#define FT_MAX_FRAMES 256 /* number of patterns in one channel sequence */
+#define FT_MAX_CHANNELS 28
+
 #define FT_MAX_DSAMPLES 64
 #define FT_MAX_INSTRUMENTS 64
 
 #define FT_MAX_SEQUENCE_ITEMS 252 /* max macro length, 254 would be with GOTO for loop and FB00 for release point so it fits nicely in klystrack 255 length, very pleasant */
+
+#define FT_MAX_SEQUENCES 128
 
 #define FT_FDS_WAVE_SIZE 64
 #define FT_FDS_MOD_SIZE 32
 
 #define FT_N163_MAX_WAVE_SIZE 240
 #define FT_N163_MAX_WAVE_COUNT 64
+
+#define FT_MAX_EFFECT_COLUMNS 4
 
 #define FT_HEADER_SIG "FamiTracker Module"
 #define DN_FT_HEADER_SIG "Dn-FamiTracker Module"
@@ -111,6 +118,17 @@ enum
 	FT_SETTING_PITCH_ABSOLUTE = 1,		// // // 050B
 
 	FT_SETTING_PITCH_SWEEP    = 2,		// // // 050B
+};
+
+enum
+{
+	FT_NOTE_NONE = 0,
+	FT_NOTE_RELEASE = 13,
+	FT_NOTE_CUT = 14,
+
+	FT_INSTRUMENT_NONE = 255,
+
+	FT_VOLUME_NONE = 16,
 };
 
 typedef struct

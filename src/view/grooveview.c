@@ -537,7 +537,7 @@ void groove_view()
 				case SDL_QUIT:
 				
 				set_repeat_timer(NULL);
-				SDL_PushEvent(&e);
+				//SDL_PushEvent(&e);
 				return;
 				
 				break;
@@ -626,6 +626,75 @@ void groove_view()
 				{
 					if (e.button.button == SDL_BUTTON_LEFT)
 						mouse_released(&e);
+				}
+				break;
+			}
+			
+			if (e.type != SDL_MOUSEMOTION || (e.motion.state)) ++got_event;
+			
+			// Process mouse click events immediately, and batch mouse motion events
+			// (process the last one) to fix lag with high poll rate mice on Linux.
+			//fix from here https://github.com/kometbomb/klystrack/pull/300
+			if (should_process_mouse(&e))
+				break;
+		}
+		
+		if (got_event || gfx_domain_is_next_frame(domain))
+		{
+			draw_view(domain, groove_view_array, &e);
+			gfx_domain_flip(domain);
+		}
+		else
+			SDL_Delay(5);
+	}
+
+	bool quit = false;
+
+	while (!quit)
+	{
+		SDL_Event e = { 0 };
+		int got_event = 0;
+		
+		while (SDL_PollEvent(&e))
+		{
+			switch (e.type)
+			{
+				case SDL_QUIT:
+				
+				set_repeat_timer(NULL);
+				//SDL_PushEvent(&e);
+				return;
+			
+				case SDL_USEREVENT:
+					e.type = SDL_MOUSEBUTTONDOWN;
+				break;
+				
+				case SDL_MOUSEMOTION:
+					if (domain)
+					{
+						e.motion.xrel /= domain->scale;
+						e.motion.yrel /= domain->scale;
+						e.button.x /= domain->scale;
+						e.button.y /= domain->scale;
+					}
+				break;
+				
+				case SDL_MOUSEBUTTONDOWN:
+					if (domain)
+					{
+						e.button.x /= domain->scale;
+						e.button.y /= domain->scale;
+					}
+				break;
+				
+				case SDL_MOUSEBUTTONUP:
+				{
+					if (e.button.button == SDL_BUTTON_LEFT)
+					{
+						mouse_released(&e);
+					}
+
+					quit = true;
 				}
 				break;
 			}
