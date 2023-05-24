@@ -18,6 +18,12 @@
         "xstring": "c",
         "xutility": "c",
         "string_view": "c",
-        "utility": "c"
+        "utility": "c",
+        "functional": "c",
+        "memory": "c",
+        "tuple": "c",
+        "xmemory0": "c",
+        "xtr1common": "c",
+        "compare": "c"
     }
 }

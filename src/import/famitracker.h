@@ -87,6 +87,8 @@ enum
 
 #define FT_MAX_EFFECT_COLUMNS 4
 
+#define FT_MAX_SUBSONGS 64
+
 #define FT_HEADER_SIG "FamiTracker Module"
 #define DN_FT_HEADER_SIG "Dn-FamiTracker Module"
 #define FT_END_SIG "END"
@@ -131,6 +133,57 @@ enum
 	FT_VOLUME_NONE = 16,
 };
 
+enum
+{
+	FT_EF_NONE = 0,
+	FT_EF_SPEED,           	// Speed
+	FT_EF_JUMP,            	// Jump
+	FT_EF_SKIP,            	// Skip
+	FT_EF_HALT,            	// Halt
+	FT_EF_VOLUME,          	// Volume
+	FT_EF_PORTAMENTO,      	// Porta on
+	FT_EF_PORTAOFF,        	// Porta off		// unused
+	FT_EF_SWEEPUP,         	// Sweep up
+	FT_EF_SWEEPDOWN,       	// Sweep down
+	FT_EF_ARPEGGIO,        	// Arpeggio
+	FT_EF_VIBRATO,         	// Vibrato
+	FT_EF_TREMOLO,         	// Tremolo
+	FT_EF_PITCH,           	// Pitch
+	FT_EF_DELAY,           	// Note delay
+	FT_EF_DAC,             	// DAC setting
+	FT_EF_PORTA_UP,        	// Portamento up
+	FT_EF_PORTA_DOWN,      	// Portamento down
+	FT_EF_DUTY_CYCLE,      	// Duty cycle
+	FT_EF_SAMPLE_OFFSET,   	// Sample offset
+	FT_EF_SLIDE_UP,        	// Slide up
+	FT_EF_SLIDE_DOWN,      	// Slide down
+	FT_EF_VOLUME_SLIDE,    	// Volume slide
+	FT_EF_NOTE_CUT,        	// Note cut
+	FT_EF_RETRIGGER,       	// DPCM retrigger
+	FT_EF_DELAYED_VOLUME,  	// // // Delayed channel volume
+	FT_EF_FDS_MOD_DEPTH,   	// FDS modulation depth
+	FT_EF_FDS_MOD_SPEED_HI,	// FDS modulation speed hi
+	FT_EF_FDS_MOD_SPEED_LO,	// FDS modulation speed lo
+	FT_EF_DPCM_PITCH,      	// DPCM Pitch
+	FT_EF_SUNSOFT_ENV_TYPE,	// Sunsoft envelope type
+	FT_EF_SUNSOFT_ENV_HI,  	// Sunsoft envelope high
+	FT_EF_SUNSOFT_ENV_LO,  	// Sunsoft envelope low
+	FT_EF_SUNSOFT_NOISE,   	// // // 050B Sunsoft noise period
+	FT_EF_VRC7_PORT,       	// // // 050B VRC7 custom patch port
+	FT_EF_VRC7_WRITE,      	// // // 050B VRC7 custom patch write
+	FT_EF_NOTE_RELEASE,    	// // // Delayed release
+	FT_EF_GROOVE,          	// // // Groove
+	FT_EF_TRANSPOSE,       	// // // Delayed transpose
+	FT_EF_N163_WAVE_BUFFER,	// // // N163 wave buffer
+	FT_EF_FDS_VOLUME,      	// // // FDS volume envelope
+	FT_EF_FDS_MOD_BIAS,    	// // // FDS auto-FM bias
+	FT_EF_PHASE_RESET,  // Reset waveform phase without retriggering note (VRC6-only so far)
+	FT_EF_HARMONIC,  // Multiply the note pitch by an integer
+	FT_EF_TARGET_VOLUME_SLIDE,	// // !! Target volume slide
+
+	FT_EF_COUNT
+};
+
 typedef struct
 {
 	char name[FAMITRACKER_BLOCK_SIGNATURE_LENGTH + 1];
@@ -163,6 +216,14 @@ typedef struct
 	Uint8 vrc7_custom_patch[8];
 
 	Uint8 n163_samples[FT_N163_MAX_WAVE_COUNT][FT_N163_MAX_WAVE_SIZE];
+	Uint8 n163_samples_len;
+
+	Uint8 type;
+
+	Uint8 seq_indices[FT_SEQ_CNT];
+	bool seq_enable[FT_SEQ_CNT];
+
+	Uint8 klystrack_instrument;
 } ft_inst;
 
 int import_famitracker(FILE *f, int type);

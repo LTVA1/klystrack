@@ -55,6 +55,67 @@ const char* block_sigs[FT_BLOCK_TYPES] =
 	"PARAMS_EXTRA",
 };
 
+const char* sequence_names[FT_SEQ_CNT] = 
+{
+	"volume",
+	"arpeggio",
+	"pitch",
+	"hi-pitch",
+	"pul.w./noi mode"
+};
+
+const char* sequence_names_vrc6[FT_SEQ_CNT] = 
+{
+	"volume",
+	"arpeggio",
+	"pitch",
+	"hi-pitch",
+	"pulse width"
+};
+
+const char* sequence_names_n163[FT_SEQ_CNT] = 
+{
+	"volume",
+	"arpeggio",
+	"pitch",
+	"hi-pitch",
+	"wave index"
+};
+
+const char* sequence_names_fds[FT_SEQ_CNT] = 
+{
+	"volume",
+	"arpeggio",
+	"pitch",
+	"",
+	""
+};
+
+const char* sequence_names_vrc7[FT_SEQ_CNT] = 
+{
+	"",
+	"",
+	"",
+	"",
+	""
+};
+
+const char* sequence_names_s5b[FT_SEQ_CNT] = 
+{
+	"volume",
+	"arpeggio",
+	"pitch",
+	"hi-pitch",
+	"noise / mode"
+};
+
+// from https://www.nesdev.org/wiki/APU_DMC
+const Uint16 dpcm_sample_rates_ntsc[16] = 
+{ 4182, 4710, 5264, 5593, 6258, 7046, 7919, 8363, 9420, 11186, 12604, 13983, 16885, 21307, 24858, 33144 };
+
+const Uint16 dpcm_sample_rates_pal[16] = 
+{ 4177, 4697, 5261, 5579, 6024, 7045, 7917, 8397, 9447, 11234, 12696, 14090, 16965, 21316, 25191, 33252 };
+
 const Uint8 convert_volumes_16[16] = 
 { 0, 9, 17, 26, 34, 43, 51, 60, 68, 77, 85, 94, 102, 111, 119, 128 };
 
@@ -70,6 +131,13 @@ const Uint8 convert_volumes_64[64] =
 	32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62,
 	65, 67, 69, 71, 73, 75, 77, 79, 81, 83, 85, 87, 89, 91, 93, 95,
 	97, 99, 101, 103, 105, 107, 109, 111, 113, 115, 117, 119, 121, 123, 125, 128
+};
+
+const Uint8 noise_notes[16] = 
+{ 
+	C_ZERO - 3, C_ZERO + 9, C_ZERO + 12 + 9, C_ZERO + 12 * 2 + 1, C_ZERO + 12 * 2 + 9, C_ZERO + 12 * 3 + 2, 
+	C_ZERO + 12 * 3 + 5, C_ZERO + 12 * 3 + 11, C_ZERO + 12 * 4 + 3, C_ZERO + 12 * 4 + 5, C_ZERO + 12 * 4 + 11, 
+	C_ZERO + 12 * 5 + 5, C_ZERO + 12 * 5 + 11, C_ZERO + 12 * 6 + 7, C_ZERO + 12 * 7 + 11, C_ZERO + 12 * 9 + 11
 };
 
 void read_uint32(FILE *f, Uint32* number) //little-endian
@@ -99,18 +167,15 @@ Uint8 num_subsongs;
 
 Uint8 machine;
 
-bool** seq_inst_enable;
-Uint8** seq_inst_index;
-
 Uint8 num_instruments;
 
 Uint8** inst_numbers_to_inst_indices;
 
 Uint8* initial_delta_counter_positions;
 
-Uint8* instrument_types;
+Uint8** effect_columns;
 
-Uint8* effect_columns;
+Uint8* channels_to_chips;
 
 ft_inst* ft_instruments;
 
@@ -130,12 +195,16 @@ void load_sequence_indices(FILE* f, Uint8 inst_num) //bool CSeqInstrument::Load(
 		Uint8 enable = 0;
 		fread(&enable, 1, 1, f);
 
-		seq_inst_enable[inst_num][i] = enable;
+		//seq_inst_enable[inst_num][i] = enable;
+
+		ft_instruments[inst_num].seq_enable[i] = enable;
 
 		Uint8 index = 0;
 		fread(&index, 1, 1, f);
 
-		seq_inst_index[inst_num][i] = index;
+		//seq_inst_index[inst_num][i] = index;
+
+		ft_instruments[inst_num].seq_indices[i] = index;
 	}
 }
 
@@ -164,6 +233,7 @@ void load_dpcm_sample_map(Uint8 note, Uint8 octave, MusInstrument* inst, FILE* f
 	}
 
 	inst->note_to_sample_array[C_ZERO + octave * 12 + note].sample = index;
+	inst->note_to_sample_array[C_ZERO + octave * 12 + note].flags |= MUS_NOTE_TO_SAMPLE_GLOBAL;
 }
 
 bool load_inst_2a03(FILE* f, ftm_block* block, MusInstrument* inst, Uint8 inst_num)
@@ -342,6 +412,13 @@ bool load_inst_n163(FILE* f, ftm_block* block, MusInstrument* inst, Uint8 inst_n
 
 	read_uint32(f, &wave_size);
 	read_uint32(f, &wave_position);
+
+	if(block->version >= 8)
+	{
+		Uint32 autopos = 0;
+		read_uint32(f, &autopos);
+	}
+
 	read_uint32(f, &wave_count);
 
 	for(int i = 0; i < wave_count; i++)
@@ -353,6 +430,8 @@ bool load_inst_n163(FILE* f, ftm_block* block, MusInstrument* inst, Uint8 inst_n
 			ft_instruments[inst_num].n163_samples[i][j] = val;
 		}
 	}
+
+	ft_instruments[inst_num].n163_samples_len = wave_size;
 
 	return success;
 }
@@ -366,6 +445,73 @@ bool load_inst_s5b(FILE* f, ftm_block* block, MusInstrument* inst, Uint8 inst_nu
 	load_sequence_indices(f, inst_num);
 
 	return success;
+}
+
+void fill_channels_to_chips_array()
+{
+	Uint8 curr_chan = 0;
+
+	memset(channels_to_chips, 0, FT_MAX_CHANNELS);
+
+	for(int i = 0; i < 5; i++)
+	{
+		channels_to_chips[curr_chan] = FT_SNDCHIP_NONE; //2A03
+		curr_chan++;
+	}
+
+	if(expansion_chips & FT_SNDCHIP_VRC6)
+	{
+		for(int i = 0; i < 3; i++)
+		{
+			channels_to_chips[curr_chan] = FT_SNDCHIP_VRC6;
+			curr_chan++;
+		}
+	}
+
+	if(expansion_chips & FT_SNDCHIP_MMC5)
+	{
+		for(int i = 0; i < 2; i++)
+		{
+			channels_to_chips[curr_chan] = FT_SNDCHIP_MMC5;
+			curr_chan++;
+		}
+	}
+
+	if(expansion_chips & FT_SNDCHIP_N163)
+	{
+		for(int i = 0; i < namco_channels; i++)
+		{
+			channels_to_chips[curr_chan] = FT_SNDCHIP_N163;
+			curr_chan++;
+		}
+	}
+
+	if(expansion_chips & FT_SNDCHIP_FDS)
+	{
+		for(int i = 0; i < 1; i++)
+		{
+			channels_to_chips[curr_chan] = FT_SNDCHIP_FDS;
+			curr_chan++;
+		}
+	}
+
+	if(expansion_chips & FT_SNDCHIP_VRC7)
+	{
+		for(int i = 0; i < 6; i++)
+		{
+			channels_to_chips[curr_chan] = FT_SNDCHIP_VRC7;
+			curr_chan++;
+		}
+	}
+
+	if(expansion_chips & FT_SNDCHIP_S5B)
+	{
+		for(int i = 0; i < 3; i++)
+		{
+			channels_to_chips[curr_chan] = FT_SNDCHIP_S5B;
+			curr_chan++;
+		}
+	}
 }
 
 bool ft_process_params_block(FILE* f, ftm_block* block)
@@ -497,6 +643,8 @@ bool ft_process_params_block(FILE* f, ftm_block* block)
 	{
 		expansion_chips = 0;
 	}
+
+	fill_channels_to_chips_array();
 	
 	if(version == 0x0200)
 	{
@@ -538,7 +686,7 @@ bool ft_process_params_block(FILE* f, ftm_block* block)
 	}
 	
 	return success;
-};
+}
 
 bool ft_process_tuning_block(FILE* f, ftm_block* block)
 {
@@ -554,7 +702,7 @@ bool ft_process_tuning_block(FILE* f, ftm_block* block)
 	}
 	
 	return success;
-};
+}
 
 bool ft_process_info_block(FILE* f, ftm_block* block)
 {
@@ -571,7 +719,7 @@ bool ft_process_info_block(FILE* f, ftm_block* block)
 	snprintf(mused.song.title, sizeof(mused.song.title), "%s. Author: %s. Copyright: %s", name, author, copyright);
 	
 	return success;
-};
+}
 
 bool ft_process_instruments_block(FILE* f, ftm_block* block)
 {
@@ -600,10 +748,12 @@ bool ft_process_instruments_block(FILE* f, ftm_block* block)
 		Uint8 inst_type = 0;
 		fread(&inst_type, sizeof(inst_type), 1, f);
 
-		instrument_types[i] = inst_type;
-
 		inst_numbers_to_inst_indices[i][0] = i;
 		inst_numbers_to_inst_indices[i][1] = inst_index; //so we can remap inst numbers in patterns later
+
+		ft_instruments[inst_index].klystrack_instrument = i;
+
+		ft_instruments[inst_index].type = inst_type;
 		
 		//load instrument
 
@@ -661,13 +811,13 @@ bool ft_process_instruments_block(FILE* f, ftm_block* block)
 	end:;
 	
 	return success;
-};
+}
 
-bool ft_process_sequencies_block(FILE* f, ftm_block* block)
+bool ft_process_sequences_block(FILE* f, ftm_block* block)
 {
 	bool success = true;
 
-	//debug("Processing 2A03 sequencies");
+	//debug("Processing 2A03 sequences");
 
 	Uint32 seq_count = 0;
 
@@ -703,9 +853,9 @@ bool ft_process_sequencies_block(FILE* f, ftm_block* block)
 
 			for(int j = 0; j < num_instruments; j++)
 			{
-				if(seq_inst_index[j][0] == index && instrument_types[j] == INST_2A03) //idk bruh no macro type is provided in version 1 so maybe it's volume?
+				if(ft_instruments[j].seq_indices[0] == index && ft_instruments[j].type == INST_2A03) //idk bruh no macro type is provided in version 1 so maybe it's volume?
 				{
-					//TODO: reorder sequencies or whatever shit
+					//TODO: reorder sequences or whatever shit
 					memcpy(&ft_instruments[j].macros[0], temp_macro, sizeof(ft_inst_macro));
 				}
 			}
@@ -743,7 +893,7 @@ bool ft_process_sequencies_block(FILE* f, ftm_block* block)
 
 			for(int j = 0; j < num_instruments; j++)
 			{
-				if(seq_inst_index[j][type] == index && instrument_types[j] == INST_2A03) //finally we were blessed with sequence type!
+				if(ft_instruments[j].seq_indices[type] == index && ft_instruments[j].type == INST_2A03) //finally we were blessed with sequence type!
 				{
 					memcpy(&ft_instruments[j].macros[type], temp_macro, sizeof(ft_inst_macro));
 				}
@@ -802,16 +952,19 @@ bool ft_process_sequencies_block(FILE* f, ftm_block* block)
 
 			for(int j = 0; j < num_instruments; j++)
 			{
-				if(seq_inst_index[j][type] == index && instrument_types[j] == INST_2A03)
+				if(ft_instruments[j].seq_indices[type] == index && ft_instruments[j].type == INST_2A03)
 				{
 					memcpy(&ft_instruments[j].macros[type], temp_macro, sizeof(ft_inst_macro));
 
-					/*debug("Macro %d type %d", Indices[i], Types[i]);
-
-					for(int k = 0; k < ft_instruments[j].macros[type].sequence_size; k++)
+					if(ft_instruments[j].seq_enable[type])
 					{
-						debug("%d", ft_instruments[j].macros[type].sequence[k]);
-					}*/
+						/*debug("Macro %d type %d instrument %d klystrack instrument %d", Indices[i], Types[i], j, ft_instruments[j].klystrack_instrument);
+
+						for(int k = 0; k < ft_instruments[j].macros[type].sequence_size; k++)
+						{
+							debug("%d", ft_instruments[j].macros[type].sequence[k]);
+						}*/
+					}
 				}
 			}
 		}
@@ -829,7 +982,7 @@ bool ft_process_sequencies_block(FILE* f, ftm_block* block)
 
 					for(int k = 0; k < num_instruments; k++)
 					{
-						if(seq_inst_index[k][j] == i && instrument_types[k] == INST_2A03)
+						if(ft_instruments[k].seq_indices[j] == i && ft_instruments[k].type == INST_2A03)
 						{
 							ft_instruments[k].macros[j].release = release_point;
 							ft_instruments[k].macros[j].setting = setting;
@@ -850,7 +1003,7 @@ bool ft_process_sequencies_block(FILE* f, ftm_block* block)
 
 				for(int j = 0; j < num_instruments; j++)
 				{
-					if(seq_inst_index[j][Types[i]] == Indices[i] && instrument_types[j] == INST_2A03)
+					if(ft_instruments[j].seq_indices[Types[i]] == Indices[i] && ft_instruments[j].type == INST_2A03)
 					{
 						ft_instruments[j].macros[Types[i]].release = release_point;
 						ft_instruments[j].macros[Types[i]].setting = setting;
@@ -866,7 +1019,7 @@ bool ft_process_sequencies_block(FILE* f, ftm_block* block)
 	free(temp_macro);
 	
 	return success;
-};
+}
 
 bool ft_process_frames_block(FILE* f, ftm_block* block)
 {
@@ -910,7 +1063,10 @@ bool ft_process_frames_block(FILE* f, ftm_block* block)
 			read_uint32(f, &seq_len);
 			read_uint32(f, &speed);
 
-			sequence_length = seq_len;
+			if(i == selected_subsong)
+			{
+				sequence_length = seq_len;
+			}
 
 			if(block->version >= 3)
 			{
@@ -918,28 +1074,80 @@ bool ft_process_frames_block(FILE* f, ftm_block* block)
 
 				read_uint32(f, &tempo);
 
-				mused.song.song_speed = mused.song.song_speed2 = speed;
+				if(i == selected_subsong)
+				{
+					mused.song.song_rate = (Uint32)tempo * 50 / 125;
+
+					mused.song.song_speed = mused.song.song_speed2 = speed;
+
+					if(mused.song.song_rate == 0)
+					{
+						if(machine == FT_MACHINE_NTSC)
+						{
+							mused.song.song_rate = 60;
+						}
+						
+						else
+						{
+							mused.song.song_rate = 50;
+						}
+					}
+				}
 			}
 
 			else
 			{
-				if(speed < 20)
+				if(i == selected_subsong)
 				{
-					mused.song.song_rate = ((machine == FT_MACHINE_NTSC) ? 60 : 50);
-					mused.song.song_speed = mused.song.song_speed2 = speed;
-				}
+					if(speed < 20)
+					{
+						mused.song.song_rate = ((machine == FT_MACHINE_NTSC) ? 60 : 50);
+						mused.song.song_speed = mused.song.song_speed2 = speed;
 
-				else
-				{
-					mused.song.song_speed = mused.song.song_speed2 = 6;
-					mused.song.song_rate = 50;
+						if(mused.song.song_rate == 0)
+						{
+							if(machine == FT_MACHINE_NTSC)
+							{
+								mused.song.song_rate = 60;
+							}
+							
+							else
+							{
+								mused.song.song_rate = 50;
+							}
+						}
+					}
+
+					else
+					{
+						mused.song.song_speed = mused.song.song_speed2 = 6;
+						//mused.song.song_rate = 50;
+
+						mused.song.song_rate = (Uint32)speed * 50 / 125;
+
+						if(mused.song.song_rate == 0)
+						{
+							if(machine == FT_MACHINE_NTSC)
+							{
+								mused.song.song_rate = 60;
+							}
+							
+							else
+							{
+								mused.song.song_rate = 50;
+							}
+						}
+					}
 				}
 			}
 
 			Uint32 pat_len = 0;
 			read_uint32(f, &pat_len);
 
-			pattern_length = pat_len;
+			if(i == selected_subsong)
+			{
+				pattern_length = pat_len;
+			}
 
 			for(int j = 0; j < seq_len; j++)
 			{
@@ -948,14 +1156,17 @@ bool ft_process_frames_block(FILE* f, ftm_block* block)
 					Uint8 pattern = 0;
 					fread(&pattern, sizeof(pattern), 1, f);
 
-					ft_sequence[j][k] = pattern;
+					if(i == selected_subsong)
+					{
+						ft_sequence[j][k] = pattern;
+					}
 				}
 			}
 		}
 	}
 	
 	return success;
-};
+}
 
 bool ft_process_patterns_block(FILE* f, ftm_block* block)
 {
@@ -970,11 +1181,11 @@ bool ft_process_patterns_block(FILE* f, ftm_block* block)
 
 	//here we process the sequence block actually
 	//since we don't have the pattern length from early version block above
-	//and thus can't populate klystrack sequencies properly
+	//and thus can't populate klystrack sequences properly
 
 	Uint16 ref_pattern = 0;
 	Uint16 max_pattern = 0; //these are used to increment pattern number when we go to next channel since klystrack pattern indices are global
-	//so we don't have intersecting sequencies
+	//so we don't have intersecting sequences
 	//hope 4096 unique patterns are enough for any Famitracker song
 
 	for(int i = 0; i < mused.song.num_channels; i++)
@@ -994,12 +1205,12 @@ bool ft_process_patterns_block(FILE* f, ftm_block* block)
 			}
 		}
 
-		if(max_pattern == 0)
+		/*if(max_pattern == 0)
 		{
 			max_pattern = 1; //so we don't have one pattern across multiple channels if one of the channels in sequence has just a bunch of `00` patterns
-		}
+		}*/
 
-		ref_pattern += max_pattern;
+		ref_pattern += max_pattern + 1;
 	}
 
 	mused.song.song_length = sequence_length * pattern_length;
@@ -1028,16 +1239,21 @@ bool ft_process_patterns_block(FILE* f, ftm_block* block)
 		read_uint32(f, &pattern);
 		read_uint32(f, &len);
 
-		debug("channel %d pattern %d len %d", channel, pattern, len);
+		//debug("subsong %d channel %d pattern %d pattern length %d, len %d", subsong_index, channel, pattern, pattern_length, len);
+
+		//debug("channel %d pattern %d len %d", channel, pattern, len);
 
 		MusPattern* pat = &mused.song.pattern[0];
 
-		for(int j = 0; j < sequence_length; j++)
+		if(subsong_index == selected_subsong)
 		{
-			if(ft_sequence[j][channel] == pattern)
+			for(int j = 0; j < sequence_length; j++)
 			{
-				pat = &mused.song.pattern[klystrack_sequence[j][channel]];
-				break;
+				if(ft_sequence[j][channel] == pattern)
+				{
+					pat = &mused.song.pattern[klystrack_sequence[j][channel]];
+					break;
+				}
 			}
 		}
 
@@ -1070,65 +1286,75 @@ bool ft_process_patterns_block(FILE* f, ftm_block* block)
 			fread(&inst, sizeof(inst), 1, f);
 			fread(&vol, sizeof(vol), 1, f);
 
-			if(note == FT_NOTE_NONE)
+			if(subsong_index == selected_subsong)
 			{
-				pat->step[row].note = MUS_NOTE_NONE;
-			}
+				if(note == FT_NOTE_NONE)
+				{
+					pat->step[row].note = MUS_NOTE_NONE;
+				}
 
-			else if (note == FT_NOTE_RELEASE)
-			{
-				pat->step[row].note = MUS_NOTE_RELEASE;
-			}
-			
-			else if (note == FT_NOTE_CUT)
-			{
-				pat->step[row].note = MUS_NOTE_CUT;
-			}
+				else if (note == FT_NOTE_RELEASE)
+				{
+					pat->step[row].note = MUS_NOTE_RELEASE;
+				}
+				
+				else if (note == FT_NOTE_CUT)
+				{
+					pat->step[row].note = MUS_NOTE_CUT;
+				}
 
-			else
-			{
-				pat->step[row].note = (note - 1) + octave * 12 + C_ZERO;
+				else
+				{
+					pat->step[row].note = (note - 1) + octave * 12 + C_ZERO;
+				}
+
+				if(channel == 3) //noise channel
+				{
+					pat->step[row].note = noise_notes[(note + octave * 12) - (12 + 5)];
+				}
+
+				//=========================================================
+
+				if(inst == FT_INSTRUMENT_NONE)
+				{
+					pat->step[row].instrument = MUS_NOTE_NO_INSTRUMENT;
+				}
+
+				else
+				{
+					pat->step[row].instrument = inst;
+				}
+
+				if(note == FT_NOTE_CUT || note == FT_NOTE_RELEASE)
+				{
+					pat->step[row].instrument = MUS_NOTE_NO_INSTRUMENT;
+				}
+
+				if(inst >= FT_MAX_INSTRUMENTS)
+				{
+					pat->step[row].instrument = MUS_NOTE_NO_INSTRUMENT;
+				}
+
+				for(int h = 0; h < FT_MAX_INSTRUMENTS; h++)
+				{
+					if(pat->step[row].instrument == inst_numbers_to_inst_indices[h][1])
+					{
+						pat->step[row].instrument = inst_numbers_to_inst_indices[h][0];
+						break;
+					}
+				}
 			}
 
 			//=========================================================
 
-			if(inst == FT_INSTRUMENT_NONE)
-			{
-				pat->step[row].instrument = MUS_NOTE_NO_INSTRUMENT;
-			}
-
-			else
-			{
-				pat->step[row].instrument = inst;
-			}
-
-			if(note == FT_NOTE_CUT || note == FT_NOTE_RELEASE)
-			{
-				pat->step[row].instrument = MUS_NOTE_NO_INSTRUMENT;
-			}
-
-			if(inst >= FT_MAX_INSTRUMENTS)
-			{
-				pat->step[row].instrument = MUS_NOTE_NO_INSTRUMENT;
-			}
-
-			//=========================================================
-
-			if(vol == FT_VOLUME_NONE)
-			{
-				pat->step[row].volume = MUS_NOTE_NO_VOLUME;
-			}
-
-			else
-			{
-				pat->step[row].volume = convert_volumes_16[vol];
-			}
-
-			//=========================================================
-
-			Uint8 num_fx = ((version == 0x0200) ? 1 : ((block->version >= 6) ? FT_MAX_EFFECT_COLUMNS : (effect_columns[channel] + 1)));
+			Uint8 num_fx = ((version == 0x0200) ? 1 : ((block->version >= 6) ? FT_MAX_EFFECT_COLUMNS : (effect_columns[subsong_index][channel] + 1)));
 
 			//debug("num fx %d", num_fx);
+
+			if(subsong_index == selected_subsong)
+			{
+				pat->command_columns = effect_columns[subsong_index][channel];
+			}
 
 			for(int j = 0; j < num_fx; j++)
 			{
@@ -1137,6 +1363,23 @@ bool ft_process_patterns_block(FILE* f, ftm_block* block)
 				if(effect)
 				{
 					fread(&param, sizeof(param), 1, f);
+
+					if(block->version < 3)
+					{
+						if(effect == FT_EF_PORTAOFF)
+						{
+							effect = FT_EF_PORTAMENTO;
+							param = 0;
+						}
+
+						else if(effect == FT_EF_PORTAMENTO)
+						{
+							if(param < 0xFF)
+							{
+								param++;
+							}
+						}
+					}
 				}
 
 				else if(block->version < 6)
@@ -1146,21 +1389,165 @@ bool ft_process_patterns_block(FILE* f, ftm_block* block)
 					//bruh then how do you have the actual effect?!
 				}
 
-				pat->step[row].command[j] = ((Uint16)effect << 8) + param;
-				//TODO: add effect conversion
+				if(version == 0x0200)
+				{
+					if(j == 0 && effect == FT_EF_SPEED && param < 20)
+					{
+						param++;
+					}
+				}
+
+				if(subsong_index == selected_subsong && effect != FT_EF_NONE)
+				{
+					pat->step[row].command[j] = ((Uint16)effect << 8) + param;
+					//TODO: add effect conversion
+				}
+			}
+
+			if(subsong_index == selected_subsong)
+			{
+				if(vol == FT_VOLUME_NONE)
+				{
+					pat->step[row].volume = MUS_NOTE_NO_VOLUME;
+				}
+
+				else
+				{
+					pat->step[row].volume = convert_volumes_16[vol];
+				}
+
+				if(version == 0x0200)
+				{
+					if(vol == 0)
+					{
+						pat->step[row].volume = MUS_NOTE_NO_VOLUME;
+					}
+
+					else
+					{
+						vol--;
+						vol &= 0xf;
+						pat->step[row].volume = convert_volumes_16[vol];
+					}
+				}
+
+				if((expansion_chips & FT_SNDCHIP_N163) && channels_to_chips[channel] == FT_SNDCHIP_N163)
+				{
+					for(int j = 0; j < FT_MAX_EFFECT_COLUMNS; j++)
+					{
+						if((pat->step[row].command[j] >> 8) == FT_EF_SAMPLE_OFFSET)
+						{
+							pat->step[row].command[j] &= 0x00ff;
+							pat->step[row].command[j] |= (FT_EF_N163_WAVE_BUFFER << 8);
+						}
+					}
+				}
+
+				if(block->version == 3)
+				{
+					if((expansion_chips & FT_SNDCHIP_VRC7) && channel > 4) // Fix for VRC7 portamento
+					{
+						for(int j = 0; j < FT_MAX_EFFECT_COLUMNS; j++)
+						{
+							if((pat->step[row].command[j] >> 8) == FT_EF_PORTA_DOWN)
+							{
+								pat->step[row].command[j] &= 0x00ff;
+								pat->step[row].command[j] |= (FT_EF_PORTA_UP << 8);
+							}
+
+							if((pat->step[row].command[j] >> 8) == FT_EF_PORTA_UP)
+							{
+								pat->step[row].command[j] &= 0x00ff;
+								pat->step[row].command[j] |= (FT_EF_PORTA_DOWN << 8);
+							}
+						}
+					}
+
+					else if((expansion_chips & FT_SNDCHIP_FDS) && channels_to_chips[channel] == FT_SNDCHIP_FDS) // FDS pitch effect fix
+					{
+						for(int j = 0; j < FT_MAX_EFFECT_COLUMNS; j++)
+						{
+							if((pat->step[row].command[j] >> 8) == FT_EF_PITCH)
+							{
+								if((pat->step[row].command[j] & 0xff) != 0x80)
+								{
+									Uint8 param = pat->step[row].command[j];
+									pat->step[row].command[j] &= 0xff00;
+									pat->step[row].command[j] |= (0x100 - param);
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 	}
 	
 	return success;
-};
+}
 
 bool ft_process_dpcm_samples_block(FILE* f, ftm_block* block)
 {
 	bool success = true;
-	
+
+	Uint8 num_samples = 0;
+
+	fread(&num_samples, sizeof(num_samples), 1, f);
+
+	for(int i = 0; i < num_samples; i++)
+	{
+		Uint8 index = 0;
+		fread(&index, sizeof(index), 1, f);
+
+		Uint32 name_len = 0;
+		read_uint32(f, &name_len);
+		fread(mused.song.wavetable_names[index], sizeof(char) * name_len, 1, f);
+
+		Uint32 sample_len = 0;
+
+		read_uint32(f, &sample_len);
+
+		Uint32 true_size = sample_len + ((1 - (Sint32)sample_len) & 0x0f);
+
+		Uint8* dpcm_data = (Uint8*)calloc(true_size, sizeof(Uint8));
+
+		memset(dpcm_data, 0xAA, true_size);
+
+		fread(dpcm_data, sizeof(Uint8) * sample_len, 1, f);
+
+		Sint16* data = (Sint16*)calloc(true_size * 8, sizeof(Sint16));
+
+		Sint16 delta_counter = 1;
+
+		for(int i = 0; i < true_size * 8; i++)
+		{
+			if((dpcm_data[i / 8] & (1 << (i & 7))) && delta_counter < 63)
+			{
+				delta_counter++;
+			}
+
+			else
+			{
+				if(delta_counter > 0)
+				{
+					delta_counter--;
+				}
+			}
+
+			data[i] = delta_counter * 4 * 256 - 32768;
+		}
+
+		cyd_wave_entry_init(&mused.cyd.wavetable_entries[index], data, true_size * 8, CYD_WAVE_TYPE_SINT16, 1, 1, 1);
+
+		mused.cyd.wavetable_entries[index].sample_rate = machine == FT_MACHINE_PAL ? dpcm_sample_rates_pal[15] : dpcm_sample_rates_ntsc[15];
+		mused.cyd.wavetable_entries[index].base_note = MIDDLE_C << 8;
+
+		free(data);
+		free(dpcm_data);
+	}
+
 	return success;
-};
+}
 
 bool ft_process_header_block(FILE* f, ftm_block* block)
 {
@@ -1176,7 +1563,7 @@ bool ft_process_header_block(FILE* f, ftm_block* block)
 			fread(&channel_type, sizeof(channel_type), 1, f);
 			fread(&effect_cols, sizeof(effect_cols), 1, f);
 
-			effect_columns[i] = effect_cols;
+			effect_columns[0][i] = effect_cols;
 		}
 	}
 
@@ -1210,7 +1597,7 @@ bool ft_process_header_block(FILE* f, ftm_block* block)
 				Uint8 effect_cols = 0;
 				fread(&effect_cols, sizeof(effect_cols), 1, f);
 
-				effect_columns[i] = effect_cols;
+				effect_columns[j][i] = effect_cols;
 			}
 		}
 
@@ -1229,70 +1616,360 @@ bool ft_process_header_block(FILE* f, ftm_block* block)
 	}
 	
 	return success;
-};
+}
 
 bool ft_process_comments_block(FILE* f, ftm_block* block)
 {
 	bool success = true;
+
+	Uint8 display_comment = 0;
+	fread(&display_comment, sizeof(display_comment), 1, f);
+
+	char* comments_string = (char*)calloc(1, 1);
+	Uint32 index = 0;
+
+	do //hope this works as null-terminated string reader
+	{
+		fread(&comments_string[index], sizeof(char), 1, f);
+		index++;
+		comments_string = (char*)realloc(comments_string, index + 1);
+	} while(comments_string[index] != 0);
+
+
+	free(comments_string);
 	
 	return success;
-};
+}
 
-bool ft_process_sequencies_vrc6_block(FILE* f, ftm_block* block)
+bool ft_process_sequences_vrc6_block(FILE* f, ftm_block* block)
 {
 	bool success = true;
+
+	//debug("Processing 2A03 sequences");
+
+	Uint32 seq_count = 0;
+
+	read_uint32(f, &seq_count);
+
+	ft_inst_macro* temp_macro = (ft_inst_macro*)calloc(1, sizeof(ft_inst_macro));
+
+	Uint8* Indices = (Uint8*)calloc(1, sizeof(Uint8) * FT_MAX_SEQUENCES * FT_SEQ_CNT);
+	Uint8* Types = (Uint8*)calloc(1, sizeof(Uint8) * FT_MAX_SEQUENCES * FT_SEQ_CNT);
+
+	for(int i = 0; i < seq_count; i++)
+	{
+		Uint32 index = 0;
+		read_uint32(f, &index);
+		Indices[i] = index;
+
+		Uint32 type = 0;
+		read_uint32(f, &type);
+		Types[i] = type;
+
+		Uint8 size = 0;
+		fread(&size, sizeof(size), 1, f);
+
+		memset(temp_macro, 0, sizeof(ft_inst_macro));
+
+		temp_macro->loop = -1;
+		temp_macro->release = -1;
+
+		temp_macro->sequence_size = size;
+		temp_macro->setting = 0;
+
+		Sint32 loop_point = 0;
+		Sint32 release_point = 0;
+
+		Uint32 setting = 0;
+
+		read_uint32(f, (Uint32*)&loop_point);
+
+		temp_macro->loop = loop_point;
+
+		if(block->version == 4)
+		{
+			read_uint32(f, (Uint32*)&release_point);
+			read_uint32(f, &setting);
+
+			temp_macro->release = release_point;
+			temp_macro->setting = setting;
+		}
+
+		for(int j = 0; j < size; j++)
+		{
+			fread(&temp_macro->sequence[j], sizeof(Uint8), 1, f);
+		}
+
+		for(int j = 0; j < num_instruments; j++)
+		{
+			if(ft_instruments[j].seq_indices[type] == index && ft_instruments[j].type == INST_VRC6)
+			{
+				memcpy(&ft_instruments[j].macros[type], temp_macro, sizeof(ft_inst_macro));
+
+				/*debug("VRC6 Macro %d type %d", Indices[i], Types[i]);
+
+				for(int k = 0; k < ft_instruments[j].macros[type].sequence_size; k++)
+				{
+					debug("%d", ft_instruments[j].macros[type].sequence[k]);
+				}*/
+			}
+		}
+	}
+
+	if(block->version == 5) // Version 5 saved the release points incorrectly, this is fixed in ver 6
+	{
+		for(int i = 0; i < FT_MAX_SEQUENCES; i++)
+		{
+			for(int j = 0; j < FT_SEQ_CNT; j++)
+			{
+				Sint32 release_point = 0;
+				Uint32 setting = 0;
+				read_uint32(f, (Uint32*)&release_point);
+				read_uint32(f, &setting);
+
+				for(int k = 0; k < num_instruments; k++)
+				{
+					if(ft_instruments[k].seq_indices[j] == i && ft_instruments[k].type == INST_VRC6)
+					{
+						ft_instruments[k].macros[j].release = release_point;
+						ft_instruments[k].macros[j].setting = setting;
+					}
+				}
+			}
+		}
+	}
+
+	if(block->version >= 6) // Read release points correctly stored
+	{
+		for(int i = 0; i < seq_count; i++)
+		{
+			Sint32 release_point = 0;
+			Uint32 setting = 0;
+			read_uint32(f, (Uint32*)&release_point);
+			read_uint32(f, &setting);
+
+			for(int j = 0; j < num_instruments; j++)
+			{
+				if(ft_instruments[j].seq_indices[Types[i]] == Indices[i] && ft_instruments[j].type == INST_VRC6)
+				{
+					ft_instruments[j].macros[Types[i]].release = release_point;
+					ft_instruments[j].macros[Types[i]].setting = setting;
+				}
+			}
+		}
+	}
+
+	free(Indices);
+	free(Types);
+
+	free(temp_macro);
 	
 	return success;
-};
+}
 
-bool ft_process_sequencies_n163_block(FILE* f, ftm_block* block)
+bool ft_process_sequences_n163_block(FILE* f, ftm_block* block)
 {
 	bool success = true;
+
+	Uint32 seq_count = 0;
+
+	read_uint32(f, &seq_count);
+
+	ft_inst_macro* temp_macro = (ft_inst_macro*)calloc(1, sizeof(ft_inst_macro));
+
+	Uint8* Indices = (Uint8*)calloc(1, sizeof(Uint8) * FT_MAX_SEQUENCES * FT_SEQ_CNT);
+	Uint8* Types = (Uint8*)calloc(1, sizeof(Uint8) * FT_MAX_SEQUENCES * FT_SEQ_CNT);
+
+	for(int i = 0; i < seq_count; i++)
+	{
+		Uint32 index = 0;
+		read_uint32(f, &index);
+		Indices[i] = index;
+
+		Uint32 type = 0;
+		read_uint32(f, &type);
+		Types[i] = type;
+
+		Uint8 size = 0;
+		fread(&size, sizeof(size), 1, f);
+
+		memset(temp_macro, 0, sizeof(ft_inst_macro));
+
+		temp_macro->sequence_size = size;
+
+		Sint32 loop_point = 0;
+		Sint32 release_point = 0;
+
+		Uint32 setting = 0;
+
+		read_uint32(f, (Uint32*)&loop_point);
+
+		temp_macro->loop = loop_point;
+
+		read_uint32(f, (Uint32*)&release_point);
+		read_uint32(f, &setting);
+
+		temp_macro->release = release_point;
+		temp_macro->setting = setting;
+
+		for(int j = 0; j < size; j++)
+		{
+			fread(&temp_macro->sequence[j], sizeof(Uint8), 1, f);
+		}
+
+		for(int j = 0; j < num_instruments; j++)
+		{
+			if(ft_instruments[j].seq_indices[type] == index && ft_instruments[j].type == INST_N163)
+			{
+				memcpy(&ft_instruments[j].macros[type], temp_macro, sizeof(ft_inst_macro));
+
+				/*debug("N163 Macro %d type %d", Indices[i], Types[i]);
+
+				for(int k = 0; k < ft_instruments[j].macros[type].sequence_size; k++)
+				{
+					debug("%d", ft_instruments[j].macros[type].sequence[k]);
+				}*/
+			}
+		}
+	}
+
+	free(Indices);
+	free(Types);
+
+	free(temp_macro);
 	
 	return success;
-};
+}
 
-bool ft_process_sequencies_n106_block(FILE* f, ftm_block* block)
+bool ft_process_sequences_n106_block(FILE* f, ftm_block* block)
+{
+	bool success = ft_process_sequences_n163_block(f, block); // backwards compatibility?
+	
+	return success;
+}
+
+bool ft_process_sequences_s5b_block(FILE* f, ftm_block* block)
 {
 	bool success = true;
-	
-	return success;
-};
 
-bool ft_process_sequencies_s5b_block(FILE* f, ftm_block* block)
-{
-	bool success = true;
+	Uint32 seq_count = 0;
+
+	read_uint32(f, &seq_count);
+
+	ft_inst_macro* temp_macro = (ft_inst_macro*)calloc(1, sizeof(ft_inst_macro));
+
+	Uint8* Indices = (Uint8*)calloc(1, sizeof(Uint8) * FT_MAX_SEQUENCES * FT_SEQ_CNT);
+	Uint8* Types = (Uint8*)calloc(1, sizeof(Uint8) * FT_MAX_SEQUENCES * FT_SEQ_CNT);
+
+	for(int i = 0; i < seq_count; i++)
+	{
+		Uint32 index = 0;
+		read_uint32(f, &index);
+		Indices[i] = index;
+
+		Uint32 type = 0;
+		read_uint32(f, &type);
+		Types[i] = type;
+
+		Uint8 size = 0;
+		fread(&size, sizeof(size), 1, f);
+
+		memset(temp_macro, 0, sizeof(ft_inst_macro));
+
+		temp_macro->sequence_size = size;
+
+		Sint32 loop_point = 0;
+		Sint32 release_point = 0;
+
+		Uint32 setting = 0;
+
+		read_uint32(f, (Uint32*)&loop_point);
+
+		temp_macro->loop = loop_point;
+
+		read_uint32(f, (Uint32*)&release_point);
+		read_uint32(f, &setting);
+
+		temp_macro->release = release_point;
+		temp_macro->setting = setting;
+
+		for(int j = 0; j < size; j++)
+		{
+			fread(&temp_macro->sequence[j], sizeof(Uint8), 1, f);
+		}
+
+		for(int j = 0; j < num_instruments; j++)
+		{
+			if(ft_instruments[j].seq_indices[type] == index && ft_instruments[j].type == INST_S5B)
+			{
+				memcpy(&ft_instruments[j].macros[type], temp_macro, sizeof(ft_inst_macro));
+
+				/*debug("S5B Macro %d type %d", Indices[i], Types[i]);
+
+				for(int k = 0; k < ft_instruments[j].macros[type].sequence_size; k++)
+				{
+					debug("%d", ft_instruments[j].macros[type].sequence[k]);
+				}*/
+			}
+		}
+	}
+
+	free(Indices);
+	free(Types);
+
+	free(temp_macro);
 	
 	return success;
-};
+}
 
 bool ft_process_detunetables_block(FILE* f, ftm_block* block)
 {
 	bool success = true;
 	
 	return success;
-};
+}
 
 bool ft_process_grooves_block(FILE* f, ftm_block* block)
 {
 	bool success = true;
+
+	Uint8 num_grooves = 0;
+	fread(&num_grooves, sizeof(num_grooves), 1, f);
+
+	mused.song.num_grooves = num_grooves;
+
+	mused.song.flags |= MUS_USE_GROOVE;
+
+	for(int i = 0; i < num_grooves; i++)
+	{
+		Uint8 index = 0;
+		fread(&index, sizeof(index), 1, f);
+
+		Uint8 size = 0;
+		fread(&size, sizeof(size), 1, f);
+
+		mused.song.groove_length[index] = size;
+		//memset(&mused.song.grooves[index][0], 0, sizeof(Uint8) * MUS_MAX_GROOVE_LENGTH);
+
+		fread(&mused.song.grooves[index][0], sizeof(Uint8) * size, 1, f);
+	}
 	
 	return success;
-};
+}
 
 bool ft_process_bookmarks_block(FILE* f, ftm_block* block)
 {
 	bool success = true;
 	
 	return success;
-};
+}
 
 bool ft_process_params_extra_block(FILE* f, ftm_block* block)
 {
 	bool success = true;
 	
 	return success;
-};
+}
 
 bool (*block_parse_functions[FT_BLOCK_TYPES])(FILE* f, ftm_block* block) = 
 {
@@ -1300,16 +1977,16 @@ bool (*block_parse_functions[FT_BLOCK_TYPES])(FILE* f, ftm_block* block) =
 	ft_process_tuning_block,
 	ft_process_info_block,
 	ft_process_instruments_block,
-	ft_process_sequencies_block,
+	ft_process_sequences_block,
 	ft_process_frames_block,
 	ft_process_patterns_block,
 	ft_process_dpcm_samples_block,
 	ft_process_header_block,
 	ft_process_comments_block,
-	ft_process_sequencies_vrc6_block,
-	ft_process_sequencies_n163_block,
-	ft_process_sequencies_n106_block,
-	ft_process_sequencies_s5b_block,
+	ft_process_sequences_vrc6_block,
+	ft_process_sequences_n163_block,
+	ft_process_sequences_n106_block,
+	ft_process_sequences_s5b_block,
 	ft_process_detunetables_block,
 	ft_process_grooves_block,
 	ft_process_bookmarks_block,
@@ -1334,6 +2011,102 @@ bool process_block(FILE* f, ftm_block* block)
 	return success;
 }
 
+void convert_instruments()
+{
+	debug("converting instruments");
+
+	for(int i = 0; i < num_instruments; i++)
+	{
+		MusInstrument* inst = &mused.song.instrument[i];
+
+		inst->flags &= ~(MUS_INST_DRUM);
+		inst->flags |= MUS_INST_RELATIVE_VOLUME;
+
+		inst->cydflags &= ~(CYD_CHN_ENABLE_KEY_SYNC | CYD_CHN_ENABLE_TRIANGLE);
+		inst->cydflags |= CYD_CHN_ENABLE_PULSE;
+		inst->pw = 0x0dff;
+
+		inst->adsr.a = 0;
+		inst->adsr.d = 0;
+		inst->adsr.s = 0x1f;
+	}
+
+	for(int i = 0; i < num_instruments; i++)
+	{
+		Uint8 current_program = 0;
+		Uint8 ft_inst_index = 0;
+
+		MusInstrument* inst = &mused.song.instrument[i];
+
+		ft_inst* ft_instrum = &ft_instruments[0];
+
+		for(int j = 0; j < FT_MAX_INSTRUMENTS; j++)
+		{
+			if(ft_instruments[j].klystrack_instrument == i)
+			{
+				ft_instrum = &ft_instruments[j];
+				ft_inst_index = j;
+				goto next;
+			}
+		}
+
+		next:;
+
+		switch(ft_instrum->type)
+		{
+			case INST_2A03:
+			{
+				if(ft_instrum->seq_enable[0] && ft_instrum->macros[0].sequence_size > 0)
+				{
+					for(int p = 0; p < ft_instrum->macros[0].sequence_size; p++)
+					{
+						inst->program[current_program][p] = MUS_FX_SET_VOLUME | convert_volumes_16[ft_instrum->macros[0].sequence[p]];
+					}
+
+					strcpy(inst->program_names[current_program], sequence_names[0]);
+				}
+
+				break;
+			}
+
+			case INST_VRC6:
+			{
+				if(ft_instrum->seq_enable[0] && ft_instrum->macros[0].sequence_size > 0)
+				{
+					if(ft_instrum->macros[0].setting == FT_SETTING_VOL_64_STEPS)
+					{
+						for(int p = 0; p < ft_instrum->macros[0].sequence_size; p++)
+						{
+							inst->program[current_program][p] = MUS_FX_SET_VOLUME | convert_volumes_64[ft_instrum->macros[0].sequence[p]];
+						}
+					}
+
+					else
+					{
+						for(int p = 0; p < ft_instrum->macros[0].sequence_size; p++)
+						{
+							inst->program[current_program][p] = MUS_FX_SET_VOLUME | convert_volumes_16[ft_instrum->macros[0].sequence[p]];
+						}
+					}
+
+					strcpy(inst->program_names[current_program], sequence_names_vrc6[0]);
+				}
+
+				break;
+			}
+
+			default: break;
+		}
+
+		for(int j = 0; j < FT_SEQ_CNT; j++)
+		{
+			
+		}
+
+		
+	}
+}
+
 bool import_ft_old(FILE* f, int type, ftm_block* blocks, bool is_dn_ft_sig)
 {
 	bool success = true;
@@ -1347,16 +2120,10 @@ bool import_ft_new(FILE* f, int type, ftm_block* blocks, bool is_dn_ft_sig)
 	
 	bool success = true;
 
-	seq_inst_enable = (bool**)calloc(1, sizeof(bool*) * FT_MAX_INSTRUMENTS);
-	seq_inst_index = (Uint8**)calloc(1, sizeof(Uint8*) * FT_MAX_INSTRUMENTS);
-
 	inst_numbers_to_inst_indices = (Uint8**)calloc(1, sizeof(Uint8*) * FT_MAX_INSTRUMENTS);
 	
 	for(int i = 0; i < FT_MAX_INSTRUMENTS; i++)
 	{
-		seq_inst_enable[i] = (bool*)calloc(1, sizeof(bool) * FT_SEQ_CNT);
-		seq_inst_index[i] = (Uint8*)calloc(1, sizeof(Uint8) * FT_SEQ_CNT);
-
 		inst_numbers_to_inst_indices[i] = (Uint8*)calloc(1, sizeof(Uint8) * 2);
 	}
 
@@ -1376,11 +2143,21 @@ bool import_ft_new(FILE* f, int type, ftm_block* blocks, bool is_dn_ft_sig)
 
 	initial_delta_counter_positions = (Uint8*)calloc(1, sizeof(Uint8) * FT_MAX_INSTRUMENTS);
 
-	instrument_types = (Uint8*)calloc(1, sizeof(Uint8) * FT_MAX_INSTRUMENTS);
+	effect_columns = (Uint8**)calloc(1, sizeof(Uint8*) * FT_MAX_SUBSONGS);
 
-	effect_columns = (Uint8*)calloc(1, sizeof(Uint8) * FT_MAX_CHANNELS);
+	for(int i = 0; i < FT_MAX_SUBSONGS; i++)
+	{
+		effect_columns[i] = (Uint8*)calloc(1, sizeof(Uint8) * FT_MAX_CHANNELS);
+	}
 
 	ft_instruments = (ft_inst*)calloc(1, sizeof(ft_inst) * FT_MAX_INSTRUMENTS);
+
+	for(int i = 0; i < FT_MAX_INSTRUMENTS; i++)
+	{
+		ft_instruments[i].klystrack_instrument = 0xff;
+	}
+
+	channels_to_chips = (Uint8*)calloc(1, sizeof(Uint8) * FT_MAX_CHANNELS);
 	
 	Uint16 num_blocks = 1;
 	Uint16 current_block = 0;
@@ -1425,6 +2202,8 @@ bool import_ft_new(FILE* f, int type, ftm_block* blocks, bool is_dn_ft_sig)
 		//debug("processing block %d", i);
 		success = process_block(f, &blocks[i]);
 	}
+
+	convert_instruments();
 	
 	debug("finished processing blocks");
 
@@ -1438,8 +2217,6 @@ int import_famitracker(FILE *f, int type)
 	bool success = true;
 	bool is_dn_ft_sig = false;
 
-	seq_inst_enable = NULL;
-	seq_inst_index = NULL;
 	num_instruments = 0;
 
 	selected_subsong = 0;
@@ -1453,13 +2230,14 @@ int import_famitracker(FILE *f, int type)
 	machine = 0;
 
 	initial_delta_counter_positions = NULL;
-	instrument_types = NULL;
 
 	effect_columns = NULL;
 
 	ft_instruments = NULL;
 
 	inst_numbers_to_inst_indices = NULL;
+
+	channels_to_chips = NULL;
 
 	ft_sequence = NULL;
 	klystrack_sequence = NULL;
@@ -1535,11 +2313,6 @@ int import_famitracker(FILE *f, int type)
 		free(initial_delta_counter_positions);
 	}
 
-	if(instrument_types)
-	{
-		free(instrument_types);
-	}
-
 	if(ft_instruments)
 	{
 		free(ft_instruments);
@@ -1547,27 +2320,12 @@ int import_famitracker(FILE *f, int type)
 
 	if(effect_columns)
 	{
+		for(int i = 0; i < FT_MAX_SUBSONGS; i++)
+		{
+			free(effect_columns[i]);
+		}
+		
 		free(effect_columns);
-	}
-
-	if(seq_inst_enable)
-	{
-		for(int i = 0; i < FT_MAX_INSTRUMENTS; i++)
-		{
-			free(seq_inst_enable[i]);
-		}
-
-		free(seq_inst_enable);
-	}
-
-	if(seq_inst_index)
-	{
-		for(int i = 0; i < FT_MAX_INSTRUMENTS; i++)
-		{
-			free(seq_inst_index[i]);
-		}
-
-		free(seq_inst_index);
 	}
 
 	if(inst_numbers_to_inst_indices)
@@ -1598,6 +2356,11 @@ int import_famitracker(FILE *f, int type)
 		}
 
 		free(klystrack_sequence);
+	}
+
+	if(channels_to_chips)
+	{
+		free(channels_to_chips);
 	}
 
 	if(success == false)
