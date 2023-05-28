@@ -133,6 +133,12 @@ const Uint8 convert_volumes_64[64] =
 	97, 99, 101, 103, 105, 107, 109, 111, 113, 115, 117, 119, 121, 123, 125, 128
 };
 
+const Uint8 ft_2a03_pulse_widths[4] = 
+{ 0xe0, 0xc0, 0x80, 0x40 };
+
+const Uint8 ft_vrc6_pulse_widths[8] = 
+{ 0xf0, 0xe0, 0xd0, 0xc0, 0xb0, 0xa0, 0x90, 0x80 };
+
 const Uint8 noise_notes[16] = 
 { 
 	C_ZERO - 3, C_ZERO + 9, C_ZERO + 12 + 9, C_ZERO + 12 * 2 + 1, C_ZERO + 12 * 2 + 9, C_ZERO + 12 * 3 + 2, 
@@ -1194,10 +1200,10 @@ bool ft_process_patterns_block(FILE* f, ftm_block* block)
 
 		for(int j = 0; j < sequence_length; j++)
 		{
-			add_sequence(i, j * pattern_length, ft_sequence[j][i] + ref_pattern, 0);
-			resize_pattern(&mused.song.pattern[ft_sequence[j][i] + ref_pattern], pattern_length);
+			add_sequence(i, j * pattern_length, i * sequence_length + j, 0);
+			resize_pattern(&mused.song.pattern[i * sequence_length + j], pattern_length);
 
-			klystrack_sequence[j][i] = ft_sequence[j][i] + ref_pattern;
+			klystrack_sequence[j][i] = i * sequence_length + j; //ft_sequence[j][i] + ref_pattern;
 
 			if(max_pattern < ft_sequence[j][i])
 			{
@@ -1481,7 +1487,24 @@ bool ft_process_patterns_block(FILE* f, ftm_block* block)
 				}
 			}
 		}
+	
+		if(subsong_index == selected_subsong)
+		{
+			for(int j = 0; j < sequence_length; j++)
+			{
+				if(ft_sequence[j][channel] == pattern && &mused.song.pattern[klystrack_sequence[j][channel]] != pat)
+				{
+					//pat = &mused.song.pattern[klystrack_sequence[j][channel]];
+					MusPattern* dst_pat = &mused.song.pattern[klystrack_sequence[j][channel]];
+
+					dst_pat->command_columns = pat->command_columns;
+					
+					memcpy(dst_pat->step, pat->step, sizeof(MusStep) * pat->num_steps);
+				}
+			}
+		}
 	}
+
 	
 	return success;
 }
@@ -2011,6 +2034,413 @@ bool process_block(FILE* f, ftm_block* block)
 	return success;
 }
 
+void convert_macro_value_arp(Uint8 value, Uint8 macro_num, ft_inst* ft_instrum, Uint8* macro_position, Uint16* inst_prog, Uint8* prog_unite_bits, Sint8* tone_offset)
+{
+	switch(ft_instrum->macros[1].setting)
+	{
+		case FT_SETTING_ARP_ABSOLUTE:
+		{
+			if(value <= 0x60)
+			{
+				inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO | (value);
+				(*macro_position)++;
+				return;
+			}
+
+			else
+			{
+				Uint8 temp = 0xff - value;
+				inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO_DOWN | (temp + 1);
+				(*macro_position)++;
+				return;
+			}
+			
+			break;
+		}
+
+		case FT_SETTING_ARP_FIXED:
+		{
+			inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO_ABS | (value + C_ZERO);
+			(*macro_position)++;
+			return;
+			break;
+		}
+
+		case FT_SETTING_ARP_RELATIVE:
+		{
+			if(value <= 0x60)
+			{
+				inst_prog[*(macro_position)] = MUS_FX_PORTA_UP_SEMI | (value);
+				(*macro_position)++;
+				return;
+			}
+
+			else
+			{
+				Uint8 temp = 0xff - value;
+				inst_prog[*(macro_position)] = MUS_FX_PORTA_DN_SEMI | (temp + 1);
+				(*macro_position)++;
+				return;
+			}
+
+			break;
+		}
+
+		case FT_SETTING_ARP_SCHEME: //oh God it would be hard
+		{
+			if(value < 0x40) //without x or y
+			{
+				if((*tone_offset) != 0)
+				{
+					inst_prog[*(macro_position)] = ((*tone_offset) >= 0 ? (MUS_FX_PORTA_DN_SEMI | abs(*tone_offset)) : (MUS_FX_PORTA_UP_SEMI | abs(*tone_offset)));
+					prog_unite_bits[(*(macro_position)) / 8] |= 1 << ((*(macro_position)) & 7);
+					(*macro_position)++;
+				}
+
+				if(value <= 0x24)
+				{
+					inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO | (value);
+				}
+
+				else
+				{
+					inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO_DOWN | (0x3f - value + 1);
+				}
+				
+				(*macro_position)++;
+				(*tone_offset) = 0;
+
+				return;
+			}
+
+			if(value >= 0x40 && value < 0x80) //x
+			{
+				if(value <= 0x64)
+				{
+					Sint8 new_tone_offset = value - 0x40;
+					Sint8 delta = new_tone_offset - (*tone_offset);
+					
+					if(delta != 0)
+					{
+						inst_prog[*(macro_position)] = ((delta) >= 0 ? (MUS_FX_PORTA_UP_SEMI | abs(delta)) : (MUS_FX_PORTA_DN_SEMI | abs(delta)));
+						prog_unite_bits[(*(macro_position)) / 8] |= 1 << ((*(macro_position)) & 7);
+						(*macro_position)++;
+					}
+
+					inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO | 0xf0; //1st external arp note
+
+					(*macro_position)++;
+
+					(*tone_offset) = new_tone_offset;
+				}
+
+				else
+				{
+					Sint8 new_tone_offset = -1 * (0x80 - value);
+					Sint8 delta = new_tone_offset - (*tone_offset);
+
+					if(delta != 0)
+					{
+						inst_prog[*(macro_position)] = ((delta) >= 0 ? (MUS_FX_PORTA_UP_SEMI | abs(delta)) : (MUS_FX_PORTA_DN_SEMI | abs(delta)));
+						prog_unite_bits[(*(macro_position)) / 8] |= 1 << ((*(macro_position)) & 7);
+						(*macro_position)++;
+					}
+
+					inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO | 0xf0; //1st external arp note
+
+					(*macro_position)++;
+
+					(*tone_offset) = new_tone_offset;
+				}
+
+				return;
+			}
+
+			if(value >= 0x80 && value < 0xc0) //y
+			{
+				if(value <= 0xa4)
+				{
+					Sint8 new_tone_offset = value - 0x80;
+					Sint8 delta = new_tone_offset - (*tone_offset);
+					
+					if(delta != 0)
+					{
+						inst_prog[*(macro_position)] = ((delta) >= 0 ? (MUS_FX_PORTA_UP_SEMI | abs(delta)) : (MUS_FX_PORTA_DN_SEMI | abs(delta)));
+						prog_unite_bits[(*(macro_position)) / 8] |= 1 << ((*(macro_position)) & 7);
+						(*macro_position)++;
+					}
+
+					inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO | 0xf1; //2nd external arp note
+
+					(*macro_position)++;
+
+					(*tone_offset) = new_tone_offset;
+				}
+
+				else
+				{
+					Sint8 new_tone_offset = -1 * (0xc0 - value);
+					Sint8 delta = new_tone_offset - (*tone_offset);
+
+					if(delta != 0)
+					{
+						inst_prog[*(macro_position)] = ((delta) >= 0 ? (MUS_FX_PORTA_UP_SEMI | abs(delta)) : (MUS_FX_PORTA_DN_SEMI | abs(delta)));
+						prog_unite_bits[(*(macro_position)) / 8] |= 1 << ((*(macro_position)) & 7);
+						(*macro_position)++;
+					}
+
+					inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO | 0xf1; //2nd external arp note
+
+					(*macro_position)++;
+
+					(*tone_offset) = new_tone_offset;
+				}
+
+				return;
+			}
+
+			break;
+		}
+
+		default: break;
+	}
+}
+
+void convert_macro_value(Uint8 value, Uint8 macro_num, ft_inst* ft_instrum, Uint8* macro_position, Uint16* inst_prog, Uint8* prog_unite_bits, Sint8* tone_offset)
+{
+	switch(ft_instrum->type)
+	{
+		case INST_2A03:
+		{
+			switch(macro_num)
+			{
+				case 0: //volume
+				{
+					inst_prog[*(macro_position)] = MUS_FX_SET_VOLUME | convert_volumes_16[value];
+					(*macro_position)++;
+					return;
+					break;
+				}
+
+				case 1: //arpeggio
+				{
+					convert_macro_value_arp(value, macro_num, ft_instrum, macro_position, inst_prog, prog_unite_bits, tone_offset);
+
+					break;
+				}
+
+				case 2: //pitch
+				{
+					if(value < 0x80 && value > 0)
+					{
+						inst_prog[*(macro_position)] = MUS_FX_PORTA_DN | my_min(0xff, (abs(value) * 6));
+					}
+
+					if(value >= 0x80)
+					{
+						Uint8 temp = 0x100 - value;
+						inst_prog[*(macro_position)] = MUS_FX_PORTA_UP | my_min(0xff, (abs(temp) * 6));
+					}
+
+					(*macro_position)++;
+					return;
+					break;
+				}
+
+				case 3: //hi-pitch
+				{
+					if(value < 0x80 && value > 0)
+					{
+						inst_prog[*(macro_position)] = MUS_FX_PORTA_DN_SEMI | my_min(0xff, (abs(value) * 2));
+					}
+
+					if(value >= 0x80)
+					{
+						Uint8 temp = 0x100 - value;
+						inst_prog[*(macro_position)] = MUS_FX_PORTA_UP_SEMI | my_min(0xff, (abs(temp) * 2));
+					}
+
+					(*macro_position)++;
+					return;
+					break;
+				}
+
+				case 4: // duty/noise
+				{ //noise mode will be treated separately when duplicating instruments for different channels
+					inst_prog[*(macro_position)] = MUS_FX_PW_SET | ft_2a03_pulse_widths[value];
+					(*macro_position)++;
+					return;
+					break;
+				}
+
+				default: break;
+			}
+
+			break;
+		}
+
+		case INST_VRC6:
+		{
+			switch(macro_num)
+			{
+				case 0: //volume
+				{
+					switch(ft_instrum->macros[1].setting)
+					{
+						case FT_SETTING_VOL_64_STEPS:
+						{
+							inst_prog[*(macro_position)] = MUS_FX_SET_VOLUME | convert_volumes_64[value];
+							(*macro_position)++;
+							return;
+							break;
+						}
+
+						case FT_SETTING_VOL_16_STEPS:
+						{
+							inst_prog[*(macro_position)] = MUS_FX_SET_VOLUME | convert_volumes_16[value];
+							(*macro_position)++;
+							return;
+							break;
+						}
+
+						default: break;
+					}
+					
+					break;
+				}
+
+				case 1: //arpeggio
+				{
+					convert_macro_value_arp(value, macro_num, ft_instrum, macro_position, inst_prog, prog_unite_bits, tone_offset);
+
+					break;
+				}
+
+				case 2: //pitch
+				{
+					if(value < 0x80 && value > 0)
+					{
+						inst_prog[*(macro_position)] = MUS_FX_PORTA_DN | my_min(0xff, (abs(value) * 6));
+					}
+
+					if(value >= 0x80)
+					{
+						Uint8 temp = 0x100 - value;
+						inst_prog[*(macro_position)] = MUS_FX_PORTA_UP | my_min(0xff, (abs(temp) * 6));
+					}
+
+					(*macro_position)++;
+					return;
+					break;
+				}
+
+				case 3: //hi-pitch
+				{
+					if(value < 0x80 && value > 0)
+					{
+						inst_prog[*(macro_position)] = MUS_FX_PORTA_DN_SEMI | my_min(0xff, (abs(value) * 2));
+					}
+
+					if(value >= 0x80)
+					{
+						Uint8 temp = 0x100 - value;
+						inst_prog[*(macro_position)] = MUS_FX_PORTA_UP_SEMI | my_min(0xff, (abs(temp) * 2));
+					}
+
+					(*macro_position)++;
+					return;
+					break;
+				}
+
+				case 4: //pulse width only
+				{
+					inst_prog[*(macro_position)] = MUS_FX_PW_SET | ft_vrc6_pulse_widths[value];
+					(*macro_position)++;
+					return;
+					break;
+				}
+
+				default: break;
+			}
+
+			break;
+		}
+
+		default: break;
+	}
+}
+
+void convert_macro(MusInstrument* inst, Uint8 macro_num, ft_inst* ft_instrum, Uint8 current_program)
+{
+	Uint8 macro_position = 0;
+	Sint8 tone_offset = 0;
+
+	for(int p = 0; p < ft_instrum->macros[macro_num].sequence_size; p++)
+	{
+		if(macro_position == ft_instrum->macros[macro_num].release && ft_instrum->macros[macro_num].release > ft_instrum->macros[macro_num].loop && ft_instrum->macros[macro_num].loop != -1 && ft_instrum->macros[macro_num].release != -1) //loop point before release point
+		{
+			inst->program[current_program][macro_position] = MUS_FX_JUMP | ft_instrum->macros[macro_num].loop; //loop the loop part
+			macro_position++;
+			inst->program[current_program][macro_position] = MUS_FX_RELEASE_POINT; //jump to release part when release is triggered
+			macro_position++;
+		}
+
+		if(macro_position == ft_instrum->macros[macro_num].release && ft_instrum->macros[macro_num].release != -1 && ft_instrum->macros[macro_num].loop == -1) //release point only (without loop point)
+		{
+			inst->program[current_program][macro_position] = MUS_FX_JUMP | macro_position; //infinitely hang here until release is triggered
+			macro_position++;
+			inst->program[current_program][macro_position] = MUS_FX_RELEASE_POINT;
+			macro_position++;
+		}
+
+		//inst->program[current_program][macro_position] = MUS_FX_SET_VOLUME | convert_volumes_16[ft_instrum->macros[macro_num].sequence[p]];
+		convert_macro_value(ft_instrum->macros[macro_num].sequence[p], macro_num, ft_instrum, &macro_position, inst->program[current_program], inst->program_unite_bits[current_program], &tone_offset);
+		//macro_position++;
+
+		if(ft_instrum->macros[macro_num].release == ft_instrum->macros[macro_num].loop && ft_instrum->macros[macro_num].loop != -1) //loop point and release point in the same position
+		{
+			if(p == ft_instrum->macros[macro_num].loop)
+			{
+				inst->program[current_program][macro_position] = MUS_FX_JUMP | macro_position; //infinitely hang here until release is triggered
+				macro_position++;
+				inst->program[current_program][macro_position] = MUS_FX_RELEASE_POINT;
+				macro_position++;
+			}
+
+			if(p == ft_instrum->macros[macro_num].sequence_size - 1)
+			{ //we have filled in last command
+				inst->program[current_program][macro_position] = MUS_FX_JUMP | (ft_instrum->macros[macro_num].loop + (macro_position - p)); //jump to AFTER release point
+				macro_position++;
+			}
+		}
+
+		if(p == ft_instrum->macros[macro_num].sequence_size - 1 && ft_instrum->macros[macro_num].release == -1 && ft_instrum->macros[macro_num].loop != -1) //loop point only (without release point)
+		{ //we have filled in last command
+			inst->program[current_program][macro_position] = MUS_FX_JUMP | ft_instrum->macros[macro_num].loop; //jump to loop start
+			macro_position++;
+		}
+
+		if(ft_instrum->macros[macro_num].release < ft_instrum->macros[macro_num].loop && ft_instrum->macros[macro_num].loop != -1 && ft_instrum->macros[macro_num].release != -1) //release point before loop point
+		{
+			if(p == ft_instrum->macros[macro_num].release)
+			{
+				inst->program[current_program][macro_position] = MUS_FX_JUMP | macro_position; //infinitely hang here until release is triggered
+				macro_position++;
+				inst->program[current_program][macro_position] = MUS_FX_RELEASE_POINT; //infinitely hang here until release is triggered
+				macro_position++;
+			}
+
+			if(p == ft_instrum->macros[macro_num].sequence_size - 1)
+			{
+				inst->program[current_program][macro_position] = MUS_FX_JUMP | (ft_instrum->macros[macro_num].loop + (macro_position - p)); //jump to loop start
+				macro_position++;
+			}
+		}
+	}
+
+	inst->program[current_program][macro_position] = MUS_FX_END;
+}
+
 void convert_instruments()
 {
 	debug("converting instruments");
@@ -2028,7 +2458,8 @@ void convert_instruments()
 
 		inst->adsr.a = 0;
 		inst->adsr.d = 0;
-		inst->adsr.s = 0x1f;
+		inst->adsr.s = 0x1f; //this is default 2A03 Pulse wave instrument
+		inst->adsr.r = 0x3f;
 	}
 
 	for(int i = 0; i < num_instruments; i++)
@@ -2056,14 +2487,49 @@ void convert_instruments()
 		{
 			case INST_2A03:
 			{
-				if(ft_instrum->seq_enable[0] && ft_instrum->macros[0].sequence_size > 0)
+				/*if(ft_instrum->seq_enable[0] && ft_instrum->macros[0].sequence_size > 0)
 				{
-					for(int p = 0; p < ft_instrum->macros[0].sequence_size; p++)
+					inst->prog_period[current_program] = 1;
+
+					convert_macro(inst, 0, ft_instrum, current_program);
+
+					for(int j = 1; j < MUS_PROG_LEN; j++)
 					{
-						inst->program[current_program][p] = MUS_FX_SET_VOLUME | convert_volumes_16[ft_instrum->macros[0].sequence[p]];
+						if((inst->program[0][j] & 0xff00) == MUS_FX_JUMP && inst->program[current_program][j] != MUS_FX_NOP && inst->program[current_program][j] != MUS_FX_END 
+						&& (inst->program[0][j] & 0xff) != j) inst->program_unite_bits[0][(j - 1) / 8] |= 1 << ((j - 1) & 7);
 					}
 
 					strcpy(inst->program_names[current_program], sequence_names[0]);
+				}*/
+
+				for(int j = 0; j < FT_SEQ_CNT; j++)
+				{
+					if(ft_instrum->seq_enable[j] && ft_instrum->macros[j].sequence_size > 0)
+					{
+						inst->prog_period[current_program] = 1;
+
+						convert_macro(inst, j, ft_instrum, current_program);
+
+						for(int k = 1; k < MUS_PROG_LEN; k++)
+						{
+							if((inst->program[current_program][k] & 0xff00) == MUS_FX_JUMP && inst->program[current_program][k] != MUS_FX_NOP && inst->program[current_program][k] != MUS_FX_END 
+							&& (inst->program[current_program][k] & 0xff) != k) inst->program_unite_bits[current_program][(k - 1) / 8] |= 1 << ((k - 1) & 7);
+						}
+
+						strcpy(inst->program_names[current_program], sequence_names[j]);
+
+						current_program++;
+
+						inst->num_macros++;
+
+						inst->program[current_program] = (Uint16*)calloc(1, sizeof(Uint16) * MUS_PROG_LEN);
+						inst->program_unite_bits[current_program] = (Uint8*)calloc(1, sizeof(Uint8) * (MUS_PROG_LEN / 8 + 1));
+
+						for(int k = 0; k < MUS_PROG_LEN; k++)
+						{
+							inst->program[current_program][k] = MUS_FX_NOP;
+						}
+					}
 				}
 
 				break;
@@ -2071,25 +2537,43 @@ void convert_instruments()
 
 			case INST_VRC6:
 			{
-				if(ft_instrum->seq_enable[0] && ft_instrum->macros[0].sequence_size > 0)
+				/*if(ft_instrum->seq_enable[0] && ft_instrum->macros[0].sequence_size > 0)
 				{
-					if(ft_instrum->macros[0].setting == FT_SETTING_VOL_64_STEPS)
-					{
-						for(int p = 0; p < ft_instrum->macros[0].sequence_size; p++)
-						{
-							inst->program[current_program][p] = MUS_FX_SET_VOLUME | convert_volumes_64[ft_instrum->macros[0].sequence[p]];
-						}
-					}
+					inst->prog_period[current_program] = 1;
 
-					else
-					{
-						for(int p = 0; p < ft_instrum->macros[0].sequence_size; p++)
-						{
-							inst->program[current_program][p] = MUS_FX_SET_VOLUME | convert_volumes_16[ft_instrum->macros[0].sequence[p]];
-						}
-					}
+					convert_macro(inst, 0, ft_instrum, current_program);
 
 					strcpy(inst->program_names[current_program], sequence_names_vrc6[0]);
+				}*/
+
+				for(int j = 0; j < FT_SEQ_CNT; j++)
+				{
+					if(ft_instrum->seq_enable[j] && ft_instrum->macros[j].sequence_size > 0)
+					{
+						inst->prog_period[current_program] = 1;
+
+						convert_macro(inst, j, ft_instrum, current_program);
+
+						for(int k = 1; k < MUS_PROG_LEN; k++)
+						{
+							if((inst->program[current_program][k] & 0xff00) == MUS_FX_JUMP && inst->program[current_program][k] != MUS_FX_NOP && inst->program[current_program][k] != MUS_FX_END 
+							&& (inst->program[current_program][k] & 0xff) != k) inst->program_unite_bits[current_program][(k - 1) / 8] |= 1 << ((k - 1) & 7);
+						}
+
+						strcpy(inst->program_names[current_program], sequence_names_vrc6[j]);
+
+						current_program++;
+
+						inst->num_macros++;
+
+						inst->program[current_program] = (Uint16*)calloc(1, sizeof(Uint16) * MUS_PROG_LEN);
+						inst->program_unite_bits[current_program] = (Uint8*)calloc(1, sizeof(Uint8) * (MUS_PROG_LEN / 8 + 1));
+
+						for(int k = 0; k < MUS_PROG_LEN; k++)
+						{
+							inst->program[current_program][k] = MUS_FX_NOP;
+						}
+					}
 				}
 
 				break;
@@ -2102,8 +2586,6 @@ void convert_instruments()
 		{
 			
 		}
-
-		
 	}
 }
 

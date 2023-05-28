@@ -194,7 +194,16 @@ void find_command_xm(Uint16 command, MusStep* step)
 		
 		if(command & 0xf) //pan left
 		{
-			step->command[0] = MUS_FX_PAN_LEFT | (command & 0xf);
+			if(step->command[0] == 0)
+			{
+				step->command[0] = MUS_FX_PAN_LEFT | (command & 0xf);
+			}
+
+			else
+			{
+				step->command[1] = MUS_FX_PAN_LEFT | (command & 0xf); //so we can have both commands if e.g. P8f is the orig command (makes no sense but theoretically such command can be encountered)
+			}
+
 			return;
 		}
 	}
@@ -401,6 +410,7 @@ int import_xm(FILE *f)
 					step->volume = MUS_NOTE_VOLUME_PAN_LEFT | (volume & 0xf);
 					goto next;
 				}
+
 				else if (volume >= 0xe0 && volume <= 0xef)
 				{
 					step->volume = MUS_NOTE_VOLUME_PAN_RIGHT | (volume & 0xf);
@@ -412,9 +422,26 @@ int import_xm(FILE *f)
 					step->volume = MUS_NOTE_VOLUME_FADE_DN | (volume & 0xf);
 					goto next;
 				}
+
 				else if (volume >= 0x70 && volume <= 0x7f)
 				{
 					step->volume = MUS_NOTE_VOLUME_FADE_UP | (volume & 0xf);
+					goto next;
+				}
+
+				else if (volume >= 0x80 && volume <= 0x8f)
+				{
+					step->volume = MUS_NOTE_VOLUME_FADE_DN_FINE | (volume & 0xf);
+					goto next;
+				}
+
+				else if (volume >= 0x90 && volume <= 0x9f)
+				{
+					if(volume & 0xf)
+					{
+						step->volume = MUS_NOTE_VOLUME_FADE_UP_FINE | (volume & 0xf);
+					}
+
 					goto next;
 				}
 				
@@ -423,6 +450,7 @@ int import_xm(FILE *f)
 					step->ctrl = MUS_CTRL_SLIDE|MUS_CTRL_LEGATO;
 					goto next;
 				}
+
 				else if (volume >= 0xb0 && volume <= 0xbf)
 				{
 					step->ctrl = MUS_CTRL_VIB;

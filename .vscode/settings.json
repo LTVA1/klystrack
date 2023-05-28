@@ -24,6 +24,7 @@
         "tuple": "c",
         "xmemory0": "c",
         "xtr1common": "c",
-        "compare": "c"
+        "compare": "c",
+        "cstdlib": "c"
     }
 }
