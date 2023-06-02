@@ -40,6 +40,7 @@ Uint16 find_command_pt(Uint16 command, int sample_length)
 	if ((command & 0xff00) == 0x0c00)
 	{
 		command = MUS_FX_SET_VOLUME | ((command & 0xff) * 2);
+		//command = MUS_FX_SET_ABSOLUTE_VOLUME | ((command & 0xff) * 2);
 		return command;
 	}
 	else if ((command & 0xff00) == 0x0a00)
@@ -57,9 +58,14 @@ Uint16 find_command_pt(Uint16 command, int sample_length)
 		command = MUS_FX_SET_RATE | (((command & 0xff)) * 50 / 125);
 		return command;
 	}
-	else if ((command & 0xff00) == 0x0100 || (command & 0xff00) == 0x0200 || (command & 0xff00) == 0x0300)
+	else if ((command & 0xff00) == 0x0100 || (command & 0xff00) == 0x0200)
 	{
 		command = (command & 0xff00) | my_min(0xff, (command & 0xff) * 8);
+		return command;
+	}
+	else if ((command & 0xff00) == 0x0300)
+	{
+		command = MUS_FX_FAST_SLIDE | (command & 0xff);
 		return command;
 	}
 	else if ((command & 0xff00) == 0x0900 && sample_length)
@@ -76,7 +82,10 @@ Uint16 find_command_pt(Uint16 command, int sample_length)
 	
 	else if ((command & 0xff00) == 0x0d00)
 	{
-		command = MUS_FX_SKIP_PATTERN | (command & 0xff);
+		//command = MUS_FX_SKIP_PATTERN | (command & 0xff);
+
+		Uint8 new_param = (command & 0xf) + ((command & 0xff) >> 4) * 10; //hex to decimal, Protracker lol
+		command = MUS_FX_SKIP_PATTERN | new_param;
 		return command;
 	}
 	
@@ -192,6 +201,7 @@ int import_mod(FILE *f)
 	for (int i = 0; i < instruments; ++i)
 	{
 		mused.song.instrument[i].flags = 0;
+		mused.song.instrument[i].cydflags = 0;
 	
 		char name[MUS_INSTRUMENT_NAME_LEN + 1] = { 0 };
 		fread(name, 1, 22, f);
@@ -207,8 +217,8 @@ int import_mod(FILE *f)
 		
 		if (sample_length[i] > 1)
 		{
-			mused.song.instrument[i].cydflags = CYD_CHN_ENABLE_WAVE | CYD_CHN_WAVE_OVERRIDE_ENV | CYD_CHN_ENABLE_KEY_SYNC;
-			mused.song.instrument[i].flags = MUS_INST_SET_PW | MUS_INST_SET_CUTOFF;
+			mused.song.instrument[i].cydflags |= CYD_CHN_ENABLE_WAVE | CYD_CHN_WAVE_OVERRIDE_ENV | CYD_CHN_ENABLE_KEY_SYNC;
+			mused.song.instrument[i].flags |= MUS_INST_SET_PW | MUS_INST_SET_CUTOFF;
 			mused.song.instrument[i].wavetable_entry = wt_e++;
 		}
 		

@@ -184,6 +184,27 @@ enum
 	FT_EF_COUNT
 };
 
+enum
+{
+	INST_TYPE_BLANK = 0,
+	
+	INST_TYPE_2A03_PULSE, //including MMC5 channels
+	INST_TYPE_2A03_TRI,
+	INST_TYPE_2A03_NOISE,
+	INST_TYPE_2A03_DPCM,
+
+	INST_TYPE_VRC6_PULSE,
+	INST_TYPE_VRC6_SAW,
+
+	INST_TYPE_VRC7,
+
+	INST_TYPE_FDS,
+
+	INST_TYPE_N163,
+
+	INST_TYPE_S5B,
+};
+
 typedef struct
 {
 	char name[FAMITRACKER_BLOCK_SIGNATURE_LENGTH + 1];
@@ -217,6 +238,7 @@ typedef struct
 
 	Uint8 n163_samples[FT_N163_MAX_WAVE_COUNT][FT_N163_MAX_WAVE_SIZE];
 	Uint8 n163_samples_len;
+	Uint8 num_n163_samples;
 
 	Uint8 type;
 

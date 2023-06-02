@@ -752,7 +752,8 @@ void paste()
 					
 					//CydWavetableEntry *wave = &mused.mus.cyd->wavetable_entries[mused.selected_wavetable];
 					
-					Sint16* old_data = wave->data;
+					//Sint16* old_data = wave->data;
+					Sint16* old_data = source_wave->data;
 					
 					wave->data = calloc(wave->samples, sizeof(Sint16));
 					

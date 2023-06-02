@@ -1253,7 +1253,7 @@ void write_instrument(FILE* f, MusInstrument* inst)
 	free(fzt_inst);
 }
 
-#define SCALE_SAMPLE(x) (((x) + 32767) / 4 / 256)
+#define SCALE_SAMPLE(x) (((x) + 32767) / 4 / 256) /* -32768..32767 -> 0..63 */
 
 void write_dpcm_sample(FILE* f, CydWavetableEntry* wave, char* wave_name)
 {
@@ -1281,9 +1281,10 @@ void write_dpcm_sample(FILE* f, CydWavetableEntry* wave, char* wave_name)
 		flags |= FZT_SE_SAMPLE_LOOP;
 	}
 	
-	length = wave->samples;
-	loop_start = wave->loop_begin;
-	loop_end = wave->loop_end;
+	length = wave->samples * FZT_SAMPLE_RATE / wave->sample_rate;
+
+	loop_start = wave->loop_begin * FZT_SAMPLE_RATE / wave->sample_rate;
+	loop_end = wave->loop_end * FZT_SAMPLE_RATE / wave->sample_rate;
 	
 	Uint8* sample_data = calloc(1, length / 8 + 1);
 	memset(sample_data, 0, length / 8 + 1);
@@ -1305,7 +1306,7 @@ void write_dpcm_sample(FILE* f, CydWavetableEntry* wave, char* wave_name)
 	
 	for(int i = 0; i < length; i++)
 	{
-		Uint8 sample_value = SCALE_SAMPLE(wave->data[i]);
+		Uint8 sample_value = SCALE_SAMPLE(wave->data[i * wave->sample_rate / FZT_SAMPLE_RATE]);
 
 		if(delta_counter <= sample_value)
 		{

@@ -56,6 +56,7 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_SET_FREQUENCY_LOWER_BYTE, 0xff00, "Set frequency higher byte (0xFF0000)", "FreqHighByte", -1, -1},*/
 	
 	{MUS_FX_SET_NOISE_CONSTANT_PITCH, 0xff00, "Set noise note in \"LOCK NOISE PITCH\" mode", "NoiPitNote", 0, FREQ_TAB_SIZE - 1}, //wasn't there
+	{MUS_FX_PITCH, 0xff00, "Finetune: 0x80=0, 0=-127, 0xff=+128; 256 steps=semitone", "FineTune", 0, 0xff},
 	{MUS_FX_ARPEGGIO_ABS, 0xff00, "Set absolute arpeggio note", "AbsArp", 0, FREQ_TAB_SIZE - 1},
 	{MUS_FX_SET_EXT_ARP, 0xff00, "Set external arpeggio notes", "ExtArp", -1, -1},
 	{MUS_FX_PORTA_UP, 0xff00, "Portamento up", "PortUp", -1, -1},
@@ -347,6 +348,11 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst)
 	else if ((fi & 0xff00) == MUS_FX_SET_VOLUME || (fi & 0xff00) == MUS_FX_SET_ABSOLUTE_VOLUME)
 	{
 		snprintf(text, buffer_size, "%s (%+.1f dB)\n", name, percent_to_dB((float)(inst & 0xff) / MAX_VOLUME));
+	}
+
+	else if ((fi & 0xff00) == MUS_FX_PITCH)
+	{
+		snprintf(text, buffer_size, "%s (%d)\n", name, ((inst & 0xff) - 0x80));
 	}
 	
 	else if ((fi & 0xfff0) == MUS_FX_EXT_SET_NOISE_MODE)

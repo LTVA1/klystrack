@@ -154,6 +154,7 @@ void local_sample_header_view(GfxDomain *dest_surface, const SDL_Rect *dest, con
 				
 				inst->local_samples = (CydWavetableEntry**)realloc(inst->local_samples, sizeof(inst->local_samples[0]) * inst->num_local_samples);
 				inst->local_samples[inst->num_local_samples - 1] = (CydWavetableEntry*)calloc(1, sizeof(CydWavetableEntry));
+				memset(inst->local_samples[inst->num_local_samples - 1], 0, sizeof(CydWavetableEntry));
 				cyd_wave_entry_init(inst->local_samples[inst->num_local_samples - 1], NULL, 0, 0, 0, 0, 0);
 				
 				inst->local_sample_names = (char**)realloc(inst->local_sample_names, sizeof(inst->local_sample_names[0]) * inst->num_local_samples);

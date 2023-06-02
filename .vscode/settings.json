@@ -26,5 +26,6 @@
         "xtr1common": "c",
         "compare": "c",
         "cstdlib": "c"
-    }
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }

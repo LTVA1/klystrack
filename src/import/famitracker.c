@@ -211,7 +211,25 @@ void load_sequence_indices(FILE* f, Uint8 inst_num) //bool CSeqInstrument::Load(
 		//seq_inst_index[inst_num][i] = index;
 
 		ft_instruments[inst_num].seq_indices[i] = index;
+
+		//debug("inst num %d seq %d enable %d index %d", inst_num, i, enable, index);
 	}
+}
+
+#define NOTE_RANGE 12
+
+int GET_OCTAVE(int midi_note)
+{
+	int x = midi_note / NOTE_RANGE;
+	if (midi_note < 0 && (midi_note % NOTE_RANGE)) --x;
+	return x;
+}
+
+int GET_NOTE(int midi_note)
+{
+	int x = midi_note % NOTE_RANGE;
+	if (x < 0) x += NOTE_RANGE;
+	return ++x;
 }
 
 void load_dpcm_sample_map(Uint8 note, Uint8 octave, MusInstrument* inst, FILE* f, ftm_block* block) //const auto ReadAssignment = [&] (int Octave, int Note)
@@ -238,7 +256,7 @@ void load_dpcm_sample_map(Uint8 note, Uint8 octave, MusInstrument* inst, FILE* f
 		initial_delta_counter_positions[index] = initial_delta_counter_position;
 	}
 
-	inst->note_to_sample_array[C_ZERO + octave * 12 + note].sample = index;
+	inst->note_to_sample_array[C_ZERO + octave * 12 + note].sample = (index > 0) ? (index - 1) : MUS_NOTE_TO_SAMPLE_NONE;
 	inst->note_to_sample_array[C_ZERO + octave * 12 + note].flags |= MUS_NOTE_TO_SAMPLE_GLOBAL;
 }
 
@@ -247,6 +265,8 @@ bool load_inst_2a03(FILE* f, ftm_block* block, MusInstrument* inst, Uint8 inst_n
 	bool success = true;
 
 	//debug("loading 2A03 instrument");
+
+	Uint8 octaves = (block->version == 1) ? 6 : 8;
 
 	load_sequence_indices(f, inst_num);
 
@@ -258,19 +278,22 @@ bool load_inst_2a03(FILE* f, ftm_block* block, MusInstrument* inst, Uint8 inst_n
 
 		for(int i = 0; i < num_notes; i++)
 		{
-			Uint8 note = 0;
+			Sint8 note = 0;
 
 			fread(&note, 1, 1, f);
 
-			load_dpcm_sample_map(note % 12, note / 12, inst, f, block);
+			load_dpcm_sample_map(GET_NOTE((int)note) - 1, GET_OCTAVE((int)note) + 1, inst, f, block); //klystrack C-1 is FT C-0
 		}
 	}
 
 	else
 	{
-		for(int i = 0; i < (block->version == 1 ? 6 * 12 : 8 * 12); i++)
+		for(int i = 0; i < octaves; i++)
 		{
-			load_dpcm_sample_map(i % 12, i / 12, inst, f, block);
+			for(int j = 0; j < NOTE_RANGE; j++)
+			{
+				load_dpcm_sample_map(j, i + 1, inst, f, block);
+			}
 		}
 	}
 
@@ -387,9 +410,13 @@ bool load_inst_fds(FILE* f, ftm_block* block, MusInstrument* inst, Uint8 inst_nu
 		ft_load_fds_sequence(f, inst_num, FT_SEQ_VOLUME);
 		ft_load_fds_sequence(f, inst_num, FT_SEQ_ARPEGGIO);
 
+		ft_instruments[inst_num].seq_enable[FT_SEQ_VOLUME] = true;
+		ft_instruments[inst_num].seq_enable[FT_SEQ_ARPEGGIO] = true;
+
 		if(block->version > 2)
 		{
 			ft_load_fds_sequence(f, inst_num, FT_SEQ_PITCH);
+			ft_instruments[inst_num].seq_enable[FT_SEQ_PITCH] = true;
 		}
 	}
 
@@ -426,6 +453,8 @@ bool load_inst_n163(FILE* f, ftm_block* block, MusInstrument* inst, Uint8 inst_n
 	}
 
 	read_uint32(f, &wave_count);
+
+	ft_instruments[inst_num].num_n163_samples = wave_count;
 
 	for(int i = 0; i < wave_count; i++)
 	{
@@ -956,7 +985,9 @@ bool ft_process_sequences_block(FILE* f, ftm_block* block)
 				fread(&temp_macro->sequence[j], sizeof(Uint8), 1, f);
 			}
 
-			for(int j = 0; j < num_instruments; j++)
+			//debug("num instruments %d", num_instruments);
+
+			for(int j = 0; j < FT_MAX_INSTRUMENTS; j++)
 			{
 				if(ft_instruments[j].seq_indices[type] == index && ft_instruments[j].type == INST_2A03)
 				{
@@ -964,9 +995,9 @@ bool ft_process_sequences_block(FILE* f, ftm_block* block)
 
 					if(ft_instruments[j].seq_enable[type])
 					{
-						/*debug("Macro %d type %d instrument %d klystrack instrument %d", Indices[i], Types[i], j, ft_instruments[j].klystrack_instrument);
+						//debug("Macro %d type %d instrument %d klystrack instrument %d", Indices[i], Types[i], j, ft_instruments[j].klystrack_instrument);
 
-						for(int k = 0; k < ft_instruments[j].macros[type].sequence_size; k++)
+						/*for(int k = 0; k < ft_instruments[j].macros[type].sequence_size; k++)
 						{
 							debug("%d", ft_instruments[j].macros[type].sequence[k]);
 						}*/
@@ -986,7 +1017,7 @@ bool ft_process_sequences_block(FILE* f, ftm_block* block)
 					read_uint32(f, (Uint32*)&release_point);
 					read_uint32(f, &setting);
 
-					for(int k = 0; k < num_instruments; k++)
+					for(int k = 0; k < FT_MAX_INSTRUMENTS; k++)
 					{
 						if(ft_instruments[k].seq_indices[j] == i && ft_instruments[k].type == INST_2A03)
 						{
@@ -1007,7 +1038,7 @@ bool ft_process_sequences_block(FILE* f, ftm_block* block)
 				read_uint32(f, (Uint32*)&release_point);
 				read_uint32(f, &setting);
 
-				for(int j = 0; j < num_instruments; j++)
+				for(int j = 0; j < FT_MAX_INSTRUMENTS; j++)
 				{
 					if(ft_instruments[j].seq_indices[Types[i]] == Indices[i] && ft_instruments[j].type == INST_2A03)
 					{
@@ -1174,6 +1205,185 @@ bool ft_process_frames_block(FILE* f, ftm_block* block)
 	return success;
 }
 
+Uint16 ft_convert_command(Uint16 val, MusStep* step, Uint16 song_pos, Uint8 channel)
+{
+	Uint16 param = (val & 0xff);
+
+	switch(val >> 8)
+	{
+		case FT_EF_SPEED:
+		{
+			if(param < 0x20)
+			{
+				return MUS_FX_SET_SPEED | param;
+			}
+
+			else
+			{
+				return MUS_FX_SET_RATE | (param * 50 / 125);
+			}
+		}
+
+		case FT_EF_JUMP:
+		{
+			return 0;
+		}
+
+		case FT_EF_SKIP:
+		{
+			return MUS_FX_SKIP_PATTERN | param;
+		}
+
+		case FT_EF_HALT:
+		{
+			mused.song.song_length = song_pos; //song will hang there
+			mused.song.loop_point = song_pos;
+			return 0;
+		}
+
+		case FT_EF_VOLUME: //can't find anything about it lol
+		{
+			return MUS_FX_SET_VOLUME | param;
+		}
+
+		case FT_EF_PORTAMENTO:
+		{
+			step->ctrl |= MUS_CTRL_SLIDE; //what is this effect?
+			return 0;
+		}
+
+		case FT_EF_SWEEPUP:
+		{
+			return MUS_FX_PORTA_UP | (((param & 0x0f) << 4) / my_max(1, ((param & 0xf0) >> 4))); //TODO: more accurate conversion based on period and value
+		}
+
+		case FT_EF_SWEEPDOWN:
+		{
+			return MUS_FX_PORTA_DN | (((param & 0x0f) << 4) / my_max(1, ((param & 0xf0) >> 4)));
+		}
+
+		case FT_EF_ARPEGGIO:
+		{
+			return MUS_FX_ARPEGGIO | param;
+		}
+
+		case FT_EF_VIBRATO:
+		{
+			return MUS_FX_VIBRATO | param;
+		}
+
+		case FT_EF_TREMOLO:
+		{
+			return MUS_FX_TREMOLO | param;
+		}
+
+		case FT_EF_PITCH:
+		{
+			return MUS_FX_PITCH | param;
+		}
+
+		case FT_EF_DELAY:
+		{
+			return MUS_FX_EXT_NOTE_DELAY | (param & 0xf);
+		}
+
+		case FT_EF_DAC:
+		{
+			return 0; //bruh
+		}
+
+		case FT_EF_PORTA_UP:
+		{
+			return MUS_FX_PORTA_UP | param; //TODO: finetune speed
+		}
+
+		case FT_EF_PORTA_DOWN:
+		{
+			return MUS_FX_PORTA_DN | param; //TODO: finetune speed
+		}
+
+		case FT_EF_DUTY_CYCLE:
+		{
+			if(channel == 1 || channel == 2 || channels_to_chips[channel] == FT_SNDCHIP_MMC5) // 2A03/MMC5 pulse widths
+			{
+				return MUS_FX_PW_SET | ft_2a03_pulse_widths[param];
+			}
+
+			if(channel == 4) //noise mode
+			{
+				if(param)
+				{
+					return MUS_FX_EXT_SET_NOISE_MODE | 0b11; //1-bit & metal
+				}
+
+				else
+				{
+					return MUS_FX_EXT_SET_NOISE_MODE | 0b01; //metal only
+				}
+			}
+
+			if(channels_to_chips[channel] == FT_SNDCHIP_VRC6)
+			{
+				return MUS_FX_PW_SET | ft_vrc6_pulse_widths[param];
+			}
+
+			if(channels_to_chips[channel] == FT_SNDCHIP_N163)
+			{
+				return MUS_FX_SET_LOCAL_SAMPLE | param;
+			}
+		}
+
+		case FT_EF_SAMPLE_OFFSET:
+		{
+			return val; //TODO: add actual sample offset command later when we certainly know sample length
+		}
+
+		case FT_EF_SLIDE_UP:
+		{
+			return 0; //bruh
+		}
+
+		case FT_EF_SLIDE_DOWN:
+		{
+			return 0; //bruh
+		}
+
+		case FT_EF_VOLUME_SLIDE:
+		{
+			return MUS_FX_FADE_VOLUME | param;
+		}
+
+		case FT_EF_NOTE_CUT:
+		{
+			return MUS_FX_EXT_NOTE_CUT | (param & 0xf);
+		}
+
+		case FT_EF_RETRIGGER:
+		{
+			return MUS_FX_EXT_RETRIGGER | (param & 0xf);
+		}
+
+		case FT_EF_NOTE_RELEASE:
+		{
+			return MUS_FX_TRIGGER_RELEASE | param;
+		}
+
+		case FT_EF_PHASE_RESET:
+		{
+			return MUS_FX_PHASE_RESET | (param & 0xf);
+		}
+
+		case FT_EF_GROOVE:
+		{
+			return MUS_FX_SET_GROOVE | param;
+		}
+
+		default: break; //TODO: add at least smth for all the other effects, at least return 0 thing
+	}
+
+	return 0;
+}
+
 bool ft_process_patterns_block(FILE* f, ftm_block* block)
 {
 	bool success = true;
@@ -1223,6 +1433,8 @@ bool ft_process_patterns_block(FILE* f, ftm_block* block)
 	mused.sequenceview_steps = pattern_length;
 	mused.song.sequence_step = pattern_length;
 
+	Uint16 song_pos = 0;
+
 	while(ftell(f) < block->position + block->length) // while (!pDocFile->BlockDone())
 	{
 		//bruh famitracker jank
@@ -1258,10 +1470,14 @@ bool ft_process_patterns_block(FILE* f, ftm_block* block)
 				if(ft_sequence[j][channel] == pattern)
 				{
 					pat = &mused.song.pattern[klystrack_sequence[j][channel]];
-					break;
+					song_pos = mused.song.sequence[channel][j].position;
+
+					goto proceed;
 				}
 			}
 		}
+
+		proceed:;
 
 		for(int i = 0; i < len; i++)
 		{
@@ -1311,7 +1527,7 @@ bool ft_process_patterns_block(FILE* f, ftm_block* block)
 
 				else
 				{
-					pat->step[row].note = (note - 1) + octave * 12 + C_ZERO;
+					pat->step[row].note = (note - 1) + (octave + 1) * 12 + C_ZERO; //C-0 in FT is C-1 in klys
 				}
 
 				if(channel == 3) //noise channel
@@ -1405,35 +1621,38 @@ bool ft_process_patterns_block(FILE* f, ftm_block* block)
 
 				if(subsong_index == selected_subsong && effect != FT_EF_NONE)
 				{
-					pat->step[row].command[j] = ((Uint16)effect << 8) + param;
+					pat->step[row].command[j] = ft_convert_command(((Uint16)effect << 8) + param, &pat->step[row], song_pos + row, channel);
 					//TODO: add effect conversion
 				}
 			}
 
 			if(subsong_index == selected_subsong)
 			{
-				if(vol == FT_VOLUME_NONE)
+				if(channel != 2 && channel != 4) //no volume control on tri and DPCM
 				{
-					pat->step[row].volume = MUS_NOTE_NO_VOLUME;
-				}
-
-				else
-				{
-					pat->step[row].volume = convert_volumes_16[vol];
-				}
-
-				if(version == 0x0200)
-				{
-					if(vol == 0)
+					if(vol == FT_VOLUME_NONE)
 					{
 						pat->step[row].volume = MUS_NOTE_NO_VOLUME;
 					}
 
 					else
 					{
-						vol--;
-						vol &= 0xf;
 						pat->step[row].volume = convert_volumes_16[vol];
+					}
+
+					if(version == 0x0200)
+					{
+						if(vol == 0)
+						{
+							pat->step[row].volume = MUS_NOTE_NO_VOLUME;
+						}
+
+						else
+						{
+							vol--;
+							vol &= 0xf;
+							pat->step[row].volume = convert_volumes_16[vol];
+						}
 					}
 				}
 
@@ -1504,7 +1723,6 @@ bool ft_process_patterns_block(FILE* f, ftm_block* block)
 			}
 		}
 	}
-
 	
 	return success;
 }
@@ -1562,7 +1780,7 @@ bool ft_process_dpcm_samples_block(FILE* f, ftm_block* block)
 
 		cyd_wave_entry_init(&mused.cyd.wavetable_entries[index], data, true_size * 8, CYD_WAVE_TYPE_SINT16, 1, 1, 1);
 
-		mused.cyd.wavetable_entries[index].sample_rate = machine == FT_MACHINE_PAL ? dpcm_sample_rates_pal[15] : dpcm_sample_rates_ntsc[15];
+		mused.cyd.wavetable_entries[index].sample_rate = (machine == FT_MACHINE_PAL ? dpcm_sample_rates_pal[15] : dpcm_sample_rates_ntsc[15]);
 		mused.cyd.wavetable_entries[index].base_note = MIDDLE_C << 8;
 
 		free(data);
@@ -1594,7 +1812,7 @@ bool ft_process_header_block(FILE* f, ftm_block* block)
 	{
 		fread(&num_subsongs, sizeof(num_subsongs), 1, f);
 		num_subsongs++;
-		//TODO: add subsong selection dialog, import sequence and patterns accordingly
+		//TODO: add subsong selection dialog
 
 		if(block->version >= 3)
 		{
@@ -1723,7 +1941,7 @@ bool ft_process_sequences_vrc6_block(FILE* f, ftm_block* block)
 			fread(&temp_macro->sequence[j], sizeof(Uint8), 1, f);
 		}
 
-		for(int j = 0; j < num_instruments; j++)
+		for(int j = 0; j < FT_MAX_INSTRUMENTS; j++)
 		{
 			if(ft_instruments[j].seq_indices[type] == index && ft_instruments[j].type == INST_VRC6)
 			{
@@ -1750,7 +1968,7 @@ bool ft_process_sequences_vrc6_block(FILE* f, ftm_block* block)
 				read_uint32(f, (Uint32*)&release_point);
 				read_uint32(f, &setting);
 
-				for(int k = 0; k < num_instruments; k++)
+				for(int k = 0; k < FT_MAX_INSTRUMENTS; k++)
 				{
 					if(ft_instruments[k].seq_indices[j] == i && ft_instruments[k].type == INST_VRC6)
 					{
@@ -1771,7 +1989,7 @@ bool ft_process_sequences_vrc6_block(FILE* f, ftm_block* block)
 			read_uint32(f, (Uint32*)&release_point);
 			read_uint32(f, &setting);
 
-			for(int j = 0; j < num_instruments; j++)
+			for(int j = 0; j < FT_MAX_INSTRUMENTS; j++)
 			{
 				if(ft_instruments[j].seq_indices[Types[i]] == Indices[i] && ft_instruments[j].type == INST_VRC6)
 				{
@@ -1840,7 +2058,7 @@ bool ft_process_sequences_n163_block(FILE* f, ftm_block* block)
 			fread(&temp_macro->sequence[j], sizeof(Uint8), 1, f);
 		}
 
-		for(int j = 0; j < num_instruments; j++)
+		for(int j = 0; j < FT_MAX_INSTRUMENTS; j++)
 		{
 			if(ft_instruments[j].seq_indices[type] == index && ft_instruments[j].type == INST_N163)
 			{
@@ -1921,7 +2139,7 @@ bool ft_process_sequences_s5b_block(FILE* f, ftm_block* block)
 			fread(&temp_macro->sequence[j], sizeof(Uint8), 1, f);
 		}
 
-		for(int j = 0; j < num_instruments; j++)
+		for(int j = 0; j < FT_MAX_INSTRUMENTS; j++)
 		{
 			if(ft_instruments[j].seq_indices[type] == index && ft_instruments[j].type == INST_S5B)
 			{
@@ -1961,7 +2179,7 @@ bool ft_process_grooves_block(FILE* f, ftm_block* block)
 
 	mused.song.num_grooves = num_grooves;
 
-	mused.song.flags |= MUS_USE_GROOVE;
+	//mused.song.flags |= MUS_USE_GROOVE;
 
 	for(int i = 0; i < num_grooves; i++)
 	{
@@ -1976,6 +2194,36 @@ bool ft_process_grooves_block(FILE* f, ftm_block* block)
 
 		fread(&mused.song.grooves[index][0], sizeof(Uint8) * size, 1, f);
 	}
+
+	Uint8 subsongs = 0;
+	fread(&subsongs, sizeof(subsongs), 1, f);
+
+	for(int i = 0; i < subsongs; i++)
+	{
+		Uint8 used = 0;
+		fread(&used, sizeof(used), 1, f);
+
+		if(used == 1 && i == selected_subsong)
+		{
+			mused.song.flags |= MUS_USE_GROOVE;
+
+			Uint8 default_groove = mused.song.song_speed;
+
+			MusPattern* pat = &mused.song.pattern[0];
+			MusStep* step = &pat->step[0];
+
+			for(int j = 0; j < MUS_MAX_COMMANDS; j++)
+			{
+				if(step->command[j] == 0)
+				{
+					step->command[j] = MUS_FX_SET_GROOVE | default_groove;
+					goto end;
+				}
+			}
+		}
+	}
+
+	end:;
 	
 	return success;
 }
@@ -2231,20 +2479,35 @@ void convert_macro_value(Uint8 value, Uint8 macro_num, ft_inst* ft_instrum, Uint
 
 				case 2: //pitch
 				{
-					if(value < 0x80 && value > 0)
+					switch(ft_instrum->macros[2].setting)
 					{
-						inst_prog[*(macro_position)] = MUS_FX_PORTA_DN | my_min(0xff, (abs(value) * 6));
-					}
+						case FT_SETTING_PITCH_RELATIVE:
+						{
+							if(value < 0x80 && value > 0)
+							{
+								inst_prog[*(macro_position)] = MUS_FX_PORTA_DN | my_min(0xff, (abs(value) * 6));
+							}
 
-					if(value >= 0x80)
-					{
-						Uint8 temp = 0x100 - value;
-						inst_prog[*(macro_position)] = MUS_FX_PORTA_UP | my_min(0xff, (abs(temp) * 6));
-					}
+							if(value >= 0x80)
+							{
+								Uint8 temp = 0x100 - value;
+								inst_prog[*(macro_position)] = MUS_FX_PORTA_UP | my_min(0xff, (abs(temp) * 6));
+							}
 
-					(*macro_position)++;
-					return;
-					break;
+							(*macro_position)++;
+							return;
+							break;
+						}
+						
+						case FT_SETTING_PITCH_ABSOLUTE: //TODO: support this too
+						{
+							(*macro_position)++;
+							return;
+							break;
+						}
+
+						default: break;
+					}
 				}
 
 				case 3: //hi-pitch
@@ -2285,7 +2548,7 @@ void convert_macro_value(Uint8 value, Uint8 macro_num, ft_inst* ft_instrum, Uint
 			{
 				case 0: //volume
 				{
-					switch(ft_instrum->macros[1].setting)
+					switch(ft_instrum->macros[0].setting)
 					{
 						case FT_SETTING_VOL_64_STEPS:
 						{
@@ -2318,20 +2581,35 @@ void convert_macro_value(Uint8 value, Uint8 macro_num, ft_inst* ft_instrum, Uint
 
 				case 2: //pitch
 				{
-					if(value < 0x80 && value > 0)
+					switch(ft_instrum->macros[2].setting)
 					{
-						inst_prog[*(macro_position)] = MUS_FX_PORTA_DN | my_min(0xff, (abs(value) * 6));
-					}
+						case FT_SETTING_PITCH_RELATIVE:
+						{
+							if(value < 0x80 && value > 0)
+							{
+								inst_prog[*(macro_position)] = MUS_FX_PORTA_DN | my_min(0xff, (abs(value) * 6));
+							}
 
-					if(value >= 0x80)
-					{
-						Uint8 temp = 0x100 - value;
-						inst_prog[*(macro_position)] = MUS_FX_PORTA_UP | my_min(0xff, (abs(temp) * 6));
-					}
+							if(value >= 0x80)
+							{
+								Uint8 temp = 0x100 - value;
+								inst_prog[*(macro_position)] = MUS_FX_PORTA_UP | my_min(0xff, (abs(temp) * 6));
+							}
 
-					(*macro_position)++;
-					return;
-					break;
+							(*macro_position)++;
+							return;
+							break;
+						}
+						
+						case FT_SETTING_PITCH_ABSOLUTE:
+						{
+							(*macro_position)++;
+							return;
+							break;
+						}
+
+						default: break;
+					}
 				}
 
 				case 3: //hi-pitch
@@ -2358,6 +2636,152 @@ void convert_macro_value(Uint8 value, Uint8 macro_num, ft_inst* ft_instrum, Uint
 					(*macro_position)++;
 					return;
 					break;
+				}
+
+				default: break;
+			}
+
+			break;
+		}
+
+		case INST_N163:
+		{
+			switch(macro_num)
+			{
+				case 0: //volume
+				{
+					inst_prog[*(macro_position)] = MUS_FX_SET_VOLUME | convert_volumes_16[value];
+					(*macro_position)++;
+					return;
+					break;
+					
+					break;
+				}
+
+				case 1: //arpeggio
+				{
+					convert_macro_value_arp(value, macro_num, ft_instrum, macro_position, inst_prog, prog_unite_bits, tone_offset);
+
+					break;
+				}
+
+				case 2: //pitch
+				{
+					switch(ft_instrum->macros[2].setting)
+					{
+						case FT_SETTING_PITCH_RELATIVE:
+						{
+							if(value < 0x80 && value > 0)
+							{
+								inst_prog[*(macro_position)] = MUS_FX_PORTA_DN | my_min(0xff, (abs(value) * 6));
+							}
+
+							if(value >= 0x80)
+							{
+								Uint8 temp = 0x100 - value;
+								inst_prog[*(macro_position)] = MUS_FX_PORTA_UP | my_min(0xff, (abs(temp) * 6));
+							}
+
+							(*macro_position)++;
+							return;
+							break;
+						}
+						
+						case FT_SETTING_PITCH_ABSOLUTE:
+						{
+							(*macro_position)++;
+							return;
+							break;
+						}
+
+						default: break;
+					}
+				}
+
+				case 3: //hi-pitch
+				{
+					if(value < 0x80 && value > 0)
+					{
+						inst_prog[*(macro_position)] = MUS_FX_PORTA_DN_SEMI | my_min(0xff, (abs(value) * 2));
+					}
+
+					if(value >= 0x80)
+					{
+						Uint8 temp = 0x100 - value;
+						inst_prog[*(macro_position)] = MUS_FX_PORTA_UP_SEMI | my_min(0xff, (abs(temp) * 2));
+					}
+
+					(*macro_position)++;
+					return;
+					break;
+				}
+
+				case 4: //wavetable index
+				{
+					inst_prog[*(macro_position)] = MUS_FX_SET_LOCAL_SAMPLE | value;
+					(*macro_position)++;
+					return;
+					break;
+				}
+
+				default: break;
+			}
+
+			break;
+		}
+
+		case INST_FDS:
+		{
+			switch(macro_num)
+			{
+				case 0: //volume
+				{
+					inst_prog[*(macro_position)] = MUS_FX_SET_VOLUME | convert_volumes_32[value];
+					(*macro_position)++;
+					return;
+					break;
+					
+					break;
+				}
+
+				case 1: //arpeggio
+				{
+					convert_macro_value_arp(value, macro_num, ft_instrum, macro_position, inst_prog, prog_unite_bits, tone_offset);
+
+					break;
+				}
+
+				case 2: //pitch
+				{
+					switch(ft_instrum->macros[2].setting)
+					{
+						case FT_SETTING_PITCH_RELATIVE:
+						{
+							if(value < 0x80 && value > 0)
+							{
+								inst_prog[*(macro_position)] = MUS_FX_PORTA_DN | my_min(0xff, (abs(value) * 6));
+							}
+
+							if(value >= 0x80)
+							{
+								Uint8 temp = 0x100 - value;
+								inst_prog[*(macro_position)] = MUS_FX_PORTA_UP | my_min(0xff, (abs(temp) * 6));
+							}
+
+							(*macro_position)++;
+							return;
+							break;
+						}
+						
+						case FT_SETTING_PITCH_ABSOLUTE:
+						{
+							(*macro_position)++;
+							return;
+							break;
+						}
+
+						default: break;
+					}
 				}
 
 				default: break;
@@ -2441,6 +2865,102 @@ void convert_macro(MusInstrument* inst, Uint8 macro_num, ft_inst* ft_instrum, Ui
 	inst->program[current_program][macro_position] = MUS_FX_END;
 }
 
+bool search_inst_on_channel(Uint8 channel, Uint8 inst)
+{
+	for(int j = 0; j < sequence_length; j++)
+	{
+		MusPattern* pat = &mused.song.pattern[mused.song.sequence[channel][j].pattern];
+
+		for(int s = 0; s < pat->num_steps; s++)
+		{
+			MusStep* step = &pat->step[s];
+
+			Uint8 instr = step->instrument;
+
+			if(instr == inst)
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+void replace_instrument(Uint8 chan, Uint8 source, Uint8 dest)
+{
+	for(int j = 0; j < sequence_length; j++)
+	{
+		MusPattern* pat = &mused.song.pattern[mused.song.sequence[chan][j].pattern];
+
+		for(int s = 0; s < pat->num_steps; s++)
+		{
+			MusStep* step = &pat->step[s];
+
+			Uint8 instr = step->instrument;
+
+			if(instr == source)
+			{
+				step->instrument = dest;
+			}
+		}
+	}
+}
+
+void copy_instrument(MusInstrument* dest, MusInstrument* source)
+{
+	mus_free_inst_programs(dest);
+	mus_free_inst_samples(dest);
+
+	memcpy(dest, source, sizeof(MusInstrument));
+
+	for(int i = 0; i < source->num_macros; i++)
+	{
+		dest->program[i] = (Uint16*)calloc(1, sizeof(Uint16) * MUS_PROG_LEN);
+		dest->program_unite_bits[i] = (Uint8*)calloc(1, sizeof(Uint8) * (MUS_PROG_LEN / 8 + 1));
+
+		memcpy(dest->program[i], source->program[i], sizeof(Uint16) * MUS_PROG_LEN);
+		memcpy(dest->program_unite_bits[i], source->program_unite_bits[i], sizeof(Uint8) * (MUS_PROG_LEN / 8 + 1));
+	}
+
+	for(int op = 0; op < CYD_FM_NUM_OPS; ++op)
+	{
+		for(int i = 0; i < dest->ops[op].num_macros; i++)
+		{
+			dest->ops[op].program[i] = (Uint16*)calloc(1, sizeof(Uint16) * MUS_PROG_LEN);
+			dest->ops[op].program_unite_bits[i] = (Uint8*)calloc(1, sizeof(Uint8) * (MUS_PROG_LEN / 8 + 1));
+
+			memcpy(dest->ops[op].program[i], source->ops[op].program[i], sizeof(Uint16) * MUS_PROG_LEN);
+			memcpy(dest->ops[op].program_unite_bits[i], source->ops[op].program_unite_bits[i], sizeof(Uint8) * (MUS_PROG_LEN / 8 + 1));
+		}
+	}
+
+	dest->local_samples = (CydWavetableEntry**)calloc(1, sizeof(CydWavetableEntry*) * dest->num_local_samples);
+	dest->local_sample_names = (char**)calloc(1, sizeof(char*) * dest->num_local_samples);
+	
+	for(int j = 0; j < dest->num_local_samples; j++)
+	{
+		dest->local_samples[j] = (CydWavetableEntry*)calloc(1, sizeof(CydWavetableEntry));
+		memset(dest->local_samples[j], 0, sizeof(CydWavetableEntry));
+		cyd_wave_entry_init(dest->local_samples[j], NULL, 0, 0, 0, 0, 0);
+		
+		dest->local_sample_names[j] = (char*)calloc(1, sizeof(char) * MUS_WAVETABLE_NAME_LEN);
+		memset(dest->local_sample_names[j], 0, sizeof(char) * MUS_WAVETABLE_NAME_LEN);
+	}
+
+	for(int i = 0; i < dest->num_local_samples; i++)
+	{
+		memcpy(dest->local_samples[i], source->local_samples[i], sizeof(CydWavetableEntry));
+		memcpy(dest->local_sample_names[i], source->local_sample_names[i], sizeof(char) * MUS_WAVETABLE_NAME_LEN);
+
+		if(source->local_samples[i]->data)
+		{
+			dest->local_samples[i]->data = (Sint16*)calloc(1, sizeof(Sint16) * dest->local_samples[i]->samples);
+			memcpy(dest->local_samples[i]->data, source->local_samples[i]->data, sizeof(Sint16) * dest->local_samples[i]->samples);
+		}
+	}
+}
+
 void convert_instruments()
 {
 	debug("converting instruments");
@@ -2453,13 +2973,15 @@ void convert_instruments()
 		inst->flags |= MUS_INST_RELATIVE_VOLUME;
 
 		inst->cydflags &= ~(CYD_CHN_ENABLE_KEY_SYNC | CYD_CHN_ENABLE_TRIANGLE);
-		inst->cydflags |= CYD_CHN_ENABLE_PULSE;
+		inst->cydflags |= CYD_CHN_ENABLE_PULSE | CYD_CHN_ENABLE_FILTER;
 		inst->pw = 0x0dff;
+
+		inst->flttype = FLT_HP;
+		inst->cutoff = 0x3;
 
 		inst->adsr.a = 0;
 		inst->adsr.d = 0;
 		inst->adsr.s = 0x1f; //this is default 2A03 Pulse wave instrument
-		inst->adsr.r = 0x3f;
 	}
 
 	for(int i = 0; i < num_instruments; i++)
@@ -2487,21 +3009,6 @@ void convert_instruments()
 		{
 			case INST_2A03:
 			{
-				/*if(ft_instrum->seq_enable[0] && ft_instrum->macros[0].sequence_size > 0)
-				{
-					inst->prog_period[current_program] = 1;
-
-					convert_macro(inst, 0, ft_instrum, current_program);
-
-					for(int j = 1; j < MUS_PROG_LEN; j++)
-					{
-						if((inst->program[0][j] & 0xff00) == MUS_FX_JUMP && inst->program[current_program][j] != MUS_FX_NOP && inst->program[current_program][j] != MUS_FX_END 
-						&& (inst->program[0][j] & 0xff) != j) inst->program_unite_bits[0][(j - 1) / 8] |= 1 << ((j - 1) & 7);
-					}
-
-					strcpy(inst->program_names[current_program], sequence_names[0]);
-				}*/
-
 				for(int j = 0; j < FT_SEQ_CNT; j++)
 				{
 					if(ft_instrum->seq_enable[j] && ft_instrum->macros[j].sequence_size > 0)
@@ -2537,15 +3044,6 @@ void convert_instruments()
 
 			case INST_VRC6:
 			{
-				/*if(ft_instrum->seq_enable[0] && ft_instrum->macros[0].sequence_size > 0)
-				{
-					inst->prog_period[current_program] = 1;
-
-					convert_macro(inst, 0, ft_instrum, current_program);
-
-					strcpy(inst->program_names[current_program], sequence_names_vrc6[0]);
-				}*/
-
 				for(int j = 0; j < FT_SEQ_CNT; j++)
 				{
 					if(ft_instrum->seq_enable[j] && ft_instrum->macros[j].sequence_size > 0)
@@ -2579,14 +3077,807 @@ void convert_instruments()
 				break;
 			}
 
+			case INST_N163:
+			{
+				for(int j = 0; j < FT_SEQ_CNT; j++)
+				{
+					if(ft_instrum->seq_enable[j] && ft_instrum->macros[j].sequence_size > 0)
+					{
+						inst->prog_period[current_program] = 1;
+
+						convert_macro(inst, j, ft_instrum, current_program);
+
+						for(int k = 1; k < MUS_PROG_LEN; k++)
+						{
+							if((inst->program[current_program][k] & 0xff00) == MUS_FX_JUMP && inst->program[current_program][k] != MUS_FX_NOP && inst->program[current_program][k] != MUS_FX_END 
+							&& (inst->program[current_program][k] & 0xff) != k) inst->program_unite_bits[current_program][(k - 1) / 8] |= 1 << ((k - 1) & 7);
+						}
+
+						strcpy(inst->program_names[current_program], sequence_names_n163[j]);
+
+						current_program++;
+
+						inst->num_macros++;
+
+						inst->program[current_program] = (Uint16*)calloc(1, sizeof(Uint16) * MUS_PROG_LEN);
+						inst->program_unite_bits[current_program] = (Uint8*)calloc(1, sizeof(Uint8) * (MUS_PROG_LEN / 8 + 1));
+
+						for(int k = 0; k < MUS_PROG_LEN; k++)
+						{
+							inst->program[current_program][k] = MUS_FX_NOP;
+						}
+					}
+				}
+
+				break;
+			}
+
+			case INST_FDS:
+			{
+				for(int j = 0; j < FT_SEQ_CNT; j++)
+				{
+					if(ft_instrum->seq_enable[j] && ft_instrum->macros[j].sequence_size > 0)
+					{
+						inst->prog_period[current_program] = 1;
+
+						convert_macro(inst, j, ft_instrum, current_program);
+
+						for(int k = 1; k < MUS_PROG_LEN; k++)
+						{
+							if((inst->program[current_program][k] & 0xff00) == MUS_FX_JUMP && inst->program[current_program][k] != MUS_FX_NOP && inst->program[current_program][k] != MUS_FX_END 
+							&& (inst->program[current_program][k] & 0xff) != k) inst->program_unite_bits[current_program][(k - 1) / 8] |= 1 << ((k - 1) & 7);
+						}
+
+						strcpy(inst->program_names[current_program], sequence_names_fds[j]);
+
+						current_program++;
+
+						inst->num_macros++;
+
+						inst->program[current_program] = (Uint16*)calloc(1, sizeof(Uint16) * MUS_PROG_LEN);
+						inst->program_unite_bits[current_program] = (Uint8*)calloc(1, sizeof(Uint8) * (MUS_PROG_LEN / 8 + 1));
+
+						for(int k = 0; k < MUS_PROG_LEN; k++)
+						{
+							inst->program[current_program][k] = MUS_FX_NOP;
+						}
+					}
+				}
+
+				break;
+			}
+
 			default: break;
 		}
 
-		for(int j = 0; j < FT_SEQ_CNT; j++)
+		if(ft_instrum->type == INST_2A03 || ft_instrum->type == INST_VRC6 || ft_instrum->type == INST_N163 || ft_instrum->type == INST_FDS)
 		{
-			
+			for(int j = 0; j < FT_SEQ_CNT; j++)
+			{
+				if(ft_instrum->seq_enable[j] && ft_instrum->macros[j].sequence_size > 0 && ft_instrum->macros[j].release != -1)
+				{
+					inst->adsr.r = 0x3f;
+				}
+			}
+		}
+
+		if(ft_instrum->type == INST_N163 && ft_instrum->num_n163_samples > 0)
+		{
+			inst->cydflags &= ~(CYD_CHN_ENABLE_PULSE);
+			inst->cydflags |= CYD_CHN_ENABLE_WAVE;
+
+			inst->flags |= MUS_INST_USE_LOCAL_SAMPLES;
+
+			inst->local_sample = 0; //even if no macro is set we play 1st sample
+
+			if(ft_instrum->num_n163_samples > 1)
+			{
+				mus_free_inst_samples(inst);
+
+				inst->num_local_samples = ft_instrum->num_n163_samples;
+
+				inst->local_samples = (CydWavetableEntry**)calloc(1, sizeof(CydWavetableEntry*) * inst->num_local_samples);
+				inst->local_sample_names = (char**)calloc(1, sizeof(char*) * inst->num_local_samples);
+				
+				for(int j = 0; j < inst->num_local_samples; j++)
+				{
+					inst->local_samples[j] = (CydWavetableEntry*)calloc(1, sizeof(CydWavetableEntry));
+					memset(inst->local_samples[j], 0, sizeof(CydWavetableEntry));
+					cyd_wave_entry_init(inst->local_samples[j], NULL, 0, 0, 0, 0, 0);
+					
+					inst->local_sample_names[j] = (char*)calloc(1, sizeof(char) * MUS_WAVETABLE_NAME_LEN);
+					memset(inst->local_sample_names[j], 0, sizeof(char) * MUS_WAVETABLE_NAME_LEN);
+				}
+			}
+
+			Sint16* data = (Sint16*)calloc(1, sizeof(Sint16) * ft_instrum->n163_samples_len);
+
+			for(int j = 0; j < ft_instrum->num_n163_samples; j++)
+			{
+				for(int k = 0; k < ft_instrum->n163_samples_len; k++)
+				{
+					data[k] = ((Sint16)ft_instrum->n163_samples[j][k] << 12) - 32768;
+				}
+
+				cyd_wave_entry_init(inst->local_samples[j], data, ft_instrum->n163_samples_len, CYD_WAVE_TYPE_SINT16, 1, 1, 1);
+
+				inst->local_samples[j]->base_note = (MIDDLE_C << 8);
+				inst->local_samples[j]->flags |= CYD_WAVE_LOOP | CYD_WAVE_NO_INTERPOLATION;
+				inst->local_samples[j]->loop_end = ft_instrum->n163_samples_len;
+				inst->local_samples[j]->sample_rate = (Uint64)get_freq(inst->local_samples[j]->base_note) / (Uint64)(32 * 2);
+			}
+
+			free(data);
+		}
+
+		if(ft_instrum->type == INST_FDS)
+		{
+			inst->cydflags &= ~(CYD_CHN_ENABLE_PULSE);
+			inst->cydflags |= CYD_CHN_ENABLE_WAVE;
+
+			inst->flags |= MUS_INST_USE_LOCAL_SAMPLES;
+
+			inst->local_sample = 0; //even if no macro is set we play 1st sample
+
+			Sint16* data = (Sint16*)calloc(1, sizeof(Sint16) * FT_FDS_WAVE_SIZE);
+
+			for(int k = 0; k < FT_FDS_WAVE_SIZE; k++)
+			{
+				data[k] = ((Sint16)ft_instrum->fds_wave[k] << 10) - 32768;
+			}
+
+			cyd_wave_entry_init(inst->local_samples[0], data, FT_FDS_WAVE_SIZE, CYD_WAVE_TYPE_SINT16, 1, 1, 1);
+
+			inst->local_samples[0]->base_note = (MIDDLE_C << 8);
+			inst->local_samples[0]->flags |= CYD_WAVE_LOOP | CYD_WAVE_NO_INTERPOLATION;
+			inst->local_samples[0]->loop_end = FT_FDS_WAVE_SIZE;
+			inst->local_samples[0]->sample_rate = (Uint64)get_freq(inst->local_samples[0]->base_note) / (Uint64)(FT_FDS_WAVE_SIZE);
+
+			free(data);
 		}
 	}
+
+	Uint8 curr_instrument = num_instruments; //we start from 1st empty instrument
+
+	Uint8* inst_types = (Uint8*)calloc(1, sizeof(Uint8) * NUM_INSTRUMENTS);
+
+	for(int i = 0; i < mused.song.num_channels; i++) //this setup only supports making duplicate instruments for different channels of ONE chip at a time
+	{ //e.g. if you use same instrument on 2A03 and VRC6 it wouldn't be duplicated
+		for(int j = 0; j < sequence_length; j++)
+		{
+			MusPattern* pat = &mused.song.pattern[mused.song.sequence[i][j].pattern];
+
+			for(int s = 0; s < pat->num_steps; s++)
+			{
+				MusStep* step = &pat->step[s];
+
+				Uint8 inst = step->instrument;
+
+				if(inst != MUS_NOTE_NO_INSTRUMENT)
+				{
+					if(i == 1 || i == 0 || channels_to_chips[i] == FT_SNDCHIP_MMC5) //2A03 pulse (including MMC5)
+					{
+						inst_types[inst] = INST_TYPE_2A03_PULSE;
+
+						//search for occurence of this inst on tri/noise/DPCM
+						bool is_tri = search_inst_on_channel(2, inst);
+						bool is_noise = search_inst_on_channel(3, inst);
+						bool is_dpcm = search_inst_on_channel(4, inst);
+
+						if(is_tri) //we make a copy of instrument and leave it for other channels, for tri instrument we keep source instrument but change its waveform
+						{
+							copy_instrument(&mused.song.instrument[curr_instrument], &mused.song.instrument[inst]);
+
+							inst_types[curr_instrument] = INST_TYPE_2A03_TRI;
+
+							strcat(mused.song.instrument[curr_instrument].name, " (tri)");
+
+							replace_instrument(2, inst, curr_instrument);
+
+							curr_instrument++;
+						}
+
+						if(is_noise) //we make a copy of instrument and leave it for other channels, for tri instrument we keep source instrument but change its waveform
+						{
+							copy_instrument(&mused.song.instrument[curr_instrument], &mused.song.instrument[inst]);
+
+							inst_types[curr_instrument] = INST_TYPE_2A03_NOISE;
+
+							strcat(mused.song.instrument[curr_instrument].name, " (noise)");
+
+							replace_instrument(3, inst, curr_instrument);
+
+							curr_instrument++;
+						}
+
+						if(is_dpcm) //we make a copy of instrument and leave it for other channels, for tri instrument we keep source instrument but change its waveform
+						{
+							copy_instrument(&mused.song.instrument[curr_instrument], &mused.song.instrument[inst]);
+
+							inst_types[curr_instrument] = INST_TYPE_2A03_DPCM;
+
+							strcat(mused.song.instrument[curr_instrument].name, " (DPCM)");
+
+							replace_instrument(4, inst, curr_instrument);
+
+							curr_instrument++;
+						}
+					}
+
+					if(i == 2) //2A03 triangle
+					{
+						//debug("tri inst %d", inst);
+
+						inst_types[inst] = INST_TYPE_2A03_TRI;
+
+						//search for occurence of this inst on pulse/noise/DPCM
+						bool is_pulse = search_inst_on_channel(0, inst);
+
+						if(is_pulse == false)
+						{
+							is_pulse = search_inst_on_channel(1, inst);
+						}
+
+						if(is_pulse == false)
+						{
+							for(int ch = 0; ch < mused.song.num_channels; ch++)
+							{
+								if(channels_to_chips[ch] == FT_SNDCHIP_MMC5)
+								{
+									if(is_pulse == false)
+									{
+										is_pulse = search_inst_on_channel(ch, inst);
+									}
+								}
+							}
+						}
+
+						bool is_noise = search_inst_on_channel(3, inst);
+						bool is_dpcm = search_inst_on_channel(4, inst);
+
+						if(is_pulse) //we make a copy of instrument and leave it for other channels, for tri instrument we keep source instrument but change its waveform
+						{
+							copy_instrument(&mused.song.instrument[curr_instrument], &mused.song.instrument[inst]);
+
+							inst_types[curr_instrument] = INST_TYPE_2A03_PULSE;
+
+							strcat(mused.song.instrument[curr_instrument].name, " (2A03 pulse)");
+
+							replace_instrument(0, inst, curr_instrument);
+							replace_instrument(1, inst, curr_instrument);
+
+							for(int ch = 0; ch < mused.song.num_channels; ch++)
+							{
+								if(channels_to_chips[ch] == FT_SNDCHIP_MMC5)
+								{
+									replace_instrument(ch, inst, curr_instrument);
+								}
+							}
+
+							curr_instrument++;
+						}
+
+						if(is_noise) //we make a copy of instrument and leave it for other channels, for tri instrument we keep source instrument but change its waveform
+						{
+							copy_instrument(&mused.song.instrument[curr_instrument], &mused.song.instrument[inst]);
+
+							inst_types[curr_instrument] = INST_TYPE_2A03_NOISE;
+
+							strcat(mused.song.instrument[curr_instrument].name, " (noise)");
+
+							replace_instrument(3, inst, curr_instrument);
+
+							curr_instrument++;
+						}
+
+						if(is_dpcm) //we make a copy of instrument and leave it for other channels, for tri instrument we keep source instrument but change its waveform
+						{
+							copy_instrument(&mused.song.instrument[curr_instrument], &mused.song.instrument[inst]);
+
+							inst_types[curr_instrument] = INST_TYPE_2A03_DPCM;
+
+							strcat(mused.song.instrument[curr_instrument].name, " (DPCM)");
+
+							replace_instrument(4, inst, curr_instrument);
+
+							curr_instrument++;
+						}
+					}
+
+					if(i == 3) //2A03 noise
+					{
+						inst_types[inst] = INST_TYPE_2A03_NOISE;
+
+						//search for occurence of this inst on pulse/noise/DPCM
+						bool is_pulse = search_inst_on_channel(0, inst);
+
+						if(is_pulse == false)
+						{
+							is_pulse = search_inst_on_channel(1, inst);
+						}
+
+						if(is_pulse == false)
+						{
+							for(int ch = 0; ch < mused.song.num_channels; ch++)
+							{
+								if(channels_to_chips[ch] == FT_SNDCHIP_MMC5)
+								{
+									if(is_pulse == false)
+									{
+										is_pulse = search_inst_on_channel(ch, inst);
+									}
+								}
+							}
+						}
+
+						bool is_tri = search_inst_on_channel(2, inst);
+						bool is_dpcm = search_inst_on_channel(4, inst);
+
+						if(is_pulse) //we make a copy of instrument and leave it for other channels, for tri instrument we keep source instrument but change its waveform
+						{
+							copy_instrument(&mused.song.instrument[curr_instrument], &mused.song.instrument[inst]);
+
+							inst_types[curr_instrument] = INST_TYPE_2A03_PULSE;
+
+							strcat(mused.song.instrument[curr_instrument].name, " (2A03 pulse)");
+
+							replace_instrument(0, inst, curr_instrument);
+							replace_instrument(1, inst, curr_instrument);
+
+							for(int ch = 0; ch < mused.song.num_channels; ch++)
+							{
+								if(channels_to_chips[ch] == FT_SNDCHIP_MMC5)
+								{
+									replace_instrument(ch, inst, curr_instrument);
+								}
+							}
+
+							curr_instrument++;
+						}
+
+						if(is_tri) //we make a copy of instrument and leave it for other channels, for tri instrument we keep source instrument but change its waveform
+						{
+							copy_instrument(&mused.song.instrument[curr_instrument], &mused.song.instrument[inst]);
+
+							inst_types[curr_instrument] = INST_TYPE_2A03_TRI;
+
+							strcat(mused.song.instrument[curr_instrument].name, " (tri)");
+
+							replace_instrument(2, inst, curr_instrument);
+
+							curr_instrument++;
+						}
+
+						if(is_dpcm) //we make a copy of instrument and leave it for other channels, for tri instrument we keep source instrument but change its waveform
+						{
+							copy_instrument(&mused.song.instrument[curr_instrument], &mused.song.instrument[inst]);
+
+							inst_types[curr_instrument] = INST_TYPE_2A03_DPCM;
+
+							strcat(mused.song.instrument[curr_instrument].name, " (DPCM)");
+
+							replace_instrument(4, inst, curr_instrument);
+
+							curr_instrument++;
+						}
+					}
+
+					if(i == 4) //2A03 DPCM
+					{
+						inst_types[inst] = INST_TYPE_2A03_DPCM;
+
+						//search for occurence of this inst on pulse/noise/DPCM
+						bool is_pulse = search_inst_on_channel(0, inst);
+
+						if(is_pulse == false)
+						{
+							is_pulse = search_inst_on_channel(1, inst);
+						}
+
+						if(is_pulse == false)
+						{
+							for(int ch = 0; ch < mused.song.num_channels; ch++)
+							{
+								if(channels_to_chips[ch] == FT_SNDCHIP_MMC5)
+								{
+									if(is_pulse == false)
+									{
+										is_pulse = search_inst_on_channel(ch, inst);
+									}
+								}
+							}
+						}
+
+						bool is_tri = search_inst_on_channel(2, inst);
+						bool is_noise = search_inst_on_channel(3, inst);
+
+						if(is_pulse) //we make a copy of instrument and leave it for other channels, for tri instrument we keep source instrument but change its waveform
+						{
+							copy_instrument(&mused.song.instrument[curr_instrument], &mused.song.instrument[inst]);
+
+							inst_types[curr_instrument] = INST_TYPE_2A03_PULSE;
+
+							strcat(mused.song.instrument[curr_instrument].name, " (2A03 pulse)");
+
+							replace_instrument(0, inst, curr_instrument);
+							replace_instrument(1, inst, curr_instrument);
+
+							for(int ch = 0; ch < mused.song.num_channels; ch++)
+							{
+								if(channels_to_chips[ch] == FT_SNDCHIP_MMC5)
+								{
+									replace_instrument(ch, inst, curr_instrument);
+								}
+							}
+
+							curr_instrument++;
+						}
+
+						if(is_tri) //we make a copy of instrument and leave it for other channels, for tri instrument we keep source instrument but change its waveform
+						{
+							copy_instrument(&mused.song.instrument[curr_instrument], &mused.song.instrument[inst]);
+
+							inst_types[curr_instrument] = INST_TYPE_2A03_TRI;
+
+							strcat(mused.song.instrument[curr_instrument].name, " (tri)");
+
+							replace_instrument(2, inst, curr_instrument);
+
+							curr_instrument++;
+						}
+
+						if(is_noise) //we make a copy of instrument and leave it for other channels, for tri instrument we keep source instrument but change its waveform
+						{
+							copy_instrument(&mused.song.instrument[curr_instrument], &mused.song.instrument[inst]);
+
+							inst_types[curr_instrument] = INST_TYPE_2A03_NOISE;
+
+							strcat(mused.song.instrument[curr_instrument].name, " (noise)");
+
+							replace_instrument(3, inst, curr_instrument);
+
+							curr_instrument++;
+						}
+					}
+
+					if(channels_to_chips[i] == FT_SNDCHIP_VRC6 && channels_to_chips[i + 1] == FT_SNDCHIP_VRC6) //VRC6 pulse (1st/2nd channel)
+					{
+						bool is_vrc6_saw = false;
+
+						Sint8 saw_channel = -1;
+
+						inst_types[inst] = INST_TYPE_VRC6_PULSE;
+
+						for(int ch = 0; ch < mused.song.num_channels; ch++)
+						{
+							if(channels_to_chips[ch] == FT_SNDCHIP_VRC6 && channels_to_chips[ch - 1] == FT_SNDCHIP_VRC6 && channels_to_chips[ch - 2] == FT_SNDCHIP_VRC6) //VRC6 saw (3rd channel)
+							{
+								is_vrc6_saw = search_inst_on_channel(ch, inst);
+								saw_channel = ch;
+							}
+						}
+
+						if(is_vrc6_saw && saw_channel != -1)
+						{
+							copy_instrument(&mused.song.instrument[curr_instrument], &mused.song.instrument[inst]);
+
+							inst_types[curr_instrument] = INST_TYPE_VRC6_SAW;
+
+							strcat(mused.song.instrument[curr_instrument].name, " (VRC6 sawtooth)");
+
+							replace_instrument(saw_channel, inst, curr_instrument);
+
+							curr_instrument++;
+						}
+					}
+
+					if(channels_to_chips[i] == FT_SNDCHIP_VRC6 && channels_to_chips[i - 1] == FT_SNDCHIP_VRC6 && channels_to_chips[i - 2] == FT_SNDCHIP_VRC6) //VRC6 saw (3rd channel)
+					{
+						inst_types[inst] = INST_TYPE_VRC6_SAW;
+
+						bool is_vrc6_pulse = search_inst_on_channel(i - 2, inst);
+
+						if(is_vrc6_pulse == false)
+						{
+							is_vrc6_pulse = search_inst_on_channel(i - 1, inst);
+						}
+
+						if(is_vrc6_pulse) //we make a copy of instrument and leave it for other channels, for tri instrument we keep source instrument but change its waveform
+						{
+							copy_instrument(&mused.song.instrument[curr_instrument], &mused.song.instrument[inst]);
+
+							inst_types[curr_instrument] = INST_TYPE_VRC6_PULSE;
+
+							strcat(mused.song.instrument[curr_instrument].name, " (VRC6 pulse)");
+
+							replace_instrument(i - 2, inst, curr_instrument);
+							replace_instrument(i - 1, inst, curr_instrument);
+
+							curr_instrument++;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	bool need_tri = false;
+	bool need_vrc6_saw = false;
+
+	Uint8 nes_tri = 0;
+	Uint8 vrc6_saw = 0;
+
+	for(int i = 0; i < curr_instrument; i++)
+	{
+		debug("inst types %d %d", i, inst_types[i]);
+
+		if(inst_types[i] == INST_TYPE_2A03_TRI)
+		{
+			need_tri = true;
+		}
+
+		if(inst_types[i] == INST_TYPE_VRC6_SAW)
+		{
+			need_vrc6_saw = true;
+		}
+	}
+
+	if(need_tri)
+	{
+		for(int i = 0; i < CYD_WAVE_MAX_ENTRIES; i++)
+		{
+			if(mused.cyd.wavetable_entries[i].data == NULL && strcmp(mused.song.wavetable_names[i], "") == 0)
+			{
+				Sint16* data = (Sint16*)calloc(1, sizeof(Sint16) * 32);
+
+				for(int j = 0; j < 32; j++)
+				{
+					if(j < 16)
+					{
+						data[j] = -32768 + 65536 * j / 16;
+					}
+
+					else
+					{
+						data[j] = 32767 - 65536 * (j - 16) / 16;
+					}
+				}
+
+				mused.cyd.wavetable_entries[i].flags |= CYD_WAVE_NO_INTERPOLATION | CYD_WAVE_LOOP;
+				mused.cyd.wavetable_entries[i].base_note = MIDDLE_C << 8;
+				
+				cyd_wave_entry_init(&mused.cyd.wavetable_entries[i], data, 32, CYD_WAVE_TYPE_SINT16, 1, 1, 1);
+
+				mused.cyd.wavetable_entries[i].loop_begin = 0;
+				mused.cyd.wavetable_entries[i].loop_end = 32;
+
+				mused.cyd.wavetable_entries[i].sample_rate = get_freq(MIDDLE_C << 8) * 32 / 1024 / 2;
+
+				strcpy(mused.song.wavetable_names[i], "Ricoh 2A03/2A07 triangle wave");
+
+				free(data);
+
+				nes_tri = i;
+
+				goto saw;
+			}
+		}
+	}
+
+	saw:;
+
+	if(need_vrc6_saw)
+	{
+		for(int i = 0; i < CYD_WAVE_MAX_ENTRIES; i++)
+		{
+			if(mused.cyd.wavetable_entries[i].data == NULL && strcmp(mused.song.wavetable_names[i], "") == 0)
+			{
+				Sint16* data = (Sint16*)calloc(1, sizeof(Sint16) * 8);
+
+				for(int j = 0; j < 8; j++)
+				{
+					data[j] = -32767 - 65536 * j / 8;
+				}
+
+				mused.cyd.wavetable_entries[i].flags |= CYD_WAVE_NO_INTERPOLATION | CYD_WAVE_LOOP;
+				mused.cyd.wavetable_entries[i].base_note = MIDDLE_C << 8;
+				
+				cyd_wave_entry_init(&mused.cyd.wavetable_entries[i], data, 8, CYD_WAVE_TYPE_SINT16, 1, 1, 1);
+
+				mused.cyd.wavetable_entries[i].loop_begin = 0;
+				mused.cyd.wavetable_entries[i].loop_end = 8;
+
+				mused.cyd.wavetable_entries[i].sample_rate = get_freq(MIDDLE_C << 8) * 8 / 1024 / 2;
+
+				strcpy(mused.song.wavetable_names[i], "Konami VRC6 sawtooth wave");
+
+				free(data);
+
+				vrc6_saw = i;
+
+				goto insts;
+			}
+		}
+	}
+
+	insts:;
+
+	for(int i = 0; i < curr_instrument; i++) //this setup only supports making duplicate instruments for different channels of ONE chip at a time
+	{
+		MusInstrument* inst = &mused.song.instrument[i];
+
+		switch(inst_types[i])
+		{
+			case INST_TYPE_2A03_TRI:
+			{
+				debug("processing tri inst %d", i);
+
+				for(int j = 0; j < inst->num_macros; j++)
+				{
+					if(strcmp(inst->program_names[j], sequence_names[0]) == 0) //volume macro
+					{
+						for(int k = j; k < inst->num_macros - 1; k++)
+						{
+							memcpy(inst->program[k], inst->program[k + 1], sizeof(Uint16) * MUS_PROG_LEN);
+							memcpy(inst->program_unite_bits[k], inst->program_unite_bits[k + 1], sizeof(Uint8) * (MUS_PROG_LEN / 8 + 1));
+
+							memcpy(inst->program_names[k], inst->program_names[k + 1], sizeof(char) * (MUS_MACRO_NAME_LEN + 1));
+						}
+
+						free(inst->program[inst->num_macros - 1]);
+						inst->program[inst->num_macros - 1] = NULL;
+						free(inst->program_unite_bits[inst->num_macros - 1]);
+						inst->program_unite_bits[inst->num_macros - 1] = NULL;
+						inst->num_macros--;
+						
+						goto next1;
+					}
+				}
+
+				next1:;
+
+				inst->cydflags &= ~(CYD_CHN_ENABLE_PULSE);
+				inst->flags &= ~(MUS_INST_USE_LOCAL_SAMPLES);
+				//inst->cydflags |= CYD_CHN_ENABLE_TRIANGLE; //TODO: add faithful NES tri
+				inst->cydflags |= CYD_CHN_ENABLE_WAVE;
+
+				inst->wavetable_entry = nes_tri;
+
+				break;
+			}
+
+			case INST_TYPE_2A03_NOISE:
+			{
+				inst->cydflags &= ~(CYD_CHN_ENABLE_PULSE);
+				inst->cydflags |= CYD_CHN_ENABLE_NOISE | CYD_CHN_ENABLE_1_BIT_NOISE;
+
+				for(int j = 0; j < inst->num_macros; j++)
+				{
+					if(strcmp(inst->program_names[j], sequence_names[4]) == 0) //convert pulse widths to noise modes
+					{
+						for(int s = 0; s < MUS_PROG_LEN; s++)
+						{
+							if((inst->program[j][s] & 0xff00) == MUS_FX_PW_SET)
+							{
+								if((inst->program[j][s] & 0xff) == ft_2a03_pulse_widths[1] || (inst->program[j][s] & 0xff) == ft_2a03_pulse_widths[3])
+								{
+									inst->program[j][s] = MUS_FX_EXT_SET_NOISE_MODE | 0b11;
+								}
+
+								else
+								{
+									inst->program[j][s] = MUS_FX_EXT_SET_NOISE_MODE | 0b01;
+								}
+							}
+						}
+
+						goto end;
+					}
+				}
+
+				end:;
+
+				break;
+			}
+
+			case INST_TYPE_2A03_DPCM:
+			{
+				for(int s = 0; s < MUS_PROG_LEN; s++)
+				{
+					inst->program[0][s] = MUS_FX_NOP;
+				}
+
+				memset(inst->program_unite_bits[0], 0, MUS_PROG_LEN / 8 + 1);
+
+				for(int j = 1; j < inst->num_macros; j++)
+				{
+					free(inst->program[j]);
+					inst->program[j] = NULL;
+					free(inst->program_unite_bits[j]);
+					inst->program_unite_bits[j] = NULL;
+				}
+
+				inst->num_macros = 1;
+
+				inst->cydflags &= ~(CYD_CHN_ENABLE_PULSE);
+				inst->cydflags |= CYD_CHN_ENABLE_WAVE;
+				inst->flags |= MUS_INST_BIND_LOCAL_SAMPLES_TO_NOTES | MUS_INST_WAVE_LOCK_NOTE | MUS_INST_USE_LOCAL_SAMPLES;
+				break;
+			}
+
+			case INST_TYPE_VRC6_SAW:
+			{
+				inst->cydflags &= ~(CYD_CHN_ENABLE_PULSE);
+				inst->flags &= ~(MUS_INST_USE_LOCAL_SAMPLES);
+				//inst->cydflags |= CYD_CHN_ENABLE_SAW; //TODO: add proper VRC6 sawtooth
+
+				inst->cydflags |= CYD_CHN_ENABLE_WAVE;
+
+				inst->wavetable_entry = vrc6_saw;
+
+				for(int j = 0; j < inst->num_macros; j++)
+				{
+					if(strcmp(inst->program_names[j], sequence_names_vrc6[4]) == 0) //get rid of pulse widths
+					{
+						free(inst->program[j]);
+						inst->program[j] = NULL;
+						free(inst->program_unite_bits[j]);
+						inst->program_unite_bits[j] = NULL;
+
+						inst->num_macros--;
+					}
+				}
+
+				break;
+			}
+
+			default: break;
+		}
+	}
+
+	free(inst_types);
+}
+
+void add_volumes() //Famitracker saves last volume, klystrack does not, so we force last volume for all consecutive notes until new volume is encountered
+{
+	for(int i = 0; i < mused.song.num_channels; i++)
+	{
+		Uint8 vol = MUS_NOTE_NO_VOLUME;
+
+		for(int j = 0; j < sequence_length; j++)
+		{
+			MusPattern* pat = &mused.song.pattern[mused.song.sequence[i][j].pattern];
+
+			for(int s = 0; s < pat->num_steps; s++)
+			{
+				MusStep* step = &pat->step[s];
+
+				if(step->note != MUS_NOTE_NONE && step->note != MUS_NOTE_RELEASE && step->note != MUS_NOTE_CUT && step->note != MUS_NOTE_MACRO_RELEASE && step->note != MUS_NOTE_RELEASE_WITHOUT_MACRO)
+				{
+					if(step->volume != MUS_NOTE_NO_VOLUME)
+					{
+						vol = step->volume;
+					}
+
+					else
+					{
+						step->volume = vol;
+					}
+				}
+			}
+		}
+	}
+}
+
+void set_channel_volumes()
+{
+	for(int i = 0; i < mused.song.num_channels; i++)
+	{
+		mused.song.default_volume[i] = 0x20;
+	}
+
+	mused.song.default_volume[4] = 0x80; //DPCM volume 4x the usual channel volume
+	mused.song.default_volume[2] = 0x40; //triangle volume 2x the usual channel volume
 }
 
 bool import_ft_old(FILE* f, int type, ftm_block* blocks, bool is_dn_ft_sig)
@@ -2686,6 +3977,10 @@ bool import_ft_new(FILE* f, int type, ftm_block* blocks, bool is_dn_ft_sig)
 	}
 
 	convert_instruments();
+
+	add_volumes();
+
+	set_channel_volumes();
 	
 	debug("finished processing blocks");
 
