@@ -87,6 +87,7 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_PW_UP, 0xff00, "Pulse width up", "PWUp", -1, -1},
 	{MUS_FX_PW_SET, 0xff00, "Set pulse width", "PW", -1, -1},
 	{MUS_FX_SET_VOLUME, 0xff00, "Set volume", "Volume", 0, 0xff},
+	{MUS_FX_SET_VOLUME_FROM_PROGRAM, 0xff00, "Set volume from inst. program (relative to current volume)", "ProgVol", 0, 0xff},
 	{MUS_FX_SET_ABSOLUTE_VOLUME, 0xff00, "Set absolute volume (doesn't obey \"relative\" flag)", "AbsVol", 0, 0xff},
 	{MUS_FX_FADE_GLOBAL_VOLUME, 0xff00, "Global volume fade", "GlobFade", -1, -1},
 	{MUS_FX_SET_GLOBAL_VOLUME, 0xff00, "Set global volume", "GlobVol", 0, MAX_VOLUME},

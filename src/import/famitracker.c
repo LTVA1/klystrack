@@ -1528,11 +1528,17 @@ bool ft_process_patterns_block(FILE* f, ftm_block* block)
 				else
 				{
 					pat->step[row].note = (note - 1) + (octave + 1) * 12 + C_ZERO; //C-0 in FT is C-1 in klys
-				}
 
-				if(channel == 3) //noise channel
-				{
-					pat->step[row].note = noise_notes[(note + octave * 12) - (12 + 5)];
+					if(channel == 2)
+					{
+						pat->step[row].note -= 12; //looks like it's the only way to make triangle sound properly?
+						//because in macros we still use absolute values hmm
+					}
+
+					if(channel == 3) //noise channel
+					{
+						pat->step[row].note = noise_notes[(note + octave * 12) - (12 + 5)];
+					}
 				}
 
 				//=========================================================
@@ -2464,7 +2470,7 @@ void convert_macro_value(Uint8 value, Uint8 macro_num, ft_inst* ft_instrum, Uint
 			{
 				case 0: //volume
 				{
-					inst_prog[*(macro_position)] = MUS_FX_SET_VOLUME | convert_volumes_16[value];
+					inst_prog[*(macro_position)] = MUS_FX_SET_VOLUME_FROM_PROGRAM | convert_volumes_16[value];
 					(*macro_position)++;
 					return;
 					break;
@@ -2499,8 +2505,52 @@ void convert_macro_value(Uint8 value, Uint8 macro_num, ft_inst* ft_instrum, Uint
 							break;
 						}
 						
-						case FT_SETTING_PITCH_ABSOLUTE: //TODO: support this too
+						case FT_SETTING_PITCH_ABSOLUTE:
 						{
+							if(value < 0x80 && value > 0)
+							{
+								Uint16 temp = value * 6 * 2;
+
+								prog_unite_bits[(*(macro_position)) / 8] |= 1 << ((*(macro_position)) & 7);
+
+								if((temp >> 8) < 0x80)
+								{
+									inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO_DOWN | (Uint8)(temp >> 8);
+									(*macro_position)++;
+									inst_prog[*(macro_position)] = MUS_FX_PITCH | (Uint8)(0x80 - (temp & 0xff));
+								}
+
+								else
+								{
+									inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO_DOWN | (Uint8)((temp >> 8) + 1);
+									(*macro_position)++;
+									inst_prog[*(macro_position)] = MUS_FX_PITCH | (Uint8)(0x80 + (temp & 0xff));
+								}
+							}
+
+							if(value >= 0x80) //going up
+							{
+								Uint8 tempp = 0x100 - value;
+
+								Uint16 temp = tempp * 6 * 2;
+								
+								prog_unite_bits[(*(macro_position)) / 8] |= 1 << ((*(macro_position)) & 7);
+
+								if((temp >> 8) < 0x80)
+								{
+									inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO | (Uint8)(temp >> 8);
+									(*macro_position)++;
+									inst_prog[*(macro_position)] = MUS_FX_PITCH | (Uint8)(0x80 + (temp & 0xff));
+								}
+
+								else
+								{
+									inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO | (Uint8)((temp >> 8) + 1);
+									(*macro_position)++;
+									inst_prog[*(macro_position)] = MUS_FX_PITCH | (Uint8)(0x80 - (temp & 0xff));
+								}
+							}
+
 							(*macro_position)++;
 							return;
 							break;
@@ -2552,7 +2602,7 @@ void convert_macro_value(Uint8 value, Uint8 macro_num, ft_inst* ft_instrum, Uint
 					{
 						case FT_SETTING_VOL_64_STEPS:
 						{
-							inst_prog[*(macro_position)] = MUS_FX_SET_VOLUME | convert_volumes_64[value];
+							inst_prog[*(macro_position)] = MUS_FX_SET_VOLUME_FROM_PROGRAM | convert_volumes_64[value];
 							(*macro_position)++;
 							return;
 							break;
@@ -2560,7 +2610,7 @@ void convert_macro_value(Uint8 value, Uint8 macro_num, ft_inst* ft_instrum, Uint
 
 						case FT_SETTING_VOL_16_STEPS:
 						{
-							inst_prog[*(macro_position)] = MUS_FX_SET_VOLUME | convert_volumes_16[value];
+							inst_prog[*(macro_position)] = MUS_FX_SET_VOLUME_FROM_PROGRAM | convert_volumes_16[value];
 							(*macro_position)++;
 							return;
 							break;
@@ -2603,6 +2653,50 @@ void convert_macro_value(Uint8 value, Uint8 macro_num, ft_inst* ft_instrum, Uint
 						
 						case FT_SETTING_PITCH_ABSOLUTE:
 						{
+							if(value < 0x80 && value > 0)
+							{
+								Uint16 temp = value * 6 * 2;
+
+								prog_unite_bits[(*(macro_position)) / 8] |= 1 << ((*(macro_position)) & 7);
+
+								if((temp >> 8) < 0x80)
+								{
+									inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO_DOWN | (Uint8)(temp >> 8);
+									(*macro_position)++;
+									inst_prog[*(macro_position)] = MUS_FX_PITCH | (Uint8)(0x80 - (temp & 0xff));
+								}
+
+								else
+								{
+									inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO_DOWN | (Uint8)((temp >> 8) + 1);
+									(*macro_position)++;
+									inst_prog[*(macro_position)] = MUS_FX_PITCH | (Uint8)(0x80 + (temp & 0xff));
+								}
+							}
+
+							if(value >= 0x80) //going up
+							{
+								Uint8 tempp = 0x100 - value;
+
+								Uint16 temp = tempp * 6 * 2;
+								
+								prog_unite_bits[(*(macro_position)) / 8] |= 1 << ((*(macro_position)) & 7);
+
+								if((temp >> 8) < 0x80)
+								{
+									inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO | (Uint8)(temp >> 8);
+									(*macro_position)++;
+									inst_prog[*(macro_position)] = MUS_FX_PITCH | (Uint8)(0x80 + (temp & 0xff));
+								}
+
+								else
+								{
+									inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO | (Uint8)((temp >> 8) + 1);
+									(*macro_position)++;
+									inst_prog[*(macro_position)] = MUS_FX_PITCH | (Uint8)(0x80 - (temp & 0xff));
+								}
+							}
+
 							(*macro_position)++;
 							return;
 							break;
@@ -2650,7 +2744,7 @@ void convert_macro_value(Uint8 value, Uint8 macro_num, ft_inst* ft_instrum, Uint
 			{
 				case 0: //volume
 				{
-					inst_prog[*(macro_position)] = MUS_FX_SET_VOLUME | convert_volumes_16[value];
+					inst_prog[*(macro_position)] = MUS_FX_SET_VOLUME_FROM_PROGRAM | convert_volumes_16[value];
 					(*macro_position)++;
 					return;
 					break;
@@ -2689,6 +2783,50 @@ void convert_macro_value(Uint8 value, Uint8 macro_num, ft_inst* ft_instrum, Uint
 						
 						case FT_SETTING_PITCH_ABSOLUTE:
 						{
+							if(value < 0x80 && value > 0)
+							{
+								Uint16 temp = value * 6 * 2;
+
+								prog_unite_bits[(*(macro_position)) / 8] |= 1 << ((*(macro_position)) & 7);
+
+								if((temp >> 8) < 0x80)
+								{
+									inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO_DOWN | (Uint8)(temp >> 8);
+									(*macro_position)++;
+									inst_prog[*(macro_position)] = MUS_FX_PITCH | (Uint8)(0x80 - (temp & 0xff));
+								}
+
+								else
+								{
+									inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO_DOWN | (Uint8)((temp >> 8) + 1);
+									(*macro_position)++;
+									inst_prog[*(macro_position)] = MUS_FX_PITCH | (Uint8)(0x80 + (temp & 0xff));
+								}
+							}
+
+							if(value >= 0x80) //going up
+							{
+								Uint8 tempp = 0x100 - value;
+
+								Uint16 temp = tempp * 6 * 2;
+								
+								prog_unite_bits[(*(macro_position)) / 8] |= 1 << ((*(macro_position)) & 7);
+
+								if((temp >> 8) < 0x80)
+								{
+									inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO | (Uint8)(temp >> 8);
+									(*macro_position)++;
+									inst_prog[*(macro_position)] = MUS_FX_PITCH | (Uint8)(0x80 + (temp & 0xff));
+								}
+
+								else
+								{
+									inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO | (Uint8)((temp >> 8) + 1);
+									(*macro_position)++;
+									inst_prog[*(macro_position)] = MUS_FX_PITCH | (Uint8)(0x80 - (temp & 0xff));
+								}
+							}
+
 							(*macro_position)++;
 							return;
 							break;
@@ -2736,7 +2874,7 @@ void convert_macro_value(Uint8 value, Uint8 macro_num, ft_inst* ft_instrum, Uint
 			{
 				case 0: //volume
 				{
-					inst_prog[*(macro_position)] = MUS_FX_SET_VOLUME | convert_volumes_32[value];
+					inst_prog[*(macro_position)] = MUS_FX_SET_VOLUME_FROM_PROGRAM | convert_volumes_32[value];
 					(*macro_position)++;
 					return;
 					break;
@@ -2775,6 +2913,50 @@ void convert_macro_value(Uint8 value, Uint8 macro_num, ft_inst* ft_instrum, Uint
 						
 						case FT_SETTING_PITCH_ABSOLUTE:
 						{
+							if(value < 0x80 && value > 0)
+							{
+								Uint16 temp = value * 6 * 2;
+
+								prog_unite_bits[(*(macro_position)) / 8] |= 1 << ((*(macro_position)) & 7);
+
+								if((temp >> 8) < 0x80)
+								{
+									inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO_DOWN | (Uint8)(temp >> 8);
+									(*macro_position)++;
+									inst_prog[*(macro_position)] = MUS_FX_PITCH | (Uint8)(0x80 - (temp & 0xff));
+								}
+
+								else
+								{
+									inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO_DOWN | (Uint8)((temp >> 8) + 1);
+									(*macro_position)++;
+									inst_prog[*(macro_position)] = MUS_FX_PITCH | (Uint8)(0x80 + (temp & 0xff));
+								}
+							}
+
+							if(value >= 0x80) //going up
+							{
+								Uint8 tempp = 0x100 - value;
+
+								Uint16 temp = tempp * 6 * 2;
+								
+								prog_unite_bits[(*(macro_position)) / 8] |= 1 << ((*(macro_position)) & 7);
+
+								if((temp >> 8) < 0x80)
+								{
+									inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO | (Uint8)(temp >> 8);
+									(*macro_position)++;
+									inst_prog[*(macro_position)] = MUS_FX_PITCH | (Uint8)(0x80 + (temp & 0xff));
+								}
+
+								else
+								{
+									inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO | (Uint8)((temp >> 8) + 1);
+									(*macro_position)++;
+									inst_prog[*(macro_position)] = MUS_FX_PITCH | (Uint8)(0x80 - (temp & 0xff));
+								}
+							}
+
 							(*macro_position)++;
 							return;
 							break;
@@ -2977,7 +3159,7 @@ void convert_instruments()
 		inst->pw = 0x0dff;
 
 		inst->flttype = FLT_HP;
-		inst->cutoff = 0x3;
+		inst->cutoff = 0x4;
 
 		inst->adsr.a = 0;
 		inst->adsr.d = 0;
@@ -3302,6 +3484,65 @@ void convert_instruments()
 
 							curr_instrument++;
 						}
+
+						bool is_vrc6_saw = false; //instrument may also be used on VRC6 channel; example is "The Tower of Dreams" by nu11
+
+						Sint8 saw_channel = -1;
+
+						for(int ch = 0; ch < mused.song.num_channels; ch++)
+						{
+							if(channels_to_chips[ch] == FT_SNDCHIP_VRC6 && channels_to_chips[ch - 1] == FT_SNDCHIP_VRC6 && channels_to_chips[ch - 2] == FT_SNDCHIP_VRC6) //VRC6 saw (3rd channel)
+							{
+								is_vrc6_saw = search_inst_on_channel(ch, inst);
+								saw_channel = ch;
+							}
+						}
+
+						if(is_vrc6_saw && saw_channel != -1)
+						{
+							copy_instrument(&mused.song.instrument[curr_instrument], &mused.song.instrument[inst]);
+
+							inst_types[curr_instrument] = INST_TYPE_VRC6_SAW;
+
+							strcat(mused.song.instrument[curr_instrument].name, " (VRC6 sawtooth)");
+
+							replace_instrument(saw_channel, inst, curr_instrument);
+
+							curr_instrument++;
+						}
+
+						bool is_vrc6_pulse = false;
+
+						Uint8 vrc6_saw_chan = 0;
+
+						for(int ch = 0; ch < mused.song.num_channels; ch++)
+						{
+							if(channels_to_chips[ch] == FT_SNDCHIP_VRC6 && channels_to_chips[ch - 1] == FT_SNDCHIP_VRC6 && channels_to_chips[ch - 2] == FT_SNDCHIP_VRC6) //we are on VRC6 sawtooth channel; scan two previous ones
+							{
+								is_vrc6_pulse = search_inst_on_channel(ch - 2, inst);
+
+								if(is_vrc6_pulse == false)
+								{
+									is_vrc6_pulse = search_inst_on_channel(ch - 1, inst);
+								}
+
+								vrc6_saw_chan = ch;
+							}
+						}
+
+						if(is_vrc6_pulse) //we make a copy of instrument and leave it for other channels, for tri instrument we keep source instrument but change its waveform
+						{
+							copy_instrument(&mused.song.instrument[curr_instrument], &mused.song.instrument[inst]);
+
+							inst_types[curr_instrument] = INST_TYPE_VRC6_PULSE;
+
+							strcat(mused.song.instrument[curr_instrument].name, " (VRC6 pulse)");
+
+							replace_instrument(vrc6_saw_chan - 2, inst, curr_instrument);
+							replace_instrument(vrc6_saw_chan - 1, inst, curr_instrument);
+
+							curr_instrument++;
+						}
 					}
 
 					if(i == 2) //2A03 triangle
@@ -3379,6 +3620,65 @@ void convert_instruments()
 							strcat(mused.song.instrument[curr_instrument].name, " (DPCM)");
 
 							replace_instrument(4, inst, curr_instrument);
+
+							curr_instrument++;
+						}
+
+						bool is_vrc6_saw = false; //instrument may also be used on VRC6 channel; example is "The Tower of Dreams" by nu11
+
+						Sint8 saw_channel = -1;
+
+						for(int ch = 0; ch < mused.song.num_channels; ch++)
+						{
+							if(channels_to_chips[ch] == FT_SNDCHIP_VRC6 && channels_to_chips[ch - 1] == FT_SNDCHIP_VRC6 && channels_to_chips[ch - 2] == FT_SNDCHIP_VRC6) //VRC6 saw (3rd channel)
+							{
+								is_vrc6_saw = search_inst_on_channel(ch, inst);
+								saw_channel = ch;
+							}
+						}
+
+						if(is_vrc6_saw && saw_channel != -1)
+						{
+							copy_instrument(&mused.song.instrument[curr_instrument], &mused.song.instrument[inst]);
+
+							inst_types[curr_instrument] = INST_TYPE_VRC6_SAW;
+
+							strcat(mused.song.instrument[curr_instrument].name, " (VRC6 sawtooth)");
+
+							replace_instrument(saw_channel, inst, curr_instrument);
+
+							curr_instrument++;
+						}
+
+						bool is_vrc6_pulse = false;
+
+						Uint8 vrc6_saw_chan = 0;
+
+						for(int ch = 0; ch < mused.song.num_channels; ch++)
+						{
+							if(channels_to_chips[ch] == FT_SNDCHIP_VRC6 && channels_to_chips[ch - 1] == FT_SNDCHIP_VRC6 && channels_to_chips[ch - 2] == FT_SNDCHIP_VRC6) //we are on VRC6 sawtooth channel; scan two previous ones
+							{
+								is_vrc6_pulse = search_inst_on_channel(ch - 2, inst);
+
+								if(is_vrc6_pulse == false)
+								{
+									is_vrc6_pulse = search_inst_on_channel(ch - 1, inst);
+								}
+
+								vrc6_saw_chan = ch;
+							}
+						}
+
+						if(is_vrc6_pulse) //we make a copy of instrument and leave it for other channels, for tri instrument we keep source instrument but change its waveform
+						{
+							copy_instrument(&mused.song.instrument[curr_instrument], &mused.song.instrument[inst]);
+
+							inst_types[curr_instrument] = INST_TYPE_VRC6_PULSE;
+
+							strcat(mused.song.instrument[curr_instrument].name, " (VRC6 pulse)");
+
+							replace_instrument(vrc6_saw_chan - 2, inst, curr_instrument);
+							replace_instrument(vrc6_saw_chan - 1, inst, curr_instrument);
 
 							curr_instrument++;
 						}
@@ -3460,6 +3760,65 @@ void convert_instruments()
 
 							curr_instrument++;
 						}
+
+						bool is_vrc6_saw = false; //instrument may also be used on VRC6 channel; example is "The Tower of Dreams" by nu11
+
+						Sint8 saw_channel = -1;
+
+						for(int ch = 0; ch < mused.song.num_channels; ch++)
+						{
+							if(channels_to_chips[ch] == FT_SNDCHIP_VRC6 && channels_to_chips[ch - 1] == FT_SNDCHIP_VRC6 && channels_to_chips[ch - 2] == FT_SNDCHIP_VRC6) //VRC6 saw (3rd channel)
+							{
+								is_vrc6_saw = search_inst_on_channel(ch, inst);
+								saw_channel = ch;
+							}
+						}
+
+						if(is_vrc6_saw && saw_channel != -1)
+						{
+							copy_instrument(&mused.song.instrument[curr_instrument], &mused.song.instrument[inst]);
+
+							inst_types[curr_instrument] = INST_TYPE_VRC6_SAW;
+
+							strcat(mused.song.instrument[curr_instrument].name, " (VRC6 sawtooth)");
+
+							replace_instrument(saw_channel, inst, curr_instrument);
+
+							curr_instrument++;
+						}
+
+						bool is_vrc6_pulse = false;
+
+						Uint8 vrc6_saw_chan = 0;
+
+						for(int ch = 0; ch < mused.song.num_channels; ch++)
+						{
+							if(channels_to_chips[ch] == FT_SNDCHIP_VRC6 && channels_to_chips[ch - 1] == FT_SNDCHIP_VRC6 && channels_to_chips[ch - 2] == FT_SNDCHIP_VRC6) //we are on VRC6 sawtooth channel; scan two previous ones
+							{
+								is_vrc6_pulse = search_inst_on_channel(ch - 2, inst);
+
+								if(is_vrc6_pulse == false)
+								{
+									is_vrc6_pulse = search_inst_on_channel(ch - 1, inst);
+								}
+
+								vrc6_saw_chan = ch;
+							}
+						}
+
+						if(is_vrc6_pulse) //we make a copy of instrument and leave it for other channels, for tri instrument we keep source instrument but change its waveform
+						{
+							copy_instrument(&mused.song.instrument[curr_instrument], &mused.song.instrument[inst]);
+
+							inst_types[curr_instrument] = INST_TYPE_VRC6_PULSE;
+
+							strcat(mused.song.instrument[curr_instrument].name, " (VRC6 pulse)");
+
+							replace_instrument(vrc6_saw_chan - 2, inst, curr_instrument);
+							replace_instrument(vrc6_saw_chan - 1, inst, curr_instrument);
+
+							curr_instrument++;
+						}
 					}
 
 					if(i == 4) //2A03 DPCM
@@ -3538,6 +3897,65 @@ void convert_instruments()
 
 							curr_instrument++;
 						}
+
+						bool is_vrc6_saw = false; //instrument may also be used on VRC6 channel; example is "The Tower of Dreams" by nu11
+
+						Sint8 saw_channel = -1;
+
+						for(int ch = 0; ch < mused.song.num_channels; ch++)
+						{
+							if(channels_to_chips[ch] == FT_SNDCHIP_VRC6 && channels_to_chips[ch - 1] == FT_SNDCHIP_VRC6 && channels_to_chips[ch - 2] == FT_SNDCHIP_VRC6) //VRC6 saw (3rd channel)
+							{
+								is_vrc6_saw = search_inst_on_channel(ch, inst);
+								saw_channel = ch;
+							}
+						}
+
+						if(is_vrc6_saw && saw_channel != -1)
+						{
+							copy_instrument(&mused.song.instrument[curr_instrument], &mused.song.instrument[inst]);
+
+							inst_types[curr_instrument] = INST_TYPE_VRC6_SAW;
+
+							strcat(mused.song.instrument[curr_instrument].name, " (VRC6 sawtooth)");
+
+							replace_instrument(saw_channel, inst, curr_instrument);
+
+							curr_instrument++;
+						}
+
+						bool is_vrc6_pulse = false;
+
+						Uint8 vrc6_saw_chan = 0;
+
+						for(int ch = 0; ch < mused.song.num_channels; ch++)
+						{
+							if(channels_to_chips[ch] == FT_SNDCHIP_VRC6 && channels_to_chips[ch - 1] == FT_SNDCHIP_VRC6 && channels_to_chips[ch - 2] == FT_SNDCHIP_VRC6) //we are on VRC6 sawtooth channel; scan two previous ones
+							{
+								is_vrc6_pulse = search_inst_on_channel(ch - 2, inst);
+
+								if(is_vrc6_pulse == false)
+								{
+									is_vrc6_pulse = search_inst_on_channel(ch - 1, inst);
+								}
+
+								vrc6_saw_chan = ch;
+							}
+						}
+
+						if(is_vrc6_pulse) //we make a copy of instrument and leave it for other channels, for tri instrument we keep source instrument but change its waveform
+						{
+							copy_instrument(&mused.song.instrument[curr_instrument], &mused.song.instrument[inst]);
+
+							inst_types[curr_instrument] = INST_TYPE_VRC6_PULSE;
+
+							strcat(mused.song.instrument[curr_instrument].name, " (VRC6 pulse)");
+
+							replace_instrument(vrc6_saw_chan - 2, inst, curr_instrument);
+							replace_instrument(vrc6_saw_chan - 1, inst, curr_instrument);
+
+							curr_instrument++;
+						}
 					}
 
 					if(channels_to_chips[i] == FT_SNDCHIP_VRC6 && channels_to_chips[i + 1] == FT_SNDCHIP_VRC6) //VRC6 pulse (1st/2nd channel)
@@ -3609,7 +4027,7 @@ void convert_instruments()
 
 	for(int i = 0; i < curr_instrument; i++)
 	{
-		debug("inst types %d %d", i, inst_types[i]);
+		//debug("inst types %d %d", i, inst_types[i]);
 
 		if(inst_types[i] == INST_TYPE_2A03_TRI)
 		{
@@ -3651,7 +4069,7 @@ void convert_instruments()
 				mused.cyd.wavetable_entries[i].loop_begin = 0;
 				mused.cyd.wavetable_entries[i].loop_end = 32;
 
-				mused.cyd.wavetable_entries[i].sample_rate = get_freq(MIDDLE_C << 8) * 32 / 1024 / 2;
+				mused.cyd.wavetable_entries[i].sample_rate = get_freq(MIDDLE_C << 8) * 32 / 1024;
 
 				strcpy(mused.song.wavetable_names[i], "Ricoh 2A03/2A07 triangle wave");
 
@@ -3687,7 +4105,7 @@ void convert_instruments()
 				mused.cyd.wavetable_entries[i].loop_begin = 0;
 				mused.cyd.wavetable_entries[i].loop_end = 8;
 
-				mused.cyd.wavetable_entries[i].sample_rate = get_freq(MIDDLE_C << 8) * 8 / 1024 / 2;
+				mused.cyd.wavetable_entries[i].sample_rate = get_freq(MIDDLE_C << 8) * 8 / 1024;
 
 				strcpy(mused.song.wavetable_names[i], "Konami VRC6 sawtooth wave");
 
@@ -3770,12 +4188,19 @@ void convert_instruments()
 								}
 							}
 						}
+					}
 
-						goto end;
+					if(strcmp(inst->program_names[j], sequence_names[1]) == 0) //arpeggio
+					{
+						for(int s = 0; s < MUS_PROG_LEN; s++)
+						{
+							if((inst->program[j][s] & 0xff00) == MUS_FX_ARPEGGIO)
+							{
+								inst->program[j][s] = MUS_FX_ARPEGGIO | my_min(FREQ_TAB_SIZE - 1, ((inst->program[j][s] & 0xff) << 2));
+							}
+						}
 					}
 				}
-
-				end:;
 
 				break;
 			}
@@ -3874,10 +4299,15 @@ void set_channel_volumes()
 	for(int i = 0; i < mused.song.num_channels; i++)
 	{
 		mused.song.default_volume[i] = 0x20;
+
+		if(channels_to_chips[i] == FT_SNDCHIP_FDS)
+		{
+			mused.song.default_volume[i] = 0x40;
+		}
 	}
 
 	mused.song.default_volume[4] = 0x80; //DPCM volume 4x the usual channel volume
-	mused.song.default_volume[2] = 0x40; //triangle volume 2x the usual channel volume
+	mused.song.default_volume[2] = 0x50; //triangle volume 2x the usual channel volume
 }
 
 bool import_ft_old(FILE* f, int type, ftm_block* blocks, bool is_dn_ft_sig)
