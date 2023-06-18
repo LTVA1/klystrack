@@ -37,7 +37,12 @@ extern Mused mused;
 
 Uint16 find_command_pt(Uint16 command, int sample_length)
 {
-	if ((command & 0xff00) == 0x0c00)
+	if ((command & 0xff00) == 0x0000 && (command & 0xff) != 0)
+	{
+		command = MUS_FX_SET_EXT_ARP | (command & 0xff);
+		return command;
+	}
+	else if ((command & 0xff00) == 0x0c00)
 	{
 		command = MUS_FX_SET_VOLUME | ((command & 0xff) * 2);
 		//command = MUS_FX_SET_ABSOLUTE_VOLUME | ((command & 0xff) * 2);
@@ -65,7 +70,7 @@ Uint16 find_command_pt(Uint16 command, int sample_length)
 	}
 	else if ((command & 0xff00) == 0x0300)
 	{
-		command = MUS_FX_FAST_SLIDE | (command & 0xff);
+		command = MUS_FX_FAST_SLIDE | ((command & 0xff) / 2);
 		return command;
 	}
 	else if ((command & 0xff00) == 0x0900 && sample_length)
@@ -73,12 +78,12 @@ Uint16 find_command_pt(Uint16 command, int sample_length)
 		command = MUS_FX_WAVETABLE_OFFSET | ((Uint64)(command & 0xff) * 256 * 0x1000 / (Uint64)sample_length);
 		return command;
 	}
-	else if ((command & 0xff00) == 0x0000 && (command & 0xff) != 0)
+
+	else if ((command & 0xff00) == 0x0b00) //Bxx finally :euphoria:
 	{
-		command = MUS_FX_SET_EXT_ARP | (command & 0xff);
+		command = MUS_FX_JUMP_SEQUENCE_POSITION | (command & 0xff);
 		return command;
 	}
-	
 	
 	else if ((command & 0xff00) == 0x0d00)
 	{
@@ -222,6 +227,15 @@ int import_mod(FILE *f)
 			mused.song.instrument[i].wavetable_entry = wt_e++;
 		}
 		
+		//mused.song.instrument[i].prog_period[0] = 1;
+		//mused.song.instrument[i].program[0][0] = MUS_FX_ARPEGGIO;
+		//mused.song.instrument[i].program[0][1] = MUS_FX_ARPEGGIO | 0xf0;
+		//mused.song.instrument[i].program[0][2] = MUS_FX_ARPEGGIO | 0xf1; //external arp notes for arp effects
+
+		//mused.song.instrument[i].program_unite_bits[0][2 / 8] |= 1 << (2 & 7);
+
+		//mused.song.instrument[i].program[0][3] = MUS_FX_JUMP;
+
 		fread(&mused.song.instrument[i].volume, 1, 1, f);
 		mused.song.instrument[i].volume *= 2;
 		
@@ -299,10 +313,10 @@ int import_mod(FILE *f)
 					mused.song.pattern[pat].step[s].ctrl |= MUS_CTRL_VIB;
 				}
 					
-				if (command != 0 && param != 0)
+				if (param != 0) //(command != 0 && param != 0)
 					lp[c][command] = param;
 				
-				mused.song.pattern[pat].step[s].command[0] = find_command_pt(lp[c][command] | ((Uint16)command << 8), sl[c]);
+				mused.song.pattern[pat].step[s].command[0] = find_command_pt(param | ((Uint16)command << 8), sl[c]);
 				++pat;
 			}
 		}

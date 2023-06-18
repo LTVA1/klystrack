@@ -99,6 +99,11 @@ void find_command_xm(Uint16 command, MusStep* step)
 	}
 	
 	//Bxx not currently supported in klystrack
+	else if ((command & 0xff00) == 0x0b00) //Bxx finally :euphoria:
+	{
+		step->command[0] = MUS_FX_JUMP_SEQUENCE_POSITION | (command & 0xff);
+		return ;
+	}
 	
 	if ((command & 0xff00) == 0x0c00)
 	{
@@ -108,7 +113,11 @@ void find_command_xm(Uint16 command, MusStep* step)
 	
 	else if ((command & 0xff00) == 0x0d00)
 	{
-		step->command[0] = MUS_FX_SKIP_PATTERN | (command & 0xff);
+		//step->command[0] = MUS_FX_SKIP_PATTERN | (command & 0xff);
+		//command = MUS_FX_SKIP_PATTERN | (command & 0xff);
+
+		Uint8 new_param = (command & 0xf) + ((command & 0xff) >> 4) * 10; //hex to decimal, Protracker (and XM too!) lol
+		step->command[0] = MUS_FX_SKIP_PATTERN | new_param;
 		return;
 	}
 	

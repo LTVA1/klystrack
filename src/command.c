@@ -115,6 +115,7 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_LOOP_PATTERN, 0xff00, "Loop pattern", "PatLoop", -1, -1},
 	{MUS_FX_FT2_PATTERN_LOOP, 0xfff0, "Loop pattern (FastTracker II style)", "PatLoopFT2", -1, -1},
 	{MUS_FX_SKIP_PATTERN, 0xff00, "Skip pattern", "PatSkip", -1, -1},
+	{MUS_FX_JUMP_SEQUENCE_POSITION, 0xff00, "Jump to sequence position (Bxx style)", "JumpSeq", -1, -1},
 	{MUS_FX_TRIGGER_RELEASE, 0xff00, "Trigger release", "Release", 0, 0xff},
 	{MUS_FX_TRIGGER_MACRO_RELEASE, 0xff00, "Trigger macro release", "ProgRelease", 0, 0xff},
 	{MUS_FX_TRIGGER_CARRIER_RELEASE, 0xff00, "Trigger FM carrier release", "FMcarRelease", 0, 0xff}, //wasn't there

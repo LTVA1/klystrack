@@ -1226,7 +1226,7 @@ Uint16 ft_convert_command(Uint16 val, MusStep* step, Uint16 song_pos, Uint8 chan
 
 		case FT_EF_JUMP:
 		{
-			return 0;
+			return MUS_FX_JUMP_SEQUENCE_POSITION | param;
 		}
 
 		case FT_EF_SKIP:

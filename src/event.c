@@ -2547,6 +2547,13 @@ static void play_note(int note)
 		int c = mus_trigger_instrument(&mused.mus, -1, &mused.song.instrument[mused.current_instrument], note << 8, CYD_PAN_CENTER);
 		note_playing[c] = note;
 
+		for(int s = 0; s < CYD_SUB_OSCS; s++)
+		{
+			mused.cyd.channel[c].subosc[s].accumulator = 0;
+			mused.cyd.channel[c].subosc[s].noise_accumulator = 0;
+			mused.cyd.channel[c].subosc[s].wave.acc = 0;
+		}
+
 		mused.mus.song_track[c].extarp1 = 0;
 		mused.mus.song_track[c].extarp2 = 0;
 	}
@@ -2632,12 +2639,12 @@ static void play_the_jams(int sym, int chn, int state)
 					
 					int c = mus_trigger_instrument(&mused.mus, chn, &mused.song.instrument[mused.current_instrument], note << 8, CYD_PAN_CENTER);
 					
-					mused.cyd.channel[c].subosc[0].wave.acc = 0;
-					mused.cyd.channel[c].subosc[1].wave.acc = 0;
-					mused.cyd.channel[c].subosc[2].wave.acc = 0;
-					
-					mused.mus.song_track[c].extarp1 = 0;
-					mused.mus.song_track[c].extarp2 = 0;
+					for(int s = 0; s < CYD_SUB_OSCS; s++)
+					{
+						mused.cyd.channel[c].subosc[s].accumulator = 0;
+						mused.cyd.channel[c].subosc[s].noise_accumulator = 0;
+						mused.cyd.channel[c].subosc[s].wave.acc = 0;
+					}
 				}
 			}
 		}
