@@ -366,7 +366,7 @@ void transpose_note_data(void *semitones, void *unused1, void *unused2)
 			int semi = CASTPTR(int, semitones);
 			int note = (int)pat->step[i].note + semi;
 
-			if (note >= 0 && note < 12 * 10)
+			if (note >= 0 && note < FREQ_TAB_SIZE)
 			{
 				pat->step[i].note = note;
 			}
@@ -380,7 +380,7 @@ void transpose_song_data(void *semitones, void *unused1, void *unused2)
 	if (mused.focus != EDITPATTERN)
     return;
 	
-	for(int p = 0; p < 256; ++p)
+	for(int p = 0; p < NUM_PATTERNS; ++p)
 	{
 		MusPattern *pat = &mused.song.pattern[p];
 
@@ -388,7 +388,7 @@ void transpose_song_data(void *semitones, void *unused1, void *unused2)
 		{
 			snapshot(S_T_PATTERN);
 
-			debug("Transposing pattern %d", p);
+			//debug("Transposing pattern %d", p);
 
 			for (int i = 0; i < pat->num_steps; ++i)
 			{
@@ -397,7 +397,7 @@ void transpose_song_data(void *semitones, void *unused1, void *unused2)
 					int semi = CASTPTR(int, semitones);
 					int note = (int)pat->step[i].note + semi;
 
-					if (note >= 0 && note < 12 * 10)
+					if (note >= 0 && note < FREQ_TAB_SIZE)
 					{
 						pat->step[i].note = note;
 					}

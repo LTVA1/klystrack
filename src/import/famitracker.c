@@ -1205,7 +1205,7 @@ bool ft_process_frames_block(FILE* f, ftm_block* block)
 	return success;
 }
 
-Uint16 ft_convert_command(Uint16 val, MusStep* step, Uint16 song_pos, Uint8 channel)
+void ft_convert_command(Uint16 val, MusStep* step, Uint16 song_pos, Uint8 channel, Uint8 column, Uint8 row)
 {
 	Uint16 param = (val & 0xff);
 
@@ -1215,173 +1215,222 @@ Uint16 ft_convert_command(Uint16 val, MusStep* step, Uint16 song_pos, Uint8 chan
 		{
 			if(param < 0x20)
 			{
-				return MUS_FX_SET_SPEED | param;
+				step->command[column] = MUS_FX_SET_SPEED | param;
 			}
 
 			else
 			{
-				return MUS_FX_SET_RATE | (param * 50 / 125);
+				step->command[column] = MUS_FX_SET_RATE | (param * 50 / 125);
 			}
+
+			break;
 		}
 
 		case FT_EF_JUMP:
 		{
-			return MUS_FX_JUMP_SEQUENCE_POSITION | param;
+			step->command[column] = MUS_FX_JUMP_SEQUENCE_POSITION | param;
+			break;
 		}
 
 		case FT_EF_SKIP:
 		{
-			return MUS_FX_SKIP_PATTERN | param;
+			step->command[column] = MUS_FX_SKIP_PATTERN | param;
+			break;
 		}
 
 		case FT_EF_HALT:
 		{
 			mused.song.song_length = song_pos; //song will hang there
 			mused.song.loop_point = song_pos;
-			return 0;
+			break;
 		}
 
 		case FT_EF_VOLUME: //can't find anything about it lol
 		{
-			return MUS_FX_SET_VOLUME | param;
+			step->command[column] = MUS_FX_SET_VOLUME | param;
+			break;
 		}
 
 		case FT_EF_PORTAMENTO:
 		{
-			step->ctrl |= MUS_CTRL_SLIDE; //what is this effect?
-			return 0;
+			step->command[column] = MUS_FX_FAST_SLIDE | (param / 4);
+			step->command[MUS_MAX_COMMANDS - 1] = CONV_MARKER;
+			break;
 		}
 
 		case FT_EF_SWEEPUP:
 		{
-			return MUS_FX_PORTA_UP | (((param & 0x0f) << 4) / my_max(1, ((param & 0xf0) >> 4))); //TODO: more accurate conversion based on period and value
+			//step->command[column] = MUS_FX_PORTA_UP | (((param & 0x0f) << 4) / my_max(1, ((param & 0xf0) >> 4))); //TODO: more accurate conversion based on period and value
+			step->command[column] = MUS_FX_PORTA_UP | ((0xf0 - ((param & 0x0f) << 4)) | ((param & 0xf0) >> 4));
+
+			step->command[MUS_MAX_COMMANDS - 1] = CONV_MARKER_SWEEP;
+			break;
 		}
 
 		case FT_EF_SWEEPDOWN:
 		{
-			return MUS_FX_PORTA_DN | (((param & 0x0f) << 4) / my_max(1, ((param & 0xf0) >> 4)));
+			step->command[column] = MUS_FX_PORTA_DN | ((0xf0 - ((param & 0x0f) << 4)) | ((param & 0xf0) >> 4));
+			step->command[MUS_MAX_COMMANDS - 1] = CONV_MARKER_SWEEP;
+			break;
 		}
 
 		case FT_EF_ARPEGGIO:
 		{
-			return MUS_FX_ARPEGGIO | param;
+			step->command[column] = MUS_FX_ARPEGGIO | param;
+			break;
 		}
 
 		case FT_EF_VIBRATO:
 		{
-			return MUS_FX_VIBRATO | param;
+			if(param)
+			{
+				step->command[column] = MUS_FX_VIBRATO | (my_max(1, (((param & 0xf0) >> 4) / 2)) << 4) | my_max(1, ((param & 0xf) / 2));
+			}
+
+			else
+			{
+				step->command[column] = MUS_FX_VIBRATO;
+			}
+
+			break;
 		}
 
 		case FT_EF_TREMOLO:
 		{
-			return MUS_FX_TREMOLO | param;
+			step->command[column] = MUS_FX_TREMOLO | param;
+			break;
 		}
 
 		case FT_EF_PITCH:
 		{
-			return MUS_FX_PITCH | param;
+			step->command[column] = MUS_FX_PITCH | param;
+			break;
 		}
 
 		case FT_EF_DELAY:
 		{
-			return MUS_FX_EXT_NOTE_DELAY | (param & 0xf);
+			step->command[column] = MUS_FX_EXT_NOTE_DELAY | (param & 0xf);
+			break;
 		}
 
 		case FT_EF_DAC:
 		{
-			return 0; //bruh
+			return; //bruh
 		}
 
 		case FT_EF_PORTA_UP:
 		{
-			return MUS_FX_PORTA_UP | param; //TODO: finetune speed
+			step->command[column] = MUS_FX_PORTA_UP | param; //TODO: finetune speed
+			step->command[MUS_MAX_COMMANDS - 1] = CONV_MARKER;
+			break;
 		}
 
 		case FT_EF_PORTA_DOWN:
 		{
-			return MUS_FX_PORTA_DN | param; //TODO: finetune speed
+			step->command[column] = MUS_FX_PORTA_DN | param; //TODO: finetune speed
+			step->command[MUS_MAX_COMMANDS - 1] = CONV_MARKER;
+			break;
 		}
 
 		case FT_EF_DUTY_CYCLE:
 		{
 			if(channel == 1 || channel == 2 || channels_to_chips[channel] == FT_SNDCHIP_MMC5) // 2A03/MMC5 pulse widths
 			{
-				return MUS_FX_PW_SET | ft_2a03_pulse_widths[param];
+				step->command[column] = MUS_FX_PW_SET | ft_2a03_pulse_widths[param];
 			}
 
 			if(channel == 4) //noise mode
 			{
 				if(param)
 				{
-					return MUS_FX_EXT_SET_NOISE_MODE | 0b11; //1-bit & metal
+					step->command[column] = MUS_FX_EXT_SET_NOISE_MODE | 0b11; //1-bit & metal
 				}
 
 				else
 				{
-					return MUS_FX_EXT_SET_NOISE_MODE | 0b01; //metal only
+					step->command[column] = MUS_FX_EXT_SET_NOISE_MODE | 0b01; //metal only
 				}
 			}
 
 			if(channels_to_chips[channel] == FT_SNDCHIP_VRC6)
 			{
-				return MUS_FX_PW_SET | ft_vrc6_pulse_widths[param];
+				step->command[column] = MUS_FX_PW_SET | ft_vrc6_pulse_widths[param];
 			}
 
 			if(channels_to_chips[channel] == FT_SNDCHIP_N163)
 			{
-				return MUS_FX_SET_LOCAL_SAMPLE | param;
+				step->command[column] = MUS_FX_SET_LOCAL_SAMPLE | param;
 			}
+
+			break;
 		}
 
 		case FT_EF_SAMPLE_OFFSET:
 		{
-			return val; //TODO: add actual sample offset command later when we certainly know sample length
+			step->command[column] = val; //TODO: add actual sample offset command later when we certainly know sample length
+			break;
 		}
 
 		case FT_EF_SLIDE_UP:
 		{
-			return 0; //bruh
+			if(row < pattern_length - 1)
+			{
+				(step + 1)->command[column] = MUS_FX_SLIDE | (0x3 * (param >> 4)); //bruh
+				step->command[MUS_MAX_COMMANDS - 1] = CONV_MARKER;
+			}
+
+			break;
 		}
 
 		case FT_EF_SLIDE_DOWN:
 		{
-			return 0; //bruh
+			if(row < pattern_length - 1)
+			{
+				(step + 1)->command[column] = MUS_FX_SLIDE | (0x3 * (param >> 4)); //bruh
+				step->command[MUS_MAX_COMMANDS - 1] = CONV_MARKER_DOWN;
+			}
+
+			break;
 		}
 
 		case FT_EF_VOLUME_SLIDE:
 		{
-			return MUS_FX_FADE_VOLUME | param;
+			step->command[column] = MUS_FX_FADE_VOLUME | param;
+			break;
 		}
 
 		case FT_EF_NOTE_CUT:
 		{
-			return MUS_FX_EXT_NOTE_CUT | (param & 0xf);
+			step->command[column] = MUS_FX_EXT_NOTE_CUT | (param & 0xf);
+			break;
 		}
 
 		case FT_EF_RETRIGGER:
 		{
-			return MUS_FX_EXT_RETRIGGER | (param & 0xf);
+			step->command[column] = MUS_FX_EXT_RETRIGGER | (param & 0xf);
+			break;
 		}
 
 		case FT_EF_NOTE_RELEASE:
 		{
-			return MUS_FX_TRIGGER_RELEASE | param;
+			step->command[column] = MUS_FX_TRIGGER_RELEASE | param;
+			break;
 		}
 
 		case FT_EF_PHASE_RESET:
 		{
-			return MUS_FX_PHASE_RESET | (param & 0xf);
+			step->command[column] = MUS_FX_PHASE_RESET | (param & 0xf);
+			break;
 		}
 
 		case FT_EF_GROOVE:
 		{
-			return MUS_FX_SET_GROOVE | param;
+			step->command[column] = MUS_FX_SET_GROOVE | param;
+			break;
 		}
 
 		default: break; //TODO: add at least smth for all the other effects, at least return 0 thing
 	}
-
-	return 0;
 }
 
 bool ft_process_patterns_block(FILE* f, ftm_block* block)
@@ -1627,8 +1676,7 @@ bool ft_process_patterns_block(FILE* f, ftm_block* block)
 
 				if(subsong_index == selected_subsong && effect != FT_EF_NONE)
 				{
-					pat->step[row].command[j] = ft_convert_command(((Uint16)effect << 8) + param, &pat->step[row], song_pos + row, channel);
-					//TODO: add effect conversion
+					ft_convert_command(((Uint16)effect << 8) + param, &pat->step[row], song_pos + row, channel, j, row);
 				}
 			}
 
@@ -3164,6 +3212,9 @@ void convert_instruments()
 		inst->adsr.a = 0;
 		inst->adsr.d = 0;
 		inst->adsr.s = 0x1f; //this is default 2A03 Pulse wave instrument
+
+		inst->vibrato_speed = 0;
+		inst->vibrato_depth = 0;
 	}
 
 	for(int i = 0; i < num_instruments; i++)
@@ -4308,6 +4359,297 @@ void set_channel_volumes()
 
 	mused.song.default_volume[4] = 0x80; //DPCM volume 4x the usual channel volume
 	mused.song.default_volume[2] = 0x50; //triangle volume 2x the usual channel volume
+	mused.song.default_volume[3] = 0x18; //noise volume 0.75x
+}
+
+Uint8 find_empty_command_column(MusStep* step)
+{
+	for(int i = 0; i < MUS_MAX_COMMANDS; i++)
+	{
+		if(step->command[i] == 0)
+		{
+			return i;
+		}
+	}
+
+	return 0xff;
+}
+
+//here we finish slide, vibrato, etc. commands
+void finish_convert_effects() //this does not account for instrument macros changing pitch :(
+{
+	Uint8 song_speed = 0; //for calculating portamento note change per pattern row
+
+	if(mused.song.flags & MUS_USE_GROOVE)
+	{
+		MusPattern* pat = &mused.song.pattern[0];
+		MusStep* step = &pat->step[0];
+
+		Uint8 groove = 0;
+
+		for(int j = 0; j < MUS_MAX_COMMANDS; j++)
+		{
+			if((step->command[j] & 0xff00) == MUS_FX_SET_GROOVE)
+			{
+				Uint8 groove = step->command[j] & 0xff;
+			}
+
+			Uint16 sum = 0;
+
+			for(int i = 0; i < mused.song.groove_length[groove]; i++)
+			{
+				sum += mused.song.grooves[groove][i];
+			}
+
+			song_speed = sum / mused.song.groove_length[groove];
+		}
+	}
+
+	else
+	{
+		song_speed = (mused.song.song_speed + mused.song.song_speed2) / 2;
+	}
+
+	if(song_speed == 0)
+	{
+		song_speed = 6;
+	}
+
+	for(int i = 0; i < mused.song.num_channels; i++)
+	{
+		Uint16 current_note = 0xffff;
+		bool do_portup = false;
+		bool do_portdn = false;
+		bool do_volume_slide = false;
+
+		bool do_vibrato = false;
+
+		bool is_hardware_sweep = false; //if it is hardware sweep we stop when note is lower than C-0 or higher than idk B-8
+
+		Uint8 volume_slide_param = 0;
+		Uint8 port_speed = 0;
+
+		for(int j = 0; j < sequence_length; j++)
+		{
+			MusPattern* pat = &mused.song.pattern[mused.song.sequence[i][j].pattern];
+
+			for(int s = 0; s < pat->num_steps; s++)
+			{
+				MusStep* step = &pat->step[s];
+
+				if(step->note < FREQ_TAB_SIZE) //an actual note, not note cut, note release or whatever
+				{
+					current_note = (Uint16)step->note << 8;
+
+					if(is_hardware_sweep)
+					{
+						do_portup = false;
+						do_portdn = false;
+						is_hardware_sweep = false;
+					}
+				}
+
+				bool proceed = true;
+
+				for(int c = 0; c < MUS_MAX_COMMANDS; c++)
+				{
+					if(step->command[c] != 0)
+					{
+						Uint16 command = step->command[c];
+
+						switch(step->command[c] & 0xff00)
+						{
+							case MUS_FX_PORTA_UP:
+							{
+								if((step->command[MUS_MAX_COMMANDS - 1] == CONV_MARKER || step->command[MUS_MAX_COMMANDS - 1] == CONV_MARKER_SWEEP) && proceed)
+								{
+									if(command & 0xff)
+									{
+										do_portup = true;
+										do_portdn = false;
+										port_speed = command & 0xff;
+									}
+
+									else
+									{
+										do_portup = false;
+										do_portdn = false;
+										port_speed = 0;
+									}
+
+									if(step->command[MUS_MAX_COMMANDS - 1] == CONV_MARKER_SWEEP)
+									{
+										is_hardware_sweep = true;
+									}
+
+									else
+									{
+										is_hardware_sweep = false;
+									}
+
+									step->command[MUS_MAX_COMMANDS - 1] = 0;
+
+									proceed = false;
+								}
+
+								break;
+							}
+
+							case MUS_FX_PORTA_DN:
+							{
+								if((step->command[MUS_MAX_COMMANDS - 1] == CONV_MARKER || step->command[MUS_MAX_COMMANDS - 1] == CONV_MARKER_SWEEP) && proceed)
+								{
+									if(command & 0xff)
+									{
+										do_portdn = true;
+										do_portup = false;
+										port_speed = command & 0xff;
+									}
+
+									else
+									{
+										do_portdn = false;
+										do_portup = false;
+										port_speed = 0;
+									}
+
+									if(step->command[MUS_MAX_COMMANDS - 1] == CONV_MARKER_SWEEP)
+									{
+										is_hardware_sweep = true;
+									}
+
+									else
+									{
+										is_hardware_sweep = false;
+									}
+
+									step->command[MUS_MAX_COMMANDS - 1] = 0;
+
+									proceed = false;
+								}
+
+								break;
+							}
+
+							case MUS_FX_VIBRATO:
+							{
+								if(command & 0xff)
+								{
+									do_vibrato = true;
+								}
+
+								else
+								{
+									do_vibrato = false;
+								}
+
+								break;
+							}
+
+							case MUS_FX_FADE_VOLUME:
+							{
+								if(command & 0xff)
+								{
+									do_volume_slide = true;
+									volume_slide_param = command & 0xff;
+								}
+
+								else
+								{
+									do_volume_slide = false;
+								}
+
+								break;
+							}
+
+							default: break;
+						}
+					}
+				}
+
+				if(do_portup)
+				{
+					if(is_hardware_sweep)
+					{
+						if(current_note < ((12 * 7 + 11 + C_ZERO) << 8))
+						{
+							step->command[find_empty_command_column(step)] = MUS_FX_PORTA_UP | port_speed;
+						}
+
+						else
+						{
+							step->note = MUS_NOTE_CUT;
+							do_portup = false;
+							is_hardware_sweep = false;
+						}
+					}
+
+					else
+					{
+						step->command[find_empty_command_column(step)] = MUS_FX_PORTA_UP | port_speed;
+					}
+				}
+
+				if(do_portdn)
+				{
+					if(is_hardware_sweep)
+					{
+						if(current_note > ((C_ZERO) << 8))
+						{
+							step->command[find_empty_command_column(step)] = MUS_FX_PORTA_DN | port_speed;
+						}
+
+						else
+						{
+							step->note = MUS_NOTE_CUT;
+							do_portdn = false;
+							is_hardware_sweep = false;
+						}
+					}
+
+					else
+					{
+						step->command[find_empty_command_column(step)] = MUS_FX_PORTA_DN | port_speed;
+					}
+				}
+
+				if(do_vibrato)
+				{
+					step->ctrl |= MUS_CTRL_VIB;
+				}
+
+				if(do_volume_slide)
+				{
+					step->command[find_empty_command_column(step)] = MUS_FX_FADE_VOLUME | volume_slide_param;
+				}
+
+				for(int c = 0; c < MUS_MAX_COMMANDS; c++) //keep track of current note
+				{
+					if(step->command[c] != 0)
+					{
+						Uint16 command = step->command[c];
+
+						switch(step->command[c] & 0xff00)
+						{
+							case MUS_FX_PORTA_UP:
+							{
+								current_note += (command & 0xff) * 4 * song_speed;
+								break;
+							}
+
+							case MUS_FX_PORTA_DN:
+							{
+								current_note -= (command & 0xff) * 4 * song_speed;
+								break;
+							}
+
+							default: break;
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 bool import_ft_old(FILE* f, int type, ftm_block* blocks, bool is_dn_ft_sig)
@@ -4411,6 +4753,8 @@ bool import_ft_new(FILE* f, int type, ftm_block* blocks, bool is_dn_ft_sig)
 	add_volumes();
 
 	set_channel_volumes();
+
+	finish_convert_effects();
 	
 	debug("finished processing blocks");
 

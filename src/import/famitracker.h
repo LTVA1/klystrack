@@ -93,6 +93,10 @@ enum
 #define DN_FT_HEADER_SIG "Dn-FamiTracker Module"
 #define FT_END_SIG "END"
 
+#define CONV_MARKER 0xffff /*marker for later pass conversion, means effect ends with e.g. 1xx and stops with 100*/
+#define CONV_MARKER_SWEEP 0xfffe
+#define CONV_MARKER_DOWN 0xfffd
+
 enum
 {
 	INST_NONE = 0,

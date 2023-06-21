@@ -70,7 +70,7 @@ Uint16 find_command_pt(Uint16 command, int sample_length)
 	}
 	else if ((command & 0xff00) == 0x0300)
 	{
-		command = MUS_FX_FAST_SLIDE | ((command & 0xff) / 2);
+		command = MUS_FX_FAST_SLIDE | (command & 0xff);
 		return command;
 	}
 	else if ((command & 0xff00) == 0x0900 && sample_length)
@@ -97,6 +97,23 @@ Uint16 find_command_pt(Uint16 command, int sample_length)
 	else if ((command & 0xff00) != 0x0400 && (command & 0xff00) != 0x0000) 
 	{
 		command = 0;
+		return command;
+	}
+	else if ((command & 0xfff0) == 0x0e50)
+	{
+		Uint8 finetune = 0;
+
+		if((command & 0xf) < 8)
+		{
+			finetune = 0x80 + ((command & 0xf) << 4);
+		}
+
+		else
+		{
+			finetune = 0x80 - ((0x10 - (command & 0xf)) << 4);
+		}
+
+		command = MUS_FX_PITCH | finetune;
 		return command;
 	}
 	else if ((command & 0xfff0) == 0x0e60)
@@ -127,6 +144,11 @@ Uint16 find_command_pt(Uint16 command, int sample_length)
 	else if ((command & 0xfff0) == 0x0e20)
 	{
 		command = MUS_FX_EXT_PORTA_DN | (command & 0xf);
+		return command;
+	}
+	else if ((command & 0xfff0) == 0x0e30)
+	{
+		command = MUS_FX_GLISSANDO_CONTROL | (command & 0xf);
 		return command;
 	}
 	else if ((command & 0xfff0) == 0x0ea0 || (command & 0xfff0) == 0x0eb0)

@@ -53,6 +53,18 @@ static Uint16 find_command_ahx(Uint8 command, Uint8 data, Uint8 *ctrl)
 {
 	switch (command)
 	{
+		case 0x0:
+		{
+			return 0;
+		}
+		break;
+
+		case 0xd:
+		{
+			return MUS_FX_SKIP_PATTERN | ((data & 0xf) + ((data & 0xff) >> 4) * 10); //hex to decimal
+		}
+		break;
+
 		case 0xc:
 		{
 			if (data <= 0x40)
@@ -68,6 +80,12 @@ static Uint16 find_command_ahx(Uint8 command, Uint8 data, Uint8 *ctrl)
 		{
 	_0xa00:
 			return MUS_FX_FADE_VOLUME | (my_min(0xf, (data & 0x0f) * 2)) | (my_min(0xf, ((data & 0xf0) >> 4) * 2) << 4);
+		}
+		break;
+
+		case 0xb:
+		{
+			return MUS_FX_JUMP_SEQUENCE_POSITION | ((data & 0xf) + ((data & 0xff) >> 4) * 10); //hex to decimal
 		}
 		break;
 

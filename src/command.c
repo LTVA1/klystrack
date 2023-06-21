@@ -131,6 +131,7 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_EXT_PORTA_DN, 0xfff0, "Fine portamento down", "PortDnFine", 0, 0xf},
 	{MUS_FX_EXT_FINE_PORTA_UP, 0xfff0, "Extra fine portamento up", "PortUpExtraFine", 0, 0xf},
 	{MUS_FX_EXT_FINE_PORTA_DN, 0xfff0, "Extra fine portamento down", "PortDnExtraFine", 0, 0xf},
+	{MUS_FX_GLISSANDO_CONTROL, 0xfff0, "Glissando control (0=off, 1-F=on)", "Glissando", 0, 0xf},
 	{MUS_FX_EXT_NOTE_CUT, 0xfff0, "Note cut", "NoteCut", 0, 0xf},
 	{MUS_FX_EXT_RETRIGGER, 0xfff0, "Retrigger", "Retrig", 0, 0xf},
 	
