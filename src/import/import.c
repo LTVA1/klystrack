@@ -117,6 +117,8 @@ void import_module(void *type, void* unused1, void* unused2)
 	mused.song.num_patterns = NUM_PATTERNS;
 	
 	mused.time_signature = mused.song.time_signature;
+
+	mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
 	
 	fclose(f);
 	

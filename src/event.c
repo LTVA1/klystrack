@@ -565,7 +565,7 @@ void dropfile_event(SDL_Event *e)
 						goto end;
 					}
 					
-					if((strcmp(".fzt", mod_extension)) == 0 || (strcmp(".fzt", mod_extension)) == 0)
+					if((strcmp(".fzt", mod_extension)) == 0)
 					{
 						debug("Dropped an .FZT file");
 					
@@ -599,6 +599,126 @@ void dropfile_event(SDL_Event *e)
 							
 							kill_empty_patterns(&mused.song, NULL); //wasn't there
 							optimize_duplicate_patterns(&mused.song, true);
+							set_channels(mused.song.num_channels);
+							
+							mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
+							play(0, 0, 0);
+							stop(0, 0, 0);
+						}
+						
+						goto end;
+					}
+
+					if((strcmp(".ftm", mod_extension)) == 0)
+					{
+						debug("Dropped an .FTM file");
+					
+						if(mused.modified)
+						{
+							if(confirm(domain, mused.slider_bevel, &mused.largefont, "Overwrite current song?"))
+							{
+								stop(0, 0, 0);
+								
+								new_song();
+								import_famitracker(f, IMPORT_FTM);
+								fclose(f);
+
+								set_channels(mused.song.num_channels);
+								
+								mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
+								play(0, 0, 0);
+								stop(0, 0, 0);
+							}
+						}
+						
+						else
+						{
+							stop(0, 0, 0);
+							
+							new_song();
+							import_famitracker(f, IMPORT_FTM);
+							fclose(f);
+
+							set_channels(mused.song.num_channels);
+							
+							mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
+							play(0, 0, 0);
+							stop(0, 0, 0);
+						}
+						
+						goto end;
+					}
+
+					if((strcmp(".0cc", mod_extension)) == 0)
+					{
+						debug("Dropped a .0CC file");
+					
+						if(mused.modified)
+						{
+							if(confirm(domain, mused.slider_bevel, &mused.largefont, "Overwrite current song?"))
+							{
+								stop(0, 0, 0);
+								
+								new_song();
+								import_famitracker(f, IMPORT_0CC);
+								fclose(f);
+
+								set_channels(mused.song.num_channels);
+								
+								mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
+								play(0, 0, 0);
+								stop(0, 0, 0);
+							}
+						}
+						
+						else
+						{
+							stop(0, 0, 0);
+							
+							new_song();
+							import_famitracker(f, IMPORT_0CC);
+							fclose(f);
+							
+							set_channels(mused.song.num_channels);
+							
+							mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
+							play(0, 0, 0);
+							stop(0, 0, 0);
+						}
+						
+						goto end;
+					}
+
+					if((strcmp(".dnm", mod_extension)) == 0)
+					{
+						debug("Dropped a .DNM file");
+					
+						if(mused.modified)
+						{
+							if(confirm(domain, mused.slider_bevel, &mused.largefont, "Overwrite current song?"))
+							{
+								stop(0, 0, 0);
+								
+								new_song();
+								import_famitracker(f, IMPORT_DNM);
+								fclose(f);
+								
+								set_channels(mused.song.num_channels);
+								
+								mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
+								play(0, 0, 0);
+								stop(0, 0, 0);
+							}
+						}
+						
+						else
+						{
+							stop(0, 0, 0);
+							
+							new_song();
+							import_famitracker(f, IMPORT_DNM);
+							fclose(f);
+							
 							set_channels(mused.song.num_channels);
 							
 							mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
@@ -3784,8 +3904,6 @@ void pattern_event(SDL_Event *e)
 								}
 							}
 						}
-						
-						
 					}
 				}
 			}
@@ -3818,11 +3936,23 @@ void pattern_event(SDL_Event *e)
 
 					if (!viscol(mused.current_patternx) && (mused.current_patternx >= PED_COMMAND1 && mused.current_patternx <= PED_COMMAND4))
 						mused.current_patternx = PED_PARAMS;
-
-					if (mused.current_patternx > PED_COMMAND4 + mused.song.pattern[current_pattern()].command_columns * 4) //if (mused.current_patternx >= PED_PARAMS)
+					
+					if(current_pattern() != -1)
 					{
-						mused.current_patternx = 0;
-						switch_track(+1);
+						if (mused.current_patternx > PED_COMMAND4 + mused.song.pattern[current_pattern()].command_columns * 4) //if (mused.current_patternx >= PED_PARAMS)
+						{
+							mused.current_patternx = 0;
+							switch_track(+1);
+						}
+					}
+
+					else //don't have any pattern
+					{
+						if (mused.current_patternx > PED_COMMAND4)
+						{
+							mused.current_patternx = 0;
+							switch_track(+1);
+						}
 					}
 					
 					//mused.song.pattern[current_pattern()].step[current_patternstep()].command[(mused.current_patternx - PED_COMMAND1) / 4]

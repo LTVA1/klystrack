@@ -164,6 +164,8 @@ Uint8 expansion_chips;
 Uint8 namco_channels;
 Uint32 version;
 
+bool transpose_fds;
+
 Uint16 pattern_length;
 
 Uint16 sequence_length;
@@ -1254,7 +1256,7 @@ void ft_convert_command(Uint16 val, MusStep* step, Uint16 song_pos, Uint8 channe
 		case FT_EF_PORTAMENTO:
 		{
 			step->command[column] = MUS_FX_FAST_SLIDE | (param / 4);
-			step->command[MUS_MAX_COMMANDS - 1] = CONV_MARKER;
+			//step->command[MUS_MAX_COMMANDS - 1] = CONV_MARKER;
 			break;
 		}
 
@@ -1373,22 +1375,14 @@ void ft_convert_command(Uint16 val, MusStep* step, Uint16 song_pos, Uint8 channe
 
 		case FT_EF_SLIDE_UP:
 		{
-			if(row < pattern_length - 1)
-			{
-				(step + 1)->command[column] = MUS_FX_SLIDE | (0x3 * (param >> 4)); //bruh
-				step->command[MUS_MAX_COMMANDS - 1] = CONV_MARKER;
-			}
+			step->command[column] = MUS_FX_SLIDE_UP_SEMITONES | param;
 
 			break;
 		}
 
 		case FT_EF_SLIDE_DOWN:
 		{
-			if(row < pattern_length - 1)
-			{
-				(step + 1)->command[column] = MUS_FX_SLIDE | (0x3 * (param >> 4)); //bruh
-				step->command[MUS_MAX_COMMANDS - 1] = CONV_MARKER_DOWN;
-			}
+			step->command[column] = MUS_FX_SLIDE_DN_SEMITONES | param;
 
 			break;
 		}
@@ -1442,6 +1436,11 @@ bool ft_process_patterns_block(FILE* f, ftm_block* block)
 		Uint32 pat_len = 0;
 		read_uint32(f, &pat_len);
 		pattern_length = pat_len;
+	}
+
+	if(block->version < 5)
+	{
+		transpose_fds = true;
 	}
 
 	//here we process the sequence block actually
@@ -3215,6 +3214,7 @@ void convert_instruments()
 
 		inst->vibrato_speed = 0;
 		inst->vibrato_depth = 0;
+		inst->vibrato_shape = MUS_SHAPE_TRI_UP; //taken from some note visualizer; it can be also guessed because hardware playback is possible (tri easier to do than sine on 8-bit hardware)
 	}
 
 	for(int i = 0; i < num_instruments; i++)
@@ -4285,7 +4285,6 @@ void convert_instruments()
 			{
 				inst->cydflags &= ~(CYD_CHN_ENABLE_PULSE);
 				inst->flags &= ~(MUS_INST_USE_LOCAL_SAMPLES);
-				//inst->cydflags |= CYD_CHN_ENABLE_SAW; //TODO: add proper VRC6 sawtooth
 
 				inst->cydflags |= CYD_CHN_ENABLE_WAVE;
 
@@ -4349,11 +4348,19 @@ void set_channel_volumes()
 {
 	for(int i = 0; i < mused.song.num_channels; i++)
 	{
-		mused.song.default_volume[i] = 0x20;
+		mused.song.default_volume[i] = 0x28;
 
 		if(channels_to_chips[i] == FT_SNDCHIP_FDS)
 		{
 			mused.song.default_volume[i] = 0x40;
+		}
+
+		if(i > 2)
+		{
+			if(channels_to_chips[i] == FT_SNDCHIP_VRC6 && channels_to_chips[i - 1] == FT_SNDCHIP_VRC6 && channels_to_chips[i - 2] == FT_SNDCHIP_VRC6)
+			{
+				mused.song.default_volume[i] = 0x40; //sawtooth
+			}
 		}
 	}
 
@@ -4424,6 +4431,8 @@ void finish_convert_effects() //this does not account for instrument macros chan
 
 		bool do_vibrato = false;
 
+		bool place_command = true; //if you need to place command; reset on 1st command entry (e.g. 0220, not 0200) to avoid duplicate commands
+
 		bool is_hardware_sweep = false; //if it is hardware sweep we stop when note is lower than C-0 or higher than idk B-8
 
 		Uint8 volume_slide_param = 0;
@@ -4439,7 +4448,7 @@ void finish_convert_effects() //this does not account for instrument macros chan
 
 				if(step->note < FREQ_TAB_SIZE) //an actual note, not note cut, note release or whatever
 				{
-					current_note = (Uint16)step->note << 8;
+					current_note = (Uint16)step->note << 8; //don't care about slide commands bruh
 
 					if(is_hardware_sweep)
 					{
@@ -4451,6 +4460,8 @@ void finish_convert_effects() //this does not account for instrument macros chan
 
 				bool proceed = true;
 
+				place_command = true;
+
 				for(int c = 0; c < MUS_MAX_COMMANDS; c++)
 				{
 					if(step->command[c] != 0)
@@ -4459,6 +4470,28 @@ void finish_convert_effects() //this does not account for instrument macros chan
 
 						switch(step->command[c] & 0xff00)
 						{
+							case MUS_FX_SET_SPEED:
+							{
+								song_speed = command & 0xf; //keep track of speed changes
+								break;
+							}
+
+							case MUS_FX_SET_GROOVE:
+							{
+								Uint8 groove = command & 0xff;
+
+								Uint16 sum = 0;
+
+								for(int i = 0; i < mused.song.groove_length[groove]; i++)
+								{
+									sum += mused.song.grooves[groove][i];
+								}
+
+								song_speed = sum / mused.song.groove_length[groove]; //keep track of groove changes
+
+								break;
+							}
+
 							case MUS_FX_PORTA_UP:
 							{
 								if((step->command[MUS_MAX_COMMANDS - 1] == CONV_MARKER || step->command[MUS_MAX_COMMANDS - 1] == CONV_MARKER_SWEEP) && proceed)
@@ -4468,6 +4501,8 @@ void finish_convert_effects() //this does not account for instrument macros chan
 										do_portup = true;
 										do_portdn = false;
 										port_speed = command & 0xff;
+
+										place_command = false;
 									}
 
 									else
@@ -4504,6 +4539,8 @@ void finish_convert_effects() //this does not account for instrument macros chan
 										do_portdn = true;
 										do_portup = false;
 										port_speed = command & 0xff;
+
+										place_command = false;
 									}
 
 									else
@@ -4552,6 +4589,8 @@ void finish_convert_effects() //this does not account for instrument macros chan
 								{
 									do_volume_slide = true;
 									volume_slide_param = command & 0xff;
+
+									place_command = false;
 								}
 
 								else
@@ -4567,60 +4606,68 @@ void finish_convert_effects() //this does not account for instrument macros chan
 					}
 				}
 
-				if(do_portup)
+				if(song_speed == 0)
 				{
-					if(is_hardware_sweep)
+					song_speed = 6;
+				}
+
+				if(place_command)
+				{
+					if(do_portup)
 					{
-						if(current_note < ((12 * 7 + 11 + C_ZERO) << 8))
+						if(is_hardware_sweep)
+						{
+							if(current_note < ((12 * 7 + 11 + C_ZERO) << 8))
+							{
+								step->command[find_empty_command_column(step)] = MUS_FX_PORTA_UP | port_speed;
+							}
+
+							else
+							{
+								step->note = MUS_NOTE_CUT;
+								do_portup = false;
+								is_hardware_sweep = false;
+							}
+						}
+
+						else
 						{
 							step->command[find_empty_command_column(step)] = MUS_FX_PORTA_UP | port_speed;
 						}
+					}
+
+					if(do_portdn)
+					{
+						if(is_hardware_sweep)
+						{
+							if(current_note > ((C_ZERO) << 8))
+							{
+								step->command[find_empty_command_column(step)] = MUS_FX_PORTA_DN | port_speed;
+							}
+
+							else
+							{
+								step->note = MUS_NOTE_CUT;
+								do_portdn = false;
+								is_hardware_sweep = false;
+							}
+						}
 
 						else
-						{
-							step->note = MUS_NOTE_CUT;
-							do_portup = false;
-							is_hardware_sweep = false;
-						}
-					}
-
-					else
-					{
-						step->command[find_empty_command_column(step)] = MUS_FX_PORTA_UP | port_speed;
-					}
-				}
-
-				if(do_portdn)
-				{
-					if(is_hardware_sweep)
-					{
-						if(current_note > ((C_ZERO) << 8))
 						{
 							step->command[find_empty_command_column(step)] = MUS_FX_PORTA_DN | port_speed;
 						}
-
-						else
-						{
-							step->note = MUS_NOTE_CUT;
-							do_portdn = false;
-							is_hardware_sweep = false;
-						}
 					}
 
-					else
+					if(do_volume_slide)
 					{
-						step->command[find_empty_command_column(step)] = MUS_FX_PORTA_DN | port_speed;
+						step->command[find_empty_command_column(step)] = MUS_FX_FADE_VOLUME | volume_slide_param;
 					}
 				}
 
 				if(do_vibrato)
 				{
 					step->ctrl |= MUS_CTRL_VIB;
-				}
-
-				if(do_volume_slide)
-				{
-					step->command[find_empty_command_column(step)] = MUS_FX_FADE_VOLUME | volume_slide_param;
 				}
 
 				for(int c = 0; c < MUS_MAX_COMMANDS; c++) //keep track of current note
@@ -4647,6 +4694,82 @@ void finish_convert_effects() //this does not account for instrument macros chan
 						}
 					}
 				}
+			}
+		}
+	}
+}
+
+void do_fds_transpose()
+{
+	debug("Doing FDS transpose");
+
+	int fds_ch = -1;
+
+	for(int i = 0; i < mused.song.num_channels; i++)
+	{
+		if(channels_to_chips[i] == FT_SNDCHIP_FDS) //FDS channel
+		{
+			fds_ch = i;
+		}
+	}
+
+	if(fds_ch == -1)
+	{
+		return;
+	}
+
+	for(int i = 0; i < num_instruments; i++)
+	{
+		Uint8 current_program = 0;
+		Uint8 ft_inst_index = 0;
+
+		MusInstrument* inst = &mused.song.instrument[i];
+
+		ft_inst* ft_instrum = &ft_instruments[0];
+
+		for(int j = 0; j < FT_MAX_INSTRUMENTS; j++)
+		{
+			if(ft_instruments[j].klystrack_instrument == i)
+			{
+				ft_instrum = &ft_instruments[j];
+				ft_inst_index = j;
+				goto next;
+			}
+		}
+
+		next:;
+
+		if(ft_instrum->type == INST_FDS)
+		{
+			for(int j = 0; j < inst->num_macros; j++)
+			{
+				for(int p = 0; p < MUS_PROG_LEN; p++)
+				{
+					if((inst->program[j][p] & 0xff00) == MUS_FX_ARPEGGIO_ABS)
+					{
+						Uint8 param = (inst->program[j][p] & 0xff) + 12 * 2;
+						inst->program[j][p] &= 0xff00;
+						inst->program[j][p] |= param;
+					}
+				}
+			}
+		}
+	}
+
+	Uint16 first = mused.song.sequence[fds_ch][0].pattern;
+	Uint16 last = mused.song.sequence[fds_ch][mused.song.num_sequences[fds_ch] - 1].pattern;
+
+	for(int i = first; i <= last; i++)
+	{
+		MusPattern* pat = &mused.song.pattern[i];
+
+		for(int s = 0; s < pat->num_steps; s++)
+		{
+			MusStep* step = &pat->step[s];
+
+			if(step->note < FREQ_TAB_SIZE)
+			{
+				step->note += 12 * 2;
 			}
 		}
 	}
@@ -4755,6 +4878,11 @@ bool import_ft_new(FILE* f, int type, ftm_block* blocks, bool is_dn_ft_sig)
 	set_channel_volumes();
 
 	finish_convert_effects();
+
+	if(transpose_fds)
+	{
+		do_fds_transpose();
+	}
 	
 	debug("finished processing blocks");
 
@@ -4792,6 +4920,8 @@ int import_famitracker(FILE *f, int type)
 
 	ft_sequence = NULL;
 	klystrack_sequence = NULL;
+
+	transpose_fds = false;
 	
 	Uint32 version = 0;
 	
