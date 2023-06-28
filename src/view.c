@@ -149,7 +149,15 @@ void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain,
 						{
 							if(mused.mode != EDITLOCALSAMPLE && view->focus != EDITINSTRUMENT)
 							{
-								mused.focus = view->focus;
+								if((view->focus == EDITENVELOPE && !(mused.show_point_envelope_editor)) || (view->focus == EDITENVELOPE4OP && !(mused.show_4op_point_envelope_editor)))
+								{
+
+								}
+
+								else
+								{
+									mused.focus = view->focus;
+								}
 							}
 							
 							//debug("152 new focus %d", mused.focus);
@@ -186,7 +194,16 @@ void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain,
 						
 						else
 						{
-							change_mode(view->focus);
+							if((view->focus == EDITENVELOPE && !(mused.show_point_envelope_editor)) || (view->focus == EDITENVELOPE4OP && !(mused.show_4op_point_envelope_editor)))
+							{
+
+							}
+
+							else
+							{
+								change_mode(view->focus);
+							}
+							
 							
 							//debug("187 new mode %d", mused.mode);
 						}
@@ -202,7 +219,15 @@ void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain,
 					{
 						if(mused.mode != EDITLOCALSAMPLE && view->focus != EDITINSTRUMENT)
 						{
-							mused.focus = view->focus;
+							if((view->focus == EDITENVELOPE && !(mused.show_point_envelope_editor)) || (view->focus == EDITENVELOPE4OP && !(mused.show_4op_point_envelope_editor)))
+							{
+
+							}
+
+							else
+							{
+								mused.focus = view->focus;
+							}
 						}
 						
 						//debug("200 new focus %d i = %d m = %d", mused.focus, i, m);
@@ -4052,6 +4077,8 @@ void open_4op(void *unused1, void *unused2, void *unused3)
 	{
 		mused.fourop_program_position[i] = 0;
 	}
+
+	set_cursor(NULL);
 }
 
 void open_prog(void *unused1, void *unused2, void *unused3)
@@ -4069,6 +4096,10 @@ void open_prog(void *unused1, void *unused2, void *unused3)
 	mused.point_env_editor_scroll = 0;
 	
 	mused.show_local_samples = false;
+
+	mused.focus = EDITPROG;
+
+	set_cursor(NULL);
 }
 
 void open_env(void *unused1, void *unused2, void *unused3)
@@ -4080,6 +4111,10 @@ void open_env(void *unused1, void *unused2, void *unused3)
 	mused.env_selected_param = 0;
 	
 	mused.show_local_samples = false;
+
+	mused.focus = EDITENVELOPE;
+
+	set_cursor(NULL);
 }
 
 void open_local_samples(void *unused1, void *unused2, void *unused3)
@@ -4096,6 +4131,8 @@ void open_local_samples(void *unused1, void *unused2, void *unused3)
 	change_mode(EDITLOCALSAMPLE);
 	
 	mused.local_sample_param = LS_ENABLE;
+
+	set_cursor(NULL);
 }
 
 

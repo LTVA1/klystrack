@@ -45,7 +45,7 @@ void env_flags(const SDL_Event *e, const SDL_Rect *area, const SDL_Rect *dest, i
 		if(area->y >= dest->y && area->y <= dest->y + dest->h) {}
 		else
 		{
-			set_cursor(NULL); //so cursor is not drawn outside of envelope editor frame
+			//set_cursor(NULL); //so cursor is not drawn outside of envelope editor frame
 		}
 	}
 }
@@ -66,7 +66,7 @@ void env_text(const SDL_Event *e, const SDL_Rect *area, const SDL_Rect *dest, in
 		if(area->y >= dest->y && area->y <= dest->y + dest->h) {}
 		else
 		{
-			set_cursor(NULL); //so cursor is not drawn outside of envelope editor frame
+			//set_cursor(NULL); //so cursor is not drawn outside of envelope editor frame
 		}
 	}
 	
@@ -80,7 +80,7 @@ void env_text(const SDL_Event *e, const SDL_Rect *area, const SDL_Rect *dest, in
 		if(area->y >= dest->y && area->y <= dest->y + dest->h) {}
 		else
 		{
-			set_cursor(NULL); //so cursor is not drawn outside of envelope editor frame
+			//set_cursor(NULL); //so cursor is not drawn outside of envelope editor frame
 		}
 	}
 }
