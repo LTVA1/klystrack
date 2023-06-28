@@ -84,7 +84,7 @@ void select_pattern_param(void *id, void *position, void *track)
 
 	mused.focus = EDITPATTERN;
 	
-	int temp = mused.current_sequencetrack; //this should fix the unnoying as fuck thing when you launch klys and can't move cursor to the right from leftmost pattern
+	int temp = mused.current_sequencetrack; //this should fix the unnoying as fuck thing when you launch klystrack and can't move cursor to the right from leftmost pattern
 
 	update_horiz_sliders();
 	
@@ -97,7 +97,6 @@ void select_instrument_page(void *page, void *unused1, void *unused2)
 	mused.instrument_page = CASTPTR(int, page) * 10;
 	set_info_message("Selected instrument bank %d-%d", mused.instrument_page, mused.instrument_page + 9);
 }
-
 
 
 void select_instrument(void *idx, void *relative, void *pagey)
@@ -358,17 +357,17 @@ void enable_channel(void *channel, void *unused1, void *unused2)
 
 void expand_command(int channel, void *unused2, void *unused3) //wasn't there
 {
-	if(mused.song.pattern[current_pattern_for_channel(channel)].command_columns <= MUS_MAX_COMMANDS - 2)
+	if(mused.command_columns[channel] <= MUS_MAX_COMMANDS - 2)
 	{
-		mused.song.pattern[current_pattern_for_channel(channel)].command_columns++;
+		mused.command_columns[channel]++;
 	}
 }
 
 void hide_command(int channel, void *unused2, void *unused3) //wasn't there
 {
-	if(mused.song.pattern[current_pattern_for_channel(channel)].command_columns > 0)
+	if(mused.command_columns[channel] > 0)
 	{
-		mused.song.pattern[current_pattern_for_channel(channel)].command_columns--;
+		mused.command_columns[channel]--;
 	}
 }
 
@@ -447,7 +446,7 @@ void select_all(void *unused1, void *unused2, void *unused3)
 					mused.selection.end = (sp + 1)->position + mused.song.pattern[(sp + 1)->pattern].num_steps;
 					
 					mused.selection.patternx_start = 0;
-					mused.selection.patternx_end = 1 + 2 + 2 + 4 + ((mused.song.pattern[current_pattern_for_channel(mused.current_sequencetrack)].command_columns + 1) * 4) - 1;
+					mused.selection.patternx_end = 1 + 2 + 2 + 4 + ((mused.command_columns[mused.current_sequencetrack] + 1) * 4) - 1;
 					
 					break;
 				}
@@ -460,7 +459,7 @@ void select_all(void *unused1, void *unused2, void *unused3)
 					//mused.selection.end = sp->position + mused.song.pattern[sp->pattern].num_steps;
 					
 					mused.selection.patternx_start = 0;
-					mused.selection.patternx_end = 1 + 2 + 2 + 4 + ((mused.song.pattern[current_pattern_for_channel(mused.current_sequencetrack)].command_columns + 1) * 4) - 1;
+					mused.selection.patternx_end = 1 + 2 + 2 + 4 + ((mused.command_columns[mused.current_sequencetrack] + 1) * 4) - 1;
 					
 					break;
 				}

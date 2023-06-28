@@ -127,7 +127,7 @@ void pattern_view_header(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 			
 			void *action = expand_command;
 			
-			if(mused.song.pattern[current_pattern_for_channel(channel)].command_columns != MUS_MAX_COMMANDS - 1)
+			if(mused.command_columns[channel] != MUS_MAX_COMMANDS - 1)
 			{
 				button_event(dest_surface, event, &expand, mused.slider_bevel,
 					BEV_BUTTON, 
@@ -135,7 +135,7 @@ void pattern_view_header(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 					DECAL_EXPAND, action, MAKEPTR(channel), 0, 0);
 			}
 				
-			if(mused.song.pattern[current_pattern_for_channel(channel)].command_columns > 0)
+			if(mused.command_columns[channel] > 0)
 			{
 				action = hide_command;
 				
@@ -577,7 +577,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 				
 			else if(current_pattern_for_channel(i) != -1)
 			{
-				if((param - PED_COMMAND21) < mused.song.pattern[current_pattern_for_channel(i)].command_columns * 4)
+				if((param - PED_COMMAND21) < mused.command_columns[i] * 4)
 				{
 					if (param == PED_NOTE || viscol(param))
 						mused.widths[i][0] += pattern_params[param].w * char_width;
@@ -621,7 +621,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 			
 		else
 		{
-			if((param - PED_COMMAND21) < mused.song.pattern[current_pattern_for_channel(0)].command_columns * 4)
+			if((param - PED_COMMAND21) < mused.command_columns[0] * 4)
 			{
 				if (param == PED_NOTE || viscol(param))
 					w += pattern_params[param].w * char_width;
@@ -737,14 +737,14 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 					narrow_width2 += mused.widths[i][1];
 				}
 				
-				if((mused.selection.patternx_start - 12) > mused.song.pattern[current_pattern_for_channel(mused.current_sequencetrack)].command_columns * 4)
+				if((mused.selection.patternx_start - 12) > mused.command_columns[mused.current_sequencetrack] * 4)
 				{
-					mused.selection.patternx_start = 12 + mused.song.pattern[current_pattern_for_channel(mused.current_sequencetrack)].command_columns * 4;
+					mused.selection.patternx_start = 12 + mused.command_columns[mused.current_sequencetrack] * 4;
 				}
 				
-				if((mused.selection.patternx_end - 12) > mused.song.pattern[current_pattern_for_channel(mused.current_sequencetrack)].command_columns * 4)
+				if((mused.selection.patternx_end - 12) > mused.command_columns[mused.current_sequencetrack] * 4)
 				{
-					mused.selection.patternx_end = 12 + mused.song.pattern[current_pattern_for_channel(mused.current_sequencetrack)].command_columns * 4;
+					mused.selection.patternx_end = 12 + mused.command_columns[mused.current_sequencetrack] * 4;
 				}
 				
 				Uint16 start_shift = (mused.selection.patternx_start > 0 ? (8 * 3 + SPACER) : 0) + (mused.selection.patternx_start > 1 ? (8) : 0) + (mused.selection.patternx_start > 2 ? (8 + SPACER) : 0) + (mused.selection.patternx_start > 3 ? (8) : 0) + (mused.selection.patternx_start > 4 ? (8 + SPACER) : 0) + (mused.selection.patternx_start > 5 ? (8) : 0) + (mused.selection.patternx_start > 6 ? (8) : 0) + (mused.selection.patternx_start > 7 ? (8) : 0) + (mused.selection.patternx_start > 8 ? (8 + SPACER) : 0);
@@ -797,7 +797,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 					}
 				}
 				
-				end_shift -= (MUS_MAX_COMMANDS - mused.song.pattern[current_pattern_for_channel(mused.current_sequencetrack)].command_columns - 1) * (8 * 4 + SPACER);
+				end_shift -= (MUS_MAX_COMMANDS - mused.command_columns[mused.current_sequencetrack] - 1) * (8 * 4 + SPACER);
 				
 				if (!(viscol(PED_INSTRUMENT1)) && mused.selection.patternx_end <= PED_INSTRUMENT2)
 				{
@@ -967,7 +967,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 				
 				pos.x += 2 * char_width + SPACER;
 				
-				for (int param = PED_NOTE; (param - PED_COMMAND21) < mused.song.pattern[sp->pattern].command_columns * 4; ++param) //(param - PED_COMMAND21) < mused.song.pattern[sp->pattern].command_columns * 4
+				for (int param = PED_NOTE; (param - PED_COMMAND21) < mused.command_columns[channel] * 4; ++param) //(param - PED_COMMAND21) < mused.song.pattern[sp->pattern].command_columns * 4
 				{
 					if (param != PED_NOTE && !viscol(param)) continue;
 				

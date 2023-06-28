@@ -1629,7 +1629,7 @@ bool ft_process_patterns_block(FILE* f, ftm_block* block)
 
 			if(subsong_index == selected_subsong)
 			{
-				pat->command_columns = effect_columns[subsong_index][channel];
+				mused.command_columns[channel] = effect_columns[subsong_index][channel];
 			}
 
 			for(int j = 0; j < num_fx; j++)
@@ -1768,8 +1768,6 @@ bool ft_process_patterns_block(FILE* f, ftm_block* block)
 				{
 					//pat = &mused.song.pattern[klystrack_sequence[j][channel]];
 					MusPattern* dst_pat = &mused.song.pattern[klystrack_sequence[j][channel]];
-
-					dst_pat->command_columns = pat->command_columns;
 					
 					memcpy(dst_pat->step, pat->step, sizeof(MusStep) * pat->num_steps);
 				}

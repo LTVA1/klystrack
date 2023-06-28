@@ -969,7 +969,7 @@ void select_range(int position)
 	}
 	
 	mused.selection.patternx_start = 0;
-	mused.selection.patternx_end = 1 + 2 + 2 + 4 + ((mused.song.pattern[current_pattern_for_channel(mused.current_sequencetrack)].command_columns + 1) * 4) - 1; //so we do as in mouse drag selection but like if we selected all pattern columns (selecting note, instrument, volume, control bits and all visible commands)
+	mused.selection.patternx_end = 1 + 2 + 2 + 4 + ((mused.command_columns[mused.current_sequencetrack] + 1) * 4) - 1; //so we do as in mouse drag selection but like if we selected all pattern columns (selecting note, instrument, volume, control bits and all visible commands)
 	
 	debug("Selected from %d-%d", mused.selection.start, mused.selection.end);
 }

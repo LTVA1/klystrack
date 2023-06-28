@@ -218,9 +218,9 @@ void new_song()
 
 	set_channels(mused.song.num_channels);
 	
-	for(int i = 0; i < NUM_PATTERNS; i++)
+	for(int i = 0; i < MUS_MAX_CHANNELS; i++)
 	{
-		mused.song.pattern[i].command_columns = 0;
+		mused.command_columns[i] = 0;
 	}
 }
 
@@ -326,6 +326,7 @@ void init(MusInstrument *instrument, MusPattern *pattern, MusSeqPattern **sequen
 	for (int i = 0; i < MUS_MAX_CHANNELS; ++i)
 	{
 		mused.song.sequence[i] = sequence[i];
+		mused.command_columns[i] = 0;
 	}
 
 	for (int i = 0; i < NUM_PATTERNS; ++i)
@@ -334,8 +335,6 @@ void init(MusInstrument *instrument, MusPattern *pattern, MusSeqPattern **sequen
 		mused.song.pattern[i].four_op_step = NULL;
 		mused.song.pattern[i].num_steps = 0;
 		mused.song.pattern[i].color = 0;
-		
-		mused.song.pattern[i].command_columns = 0;
 		
 		resize_pattern(&mused.song.pattern[i], mused.default_pattern_length);
 		
