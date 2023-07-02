@@ -190,6 +190,187 @@ ft_inst* ft_instruments;
 Uint8** ft_sequence;
 Uint16** klystrack_sequence;
 
+char** subsong_names;
+
+int draw_box_select_subsong(GfxDomain *dest, GfxSurface *gfx, const Font *font, const SDL_Event *event, const char *msg, int *selected)
+{
+	int w = 0, max_w = 300, h = font->h;
+	
+	for (const char *c = msg; *c; ++c)
+	{
+		w += font->w;
+		max_w = my_max(max_w, w + 16);
+		if (*c == '\n')
+		{
+			w = 0;
+			h += font->h;
+		}
+	}
+	
+	h += 14 * num_subsongs - 16;
+	
+	SDL_Rect area = { dest->screen_w / 2 - max_w / 2, dest->screen_h / 2 - h / 2 - 8, max_w, h + 16 + 16 + 4 };
+	
+	bevel(dest, &area, gfx, BEV_MENU);
+	SDL_Rect content, pos;
+	copy_rect(&content, &area);
+	adjust_rect(&content, 8);
+	copy_rect(&pos, &content);
+	
+	font_write(font, dest, &pos, msg);
+	update_rect(&content, &pos);
+		
+	*selected = (*selected + num_subsongs) % num_subsongs;
+	
+	//pos.w = 50;
+	pos.w = content.w;
+	pos.h = 14;
+	pos.x = content.x;
+	pos.y -= 14 * num_subsongs;
+	
+	int r = 0;
+	int idx = 0;
+	
+	for (int i = 0; i < num_subsongs; ++i)
+	{
+		int p = button_text_event(dest, event, &pos, gfx, font, BEV_BUTTON, BEV_BUTTON_ACTIVE, subsong_names[i], NULL, 0, 0, 0);
+		
+		if (idx == *selected)
+		{	
+			if (event->type == SDL_KEYDOWN && (event->key.keysym.sym == SDLK_SPACE || event->key.keysym.sym == SDLK_RETURN))
+				p = 1;
+		
+			bevel(dest, &pos, gfx, BEV_CURSOR);
+		}
+		
+		pos.y += 14;
+		
+		//update_rect(&content, &pos);
+		if (p & 1) r = i;
+		++idx;
+	}
+	
+	return r;
+}
+
+int msgbox_select_subsong(GfxDomain *domain, GfxSurface *gfx, const Font *font, const char *msg)
+{
+	set_repeat_timer(NULL);
+	
+	int selected = 0;
+	
+	SDL_StopTextInput();
+	
+	while (1)
+	{
+		SDL_Event e = { 0 };
+		int got_event = 0;
+		while (SDL_PollEvent(&e))
+		{
+			switch (e.type)
+			{
+				case SDL_WINDOWEVENT:
+				{
+					switch (e.window.event) 
+					{
+						case SDL_WINDOWEVENT_RESIZED:
+						{
+							debug("SDL_WINDOWEVENT_RESIZED %dx%d", e.window.data1, e.window.data2);
+
+							domain->screen_w = my_max(320, e.window.data1 / domain->scale);
+							domain->screen_h = my_max(240, e.window.data2 / domain->scale);
+
+							if (!(mused.flags & FULLSCREEN))
+							{
+								mused.window_w = domain->screen_w * domain->scale;
+								mused.window_h = domain->screen_h * domain->scale;
+							}
+
+							gfx_domain_update(domain, false);
+						}
+						break;
+					}
+					break;
+				}
+				
+				case SDL_KEYDOWN:
+				{
+					switch (e.key.keysym.sym)
+					{
+						case SDLK_ESCAPE:
+						
+						return 0;
+						
+						break;
+						
+						case SDLK_KP_ENTER:
+						case SDLK_RETURN:
+							return selected;
+						break;
+						
+						case SDLK_LEFT:
+						--selected;
+						break;
+						
+						case SDLK_RIGHT:
+						++selected;
+						break;
+						
+						default: 
+						break;
+					}
+				}
+				break;
+			
+				case SDL_USEREVENT:
+					e.type = SDL_MOUSEBUTTONDOWN;
+				break;
+				
+				case SDL_MOUSEMOTION:
+					gfx_convert_mouse_coordinates(domain, &e.motion.x, &e.motion.y);
+					gfx_convert_mouse_coordinates(domain, &e.motion.xrel, &e.motion.yrel);
+				break;
+				
+				case SDL_MOUSEBUTTONDOWN:
+					gfx_convert_mouse_coordinates(domain, &e.button.x, &e.button.y);
+				break;
+				
+				case SDL_MOUSEBUTTONUP:
+				{
+					if (e.button.button == SDL_BUTTON_LEFT)
+						mouse_released(&e);
+				}
+				break;
+			}
+			
+			if (e.type != SDL_MOUSEMOTION || (e.motion.state)) ++got_event;
+			
+			// Process mouse click events immediately, and batch mouse motion events
+			// (process the last one) to fix lag with high poll rate mice on Linux.
+			//fix from here https://github.com/kometbomb/klystrack/pull/300
+			if (should_process_mouse(&e))
+				break;
+		}
+		
+		if (got_event || gfx_domain_is_next_frame(domain))
+		{
+			int r = draw_box_select_subsong(domain, gfx, font, &e, msg, &selected);
+			gfx_domain_flip(domain);
+			set_repeat_timer(NULL);
+			
+			if (r) 
+			{
+				return r;
+			}
+		}
+		
+		else
+		{
+			SDL_Delay(5);
+		}
+	}
+}
+
 void load_sequence_indices(FILE* f, Uint8 inst_num) //bool CSeqInstrument::Load(CDocumentFile *pDocFile)
 {
 	Uint32 num_macros = 0;
@@ -234,7 +415,7 @@ int GET_NOTE(int midi_note)
 	return ++x;
 }
 
-void load_dpcm_sample_map(Uint8 note, Uint8 octave, MusInstrument* inst, FILE* f, ftm_block* block) //const auto ReadAssignment = [&] (int Octave, int Note)
+void load_dpcm_sample_map(Uint8 note, Uint8 octave, MusInstrument* inst, FILE* f, ftm_block* block, Uint8 inst_num /*famitracker inst*/, Uint8 i) //const auto ReadAssignment = [&] (int Octave, int Note)
 {
 	inst->flags |= MUS_INST_USE_LOCAL_SAMPLES | MUS_INST_BIND_LOCAL_SAMPLES_TO_NOTES;
 
@@ -250,7 +431,7 @@ void load_dpcm_sample_map(Uint8 note, Uint8 octave, MusInstrument* inst, FILE* f
 		index = 0;
 	}
 
-	fread(&pitch, 1, 1, f);
+	fread(&pitch, 1, 1, f); //0-15 = 0-15 unlooped, 128-143 = 0-15 looped
 
 	if(block->version > 5)
 	{
@@ -260,9 +441,17 @@ void load_dpcm_sample_map(Uint8 note, Uint8 octave, MusInstrument* inst, FILE* f
 
 	inst->note_to_sample_array[C_ZERO + octave * 12 + note].sample = (index > 0) ? (index - 1) : MUS_NOTE_TO_SAMPLE_NONE;
 	inst->note_to_sample_array[C_ZERO + octave * 12 + note].flags |= MUS_NOTE_TO_SAMPLE_GLOBAL;
+
+	ft_instruments[i].dpcm_sample_map.sample[octave * 12 + note] = (index > 0) ? (index - 1) : MUS_NOTE_TO_SAMPLE_NONE;
+	ft_instruments[i].dpcm_sample_map.pitch[octave * 12 + note] = pitch;
+
+	if(pitch == 0xff)
+	{
+		ft_instruments[i].dpcm_sample_map.sample[octave * 12 + note] = MUS_NOTE_TO_SAMPLE_NONE;
+	}
 }
 
-bool load_inst_2a03(FILE* f, ftm_block* block, MusInstrument* inst, Uint8 inst_num)
+bool load_inst_2a03(FILE* f, ftm_block* block, MusInstrument* inst, Uint8 inst_num, Uint8 i /*klystrack inst num*/)
 {
 	bool success = true;
 
@@ -278,23 +467,23 @@ bool load_inst_2a03(FILE* f, ftm_block* block, MusInstrument* inst, Uint8 inst_n
 
 		read_uint32(f, &num_notes);
 
-		for(int i = 0; i < num_notes; i++)
+		for(int i1 = 0; i1 < num_notes; i1++)
 		{
 			Sint8 note = 0;
 
 			fread(&note, 1, 1, f);
 
-			load_dpcm_sample_map(GET_NOTE((int)note) - 1, GET_OCTAVE((int)note) + 1, inst, f, block); //klystrack C-1 is FT C-0
+			load_dpcm_sample_map(GET_NOTE((int)note) - 1, GET_OCTAVE((int)note) + 1, inst, f, block, inst_num, i); //klystrack C-1 is FT C-0
 		}
 	}
 
 	else
 	{
-		for(int i = 0; i < octaves; i++)
+		for(int i1 = 0; i1 < octaves; i1++)
 		{
 			for(int j = 0; j < NOTE_RANGE; j++)
 			{
-				load_dpcm_sample_map(j, i + 1, inst, f, block);
+				load_dpcm_sample_map(j, i1 + 1, inst, f, block, inst_num, i);
 			}
 		}
 	}
@@ -800,7 +989,7 @@ bool ft_process_instruments_block(FILE* f, ftm_block* block)
 		{
 			case INST_2A03:
 			{
-				success = load_inst_2a03(f, block, &mused.song.instrument[i], inst_index);
+				success = load_inst_2a03(f, block, &mused.song.instrument[i], inst_index, i);
 				break;
 			}
 
@@ -1863,7 +2052,6 @@ bool ft_process_header_block(FILE* f, ftm_block* block)
 	{
 		fread(&num_subsongs, sizeof(num_subsongs), 1, f);
 		num_subsongs++;
-		//TODO: add subsong selection dialog
 
 		if(block->version >= 3)
 		{
@@ -1872,11 +2060,22 @@ bool ft_process_header_block(FILE* f, ftm_block* block)
 				//pDocFile->ReadString())
 				Uint8 charaa = 1;
 
+				Uint8 sym = 0;
+
 				do //hope this works as null-terminated string reader mockup
 				{
 					fread(&charaa, sizeof(charaa), 1, f);
+
+					subsong_names[i][sym] = charaa;
+					sym++;
+
 				} while(charaa != 0);
 			}
+		}
+
+		if(num_subsongs > 1)
+		{
+			selected_subsong = msgbox_select_subsong(domain, mused.slider_bevel, &mused.largefont, "Select subsong:");
 		}
 
 		for(int i = 0; i < mused.song.num_channels; i++)
@@ -3531,6 +3730,8 @@ void convert_instruments()
 
 							replace_instrument(4, inst, curr_instrument);
 
+							memcpy(&ft_instruments[curr_instrument], &ft_instruments[inst], sizeof(ft_inst));
+
 							curr_instrument++;
 						}
 
@@ -3670,6 +3871,8 @@ void convert_instruments()
 
 							replace_instrument(4, inst, curr_instrument);
 
+							memcpy(&ft_instruments[curr_instrument], &ft_instruments[inst], sizeof(ft_inst));
+
 							curr_instrument++;
 						}
 
@@ -3806,6 +4009,8 @@ void convert_instruments()
 							strcat(mused.song.instrument[curr_instrument].name, " (DPCM)");
 
 							replace_instrument(4, inst, curr_instrument);
+
+							memcpy(&ft_instruments[curr_instrument], &ft_instruments[inst], sizeof(ft_inst));
 
 							curr_instrument++;
 						}
@@ -4177,8 +4382,6 @@ void convert_instruments()
 		{
 			case INST_TYPE_2A03_TRI:
 			{
-				debug("processing tri inst %d", i);
-
 				for(int j = 0; j < inst->num_macros; j++)
 				{
 					if(strcmp(inst->program_names[j], sequence_names[0]) == 0) //volume macro
@@ -4292,12 +4495,19 @@ void convert_instruments()
 				{
 					if(strcmp(inst->program_names[j], sequence_names_vrc6[4]) == 0) //get rid of pulse widths
 					{
-						free(inst->program[j]);
-						inst->program[j] = NULL;
-						free(inst->program_unite_bits[j]);
-						inst->program_unite_bits[j] = NULL;
+						if(inst->program[j])
+						{
+							free(inst->program[j]);
+							inst->program[j] = NULL;
+						}
+						
+						if(inst->program_unite_bits[j])
+						{
+							free(inst->program_unite_bits[j]);
+							inst->program_unite_bits[j] = NULL;
+						}
 
-						inst->num_macros--;
+						inst->num_macros -= 2;
 					}
 				}
 
@@ -4306,7 +4516,100 @@ void convert_instruments()
 
 			default: break;
 		}
+
+		if(inst_types[i] != INST_TYPE_2A03_DPCM)
+		{
+			inst->flags &= ~(MUS_INST_USE_LOCAL_SAMPLES | MUS_INST_BIND_LOCAL_SAMPLES_TO_NOTES);
+		}
 	}
+
+	Uint8** local_samples_pitches = (Uint8**)calloc(1, sizeof(Uint8*) * CYD_WAVE_MAX_ENTRIES);
+
+	for(int i = 0; i < CYD_WAVE_MAX_ENTRIES; i++)
+	{
+		local_samples_pitches[i] = (Uint8*)calloc(1, sizeof(Uint8) * 32); //0-15 unlooped pitches, 16-31 looped pitches
+	}
+
+	for(int i = 0; i < curr_instrument; i++) //for DPCM samples make copies of samples with proper sample rate and loop settings
+	{
+		if(inst_types[i] == INST_TYPE_2A03_DPCM)
+		{
+			ft_inst* ft_ins = &ft_instruments[i];
+			MusInstrument* inst = &mused.song.instrument[i];
+
+			Uint8 current_local_sample = 0;
+
+			for(int j = 0; j < CYD_WAVE_MAX_ENTRIES; j++)
+			{
+				memset(local_samples_pitches[j], MUS_NOTE_TO_SAMPLE_NONE, sizeof(Uint8) * 32);
+			}
+
+			debug("inst %d", i);
+
+			for(int j = 0; j < 8 * 12; j++)
+			{
+				debug("sam %d pitch %d", ft_ins->dpcm_sample_map.sample[j], ft_ins->dpcm_sample_map.pitch[j]);
+
+				if(ft_ins->dpcm_sample_map.sample[j] != MUS_NOTE_TO_SAMPLE_NONE && ft_ins->dpcm_sample_map.pitch[j] != 15 && ft_ins->dpcm_sample_map.pitch[j] != 255) //if there is sample which settings aren't "max sample rate & unlooped"; 255 is from file? idk it crashes the thing
+				{
+					Uint8 pitch = (ft_ins->dpcm_sample_map.pitch[j] >= 128) ? (ft_ins->dpcm_sample_map.pitch[j] - 128 + 16) : ft_ins->dpcm_sample_map.pitch[j];
+
+					if(local_samples_pitches[inst->note_to_sample_array[j + C_ZERO].sample][pitch] == MUS_NOTE_TO_SAMPLE_NONE) //we don't have this sample variant
+					{
+						if(current_local_sample > 0)
+						{
+							inst->num_local_samples++;
+
+							inst->local_samples = (CydWavetableEntry**)realloc(inst->local_samples, sizeof(CydWavetableEntry*) * inst->num_local_samples);
+							inst->local_sample_names = (char**)realloc(inst->local_sample_names, sizeof(char*) * inst->num_local_samples);
+
+							inst->local_samples[inst->num_local_samples - 1] = (CydWavetableEntry*)calloc(1, sizeof(CydWavetableEntry));
+							inst->local_sample_names[inst->num_local_samples - 1] = (char*)calloc(1, sizeof(char) * MUS_WAVETABLE_NAME_LEN);
+						}
+
+						memcpy(inst->local_samples[current_local_sample], &mused.cyd.wavetable_entries[inst->note_to_sample_array[j + C_ZERO].sample], sizeof(CydWavetableEntry));
+						memcpy(inst->local_sample_names[current_local_sample], mused.song.wavetable_names[inst->note_to_sample_array[j + C_ZERO].sample], sizeof(char) * MUS_WAVETABLE_NAME_LEN);
+
+						inst->local_samples[current_local_sample]->data = (Sint16*)calloc(1, sizeof(Sint16) * inst->local_samples[current_local_sample]->samples);
+						memcpy(inst->local_samples[current_local_sample]->data, mused.cyd.wavetable_entries[inst->note_to_sample_array[j + C_ZERO].sample].data, sizeof(Sint16) * inst->local_samples[current_local_sample]->samples);
+
+						inst->note_to_sample_array[j + C_ZERO].sample = current_local_sample;
+						inst->note_to_sample_array[j + C_ZERO].flags = 0; //local
+						
+						if(pitch & 16)
+						{
+							inst->local_samples[current_local_sample]->flags |= CYD_WAVE_LOOP;
+							inst->local_samples[current_local_sample]->loop_end = inst->local_samples[current_local_sample]->samples;
+						}
+
+						inst->local_samples[current_local_sample]->sample_rate = ((machine == FT_MACHINE_PAL) ? dpcm_sample_rates_pal[pitch & 15] : dpcm_sample_rates_ntsc[pitch & 15]);
+
+						local_samples_pitches[inst->note_to_sample_array[j + C_ZERO].sample][pitch] = current_local_sample;
+
+						current_local_sample++;
+					}
+
+					else //we already have sample variant
+					{
+						for(int k = 0; k < 12 * 8; k++)
+						{
+							if(ft_ins->dpcm_sample_map.sample[k] == ft_ins->dpcm_sample_map.sample[j] && ft_ins->dpcm_sample_map.pitch[k] == ft_ins->dpcm_sample_map.pitch[j])
+							{
+								memcpy(&inst->note_to_sample_array[j + C_ZERO], &inst->note_to_sample_array[k + C_ZERO], sizeof(MusInstNoteToSample));
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	for(int i = 0; i < CYD_WAVE_MAX_ENTRIES; i++)
+	{
+		free(local_samples_pitches[i]);
+	}
+
+	free(local_samples_pitches);
 
 	free(inst_types);
 }
@@ -4816,11 +5119,19 @@ bool import_ft_new(FILE* f, int type, ftm_block* blocks, bool is_dn_ft_sig)
 		effect_columns[i] = (Uint8*)calloc(1, sizeof(Uint8) * FT_MAX_CHANNELS);
 	}
 
-	ft_instruments = (ft_inst*)calloc(1, sizeof(ft_inst) * FT_MAX_INSTRUMENTS);
+	ft_instruments = (ft_inst*)calloc(1, sizeof(ft_inst) * (FT_MAX_INSTRUMENTS * 4));
 
 	for(int i = 0; i < FT_MAX_INSTRUMENTS; i++)
 	{
 		ft_instruments[i].klystrack_instrument = 0xff;
+	}
+
+	subsong_names = (char**)calloc(1, sizeof(char*) * FT_MAX_SUBSONGS);
+
+	for(int i = 0; i < FT_MAX_SUBSONGS; i++)
+	{
+		subsong_names[i] = (char*)calloc(1, sizeof(char) * 4096);
+		memset(subsong_names[i], 0, 4096);
 	}
 
 	channels_to_chips = (Uint8*)calloc(1, sizeof(Uint8) * FT_MAX_CHANNELS);
@@ -4918,6 +5229,8 @@ int import_famitracker(FILE *f, int type)
 
 	ft_sequence = NULL;
 	klystrack_sequence = NULL;
+
+	subsong_names = NULL;
 
 	transpose_fds = false;
 	
@@ -5035,6 +5348,16 @@ int import_famitracker(FILE *f, int type)
 		}
 
 		free(klystrack_sequence);
+	}
+
+	if(subsong_names)
+	{
+		for(int i = 0; i < FT_MAX_SUBSONGS; i++)
+		{
+			free(subsong_names[i]);
+		}
+
+		free(subsong_names);
 	}
 
 	if(channels_to_chips)

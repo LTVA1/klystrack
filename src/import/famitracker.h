@@ -230,6 +230,12 @@ typedef struct
 
 typedef struct
 {
+	Uint8 sample[8 * 12];
+	Uint8 pitch[8 * 12];
+} ft_inst_dpcm_sample_map;
+
+typedef struct
+{
 	ft_inst_macro macros[FT_SEQ_CNT];
 	Uint8 fds_wave[FT_FDS_WAVE_SIZE];
 	Uint8 fds_mod[FT_FDS_MOD_SIZE];
@@ -250,6 +256,8 @@ typedef struct
 	bool seq_enable[FT_SEQ_CNT];
 
 	Uint8 klystrack_instrument;
+
+	ft_inst_dpcm_sample_map dpcm_sample_map;
 } ft_inst;
 
 int import_famitracker(FILE *f, int type);
