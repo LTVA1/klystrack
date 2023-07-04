@@ -176,6 +176,7 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_CUTOFF_FINE_SET, 0xf000, "Set filter cutoff (fine)", "CutFine", 0, CYD_CUTOFF_MAX - 1},
 	{MUS_FX_PW_FINE_SET, 0xf000, "Set pulse width (fine)", "PWFine", 0, 0xfff}, //wasn't there
 	{MUS_FX_BUZZ_SET_SEMI, 0xff00, "Set buzz semitone", "BuzzSemi", -1, -1},
+	{MUS_FX_BUZZ_TOGGLE, 0xfff0, "Enable buzz on tick x (1-f), disable buzz (0)", "BuzzToggle", -1, -1},
 	
 	{MUS_FX_SET_ATTACK_RATE, 0xff00, "Set attack rate", "AtkRate", 0, 0x7f},
 	{MUS_FX_SET_DECAY_RATE, 0xff00, "Set decay rate", "DecRate", 0, 0x7f},

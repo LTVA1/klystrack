@@ -97,6 +97,10 @@ enum
 #define CONV_MARKER_SWEEP 0xfffe
 #define CONV_MARKER_DOWN 0xfffd
 
+#define S5B_ENVL 0b10000000
+#define S5B_TONE 0b01000000
+#define S5B_NOIS 0b00100000
+
 enum
 {
 	INST_NONE = 0,

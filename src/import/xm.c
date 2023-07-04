@@ -132,6 +132,12 @@ void find_command_xm(Uint16 command, MusStep* step)
 		step->command[0] = MUS_FX_EXT_PORTA_DN | (command & 0xf);
 		return;
 	}
+
+	else if ((command & 0xfff0) == 0x0e30)
+	{
+		step->command[0] = MUS_FX_GLISSANDO_CONTROL | (command & 0xf);
+		return;
+	}
 	
 	else if ((command & 0xfff0) == 0x0e60)
 	{

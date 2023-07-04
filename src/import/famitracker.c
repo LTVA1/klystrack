@@ -146,6 +146,14 @@ const Uint8 noise_notes[16] =
 	C_ZERO + 12 * 5 + 5, C_ZERO + 12 * 5 + 11, C_ZERO + 12 * 6 + 7, C_ZERO + 12 * 7 + 11, C_ZERO + 12 * 9 + 11
 };
 
+const Uint8 s5b_noise_notes[32] = /*TODO: add actual notes*/
+{ 
+	C_ZERO + 12 + 10, C_ZERO + 12 + 11, C_ZERO + 12 * 2, C_ZERO + 12 * 2, C_ZERO + 12 * 2 + 1, C_ZERO + 12 * 2 + 2, C_ZERO + 12 * 2 + 3, C_ZERO + 12 * 2 + 4, C_ZERO + 12 * 2 + 5, 
+	C_ZERO + 12 * 2 + 5, C_ZERO + 12 * 2 + 6, C_ZERO + 12 * 2 + 6, C_ZERO + 12 * 2 + 7, C_ZERO + 12 * 2 + 8, C_ZERO + 12 * 2 + 8, C_ZERO + 12 * 2 + 10, C_ZERO + 12 * 3,
+	C_ZERO + 12 * 3, C_ZERO + 12 * 3 + 1, C_ZERO + 12 * 3 + 2, C_ZERO + 12 * 3 + 4, C_ZERO + 12 * 3 + 5, C_ZERO + 12 * 3 + 8, C_ZERO + 12 * 3 + 11, C_ZERO + 12 * 4,
+	C_ZERO + 12 * 4 + 2, C_ZERO + 12 * 4 + 4, C_ZERO + 12 * 4 + 10, C_ZERO + 12 * 5 + 2, C_ZERO + 12 * 5 + 11, C_ZERO + 12 * 6 + 11, C_ZERO + 12 * 7 + 11,
+};
+
 void read_uint32(FILE *f, Uint32* number) //little-endian
 {
 	*number = 0;
@@ -228,7 +236,7 @@ int draw_box_select_subsong(GfxDomain *dest, GfxSurface *gfx, const Font *font, 
 	pos.x = content.x;
 	pos.y -= 14 * num_subsongs;
 	
-	int r = 0;
+	int r = -1;
 	int idx = 0;
 	
 	for (int i = 0; i < num_subsongs; ++i)
@@ -358,7 +366,7 @@ int msgbox_select_subsong(GfxDomain *domain, GfxSurface *gfx, const Font *font, 
 			gfx_domain_flip(domain);
 			set_repeat_timer(NULL);
 			
-			if (r) 
+			if (r != -1) 
 			{
 				return r;
 			}
@@ -439,15 +447,18 @@ void load_dpcm_sample_map(Uint8 note, Uint8 octave, MusInstrument* inst, FILE* f
 		initial_delta_counter_positions[index] = initial_delta_counter_position;
 	}
 
-	inst->note_to_sample_array[C_ZERO + octave * 12 + note].sample = (index > 0) ? (index - 1) : MUS_NOTE_TO_SAMPLE_NONE;
-	inst->note_to_sample_array[C_ZERO + octave * 12 + note].flags |= MUS_NOTE_TO_SAMPLE_GLOBAL;
-
-	ft_instruments[i].dpcm_sample_map.sample[octave * 12 + note] = (index > 0) ? (index - 1) : MUS_NOTE_TO_SAMPLE_NONE;
-	ft_instruments[i].dpcm_sample_map.pitch[octave * 12 + note] = pitch;
-
-	if(pitch == 0xff)
+	if(octave * 12 + note < 96)
 	{
-		ft_instruments[i].dpcm_sample_map.sample[octave * 12 + note] = MUS_NOTE_TO_SAMPLE_NONE;
+		inst->note_to_sample_array[C_ZERO + octave * 12 + note].sample = (index > 0) ? (index - 1) : MUS_NOTE_TO_SAMPLE_NONE;
+		inst->note_to_sample_array[C_ZERO + octave * 12 + note].flags |= MUS_NOTE_TO_SAMPLE_GLOBAL;
+
+		ft_instruments[i].dpcm_sample_map.sample[octave * 12 + note] = (index > 0) ? (index - 1) : MUS_NOTE_TO_SAMPLE_NONE;
+		ft_instruments[i].dpcm_sample_map.pitch[octave * 12 + note] = pitch;
+
+		if(pitch == 0xff)
+		{
+			ft_instruments[i].dpcm_sample_map.sample[octave * 12 + note] = MUS_NOTE_TO_SAMPLE_NONE;
+		}
 	}
 }
 
@@ -1558,7 +1569,7 @@ void ft_convert_command(Uint16 val, MusStep* step, Uint16 song_pos, Uint8 channe
 
 		case FT_EF_SAMPLE_OFFSET:
 		{
-			step->command[column] = val; //TODO: add actual sample offset command later when we certainly know sample length
+			step->command[column] = MUS_FX_WAVETABLE_OFFSET | (param << 4); //TODO: add actual sample offset command later when we certainly know sample length
 			break;
 		}
 
@@ -1591,6 +1602,16 @@ void ft_convert_command(Uint16 val, MusStep* step, Uint16 song_pos, Uint8 channe
 		case FT_EF_RETRIGGER:
 		{
 			step->command[column] = MUS_FX_EXT_RETRIGGER | (param & 0xf);
+			break;
+		}
+
+		case FT_EF_DPCM_PITCH:
+		{
+			if(channels_to_chips[channel] == FT_SNDCHIP_S5B)
+			{
+				step->command[column] = MUS_FX_SET_NOISE_CONSTANT_PITCH | s5b_noise_notes[param]; //TODO: add separate noise notes set by ear for AY (S5B) noise
+			}
+
 			break;
 		}
 
@@ -2395,12 +2416,12 @@ bool ft_process_sequences_s5b_block(FILE* f, ftm_block* block)
 			{
 				memcpy(&ft_instruments[j].macros[type], temp_macro, sizeof(ft_inst_macro));
 
-				/*debug("S5B Macro %d type %d", Indices[i], Types[i]);
+				debug("S5B Macro %d type %d", Indices[i], Types[i]);
 
 				for(int k = 0; k < ft_instruments[j].macros[type].sequence_size; k++)
 				{
 					debug("%d", ft_instruments[j].macros[type].sequence[k]);
-				}*/
+				}
 			}
 		}
 	}
@@ -3122,6 +3143,108 @@ void convert_macro_value(Uint8 value, Uint8 macro_num, ft_inst* ft_instrum, Uint
 					(*macro_position)++;
 					return;
 					break;
+				}
+
+				case 1: //arpeggio
+				{
+					convert_macro_value_arp(value, macro_num, ft_instrum, macro_position, inst_prog, prog_unite_bits, tone_offset);
+
+					break;
+				}
+
+				case 2: //pitch
+				{
+					switch(ft_instrum->macros[2].setting)
+					{
+						case FT_SETTING_PITCH_RELATIVE:
+						{
+							if(value < 0x80 && value > 0)
+							{
+								inst_prog[*(macro_position)] = MUS_FX_PORTA_DN | my_min(0xff, (abs(value) * 6));
+							}
+
+							if(value >= 0x80)
+							{
+								Uint8 temp = 0x100 - value;
+								inst_prog[*(macro_position)] = MUS_FX_PORTA_UP | my_min(0xff, (abs(temp) * 6));
+							}
+
+							(*macro_position)++;
+							return;
+							break;
+						}
+						
+						case FT_SETTING_PITCH_ABSOLUTE:
+						{
+							if(value < 0x80 && value > 0)
+							{
+								Uint16 temp = value * 6 * 2;
+
+								prog_unite_bits[(*(macro_position)) / 8] |= 1 << ((*(macro_position)) & 7);
+
+								if((temp >> 8) < 0x80)
+								{
+									inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO_DOWN | (Uint8)(temp >> 8);
+									(*macro_position)++;
+									inst_prog[*(macro_position)] = MUS_FX_PITCH | (Uint8)(0x80 - (temp & 0xff));
+								}
+
+								else
+								{
+									inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO_DOWN | (Uint8)((temp >> 8) + 1);
+									(*macro_position)++;
+									inst_prog[*(macro_position)] = MUS_FX_PITCH | (Uint8)(0x80 + (temp & 0xff));
+								}
+							}
+
+							if(value >= 0x80) //going up
+							{
+								Uint8 tempp = 0x100 - value;
+
+								Uint16 temp = tempp * 6 * 2;
+								
+								prog_unite_bits[(*(macro_position)) / 8] |= 1 << ((*(macro_position)) & 7);
+
+								if((temp >> 8) < 0x80)
+								{
+									inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO | (Uint8)(temp >> 8);
+									(*macro_position)++;
+									inst_prog[*(macro_position)] = MUS_FX_PITCH | (Uint8)(0x80 + (temp & 0xff));
+								}
+
+								else
+								{
+									inst_prog[*(macro_position)] = MUS_FX_ARPEGGIO | (Uint8)((temp >> 8) + 1);
+									(*macro_position)++;
+									inst_prog[*(macro_position)] = MUS_FX_PITCH | (Uint8)(0x80 - (temp & 0xff));
+								}
+							}
+
+							(*macro_position)++;
+							return;
+							break;
+						}
+
+						default: break;
+					}
+				}
+
+				default: break;
+			}
+
+			break;
+		}
+
+		case INST_S5B:
+		{
+			switch(macro_num)
+			{
+				case 0: //volume
+				{
+					inst_prog[*(macro_position)] = MUS_FX_SET_VOLUME_FROM_PROGRAM | convert_volumes_16[value];
+					(*macro_position)++;
+					return;
+					break;
 					
 					break;
 				}
@@ -3208,6 +3331,91 @@ void convert_macro_value(Uint8 value, Uint8 macro_num, ft_inst* ft_instrum, Uint
 
 						default: break;
 					}
+				}
+
+				case 3: //hi-pitch
+				{
+					if(value < 0x80 && value > 0)
+					{
+						inst_prog[*(macro_position)] = MUS_FX_PORTA_DN_SEMI | my_min(0xff, (abs(value) * 2));
+					}
+
+					if(value >= 0x80)
+					{
+						Uint8 temp = 0x100 - value;
+						inst_prog[*(macro_position)] = MUS_FX_PORTA_UP_SEMI | my_min(0xff, (abs(temp) * 2));
+					}
+
+					(*macro_position)++;
+					return;
+					break;
+				}
+
+				case 4: //noise/mode
+				{
+					if(value & S5B_ENVL)
+					{
+						inst_prog[*(macro_position)] = MUS_FX_BUZZ_TOGGLE | 1;
+
+						if(!(value & (S5B_TONE | S5B_NOIS)))
+						{
+							prog_unite_bits[(*(macro_position)) / 8] |= 1 << ((*(macro_position)) & 7);
+							(*macro_position)++;
+							inst_prog[*(macro_position)] = MUS_FX_PW_FINE_SET; //just envelope
+							prog_unite_bits[(*(macro_position)) / 8] |= 1 << ((*(macro_position)) & 7);
+							(*macro_position)++;
+						}
+
+						if(value & (S5B_TONE | S5B_NOIS))
+						{
+							prog_unite_bits[(*(macro_position)) / 8] |= 1 << ((*(macro_position)) & 7);
+							(*macro_position)++;
+						}
+					}
+
+					if(!(value & S5B_ENVL))
+					{
+						inst_prog[*(macro_position)] = MUS_FX_BUZZ_TOGGLE;
+
+						prog_unite_bits[(*(macro_position)) / 8] |= 1 << ((*(macro_position)) & 7);
+
+						(*macro_position)++;
+					}
+
+					if(value & S5B_TONE)
+					{
+						if(value & S5B_NOIS)
+						{
+							inst_prog[*(macro_position)] = MUS_FX_SET_WAVEFORM | 3; //pulse+noise
+						}
+
+						else
+						{
+							inst_prog[*(macro_position)] = MUS_FX_SET_WAVEFORM | 2; //pulse
+						}
+						
+						prog_unite_bits[(*(macro_position)) / 8] |= 1 << ((*(macro_position)) & 7);
+						(*macro_position)++;
+
+						inst_prog[*(macro_position)] = MUS_FX_PW_FINE_SET | 0x800; //50% pulse (in case it needs to be restored)
+						prog_unite_bits[(*(macro_position)) / 8] |= 1 << ((*(macro_position)) & 7);
+						(*macro_position)++;
+					}
+
+					if((value & S5B_NOIS) && !(value & S5B_TONE))
+					{
+						inst_prog[*(macro_position)] = MUS_FX_SET_WAVEFORM | 1; //noise
+						prog_unite_bits[(*(macro_position)) / 8] |= 1 << ((*(macro_position)) & 7);
+						(*macro_position)++;
+					}
+
+					Uint8 pitch = value & 0x1f; //lower 5 bits set noise pitch
+
+					inst_prog[*(macro_position)] = MUS_FX_SET_NOISE_CONSTANT_PITCH | s5b_noise_notes[pitch];
+					(*macro_position)++;
+					
+					return;
+					break;
 				}
 
 				default: break;
@@ -3577,6 +3785,41 @@ void convert_instruments()
 				break;
 			}
 
+			case INST_S5B:
+			{
+				for(int j = 0; j < FT_SEQ_CNT; j++)
+				{
+					if(ft_instrum->seq_enable[j] && ft_instrum->macros[j].sequence_size > 0)
+					{
+						inst->prog_period[current_program] = 1;
+
+						convert_macro(inst, j, ft_instrum, current_program);
+
+						for(int k = 1; k < MUS_PROG_LEN; k++)
+						{
+							if((inst->program[current_program][k] & 0xff00) == MUS_FX_JUMP && inst->program[current_program][k] != MUS_FX_NOP && inst->program[current_program][k] != MUS_FX_END 
+							&& (inst->program[current_program][k] & 0xff) != k) inst->program_unite_bits[current_program][(k - 1) / 8] |= 1 << ((k - 1) & 7);
+						}
+
+						strcpy(inst->program_names[current_program], sequence_names_s5b[j]);
+
+						current_program++;
+
+						inst->num_macros++;
+
+						inst->program[current_program] = (Uint16*)calloc(1, sizeof(Uint16) * MUS_PROG_LEN);
+						inst->program_unite_bits[current_program] = (Uint8*)calloc(1, sizeof(Uint8) * (MUS_PROG_LEN / 8 + 1));
+
+						for(int k = 0; k < MUS_PROG_LEN; k++)
+						{
+							inst->program[current_program][k] = MUS_FX_NOP;
+						}
+					}
+				}
+
+				break;
+			}
+
 			default: break;
 		}
 
@@ -3665,6 +3908,11 @@ void convert_instruments()
 
 			free(data);
 		}
+
+		if(ft_instrum->type == INST_S5B)
+		{
+			inst->pw = 0x800;
+		}
 	}
 
 	Uint8 curr_instrument = num_instruments; //we start from 1st empty instrument
@@ -3672,7 +3920,7 @@ void convert_instruments()
 	Uint8* inst_types = (Uint8*)calloc(1, sizeof(Uint8) * NUM_INSTRUMENTS);
 
 	for(int i = 0; i < mused.song.num_channels; i++) //this setup only supports making duplicate instruments for different channels of ONE chip at a time
-	{ //e.g. if you use same instrument on 2A03 and VRC6 it wouldn't be duplicated
+	{ //e.g. if you use same instrument on 2A03 and S5B it wouldn't be duplicated; supports duplicating across VRC6 & 2A03 tho
 		for(int j = 0; j < sequence_length; j++)
 		{
 			MusPattern* pat = &mused.song.pattern[mused.song.sequence[i][j].pattern];
@@ -3730,7 +3978,7 @@ void convert_instruments()
 
 							replace_instrument(4, inst, curr_instrument);
 
-							memcpy(&ft_instruments[curr_instrument], &ft_instruments[inst], sizeof(ft_inst));
+							memcpy(&ft_instruments[curr_instrument].dpcm_sample_map, &ft_instruments[inst].dpcm_sample_map, sizeof(ft_inst_dpcm_sample_map));
 
 							curr_instrument++;
 						}
@@ -3871,7 +4119,7 @@ void convert_instruments()
 
 							replace_instrument(4, inst, curr_instrument);
 
-							memcpy(&ft_instruments[curr_instrument], &ft_instruments[inst], sizeof(ft_inst));
+							memcpy(&ft_instruments[curr_instrument].dpcm_sample_map, &ft_instruments[inst].dpcm_sample_map, sizeof(ft_inst_dpcm_sample_map));
 
 							curr_instrument++;
 						}
@@ -4010,7 +4258,7 @@ void convert_instruments()
 
 							replace_instrument(4, inst, curr_instrument);
 
-							memcpy(&ft_instruments[curr_instrument], &ft_instruments[inst], sizeof(ft_inst));
+							memcpy(&ft_instruments[curr_instrument].dpcm_sample_map, &ft_instruments[inst].dpcm_sample_map, sizeof(ft_inst_dpcm_sample_map));
 
 							curr_instrument++;
 						}
@@ -4413,6 +4661,8 @@ void convert_instruments()
 
 				inst->wavetable_entry = nes_tri;
 
+				inst->flags &= ~(MUS_INST_USE_LOCAL_SAMPLES | MUS_INST_BIND_LOCAL_SAMPLES_TO_NOTES);
+
 				break;
 			}
 
@@ -4453,6 +4703,8 @@ void convert_instruments()
 						}
 					}
 				}
+
+				inst->flags &= ~(MUS_INST_USE_LOCAL_SAMPLES | MUS_INST_BIND_LOCAL_SAMPLES_TO_NOTES);
 
 				break;
 			}
@@ -4511,15 +4763,12 @@ void convert_instruments()
 					}
 				}
 
+				inst->flags &= ~(MUS_INST_USE_LOCAL_SAMPLES | MUS_INST_BIND_LOCAL_SAMPLES_TO_NOTES);
+
 				break;
 			}
 
 			default: break;
-		}
-
-		if(inst_types[i] != INST_TYPE_2A03_DPCM)
-		{
-			inst->flags &= ~(MUS_INST_USE_LOCAL_SAMPLES | MUS_INST_BIND_LOCAL_SAMPLES_TO_NOTES);
 		}
 	}
 
@@ -4544,13 +4793,9 @@ void convert_instruments()
 				memset(local_samples_pitches[j], MUS_NOTE_TO_SAMPLE_NONE, sizeof(Uint8) * 32);
 			}
 
-			debug("inst %d", i);
-
 			for(int j = 0; j < 8 * 12; j++)
 			{
-				debug("sam %d pitch %d", ft_ins->dpcm_sample_map.sample[j], ft_ins->dpcm_sample_map.pitch[j]);
-
-				if(ft_ins->dpcm_sample_map.sample[j] != MUS_NOTE_TO_SAMPLE_NONE && ft_ins->dpcm_sample_map.pitch[j] != 15 && ft_ins->dpcm_sample_map.pitch[j] != 255) //if there is sample which settings aren't "max sample rate & unlooped"; 255 is from file? idk it crashes the thing
+				if(ft_ins->dpcm_sample_map.sample[j] != MUS_NOTE_TO_SAMPLE_NONE && inst->note_to_sample_array[j + C_ZERO].sample != MUS_NOTE_TO_SAMPLE_NONE && ft_ins->dpcm_sample_map.pitch[j] != 15 && ft_ins->dpcm_sample_map.pitch[j] != 255) //if there is sample which settings aren't "max sample rate & unlooped"; 255 is from file? idk it crashes the thing
 				{
 					Uint8 pitch = (ft_ins->dpcm_sample_map.pitch[j] >= 128) ? (ft_ins->dpcm_sample_map.pitch[j] - 128 + 16) : ft_ins->dpcm_sample_map.pitch[j];
 
@@ -5194,6 +5439,8 @@ bool import_ft_new(FILE* f, int type, ftm_block* blocks, bool is_dn_ft_sig)
 	}
 	
 	debug("finished processing blocks");
+
+	mused.song.flags |= MUS_USE_OLD_SAMPLE_LOOP_BEHAVIOUR;
 
 	return success;
 }
