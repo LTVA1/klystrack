@@ -31,11 +31,50 @@ OTHER DEALINGS IN THE SOFTWARE.
 extern Mused mused;
 extern GfxDomain *domain;
 
-bool quit;
-bool generate_macro;
+Uint32 quit;
+Uint32 generate_macro;
+Uint32 enable_interpolation;
 
-#define WINDOW_HEIGHT 55
+#define WINDOW_HEIGHT 55 + 12
 #define WINDOW_WIDTH 250
+
+int checkbox_simple(GfxDomain *dest, const SDL_Event *event, const SDL_Rect *area, GfxSurface *gfx, const Font * font, int offset, int offset_pressed, int decal, const char* _label, Uint32 *flags, Uint32 mask)
+{
+	SDL_Rect tick, label;
+	copy_rect(&tick, area);
+	copy_rect(&label, area);
+	tick.h = tick.w = 8;
+	label.w -= tick.w + 4;
+	label.x += tick.w + 4;
+	label.y += 1;
+	label.h -= 1;
+	int pressed = button_event(dest, event, &tick, gfx, offset, offset_pressed, (*flags & mask) ? decal : -1, NULL, 0, 0, 0);
+	font_write(font, dest, &label, _label);
+	
+	return pressed;
+}
+
+void generic_flags_simple(const SDL_Event *e, const SDL_Rect *_area, const char *label, Uint32 *_flags, Uint32 mask)
+{
+	SDL_Rect area;
+	copy_rect(&area, _area);
+	area.y += 1;
+
+	int hit = check_event(e, _area, NULL, NULL, NULL, NULL);
+
+	if (checkbox_simple(domain, e, &area, mused.slider_bevel, &mused.smallfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, DECAL_TICK, label, _flags, mask))
+	{
+
+	}
+	
+	if (hit)
+	{
+		// so that the gap between the box and label works too
+		Uint32 flags = *_flags;
+		flags ^= mask;
+		*_flags = flags;
+	}
+}
 
 draw_bit_depth_select_window(Uint8* bit_depth, SDL_Event* event)
 {
@@ -52,7 +91,10 @@ draw_bit_depth_select_window(Uint8* bit_depth, SDL_Event* event)
 	
 	*bit_depth += generic_field(event, &r, -1, -1, "SELECT WAVETABLE BIT DEPTH:", "%3d", MAKEPTR(*bit_depth), 3);
 	r.y += 12;
-	generic_flags(event, &r, 0, 0, "GENERATE LOOP-THROUGH MACRO", &generate_macro, 1);
+	generic_flags_simple(event, &r, "GENERATE LOOP-THROUGH MACRO", &generate_macro, 1);
+	r.y += 12;
+	r.w -= 50 + 40 - 8;
+	generic_flags_simple(event, &r, "ENABLE INTERPOLATION", &enable_interpolation, 1);
 	
 	r.h = 12;
 	r.w = 40;
@@ -71,8 +113,9 @@ draw_bit_depth_select_window(Uint8* bit_depth, SDL_Event* event)
 Uint8 bit_depth_select_menu_view()
 {
 	Uint8 bit_depth = 4; //most common chiptune wavetable bit depth
-	quit = false;
-	generate_macro = false;
+	quit = 0;
+	generate_macro = 0;
+	enable_interpolation = 0;
 	
 	while (!quit)
 	{
@@ -188,24 +231,7 @@ void import_wavetable_string(MusInstrument* inst)
 		char* wave_string = SDL_GetClipboardText();
 		
 		debug("got wavetable string: \"%s\"", wave_string);
-		
-		if(strcmp(wave_string, "") == 0)
-		{
-			msgbox(domain, mused.slider_bevel, &mused.largefont, "Clipboard is empty!", MB_OK);
-			
-			goto end;
-		}
-		
-		Uint8 bit_depth = bit_depth_select_menu_view();
-		
-		debug("selected bit depth: %d", bit_depth);
-		
-		char* wave_string_copy = (char*)calloc(1, strlen(wave_string) + 1);
-		strcpy(wave_string_copy, wave_string);
-		
-		const char delimiters_lines[] = "\n\r;";
-		const char delimiters[] = ", \t";
-		
+
 		Uint16 passes = 0;
 		Uint16 wavetables = 0;
 		Uint16 wavetable_length = 0;
@@ -219,6 +245,24 @@ void import_wavetable_string(MusInstrument* inst)
 		
 		Uint16* wavetable_lengths = NULL;
 		Sint16* wave_data = NULL;
+		char* wave_string_copy = NULL;
+		
+		if(strcmp(wave_string, "") == 0)
+		{
+			msgbox(domain, mused.slider_bevel, &mused.largefont, "Clipboard is empty!", MB_OK);
+			
+			goto end;
+		}
+
+		Uint8 bit_depth = bit_depth_select_menu_view();
+		
+		debug("selected bit depth: %d", bit_depth);
+		
+		wave_string_copy = (char*)calloc(1, strlen(wave_string) + 1);
+		strcpy(wave_string_copy, wave_string);
+		
+		const char delimiters_lines[] = "\n\r;";
+		const char delimiters[] = ", \t";
 		
 		while(current_line != NULL)
 		{
@@ -253,8 +297,6 @@ void import_wavetable_string(MusInstrument* inst)
 			
 			goto end;
 		}
-		
-		debug("wavetables in string: %d", wavetables);
 		
 		wavetable_lengths = (Uint16*)calloc(1, sizeof(Uint16) * wavetables);
 		
@@ -328,7 +370,17 @@ void import_wavetable_string(MusInstrument* inst)
 			cyd_wave_entry_init(inst->local_samples[i], wave_data, wavetable_length, CYD_WAVE_TYPE_SINT16, 1, 1, 1);
 			
 			inst->local_samples[i]->base_note = (inst->base_note << 8) + inst->finetune;
-			inst->local_samples[i]->flags |= CYD_WAVE_LOOP | CYD_WAVE_NO_INTERPOLATION;
+			inst->local_samples[i]->flags |= CYD_WAVE_LOOP;
+
+			if(enable_interpolation)
+			{
+				inst->local_samples[i]->flags &= ~(CYD_WAVE_NO_INTERPOLATION);
+			}
+			
+			else
+			{
+				inst->local_samples[i]->flags |= CYD_WAVE_NO_INTERPOLATION;
+			}
 			
 			inst->local_samples[i]->loop_begin = 0;
 			inst->local_samples[i]->loop_end = wavetable_length;
