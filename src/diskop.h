@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef DISKOP_H
 #define DISKOP_H
 

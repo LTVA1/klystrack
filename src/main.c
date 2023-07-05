@@ -288,9 +288,10 @@ int main(int argc, char **argv)
 	
 	debug("Starting %s", VERSION_STRING);
 	
-	debug("size of MusInstrument %d", sizeof(MusInstrument));
-	debug("size of CydFxSerialized %d", sizeof(CydFxSerialized));
-	debug("size of UndoEvent %d", sizeof(UndoEvent));
+	debug("size of Mused %lld", sizeof(Mused));
+	debug("size of MusInstrument %lld", sizeof(MusInstrument));
+	debug("size of CydFxSerialized %lld", sizeof(CydFxSerialized));
+	debug("size of UndoEvent %lld", sizeof(UndoEvent));
 	
 	mused.output_buffer_counter = 0; //wasn't there
 	mused.flags = 0;
