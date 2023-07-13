@@ -2676,6 +2676,8 @@ static void play_note(int note)
 
 		mused.mus.song_track[c].extarp1 = 0;
 		mused.mus.song_track[c].extarp2 = 0;
+
+		mus_advance_tick(&mused.mus);
 	}
 }
 
@@ -2765,6 +2767,8 @@ static void play_the_jams(int sym, int chn, int state)
 						mused.cyd.channel[c].subosc[s].noise_accumulator = 0;
 						mused.cyd.channel[c].subosc[s].wave.acc = 0;
 					}
+
+					mus_advance_tick(&mused.mus);
 				}
 			}
 		}

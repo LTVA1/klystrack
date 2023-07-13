@@ -1455,7 +1455,7 @@ void ft_convert_command(Uint16 val, MusStep* step, Uint16 song_pos, Uint8 channe
 
 		case FT_EF_PORTAMENTO:
 		{
-			step->command[column] = MUS_FX_FAST_SLIDE | (param / 4);
+			step->command[column] = MUS_FX_FAST_SLIDE | ((param == 1) ? param : (param / 2));
 			//step->command[MUS_MAX_COMMANDS - 1] = CONV_MARKER;
 			break;
 		}
@@ -1567,6 +1567,41 @@ void ft_convert_command(Uint16 val, MusStep* step, Uint16 song_pos, Uint8 channe
 			break;
 		}
 
+		case FT_EF_SUNSOFT_ENV_TYPE:
+		{
+			if(channels_to_chips[channel] == FT_SNDCHIP_S5B)
+			{
+				Uint8 type = param & 0xf;
+
+				if(type == 8)
+				{
+					step->command[column] = MUS_FX_BUZZ_SHAPE | 1;
+				}
+
+				if(type == 0xC)
+				{
+					step->command[column] = MUS_FX_BUZZ_SHAPE | 0;
+				}
+
+				if(type == 0xA || type == 0xE)
+				{
+					step->command[column] = MUS_FX_BUZZ_SHAPE | 2;
+				}
+			}
+
+			break;
+		}
+
+		case FT_EF_SUNSOFT_NOISE:
+		{
+			if(channels_to_chips[channel] == FT_SNDCHIP_S5B)
+			{
+				step->command[column] = MUS_FX_SET_NOISE_CONSTANT_PITCH | s5b_noise_notes[param & 0x1f];
+			}
+
+			break;
+		}
+
 		case FT_EF_SAMPLE_OFFSET:
 		{
 			step->command[column] = MUS_FX_WAVETABLE_OFFSET | (param << 4); //TODO: add actual sample offset command later when we certainly know sample length
@@ -1577,12 +1612,22 @@ void ft_convert_command(Uint16 val, MusStep* step, Uint16 song_pos, Uint8 channe
 		{
 			step->command[column] = MUS_FX_SLIDE_UP_SEMITONES | param;
 
+			if((param & 0xf0) == 0) //so speed 0 is slowest speed and still does the slide (as it works in famitracker for some reason)
+			{
+				step->command[column] |= 1 << 4;
+			}
+
 			break;
 		}
 
 		case FT_EF_SLIDE_DOWN:
 		{
 			step->command[column] = MUS_FX_SLIDE_DN_SEMITONES | param;
+
+			if((param & 0xf0) == 0)
+			{
+				step->command[column] |= 1 << 4;
+			}
 
 			break;
 		}
@@ -2416,12 +2461,12 @@ bool ft_process_sequences_s5b_block(FILE* f, ftm_block* block)
 			{
 				memcpy(&ft_instruments[j].macros[type], temp_macro, sizeof(ft_inst_macro));
 
-				debug("S5B Macro %d type %d", Indices[i], Types[i]);
+				/*debug("S5B Macro %d type %d", Indices[i], Types[i]);
 
 				for(int k = 0; k < ft_instruments[j].macros[type].sequence_size; k++)
 				{
 					debug("%d", ft_instruments[j].macros[type].sequence[k]);
-				}
+				}*/
 			}
 		}
 	}
@@ -3603,8 +3648,8 @@ void convert_instruments()
 	{
 		MusInstrument* inst = &mused.song.instrument[i];
 
-		inst->flags &= ~(MUS_INST_DRUM);
-		inst->flags |= MUS_INST_RELATIVE_VOLUME;
+		inst->flags &= ~(MUS_INST_DRUM | MUS_INST_SET_PW); //in famitracker last pulse width is preserved unless pulse width macro changes it, so we clear the flag
+		inst->flags |= MUS_INST_RELATIVE_VOLUME | MUS_INST_RETRIGGER_ON_SLIDE;
 
 		inst->cydflags &= ~(CYD_CHN_ENABLE_KEY_SYNC | CYD_CHN_ENABLE_TRIANGLE);
 		inst->cydflags |= CYD_CHN_ENABLE_PULSE | CYD_CHN_ENABLE_FILTER;
@@ -3827,10 +3872,10 @@ void convert_instruments()
 		{
 			for(int j = 0; j < FT_SEQ_CNT; j++)
 			{
-				if(ft_instrum->seq_enable[j] && ft_instrum->macros[j].sequence_size > 0 && ft_instrum->macros[j].release != -1)
-				{
+				//if(ft_instrum->seq_enable[j] && ft_instrum->macros[j].sequence_size > 0 && ft_instrum->macros[j].release != -1)
+				//{
 					inst->adsr.r = 0x3f;
-				}
+				//}
 			}
 		}
 
@@ -3912,6 +3957,7 @@ void convert_instruments()
 		if(ft_instrum->type == INST_S5B)
 		{
 			inst->pw = 0x800;
+			inst->flags |= MUS_INST_SET_PW;
 		}
 	}
 
@@ -4634,25 +4680,18 @@ void convert_instruments()
 				{
 					if(strcmp(inst->program_names[j], sequence_names[0]) == 0) //volume macro
 					{
-						for(int k = j; k < inst->num_macros - 1; k++)
+						for(int k = 0; k < MUS_PROG_LEN; k++) //leave only full volume and 0 volume commands (that's how it works in fami)
 						{
-							memcpy(inst->program[k], inst->program[k + 1], sizeof(Uint16) * MUS_PROG_LEN);
-							memcpy(inst->program_unite_bits[k], inst->program_unite_bits[k + 1], sizeof(Uint8) * (MUS_PROG_LEN / 8 + 1));
-
-							memcpy(inst->program_names[k], inst->program_names[k + 1], sizeof(char) * (MUS_MACRO_NAME_LEN + 1));
+							if((inst->program[j][k] & 0xff00) == MUS_FX_SET_VOLUME_FROM_PROGRAM)
+							{
+								if((inst->program[j][k] & 0xff))
+								{
+									inst->program[j][k] = MUS_FX_SET_VOLUME_FROM_PROGRAM | MAX_VOLUME;
+								}
+							}
 						}
-
-						free(inst->program[inst->num_macros - 1]);
-						inst->program[inst->num_macros - 1] = NULL;
-						free(inst->program_unite_bits[inst->num_macros - 1]);
-						inst->program_unite_bits[inst->num_macros - 1] = NULL;
-						inst->num_macros--;
-						
-						goto next1;
 					}
 				}
-
-				next1:;
 
 				inst->cydflags &= ~(CYD_CHN_ENABLE_PULSE);
 				inst->flags &= ~(MUS_INST_USE_LOCAL_SAMPLES);
@@ -4885,6 +4924,14 @@ void add_volumes() //Famitracker saves last volume, klystrack does not, so we fo
 						step->volume = vol;
 					}
 				}
+
+				else
+				{
+					if(step->volume != MUS_NOTE_NO_VOLUME)
+					{
+						vol = step->volume;
+					}
+				}
 			}
 		}
 	}
@@ -4968,6 +5015,25 @@ void finish_convert_effects() //this does not account for instrument macros chan
 		song_speed = 6;
 	}
 
+	for(int i = 0; i < mused.song.num_channels; i++) //add "default" pulse width commands for MMC5/2A03/VRC6 pulse channels so instruments that don't set pulse width play correctly at the beginning
+	{
+		MusPattern* pat = &mused.song.pattern[mused.song.sequence[i][0].pattern];
+		MusStep* step = &pat->step[0];
+
+		if(i == 0 || i == 1 || channels_to_chips[i] == FT_SNDCHIP_MMC5) //2A03 & MMC5 pulse channels
+		{
+			step->command[find_empty_command_column(step)] = MUS_FX_PW_SET | ft_2a03_pulse_widths[0];
+		}
+
+		if(i < mused.song.num_channels - 1) //so we don't go out of bounds
+		{
+			if(channels_to_chips[i] == FT_SNDCHIP_VRC6 && channels_to_chips[i + 1] == FT_SNDCHIP_VRC6) //VRC6 pulse channels
+			{
+				step->command[find_empty_command_column(step)] = MUS_FX_PW_SET | ft_vrc6_pulse_widths[0];
+			}
+		}
+	}
+
 	for(int i = 0; i < mused.song.num_channels; i++)
 	{
 		Uint16 current_note = 0xffff;
@@ -4981,8 +5047,11 @@ void finish_convert_effects() //this does not account for instrument macros chan
 
 		bool is_hardware_sweep = false; //if it is hardware sweep we stop when note is lower than C-0 or higher than idk B-8
 
+		bool is_slide = false; //if need to fill in slide commands
+
 		Uint8 volume_slide_param = 0;
 		Uint8 port_speed = 0;
+		Uint8 slide_speed = 0;
 
 		for(int j = 0; j < sequence_length; j++)
 		{
@@ -5061,6 +5130,7 @@ void finish_convert_effects() //this does not account for instrument macros chan
 									if(step->command[MUS_MAX_COMMANDS - 1] == CONV_MARKER_SWEEP)
 									{
 										is_hardware_sweep = true;
+										do_portdn = false;
 									}
 
 									else
@@ -5099,6 +5169,7 @@ void finish_convert_effects() //this does not account for instrument macros chan
 									if(step->command[MUS_MAX_COMMANDS - 1] == CONV_MARKER_SWEEP)
 									{
 										is_hardware_sweep = true;
+										do_portup = false;
 									}
 
 									else
@@ -5143,6 +5214,34 @@ void finish_convert_effects() //this does not account for instrument macros chan
 								{
 									do_volume_slide = false;
 								}
+
+								break;
+							}
+
+							case MUS_FX_FAST_SLIDE:
+							{
+								if(command & 0xff)
+								{
+									is_slide = true;
+									slide_speed = command & 0xff;
+
+									//step->command[c] = 0; //delete the slide command so 1st note trigger is normal
+								}
+
+								else
+								{
+									is_slide = false;
+								}
+
+								break;
+							}
+
+							case MUS_FX_SLIDE_UP_SEMITONES:
+							case MUS_FX_SLIDE_DN_SEMITONES:
+							{
+								is_slide = false;
+								do_portdn = false;
+								do_portup = false;
 
 								break;
 							}
@@ -5214,6 +5313,29 @@ void finish_convert_effects() //this does not account for instrument macros chan
 				if(do_vibrato)
 				{
 					step->ctrl |= MUS_CTRL_VIB;
+				}
+
+				if(is_slide)
+				{
+					bool need_slide = true;
+
+					for(int i = 0; i < MUS_MAX_COMMANDS; i++)
+					{
+						if((step->command[i] & 0xff00) == MUS_FX_FAST_SLIDE)
+						{
+							need_slide = false;
+						}
+					}
+
+					if(step->note >= FREQ_TAB_SIZE)
+					{
+						need_slide = false;
+					}
+
+					if(need_slide)
+					{
+						step->command[find_empty_command_column(step)] = MUS_FX_FAST_SLIDE | slide_speed;
+					}
 				}
 
 				for(int c = 0; c < MUS_MAX_COMMANDS; c++) //keep track of current note

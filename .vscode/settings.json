@@ -25,7 +25,11 @@
         "xmemory0": "c",
         "xtr1common": "c",
         "compare": "c",
-        "cstdlib": "c"
+        "cstdlib": "c",
+        "tiledescriptor.h": "c",
+        "gfxsurf.h": "c",
+        "sdl.h": "c",
+        "sdl_rwops.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }
