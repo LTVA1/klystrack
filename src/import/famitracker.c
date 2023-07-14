@@ -109,6 +109,20 @@ const char* sequence_names_s5b[FT_SEQ_CNT] =
 	"noise / mode"
 };
 
+const Uint8 eff_conversion_050[][2] = 
+{
+	{FT_EF_SUNSOFT_NOISE,		FT_EF_NOTE_RELEASE},
+	{FT_EF_VRC7_PORT,			FT_EF_GROOVE},
+	{FT_EF_VRC7_WRITE,			FT_EF_TRANSPOSE},
+	{FT_EF_NOTE_RELEASE,		FT_EF_N163_WAVE_BUFFER},
+	{FT_EF_GROOVE,				FT_EF_FDS_VOLUME},
+	{FT_EF_TRANSPOSE,			FT_EF_FDS_MOD_BIAS},
+	{FT_EF_N163_WAVE_BUFFER,	FT_EF_SUNSOFT_NOISE},
+	{FT_EF_FDS_VOLUME,			FT_EF_VRC7_PORT},
+	{FT_EF_FDS_MOD_BIAS,		FT_EF_VRC7_WRITE},
+	{0xFF,	0xFF}, //end mark
+};
+
 // from https://www.nesdev.org/wiki/APU_DMC
 const Uint16 dpcm_sample_rates_ntsc[16] = 
 { 4182, 4710, 5264, 5593, 6258, 7046, 7919, 8363, 9420, 11186, 12604, 13983, 16885, 21307, 24858, 33144 };
@@ -200,6 +214,8 @@ Uint16** klystrack_sequence;
 
 char** subsong_names;
 
+bool is_dn_fami_module;
+
 int draw_box_select_subsong(GfxDomain *dest, GfxSurface *gfx, const Font *font, const SDL_Event *event, const char *msg, int *selected)
 {
 	int w = 0, max_w = 300, h = font->h;
@@ -287,7 +303,7 @@ int msgbox_select_subsong(GfxDomain *domain, GfxSurface *gfx, const Font *font, 
 
 							domain->screen_w = my_max(320, e.window.data1 / domain->scale);
 							domain->screen_h = my_max(240, e.window.data2 / domain->scale);
-
+							
 							if (!(mused.flags & FULLSCREEN))
 							{
 								mused.window_w = domain->screen_w * domain->scale;
@@ -1478,7 +1494,7 @@ void ft_convert_command(Uint16 val, MusStep* step, Uint16 song_pos, Uint8 channe
 
 		case FT_EF_ARPEGGIO:
 		{
-			step->command[column] = MUS_FX_ARPEGGIO | param;
+			step->command[column] = MUS_FX_SET_EXT_ARP | param; //so 1000 clears the notes and stops arp
 			break;
 		}
 
@@ -1531,6 +1547,12 @@ void ft_convert_command(Uint16 val, MusStep* step, Uint16 song_pos, Uint8 channe
 		{
 			step->command[column] = MUS_FX_PORTA_DN | param; //TODO: finetune speed
 			step->command[MUS_MAX_COMMANDS - 1] = CONV_MARKER;
+			break;
+		}
+
+		case FT_EF_TRANSPOSE:
+		{
+			step->command[column] = MUS_FX_DELAYED_TRANSPOSE | param;
 			break;
 		}
 
@@ -1803,8 +1825,8 @@ bool ft_process_patterns_block(FILE* f, ftm_block* block)
 			Uint8 octave = 0;
 			Uint8 inst = 0;
 			Uint8 vol = 0;
-			Uint8 effect = 0;
-			Uint8 param = 0;
+			Uint8 effect[FT_MAX_EFFECT_COLUMNS] = { 0 };
+			Uint8 param[FT_MAX_EFFECT_COLUMNS] = { 0 };
 
 			fread(&note, sizeof(note), 1, f);
 			fread(&octave, sizeof(octave), 1, f);
@@ -1889,25 +1911,25 @@ bool ft_process_patterns_block(FILE* f, ftm_block* block)
 
 			for(int j = 0; j < num_fx; j++)
 			{
-				fread(&effect, sizeof(effect), 1, f);
+				fread(&effect[j], sizeof(effect[0]), 1, f);
 
-				if(effect)
+				if(effect[j])
 				{
-					fread(&param, sizeof(param), 1, f);
+					fread(&param[j], sizeof(param[0]), 1, f);
 
 					if(block->version < 3)
 					{
-						if(effect == FT_EF_PORTAOFF)
+						if(effect[j] == FT_EF_PORTAOFF)
 						{
-							effect = FT_EF_PORTAMENTO;
-							param = 0;
+							effect[j] = FT_EF_PORTAMENTO;
+							param[j] = 0;
 						}
 
-						else if(effect == FT_EF_PORTAMENTO)
+						else if(effect[j] == FT_EF_PORTAMENTO)
 						{
-							if(param < 0xFF)
+							if(param[j] < 0xFF)
 							{
-								param++;
+								param[j]++;
 							}
 						}
 					}
@@ -1922,16 +1944,13 @@ bool ft_process_patterns_block(FILE* f, ftm_block* block)
 
 				if(version == 0x0200)
 				{
-					if(j == 0 && effect == FT_EF_SPEED && param < 20)
+					if(j == 0 && effect[j] == FT_EF_SPEED && param[j] < 20)
 					{
-						param++;
+						param[j]++;
 					}
 				}
 
-				if(subsong_index == selected_subsong && effect != FT_EF_NONE)
-				{
-					ft_convert_command(((Uint16)effect << 8) + param, &pat->step[row], song_pos + row, channel, j, row);
-				}
+				//pat->step[row].command[j] = ((Uint16)effect << 8) + param;
 			}
 
 			if(subsong_index == selected_subsong)
@@ -1968,10 +1987,9 @@ bool ft_process_patterns_block(FILE* f, ftm_block* block)
 				{
 					for(int j = 0; j < FT_MAX_EFFECT_COLUMNS; j++)
 					{
-						if((pat->step[row].command[j] >> 8) == FT_EF_SAMPLE_OFFSET)
+						if(effect[j] == FT_EF_SAMPLE_OFFSET)
 						{
-							pat->step[row].command[j] &= 0x00ff;
-							pat->step[row].command[j] |= (FT_EF_N163_WAVE_BUFFER << 8);
+							effect[j] = FT_EF_N163_WAVE_BUFFER;
 						}
 					}
 				}
@@ -1982,16 +2000,14 @@ bool ft_process_patterns_block(FILE* f, ftm_block* block)
 					{
 						for(int j = 0; j < FT_MAX_EFFECT_COLUMNS; j++)
 						{
-							if((pat->step[row].command[j] >> 8) == FT_EF_PORTA_DOWN)
+							if(effect[j] == FT_EF_PORTA_DOWN)
 							{
-								pat->step[row].command[j] &= 0x00ff;
-								pat->step[row].command[j] |= (FT_EF_PORTA_UP << 8);
+								effect[j] = FT_EF_PORTA_UP;
 							}
 
-							if((pat->step[row].command[j] >> 8) == FT_EF_PORTA_UP)
+							if(effect[j] == FT_EF_PORTA_UP)
 							{
-								pat->step[row].command[j] &= 0x00ff;
-								pat->step[row].command[j] |= (FT_EF_PORTA_DOWN << 8);
+								effect[j] = FT_EF_PORTA_DOWN;
 							}
 						}
 					}
@@ -2000,16 +2016,44 @@ bool ft_process_patterns_block(FILE* f, ftm_block* block)
 					{
 						for(int j = 0; j < FT_MAX_EFFECT_COLUMNS; j++)
 						{
-							if((pat->step[row].command[j] >> 8) == FT_EF_PITCH)
+							if(effect[j] == FT_EF_PITCH)
 							{
-								if((pat->step[row].command[j] & 0xff) != 0x80)
+								if(param[j] != 0x80)
 								{
-									Uint8 param = pat->step[row].command[j];
-									pat->step[row].command[j] &= 0xff00;
-									pat->step[row].command[j] |= (0x100 - param);
+									param[j] = (0x100 - param[j]);
 								}
 							}
 						}
+					}
+				}
+
+				if(version < 0x0450 || is_dn_fami_module)
+				{
+					for(int j = 0; j < FT_MAX_EFFECT_COLUMNS; j++)
+					{
+						Uint8 idx = 0;
+
+						while(eff_conversion_050[idx][0] != 0xFF) //until the end of the array
+						{
+							if(effect[j] == eff_conversion_050[idx][0]) //remap the effects (0CC vs FT effects type order) bruh idk why but it should be done to correctly read some modules
+							{
+								effect[j] = eff_conversion_050[idx][1];
+
+								goto stop;
+							}
+
+							idx++;
+						}
+
+						stop:;
+					}
+				}
+
+				if(subsong_index == selected_subsong && effect != FT_EF_NONE)
+				{
+					for(int j = 0; j < FT_MAX_EFFECT_COLUMNS; j++)
+					{
+						ft_convert_command(((Uint16)effect[j] << 8) + param[j], &pat->step[row], song_pos + row, channel, j, row);
 					}
 				}
 			}
@@ -4825,6 +4869,8 @@ void convert_instruments()
 			ft_inst* ft_ins = &ft_instruments[i];
 			MusInstrument* inst = &mused.song.instrument[i];
 
+			inst->adsr.r = 0;
+
 			Uint8 current_local_sample = 0;
 
 			for(int j = 0; j < CYD_WAVE_MAX_ENTRIES; j++)
@@ -4885,6 +4931,55 @@ void convert_instruments()
 					}
 				}
 			}
+		}
+	}
+
+	for(int i = 0; i < curr_instrument; i++) //arpeggio macro (if there isn't arp macro at all)
+	{
+		MusInstrument* inst = &mused.song.instrument[i];
+
+		bool is_arp_macro = false;
+
+		for(int j = 0; j < inst->num_macros; j++)
+		{
+			if(strcmp(inst->program_names[j], sequence_names[1]) == 0 || 
+			strcmp(inst->program_names[j], sequence_names_vrc6[1]) == 0 || 
+			strcmp(inst->program_names[j], sequence_names_n163[1]) == 0 || 
+			strcmp(inst->program_names[j], sequence_names_fds[1]) == 0 ||
+			strcmp(inst->program_names[j], sequence_names_s5b[1]) == 0) //if there is arp macro
+			{
+				is_arp_macro = true;
+			}
+		}
+
+		if(is_arp_macro == false) //we make simple arp macro so e.g. 047 command actually leads to arpeggio
+		{
+			if(inst->num_macros > 1)
+			{
+				inst->program[inst->num_macros] = (Uint16*)calloc(1, sizeof(Uint16) * MUS_PROG_LEN);
+				inst->program_unite_bits[inst->num_macros] = (Uint8*)calloc(1, sizeof(Uint8) * (MUS_PROG_LEN / 8 + 1));
+
+				for(int k = 0; k < MUS_PROG_LEN; k++)
+				{
+					inst->program[inst->num_macros][k] = MUS_FX_NOP;
+				}
+			}
+
+			else
+			{
+				inst->num_macros--; //so we index macro №0 if no additional macros were allocated
+			}
+
+			inst->program[inst->num_macros][0] = MUS_FX_ARPEGGIO;
+			inst->program[inst->num_macros][1] = MUS_FX_ARPEGGIO | 0xf0; //1st ext note
+			inst->program[inst->num_macros][2] = MUS_FX_ARPEGGIO | 0xf1; //2nd external note
+			inst->program[inst->num_macros][3] = MUS_FX_JUMP; //jump to step 0
+
+			inst->prog_period[inst->num_macros] = 1;
+
+			strcpy(inst->program_names[inst->num_macros], "pat.eff. arpeggio");
+
+			inst->num_macros++; //return back to 1 if only macro #0 was there; if there were more macros we allocated a new one so still increment
 		}
 	}
 
@@ -5604,6 +5699,8 @@ int import_famitracker(FILE *f, int type)
 	transpose_fds = false;
 	
 	Uint32 version = 0;
+
+	is_dn_fami_module = false;
 	
 	ftm_block* blocks = NULL;
 	blocks = (ftm_block*)calloc(1, sizeof(ftm_block) * 20);
@@ -5629,6 +5726,7 @@ int import_famitracker(FILE *f, int type)
 		{
 			debug("Dn-FamiTracker signature found, proceeding...");
 			is_dn_ft_sig = true;
+			is_dn_fami_module = true;
 		}
 	}
 	

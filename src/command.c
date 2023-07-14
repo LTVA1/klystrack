@@ -63,6 +63,7 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_PORTA_DN, 0xff00, "Portamento down", "PortDn", -1, -1},
 	{MUS_FX_SLIDE_UP_SEMITONES, 0xff00, "Slide Y semitones up with speed X", "SlideUp", -1, -1},
 	{MUS_FX_SLIDE_DN_SEMITONES, 0xff00, "Slide Y semitones down with speed X", "SlideDn", -1, -1},
+	{MUS_FX_DELAYED_TRANSPOSE, 0xff00, "Transpose note Y semitones after X ticks", "DelTransps", -1, -1},
 	{MUS_FX_PORTA_UP_LOG, 0xff00, "Portamento up (curve)", "PortUpC", -1, -1},
 	{MUS_FX_PORTA_DN_LOG, 0xff00, "Portamento down (curve)", "PortDnC", -1, -1},
 	{MUS_FX_EXT_NOTE_DELAY, 0xfff0, "Note delay", "Delay", -1, -1},
