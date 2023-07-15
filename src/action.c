@@ -564,12 +564,12 @@ void change_seq_steps(void *delta, void *unused1, void *unused2)
 		if (mused.sequenceview_steps == 1 && CASTPTR(int,delta) > 1)
 			mused.sequenceview_steps = 0;
 
-		if (mused.sequenceview_steps < 128)
+		if (mused.sequenceview_steps < 256)
 		{
 			mused.sequenceview_steps += CASTPTR(int,delta);
 		}
 		else
-			mused.sequenceview_steps = 128;
+			mused.sequenceview_steps = 256;
 	}
 
 	mused.current_sequencepos = (mused.current_sequencepos/mused.sequenceview_steps) * mused.sequenceview_steps;

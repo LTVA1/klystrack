@@ -1458,6 +1458,7 @@ void ft_convert_command(Uint16 val, MusStep* step, Uint16 song_pos, Uint8 channe
 
 		case FT_EF_HALT:
 		{
+			debug("song_pos %d", song_pos);
 			mused.song.song_length = song_pos; //song will hang there
 			mused.song.loop_point = song_pos;
 			break;
@@ -4653,7 +4654,7 @@ void convert_instruments()
 					}
 				}
 
-				mused.cyd.wavetable_entries[i].flags |= CYD_WAVE_NO_INTERPOLATION | CYD_WAVE_LOOP;
+				mused.cyd.wavetable_entries[i].flags |= CYD_WAVE_NO_INTERPOLATION | CYD_WAVE_LOOP | CYD_WAVE_ACC_NO_RESET;
 				mused.cyd.wavetable_entries[i].base_note = MIDDLE_C << 8;
 				
 				cyd_wave_entry_init(&mused.cyd.wavetable_entries[i], data, 32, CYD_WAVE_TYPE_SINT16, 1, 1, 1);
@@ -4689,7 +4690,7 @@ void convert_instruments()
 					data[j] = -32767 - 65536 * j / 8;
 				}
 
-				mused.cyd.wavetable_entries[i].flags |= CYD_WAVE_NO_INTERPOLATION | CYD_WAVE_LOOP;
+				mused.cyd.wavetable_entries[i].flags |= CYD_WAVE_NO_INTERPOLATION | CYD_WAVE_LOOP | CYD_WAVE_ACC_NO_RESET;
 				mused.cyd.wavetable_entries[i].base_note = MIDDLE_C << 8;
 				
 				cyd_wave_entry_init(&mused.cyd.wavetable_entries[i], data, 8, CYD_WAVE_TYPE_SINT16, 1, 1, 1);
@@ -5036,7 +5037,7 @@ void set_channel_volumes()
 {
 	for(int i = 0; i < mused.song.num_channels; i++)
 	{
-		mused.song.default_volume[i] = 0x28;
+		mused.song.default_volume[i] = 0x30;
 
 		if(channels_to_chips[i] == FT_SNDCHIP_FDS)
 		{
@@ -5052,9 +5053,9 @@ void set_channel_volumes()
 		}
 	}
 
-	mused.song.default_volume[4] = 0x80; //DPCM volume 4x the usual channel volume
-	mused.song.default_volume[2] = 0x50; //triangle volume 2x the usual channel volume
-	mused.song.default_volume[3] = 0x18; //noise volume 0.75x
+	mused.song.default_volume[4] = 0x80;
+	mused.song.default_volume[2] = 0x50;
+	mused.song.default_volume[3] = 0x1c;
 }
 
 Uint8 find_empty_command_column(MusStep* step)

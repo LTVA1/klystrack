@@ -5626,7 +5626,10 @@ void songinfo_add_param(int d)
 		}
 
 		case SI_LENGTH:
-			change_song_length(MAKEPTR(d * mused.sequenceview_steps), 0, 0);
+			if(d != 0)
+			{
+				change_song_length(MAKEPTR(d * mused.sequenceview_steps), 0, 0);
+			}
 			break;
 
 		case SI_LOOP:
