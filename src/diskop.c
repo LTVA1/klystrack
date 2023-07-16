@@ -1173,6 +1173,11 @@ int open_song(FILE *f)
 		debug("Using new filter!");
 	}
 
+	if(mused.song.flags & MUS_SHOW_MESSAGE)
+	{
+		open_songmessage(0, 0, 0);
+	}
+
 	return 1;
 }
 
@@ -1337,6 +1342,27 @@ int save_song_inner(SDL_RWops *f, SongStats *stats, bool confirm_save /* if no c
 	{
 		temp32 |= MUS_16_BIT_RATE;
 	}
+
+	bool save_msg = false;
+
+	if(mused.song.song_message != NULL)
+	{
+		if(strlen(mused.song.song_message) > 2)
+		{
+			temp32 |= MUS_HAS_MESSAGE;
+			save_msg = true;
+		}
+
+		else
+		{
+			temp32 &= ~MUS_HAS_MESSAGE;
+		}
+	}
+
+	if(mused.song.song_message == NULL)
+	{
+		temp32 &= ~MUS_HAS_MESSAGE;
+	}
 	
 	Uint8 num_grooves = 0;
 	
@@ -1355,6 +1381,19 @@ int save_song_inner(SDL_RWops *f, SongStats *stats, bool confirm_save /* if no c
 	
 	FIX_ENDIAN(temp32);
 	SDL_RWwrite(f, &temp32, 1, sizeof(mused.song.flags));
+
+	if(save_msg)
+	{
+		Uint32 len = strlen(mused.song.song_message) + 1; //with null-terminator
+
+		FIX_ENDIAN(len);
+		SDL_RWwrite(f, &len, 1, sizeof(len));
+
+		for(Uint32 i = 0; i < len; i++)
+		{
+			SDL_RWwrite(f, &mused.song.song_message[i], 1, sizeof(mused.song.song_message[0]));
+		}
+	}
 	
 	if(mused.song.song_rate > 255)
 	{

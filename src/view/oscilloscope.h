@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef OSCILLOSCOPE_H
+#define OSCILLOSCOPE_H
+
 #include "wavetableview.h"
 #include "../mused.h"
 #include "../view.h"
@@ -18,3 +21,5 @@
 #define TRIGGER_LEVEL 400
 
 void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area, int* sound_buffer, int size, int* buffer_counter, bool is_translucent, bool show_midlines);
+
+#endif

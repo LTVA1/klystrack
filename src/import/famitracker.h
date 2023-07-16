@@ -35,6 +35,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include <stdio.h>
 #include "../edit.h"
 #include "../mused.h"
+#include "../action.h"
 #include "../event.h"
 #include "SDL_endian.h"
 #include "../../klystron/src/snd/freqs.h"

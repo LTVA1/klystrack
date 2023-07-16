@@ -38,7 +38,7 @@ Uint32 enable_interpolation;
 #define WINDOW_HEIGHT 55 + 12
 #define WINDOW_WIDTH 250
 
-int checkbox_simple(GfxDomain *dest, const SDL_Event *event, const SDL_Rect *area, GfxSurface *gfx, const Font * font, int offset, int offset_pressed, int decal, const char* _label, Uint32 *flags, Uint32 mask)
+static int checkbox_simple(GfxDomain *dest, const SDL_Event *event, const SDL_Rect *area, GfxSurface *gfx, const Font * font, int offset, int offset_pressed, int decal, const char* _label, Uint32 *flags, Uint32 mask)
 {
 	SDL_Rect tick, label;
 	copy_rect(&tick, area);
@@ -54,7 +54,7 @@ int checkbox_simple(GfxDomain *dest, const SDL_Event *event, const SDL_Rect *are
 	return pressed;
 }
 
-void generic_flags_simple(const SDL_Event *e, const SDL_Rect *_area, const char *label, Uint32 *_flags, Uint32 mask)
+static void generic_flags_simple(const SDL_Event *e, const SDL_Rect *_area, const char *label, Uint32 *_flags, Uint32 mask)
 {
 	SDL_Rect area;
 	copy_rect(&area, _area);
@@ -76,7 +76,7 @@ void generic_flags_simple(const SDL_Event *e, const SDL_Rect *_area, const char 
 	}
 }
 
-draw_bit_depth_select_window(Uint8* bit_depth, SDL_Event* event)
+static void draw_bit_depth_select_window(Uint8* bit_depth, SDL_Event* event)
 {
 	SDL_Rect area = { domain->screen_w / 2 - WINDOW_WIDTH / 2, domain->screen_h / 2 - WINDOW_HEIGHT / 2, WINDOW_WIDTH, WINDOW_HEIGHT };
 	

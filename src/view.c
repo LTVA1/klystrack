@@ -1457,6 +1457,13 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 		
 		mused.import_wavetable_string = false;
 	}
+
+	if(mused.open_song_message)
+	{
+		//open_songmessage(0, 0, 0);
+		song_message_view(domain, mused.slider_bevel, &mused.largefont, &mused.smallfont);
+		mused.open_song_message = false;
+	}
 }
 
 Uint32 char_to_hex(char c)

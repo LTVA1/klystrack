@@ -44,6 +44,10 @@ extern Mused mused;
 extern Menu editormenu[];
 extern Menu analyzermenu[];
 
+//const char* default_song_message = "This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus.\n\n\n\nThis song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus. This song was created in klystrack-plus.";
+
+const char* default_song_message = "";
+
 void set_edit_buffer(char *buffer, size_t size)
 {
 	if (mused.edit_backup_buffer)
@@ -222,6 +226,9 @@ void new_song()
 	{
 		mused.command_columns[i] = 0;
 	}
+
+	free(mused.song.song_message);
+	mused.song.song_message = NULL;
 }
 
 
@@ -322,6 +329,9 @@ void init(MusInstrument *instrument, MusPattern *pattern, MusSeqPattern **sequen
 	mused.song.instrument = instrument;
 	mused.song.pattern = pattern;
 	mused.channel = channel;
+
+	mused.song.song_message = (char*)calloc(1, sizeof(char) * strlen(default_song_message) + 1);
+	strcpy(mused.song.song_message, default_song_message);
 
 	for (int i = 0; i < MUS_MAX_CHANNELS; ++i)
 	{

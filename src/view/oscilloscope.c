@@ -1,3 +1,29 @@
+/*
+Copyright (c) 2009-2010 Tero Lindeman (kometbomb)
+Copyright (c) 2021-2023 Georgy Saraykin (LTVA1 a.k.a. LTVA) and contributors
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+*/
+
 #include "oscilloscope.h"
 #include <signal.h>
 
@@ -20,11 +46,6 @@ void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area, int* sound_b
 	
 	else
 	{
-		/*for(int x = 0; x < area->h; x++) //drawing black lines every pixel so oscilloscope is fully opaque
-		{
-			gfx_line(domain, area->x, area->y + x, area->x + area->w - 1, area->y + x, colors[COLOR_WAVETABLE_BACKGROUND]);
-		}*/
-		
 		gfx_rect(dest, area, colors[COLOR_WAVETABLE_BACKGROUND]);
 	}
 
@@ -34,15 +55,6 @@ void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area, int* sound_b
 	{
 		if((sound_buffer[i + 1] > TRIGGER_LEVEL) && (sound_buffer[i] >= TRIGGER_LEVEL) && (sound_buffer[i - 1] <= TRIGGER_LEVEL) && (sound_buffer[i - 2] < TRIGGER_LEVEL)) //&& (abs(mused.output_buffer[i] - mused.output_buffer[i - 1]) < 1000))
 		{
-			//here comes the part with triggering
-			
-			//if(mused.output_buffer[i] != 0)
-			//{
-				//debug("Trigger values: [i-2]: %d, [i-1]: %d, [i]: %d, [i+1]: %d, [i+2]: %d, [i+3]: %d, [i+4]: %d, i: %d", mused.output_buffer[i - 2], mused.output_buffer[i - 1], mused.output_buffer[i], mused.output_buffer[i + 1], mused.output_buffer[i + 2], mused.output_buffer[i + 3], mused.output_buffer[i + 4], i);
-			//}
-			
-			//int OSC_MAX_CLAMP = (512) * 150;
-			
 			for (int x = i - (size == OSC_SIZE ? area->w : 2 * area->w); x < (size == OSC_SIZE ? area->w : 2 * area->w) + i; ++x)
 			{
 				if(!(x & (size == OSC_SIZE ? 1 : 3)))
@@ -50,26 +62,6 @@ void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area, int* sound_b
 					last_sample = scaled_sample;
 					sample = sound_buffer[x];
 				}
-					
-				/*if(sample > OSC_MAX_CLAMP)
-				{
-					sample = OSC_MAX_CLAMP;
-				}
-							
-				if(sample < -OSC_MAX_CLAMP)
-				{
-					sample = -OSC_MAX_CLAMP;
-				}
-							
-				if(last_sample > OSC_MAX_CLAMP)
-				{
-					last_sample = OSC_MAX_CLAMP;
-				}
-							
-				if(last_sample < -OSC_MAX_CLAMP)
-				{
-					last_sample = -OSC_MAX_CLAMP;
-				}*/
 					
 				if(!(x & (size == OSC_SIZE ? 1 : 3))) //(size == OSC_SIZE ? 2 : 4) (size == OSC_SIZE ? area->w : 2 * area->w) (size == OSC_SIZE ? 1 : 3)
 				{
@@ -108,41 +100,16 @@ void update_oscillscope_view(GfxDomain *dest, const SDL_Rect* area, int* sound_b
 		debug("Trigger values:");
 	}
 	
-	//int OSC_MAX_CLAMP = (1) * size;
-	
 	for (int x = 0; x < area->w; ++x)
 	{
 		last_sample = scaled_sample;
 		sample = (sound_buffer[2 * x] + sound_buffer[2 * x + 1]) / 2;
-		
-		/*if(sample > OSC_MAX_CLAMP)
-		{
-			sample = OSC_MAX_CLAMP;
-		}
-				
-		if(sample < -OSC_MAX_CLAMP)
-		{
-			sample = -OSC_MAX_CLAMP;
-		}
-				
-		if(last_sample > OSC_MAX_CLAMP)
-		{
-			last_sample = OSC_MAX_CLAMP;
-		}
-				
-		if(last_sample < -OSC_MAX_CLAMP)
-		{
-			last_sample = -OSC_MAX_CLAMP;
-		}*/
-			
-		//scaled_sample = (sample * size) / 32768;
 		
 		scaled_sample = sample * size / (OSC_SIZE * 150);
 		
 		if(x != 0)
 		{
 			gfx_line(domain, area->x + x - 1, area->h / 2 + area->y - my_min(my_max(last_sample, area->h / (-2)), area->h / 2), area->x + x, area->h / 2 + area->y - my_min(my_max(scaled_sample, area->h / (-2)), area->h / 2), colors[COLOR_WAVETABLE_SAMPLE]);
-			//gfx_line(domain, area->x + (x - i + area->w) / 2 - 1, area->h / 2 + area->y + my_min(my_max(last_sample, area->h / (-2)), area->h / 2), area->x + (x - i + area->w) / 2, area->h / 2 + area->y + my_min(my_max(scaled_sample, area->h / (-2)), area->h / 2), colors[COLOR_WAVETABLE_SAMPLE]);
 		}
 	}
 	

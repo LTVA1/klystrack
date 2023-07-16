@@ -374,6 +374,8 @@ typedef struct
 	bool import_wavetable_string;
 
 	Uint8 command_columns[MUS_MAX_CHANNELS];
+
+	bool open_song_message;
 } Mused;
 
 extern Mused mused;

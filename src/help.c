@@ -230,8 +230,11 @@ static void init_lines(void * section, void * unused1, void * unused2)
 {
 	deinit_lines();
 	
-	data.mode = CASTPTR(int, section);
-	
+	if(section)
+	{
+		data.mode = CASTPTR(int, section) - 1;
+	}
+
 	switch (data.mode)
 	{
 		case 0:
@@ -333,15 +336,15 @@ static void buttons_view(GfxDomain *dest_surface, const SDL_Rect *area, const SD
 	
 	button.w = strlen("Commands") * data.smallfont->w + 12;
 	
-	button_text_event(dest_surface, event, &button, data.gfx, data.smallfont, data.mode == 0 ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "Commands", init_lines, 0, 0, 0);
+	button_text_event(dest_surface, event, &button, data.gfx, data.smallfont, data.mode == 0 ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "Commands", init_lines, MAKEPTR(1), 0, 0);
 	button.x += button.w + 1;
 
 	button.w = strlen("Shortcuts") * data.smallfont->w + 12;
-	button_text_event(dest_surface, event, &button, data.gfx, data.smallfont, data.mode == 1 ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "Shortcuts", init_lines, MAKEPTR(1), 0, 0);
+	button_text_event(dest_surface, event, &button, data.gfx, data.smallfont, data.mode == 1 ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "Shortcuts", init_lines, MAKEPTR(2), 0, 0);
 	button.x += button.w + 1;
 	
 	button.w = strlen("Authors' comments") * data.smallfont->w + 12;
-	button_text_event(dest_surface, event, &button, data.gfx, data.smallfont, data.mode == 2 ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "Authors' comments", init_lines, MAKEPTR(2), 0, 0);
+	button_text_event(dest_surface, event, &button, data.gfx, data.smallfont, data.mode == 2 ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "Authors' comments", init_lines, MAKEPTR(3), 0, 0);
 	button.x += button.w + 1;
 }
 

@@ -216,6 +216,8 @@ char** subsong_names;
 
 bool is_dn_fami_module;
 
+Uint32 display_comment;
+
 int draw_box_select_subsong(GfxDomain *dest, GfxSurface *gfx, const Font *font, const SDL_Event *event, const char *msg, int *selected)
 {
 	int w = 0, max_w = 300, h = font->h;
@@ -2224,19 +2226,32 @@ bool ft_process_comments_block(FILE* f, ftm_block* block)
 {
 	bool success = true;
 
-	Uint8 display_comment = 0;
-	fread(&display_comment, sizeof(display_comment), 1, f);
+	display_comment = 0;
+	read_uint32(f, &display_comment);
 
 	char* comments_string = (char*)calloc(1, 1);
 	Uint32 index = 0;
+	Uint8 charaa = 1;
 
 	do //hope this works as null-terminated string reader
 	{
-		fread(&comments_string[index], sizeof(char), 1, f);
+		//debug("ff");
+		fread(&charaa, sizeof(char), 1, f);
+		comments_string[index] = charaa;
 		index++;
 		comments_string = (char*)realloc(comments_string, index + 1);
-	} while(comments_string[index] != 0);
+	} while(charaa != 0);
 
+	if(mused.song.song_message)
+	{
+		free(mused.song.song_message);
+	}
+
+	mused.song.song_message = (char*)calloc(1, sizeof(char) * (index + 1));
+	memcpy(mused.song.song_message, comments_string, index);
+	mused.song.song_message[index] = '\0';
+
+	mused.song.song_message_length = strlen(mused.song.song_message) + 1;
 
 	free(comments_string);
 	
@@ -5681,6 +5696,7 @@ int import_famitracker(FILE *f, int type)
 	pattern_length = 0;
 	num_subsongs = 1; // at least 1
 	machine = 0;
+	display_comment = 0;
 
 	initial_delta_counter_positions = NULL;
 
@@ -5836,6 +5852,15 @@ int import_famitracker(FILE *f, int type)
 	if(success == false)
 	{
 		new_song();
+	}
+
+	else
+	{
+		if(display_comment)
+		{
+			//open_songmessage(0, 0, 0);
+			mused.open_song_message = true;
+		}
 	}
 	
 	return ((success == true) ? 1 : 0);

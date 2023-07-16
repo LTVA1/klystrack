@@ -55,6 +55,7 @@ const KeyShortcut shortcuts[] =
 	{ KMOD_SHIFT, SDLK_F9, change_song_rate, (void*)-1, 0, 0, "Decrease play rate" },
 	{ KMOD_SHIFT|KMOD_CTRL, SDLK_F9, change_time_signature, 0, 0, 0, "Change time signature" },
 	{ 0, SDLK_F10, change_octave, (void*)+1, 0, 0, "Select higher octave" },
+	{ 0, SDLK_F11, open_songmessage, 0, 0, 0, "Open song message editor/viewer" },
 	{ KMOD_SHIFT, SDLK_F10, change_song_rate, (void*)+1, 0, 0, "Increase play rate" },
 	{ KMOD_SHIFT|KMOD_CTRL, SDLK_F10, change_time_signature, (void*)1, 0, 0, "Change time signature" },
 	{ 0, SDLK_KP_PLUS, select_instrument, (void*)+1, (void*)1, 0, "Next instrument"},

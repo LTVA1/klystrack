@@ -41,6 +41,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include <stdbool.h>
 #include "gui/mouse.h"
 #include "view/wavetableview.h"
+#include "view/songmessage.h"
 #include "help.h"
 #include <string.h>
 
@@ -1292,6 +1293,12 @@ void open_help(void *unused0, void *unused1, void *unused2)
 void open_help_no_lock(void *unused0, void *unused1, void *unused2)
 {
 	helpbox("Help", domain, mused.slider_bevel, &mused.largefont, &mused.smallfont);
+}
+
+
+void open_songmessage(void *unused0, void *unused1, void *unused2)
+{
+	song_message_view(domain, mused.slider_bevel, &mused.largefont, &mused.smallfont);
 }
 
 
