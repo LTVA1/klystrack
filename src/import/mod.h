@@ -31,6 +31,5 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "SDL.h"
 
 int import_mod(FILE *f);
-Uint16 find_command_pt(Uint16 command, int sample_length);
 
 #endif

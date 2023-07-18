@@ -25,7 +25,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 
 // this is based on source code from https://github.com/Dn-Programming-Core-Management/Dn-FamiTracker
-// master branch, version from 13 May 2023
+// master branch, version from 15 July 2023
 
 #pragma once
 
@@ -40,6 +40,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "SDL_endian.h"
 #include "../../klystron/src/snd/freqs.h"
 #include "../view.h"
+
+#include "importutil.h"
 
 #define FAMITRACKER_BLOCK_SIGNATURE_LENGTH 16
 

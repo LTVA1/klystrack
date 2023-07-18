@@ -32,6 +32,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "mused.h"
 #include "view.h"
 
+#include "import/plaintext.h"
+
 extern Mused mused;
 extern const View *tab[];
 
@@ -67,9 +69,12 @@ const KeyShortcut shortcuts[] =
 	{ KMOD_CTRL, SDLK_n, new_song_action, 0, 0, 0, "New song" },
 	{ KMOD_CTRL, SDLK_s, open_data, MAKEPTR(OD_T_SONG), MAKEPTR(OD_A_SAVE), 0, "Save file" },
 	{ KMOD_CTRL, SDLK_o, open_data, MAKEPTR(OD_T_SONG), MAKEPTR(OD_A_OPEN), 0, "Load file" },
-	{ KMOD_CTRL, SDLK_c, generic_action, copy, 0, 0, "Copy to clipboard" },
-	{ KMOD_CTRL, SDLK_v, generic_action, paste, 0, 0, "Paste from clipboard" },
-	{ KMOD_CTRL, SDLK_x, generic_action, cut, 0, 0, "Cut to clipboard" },
+	{ KMOD_CTRL, SDLK_c, generic_action, copy, 0, 0, "Copy to klystrack clipboard" },
+	{ KMOD_CTRL, SDLK_v, generic_action, paste, 0, 0, "Paste from klystrack clipboard" },
+	{ KMOD_CTRL, SDLK_x, generic_action, cut, 0, 0, "Cut to klystrack clipboard" },
+
+	{ KMOD_CTRL|KMOD_SHIFT, SDLK_v, generic_action, paste_from_clipboard, 0, 0, "Paste from OS clipboard" }, //wasn't there
+
 	{ KMOD_CTRL, SDLK_DELETE, generic_action, delete, 0, 0, "Delete selection" },
 	{ KMOD_SHIFT, SDLK_INSERT, generic_action, paste, 0, 0, "Paste from clipboard" },
 	{ KMOD_CTRL, SDLK_j, generic_action, join_paste, 0, 0, "Join from clipboard" },

@@ -318,6 +318,68 @@ void wavetable_sample_view(GfxDomain *dest_surface, const SDL_Rect *dest, const 
 		mused.prev_wavetable_x = -1;
 		mused.prev_wavetable_y = -1;
 	}
+
+	//show the line if sample is playing
+
+	Sint32 offset = 0;
+	Sint32 offset_loopbegin = 0;
+	Sint32 offset_loopend = 0;
+
+	SDL_Rect loop_begin, loop_end;
+
+	copy_rect(&loop_begin, &area);
+
+	loop_begin.w = 16;
+	loop_begin.y = area.y;
+	loop_begin.h = area.h;
+
+	copy_rect(&loop_end, &area);
+
+	loop_end.w = 16;
+	loop_end.y = area.y;
+	loop_end.h = area.h;
+
+	if(mused.cyd.wavetable_entries[mused.selected_wavetable].flags & CYD_WAVE_LOOP) //draw below current position line
+	{
+		offset_loopbegin = (Uint16)((double)area.w * (double)mused.cyd.wavetable_entries[mused.selected_wavetable].loop_begin / (double)mused.cyd.wavetable_entries[mused.selected_wavetable].samples);
+		loop_begin.x = area.x + offset_loopbegin;
+		bevelex(domain, &loop_begin, mused.slider_bevel, BEV_ENV_LOOP_START, BEV_F_NORMAL);
+
+		offset_loopend = (Uint16)((double)area.w * (double)mused.cyd.wavetable_entries[mused.selected_wavetable].loop_end / (double)mused.cyd.wavetable_entries[mused.selected_wavetable].samples) - 16;
+		loop_end.x = area.x + offset_loopend;
+		bevelex(domain, &loop_end, mused.slider_bevel, BEV_ENV_LOOP_END, BEV_F_NORMAL);
+	}
+
+	for(int i = 0; i < mused.song.num_channels; i++)
+	{
+		if(mused.mus.channel[i].instrument != NULL)
+		{
+			if((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_WAVE) && (mused.cyd.channel[i].flags & CYD_CHN_WAVE_OVERRIDE_ENV))
+			{
+				if(mused.cyd.channel[i].wave_entry)
+				{
+					if(mused.cyd.channel[i].wave_entry == &mused.cyd.wavetable_entries[mused.selected_wavetable] && mused.cyd.channel[i].wave_entry->samples > 0) //so we don't divide by 0
+					{
+						SDL_Rect current_position;
+		
+						copy_rect(&current_position, &area);
+
+						current_position.w = 16;
+						current_position.y = area.y;
+						current_position.h = area.h;
+
+						offset = (Uint16)((double)mused.cyd.channel[i].subosc[0].wave.acc * (double)area.w / (double)WAVETABLE_RESOLUTION / (double)mused.cyd.channel[i].wave_entry->samples) - 8;
+						current_position.x = area.x + offset;
+						bevelex(domain, &current_position, mused.slider_bevel, BEV_ENV_CURRENT_ENV_POSITION, BEV_F_NORMAL);
+
+						goto next;
+					}
+				}
+			}
+		}
+	}
+
+	next:;
 }
 
 

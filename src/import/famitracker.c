@@ -168,20 +168,6 @@ const Uint8 s5b_noise_notes[32] = /*TODO: add actual notes*/
 	C_ZERO + 12 * 4 + 2, C_ZERO + 12 * 4 + 4, C_ZERO + 12 * 4 + 10, C_ZERO + 12 * 5 + 2, C_ZERO + 12 * 5 + 11, C_ZERO + 12 * 6 + 11, C_ZERO + 12 * 7 + 11,
 };
 
-void read_uint32(FILE *f, Uint32* number) //little-endian
-{
-	*number = 0;
-	Uint8 temp = 0;
-	fread(&temp, 1, 1, f);
-	*number |= temp;
-	fread(&temp, 1, 1, f);
-	*number |= ((Uint32)temp << 8);
-	fread(&temp, 1, 1, f);
-	*number |= ((Uint32)temp << 16);
-	fread(&temp, 1, 1, f);
-	*number |= ((Uint32)temp << 24);
-}
-
 Uint8 expansion_chips;
 Uint8 namco_channels;
 Uint32 version;
@@ -5073,19 +5059,6 @@ void set_channel_volumes()
 	mused.song.default_volume[3] = 0x1c;
 }
 
-Uint8 find_empty_command_column(MusStep* step)
-{
-	for(int i = 0; i < MUS_MAX_COMMANDS; i++)
-	{
-		if(step->command[i] == 0)
-		{
-			return i;
-		}
-	}
-
-	return 0xff;
-}
-
 //here we finish slide, vibrato, etc. commands
 void finish_convert_effects() //this does not account for instrument macros changing pitch :(
 {
@@ -5335,6 +5308,10 @@ void finish_convert_effects() //this does not account for instrument macros chan
 								{
 									is_slide = true;
 									slide_speed = command & 0xff;
+
+									do_portdn = false;
+									do_portup = false;
+									port_speed = 0;
 
 									//step->command[c] = 0; //delete the slide command so 1st note trigger is normal
 								}

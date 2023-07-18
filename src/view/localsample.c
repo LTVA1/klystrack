@@ -247,8 +247,6 @@ void local_sample_notes_view(GfxDomain *dest_surface, const SDL_Rect *dest, cons
 			console_set_color(mused.console, colors[COLOR_INSTRUMENT_NORMAL]);
 		}
 		
-		char temp[1000] = "";
-		
 		char sample_info[1000] = "";
 		
 		char* sample_name = NULL;

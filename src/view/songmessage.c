@@ -11,6 +11,8 @@
 #include "mybevdefs.h"
 #include <string.h>
 
+#include "../import/importutil.h"
+
 #define SCROLLBAR 10
 #define TOP_LEFT 0
 #define TOP_RIGHT 0
@@ -67,44 +69,6 @@ static const View messagebox_view[] =
 	{{ SCREENMARGIN+MARGIN, -SCREENMARGIN-MARGIN-BUTTONS+2, -MARGIN-SCREENMARGIN, BUTTONS-2 }, buttons_view, &msg_data, -1},
 	{{0, 0, 0, 0}, NULL}
 };
-
-static int checkbox_simple(GfxDomain *dest, const SDL_Event *event, const SDL_Rect *area, GfxSurface *gfx, const Font * font, int offset, int offset_pressed, int decal, const char* _label, Uint32 *flags, Uint32 mask)
-{
-	SDL_Rect tick, label;
-	copy_rect(&tick, area);
-	copy_rect(&label, area);
-	tick.h = tick.w = 8;
-	label.w -= tick.w + 4;
-	label.x += tick.w + 4;
-	label.y += 1;
-	label.h -= 1;
-	int pressed = button_event(dest, event, &tick, gfx, offset, offset_pressed, (*flags & mask) ? decal : -1, NULL, 0, 0, 0);
-	font_write(font, dest, &label, _label);
-	
-	return pressed;
-}
-
-static void generic_flags_simple(const SDL_Event *e, const SDL_Rect *_area, const char *label, Uint32 *_flags, Uint32 mask)
-{
-	SDL_Rect area;
-	copy_rect(&area, _area);
-	area.y += 1;
-
-	int hit = check_event(e, _area, NULL, NULL, NULL, NULL);
-
-	if (checkbox_simple(domain, e, &area, mused.slider_bevel, &mused.smallfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, DECAL_TICK, label, _flags, mask))
-	{
-
-	}
-	
-	if (hit)
-	{
-		// so that the gap between the box and label works too
-		Uint32 flags = *_flags;
-		flags ^= mask;
-		*_flags = flags;
-	}
-}
 
 static void buttons_view(GfxDomain *dest_surface, const SDL_Rect *area, const SDL_Event *event, void *param)
 {

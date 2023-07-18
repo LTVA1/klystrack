@@ -38,6 +38,8 @@ extern Uint32 colors[];
 
 void copy()
 {
+	create_plain_text();
+
 	cp_clear(&mused.cp);
 
 	switch (mused.focus)
