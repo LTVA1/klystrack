@@ -31,6 +31,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 #include "theme.h"
 
+#include "export/plaintext.h"
+
 #define swap(a,b) { a ^= b; b ^= a; a ^= b; }
 
 extern Mused mused;

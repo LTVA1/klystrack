@@ -4140,6 +4140,8 @@ void open_local_samples(void *unused1, void *unused2, void *unused3)
 	mused.local_sample_param = LS_ENABLE;
 
 	set_cursor(NULL);
+
+	invalidate_wavetable_view();
 }
 
 

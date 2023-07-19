@@ -319,8 +319,6 @@ void wavetable_sample_view(GfxDomain *dest_surface, const SDL_Rect *dest, const 
 		mused.prev_wavetable_y = -1;
 	}
 
-	//show the line if sample is playing
-
 	Sint32 offset = 0;
 	Sint32 offset_loopbegin = 0;
 	Sint32 offset_loopend = 0;
@@ -350,7 +348,7 @@ void wavetable_sample_view(GfxDomain *dest_surface, const SDL_Rect *dest, const 
 		bevelex(domain, &loop_end, mused.slider_bevel, BEV_ENV_LOOP_END, BEV_F_NORMAL);
 	}
 
-	for(int i = 0; i < mused.song.num_channels; i++)
+	for(int i = 0; i < mused.song.num_channels; i++) //show the line indicating current position if sample is playing
 	{
 		if(mused.mus.channel[i].instrument != NULL)
 		{

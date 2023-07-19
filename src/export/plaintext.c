@@ -28,5 +28,5 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 void create_plain_text() //create a specially formatted string to allow plain-text sharing of pattern segments and sequence segments; also allows for klystrack-to-klystrack instances copypastes
 {
-
+    
 }
