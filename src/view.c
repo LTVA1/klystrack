@@ -264,24 +264,42 @@ void my_draw_view(const View* views, const SDL_Event *_event, GfxDomain *domain,
 	if (mused.cursor.w > 0) bevelex(domain, &mused.cursor, mused.slider_bevel, (mused.flags & EDIT_MODE) ? BEV_EDIT_CURSOR : BEV_CURSOR, BEV_F_STRETCH_ALL|BEV_F_DISABLE_CENTER);
 }
 
+static const char* notename_array[] =
+{
+	"C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "B-"
+};
 
-char * notename(int note)
+static const char* notename_negative[] =
+{
+	"c_", "c+", "d_", "d+", "e_", "f_", "f+", "f_", "g+", "a_", "a+", "b_"
+};
+
+char* notename_default(int note) //for importing OpenMPT/Furnace formatted text data
 {
 	note = my_min(my_max(0, note), FREQ_TAB_SIZE - 1);
 	static char buffer[4];
-	static const char * notename[] =
+
+	if(note < C_ZERO)
 	{
-		"C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "B-"
-	};
+		sprintf(buffer, "%s%d", notename_negative[note % 12], (C_ZERO - note + 11) / 12);
+	}
+	
+	else
+	{
+		sprintf(buffer, "%s%d", notename_array[note % 12], (note - C_ZERO) / 12);
+	}
+
+	return buffer;
+}
+
+char* notename(int note)
+{
+	note = my_min(my_max(0, note), FREQ_TAB_SIZE - 1);
+	static char buffer[4];
 	
 	static const char * notename_flats[] =
 	{
 		"C-", "Db", "D-", "Eb", "E-", "F-", "Gb", "G-", "Ab", "A-", "Bb", "B-"
-	};
-	
-	static const char * notename_negative[] =
-	{
-		"c_", "c+", "d_", "d+", "e_", "f_", "f+", "f_", "g+", "a_", "a+", "b_"
 	};
 	
 	static const char * notename_negative_flats[] =
@@ -296,7 +314,7 @@ char * notename(int note)
 	
 	else
 	{
-		sprintf(buffer, "%s%d", (mused.flags2 & SHOW_FLATS_INSTEAD_OF_SHARPS) ? notename_flats[note % 12] : notename[note % 12], (note - C_ZERO) / 12);
+		sprintf(buffer, "%s%d", (mused.flags2 & SHOW_FLATS_INSTEAD_OF_SHARPS) ? notename_flats[note % 12] : notename_array[note % 12], (note - C_ZERO) / 12);
 	}
 	
 	return buffer;

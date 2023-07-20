@@ -404,6 +404,7 @@ int get_patternstep(int abspos, int track);
 int current_pattern();
 int current_pattern_for_channel(int channel);
 int current_patternstep();
+int current_patternstep_for_channel(int channel);
 MusStep * get_current_step();
 MusPattern * get_current_pattern();
 void change_visualizer(int vis);

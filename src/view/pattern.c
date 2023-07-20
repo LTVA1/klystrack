@@ -1080,11 +1080,11 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 											break;
 											
 										case MUS_NOTE_VOLUME_FADE_UP_FINE:
-											c = 'b';
+											c = 'a';
 											break;
 											
 										case MUS_NOTE_VOLUME_FADE_DN_FINE:
-											c = 'a';
+											c = 'b';
 											break;
 									}
 									

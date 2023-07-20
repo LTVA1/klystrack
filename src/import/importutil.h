@@ -37,6 +37,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "SDL_endian.h"
 #include "../view.h"
 
+char* citoa(int num, char* str, int base);
 void read_uint32(FILE *f, Uint32* number); //little-endian
 int checkbox_simple(GfxDomain *dest, const SDL_Event *event, const SDL_Rect *area, GfxSurface *gfx, const Font * font, int offset, int offset_pressed, int decal, const char* _label, Uint32 *flags, Uint32 mask);
 void generic_flags_simple(const SDL_Event *e, const SDL_Rect *_area, const char *label, Uint32 *_flags, Uint32 mask);

@@ -28,6 +28,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "SDL.h"
 
 #include "../mused.h"
+#include "../view.h"
 #include "../../klystron/src/gui/msgbox.h"
 #include "../../klystron/src/gui/bevdefs.h"
 #include "../../klystron/src/gui/view.h"
@@ -63,14 +64,191 @@ static const char* text_format_headers[] =
 	"ModPlug Tracker  IT",
 	"ModPlug Tracker MPT",
 
-	"333",
+	"",
 	"org.tildearrow.furnace",
 
-	"333",
-}; 
+	"",
+};
+
+static char values[1 + 1 + 1 + 8][5]; //note, inst, volume and up to 8 effects
+static Uint8** mask;
+
+static void process_row(MusPattern* pat, Uint16 s, Uint8 format, Uint16 channel)
+{
+	if(strcmp(values[0], "   ") == 0) //mark which columns are empty in the text (it means we must not paste data from them into destination pattern but rather we keep old pattern data)
+	{
+		mask[channel][0] = 0;
+	}
+
+	if(strcmp(values[1], "  ") == 0)
+	{
+		mask[channel][1] = 0;
+	}
+
+	if(strcmp(values[2], "   ") == 0)
+	{
+		mask[channel][2] = 0;
+	}
+
+	if(strcmp(values[3], "   ") == 0)
+	{
+		mask[channel][3] = 0;
+	}
+
+	MusStep* step = &pat->step[s];
+
+	for(int i = 0; i < FREQ_TAB_SIZE; i++)
+	{
+		char* ref_note = notename_default(i);
+
+		if(strcmp(ref_note, values[0]) == 0)
+		{
+			step->note = i;
+			//debug("note %d", i);
+		}
+	}
+
+	if(format < PATTERN_TEXT_FORMAT_DEFLEMASK)
+	{
+		if(strcmp("^^^", values[0]) == 0)
+		{
+			step->note = MUS_NOTE_CUT;
+		}
+
+		if(strcmp("===", values[0]) == 0)
+		{
+			step->note = MUS_NOTE_RELEASE;
+		}
+	}
+
+	if(format == PATTERN_TEXT_FORMAT_FURNACE)
+	{
+		if(strcmp("OFF", values[0]) == 0)
+		{
+			step->note = MUS_NOTE_CUT;
+		}
+
+		if(strcmp("REL", values[0]) == 0)
+		{
+			step->note = MUS_NOTE_MACRO_RELEASE;
+		}
+
+		if(strcmp("===", values[0]) == 0)
+		{
+			step->note = MUS_NOTE_RELEASE;
+		}
+	}
+
+	if(strcmp(values[1], "..") != 0)
+	{
+		step->instrument = atoi(values[1]);
+	}
+
+	if(format < PATTERN_TEXT_FORMAT_DEFLEMASK & format > PATTERN_TEXT_FORMAT_OPENMPT_MOD)
+	{
+		char volume_func = values[2][0];
+		Uint8 volume_param = 0;
+
+		if(strcmp(&values[2][1], "  ") != 0)
+		{
+			volume_param = atoi(&values[2][1]);
+		}
+
+		switch(volume_func)
+		{
+			case 'v': //just volume
+			{
+				step->volume = volume_param * 2;
+				break;
+			}
+
+			case 'p': //panning
+			{
+				step->volume = MUS_NOTE_VOLUME_SET_PAN | ((volume_param - 1) >> 2); //0-64 to 0-15
+				break;
+			}
+
+			case 'c': //volume up
+			{
+				step->volume = MUS_NOTE_VOLUME_FADE_UP | ((volume_param * 15) / 9); //0-9 to 0-15
+				break;
+			}
+
+			case 'd': //volume down
+			{
+				step->volume = MUS_NOTE_VOLUME_FADE_DN | ((volume_param * 15) / 9); //0-9 to 0-15
+				break;
+			}
+
+			case 'a': //volume up fine
+			{
+				if(volume_param > 0) //because klystrack range lol, volume_param = 0 would be 0x80 which is valid volume velue
+				{
+					step->volume = MUS_NOTE_VOLUME_FADE_UP_FINE | ((volume_param * 15) / 9); //0-9 to 0-15
+				}
+				break;
+			}
+
+			case 'b': //volume down fine
+			{
+				step->volume = MUS_NOTE_VOLUME_FADE_DN_FINE | ((volume_param * 15) / 9); //0-9 to 0-15
+				break;
+			}
+
+			//other commands not supported
+
+			default: break;
+		}
+	}
+
+	if(format < PATTERN_TEXT_FORMAT_DEFLEMASK)
+	{
+		char command_digit = values[3][0];
+		Uint8 command_param = atoi(&values[3][1]);
+
+		Uint16 command = 0;
+
+		if((command_digit >= '0' && command_digit <= '9') || (command_digit >= 'A' && command_digit <= 'F'))
+		{
+			char aaa[2];
+			aaa[0] = command_digit;
+			aaa[1] = '\0';
+			Uint16 command_num = atoi(aaa) << 8;
+
+			command = command_num | command_param;
+		}
+
+		else
+		{
+			command = ((Uint16)command_digit << 8) | command_param;
+		}
+
+		switch(format)
+		{
+			case PATTERN_TEXT_FORMAT_OPENMPT_MOD:
+			{
+				step->command[0] = find_command_pt(command, 0xff * 256); //so at the end we have full 0-fff range
+				break;
+			}
+
+			case PATTERN_TEXT_FORMAT_OPENMPT_XM:
+			{
+				find_command_xm(command, step);
+				break;
+			}
+
+			default: break;
+		}
+	}
+}
 
 void paste_from_clipboard()
 {
+	if(mused.focus != EDITPATTERN)
+	{
+		return;
+	}
+
 	char* plain_text_string = SDL_GetClipboardText();
 	char* plain_text_string_copy = NULL;
 
@@ -82,12 +260,12 @@ void paste_from_clipboard()
 	char** lines = NULL;
 	char** pattern_rows = NULL; //size = num_patterns
 	Uint16 num_lines = 0;
-	char values[1 + 1 + 1 + 8][5]; //note, inst, volume and up to 8 effects
 	memset(values, 0, (1 + 1 + 1 + 8) * (5) * sizeof(char));
 
 	MusPattern* patterns = NULL;
 	Uint8 num_patterns = 0;
-	Uint8* pattern_lengths = NULL;
+
+	mask = NULL;
 
 	if(strcmp(plain_text_string, "") == 0)
 	{
@@ -165,16 +343,28 @@ void paste_from_clipboard()
 
 		//debug("num_patterns %d, num_lines %d", num_patterns, num_lines - 1);
 
-		patterns = (MusPattern**)calloc(1, sizeof(MusPattern) * num_patterns);
+		patterns = (MusPattern*)calloc(1, sizeof(MusPattern) * num_patterns);
 		memset(patterns, 0, sizeof(MusPattern) * num_patterns);
 
 		for(int i = 0; i < num_patterns; i++)
 		{
-			patterns[i].step = calloc(1, sizeof(MusStep) * num_lines);
+			resize_pattern(&patterns[i], num_lines);
 		}
 
 		strcpy(lines[1], lines_1_copy);
 		free(lines_1_copy);
+
+		mask = (Uint8**)calloc(1, sizeof(Uint8*) * num_patterns);
+
+		for(int i = 0; i < num_patterns; i++)
+		{
+			mask[i] = (Uint8*)calloc(1, sizeof(Uint8) * (1 + 1 + 1 + 8 * 2)); //which columns we are to paste; 8 * 2 since Furnace has disctinction between 1st 2 and last 2 digits of effect
+
+			for(int j = 0; j < (1 + 1 + 1 + 8 * 2); j++)
+			{
+				mask[i][j] = 1; //by default we paste all columns, those we should not paste are marked in process_row()
+			}
+		}
 
 		for(int i = 1; i < num_lines; i++) //this should only be executed if we have more than 1 pattern row of data
 		{
@@ -203,7 +393,85 @@ void paste_from_clipboard()
 					//values[3] = { 0 }; //effect
 					memcpy(values[3], &pattern_rows[current_line_index - 1][3 + 2 + 3], 3 * sizeof(char));
 
-					debug("note \"%s\", inst \"%s\", vol \"%s\", eff \"%s\"", values[0], values[1], values[2], values[3]);
+					//debug("note \"%s\", inst \"%s\", vol \"%s\", eff \"%s\", channel %d", values[0], values[1], values[2], values[3], current_line_index);
+
+					process_row(&patterns[current_line_index - 1], i - 1, format, current_line_index - 1);
+				}
+			}
+		}
+	}
+
+	for(int i = 0; i < num_patterns; i++) //paste stuff into patterns; "watch your step!" :)
+	{
+		bool need_to_paste = false;
+		MusPattern* pat;
+
+		if(mused.current_sequencetrack != -1) //check if pattern is there on every channel
+		{
+			int pattern = current_pattern_for_channel(mused.current_sequencetrack + i);
+
+			if(pattern != -1)
+			{
+				pat = &mused.song.pattern[pattern];
+				need_to_paste = true;
+			}
+		}
+		
+		if(need_to_paste)
+		{
+			Sint32 steps_to_paste = 0;//patterns[i].num_steps - (pat->num_steps - current_patternstep_for_channel(mused.current_sequencetrack + i));
+
+			if(pat->num_steps - current_patternstep_for_channel(mused.current_sequencetrack + i) >= patterns[i].num_steps)
+			{
+				steps_to_paste = patterns[i].num_steps;
+			}
+
+			else
+			{
+				steps_to_paste = pat->num_steps - current_patternstep_for_channel(mused.current_sequencetrack + i);
+			}
+
+			for(int j = 0; j < steps_to_paste; j++)
+			{
+				MusStep* src_step = &patterns[i].step[j];
+				MusStep* dst_step = &pat->step[current_patternstep_for_channel(mused.current_sequencetrack + i) + j];
+
+				for(int k = 0; k < (1 + 1 + 1 + 8 * 2); k++)
+				{
+					if(mask[i][k])
+					{
+						switch(k)
+						{
+							case 0:
+							{
+								dst_step->note = src_step->note;
+								break;
+							}
+
+							case 1:
+							{
+								dst_step->instrument = src_step->instrument;
+								break;
+							}
+
+							case 2:
+							{
+								dst_step->volume = src_step->volume;
+								break;
+							}
+
+							case 3:
+							{
+								if(format != PATTERN_TEXT_FORMAT_FURNACE)
+								{
+									dst_step->command[0] = src_step->command[0];
+								}
+								break;
+							}
+
+							default: break;
+						}
+					}
 				}
 			}
 		}
@@ -236,13 +504,18 @@ void paste_from_clipboard()
 		free(patterns);
 	}
 
-	if(pattern_lengths)
-	{
-		free(pattern_lengths);
-	}
-
 	if(pattern_rows)
 	{
 		free(pattern_rows);
+	}
+
+	if(mask)
+	{
+		for(int i = 0; i < num_patterns; i++)
+		{
+			free(mask[i]);
+		}
+
+		free(mask);
 	}
 }
