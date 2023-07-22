@@ -45,7 +45,9 @@ enum
 	PATTERN_TEXT_FORMAT_OPENMPT_MOD,
 	PATTERN_TEXT_FORMAT_OPENMPT_S3M,
 	PATTERN_TEXT_FORMAT_OPENMPT_XM,
+	PATTERN_TEXT_FORMAT_OPENMPT_XM_NEW,
 	PATTERN_TEXT_FORMAT_OPENMPT_IT,
+	PATTERN_TEXT_FORMAT_OPENMPT_IT_NEW,
 	PATTERN_TEXT_FORMAT_OPENMPT_MPT,
 
 	PATTERN_TEXT_FORMAT_DEFLEMASK,
@@ -61,7 +63,9 @@ static const char* text_format_headers[] =
 	"ModPlug Tracker MOD",
 	"ModPlug Tracker S3M",
 	"ModPlug Tracker  XM",
+	"ModPlug Tracker XM",
 	"ModPlug Tracker  IT",
+	"ModPlug Tracker IT",
 	"ModPlug Tracker MPT",
 
 	"",
@@ -72,6 +76,10 @@ static const char* text_format_headers[] =
 
 static char values[1 + 1 + 1 + 8][5]; //note, inst, volume and up to 8 effects
 static Uint8** mask;
+
+
+static const char delimiters_lines[] = "\n\r";
+static const char delimiters[] = "|";
 
 static void process_row(MusPattern* pat, Uint16 s, Uint8 format, Uint16 channel)
 {
@@ -144,7 +152,7 @@ static void process_row(MusPattern* pat, Uint16 s, Uint8 format, Uint16 channel)
 		step->instrument = atoi(values[1]);
 	}
 
-	if(format < PATTERN_TEXT_FORMAT_DEFLEMASK & format > PATTERN_TEXT_FORMAT_OPENMPT_MOD)
+	if(format < PATTERN_TEXT_FORMAT_DEFLEMASK && format > PATTERN_TEXT_FORMAT_OPENMPT_MOD)
 	{
 		char volume_func = values[2][0];
 		Uint8 volume_param = 0;
@@ -204,16 +212,35 @@ static void process_row(MusPattern* pat, Uint16 s, Uint8 format, Uint16 channel)
 	if(format < PATTERN_TEXT_FORMAT_DEFLEMASK)
 	{
 		char command_digit = values[3][0];
-		Uint8 command_param = atoi(&values[3][1]);
+
+		Uint8 command_param = 0;
+
+		if(strcmp(&values[3][1], "..") != 0)
+		{
+			command_param = strtol(&values[3][1], NULL, 16);
+
+			debug("command param %d", command_param);
+		}
 
 		Uint16 command = 0;
 
-		if((command_digit >= '0' && command_digit <= '9') || (command_digit >= 'A' && command_digit <= 'F'))
+		if((command_digit >= '0' && command_digit <= '9'))
 		{
 			char aaa[2];
 			aaa[0] = command_digit;
 			aaa[1] = '\0';
-			Uint16 command_num = atoi(aaa) << 8;
+			Uint16 command_num = (atoi(aaa) << 8);
+
+			debug("%d", command_num);
+
+			command = command_num | command_param;
+		}
+
+		else if(command_digit >= 'A' && command_digit <= 'F')
+		{
+			Uint16 command_num = ((0xF - ('F' - command_digit)) << 8);
+
+			debug("1 %d", command_num);
 
 			command = command_num | command_param;
 		}
@@ -232,6 +259,7 @@ static void process_row(MusPattern* pat, Uint16 s, Uint8 format, Uint16 channel)
 			}
 
 			case PATTERN_TEXT_FORMAT_OPENMPT_XM:
+			case PATTERN_TEXT_FORMAT_OPENMPT_XM_NEW:
 			{
 				find_command_xm(command, step);
 				break;
@@ -296,9 +324,6 @@ void paste_from_clipboard()
 
 	plain_text_string_copy = (char*)calloc(1, strlen(plain_text_string) + 1);
 	strcpy(plain_text_string_copy, plain_text_string);
-
-	const char delimiters_lines[] = "\n\r";
-	const char delimiters[] = "|";
 	char* current_line;
 
 	if(format < PATTERN_TEXT_FORMAT_DEFLEMASK)
