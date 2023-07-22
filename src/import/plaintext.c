@@ -81,7 +81,26 @@ static Uint8** mask;
 static const char delimiters_lines[] = "\n\r";
 static const char delimiters[] = "|";
 
-static void process_row(MusPattern* pat, Uint16 s, Uint8 format, Uint16 channel)
+static char* plain_text_string_copy;
+
+static Uint8 fur_version;
+static Uint8 fur_startx; //0 = note, 1 = inst, 2 = vol, 3 = 2 most significant digits of effect 1, 4 = 2 least significant digits of effect 1, ...
+
+static Uint16 current_line_index = 0;
+
+static char** lines;
+static char** pattern_rows; //size = num_patterns
+static Uint16 num_lines;
+
+static MusPattern* patterns;
+static Uint8 num_patterns;
+
+static Uint16 passes;
+static char* current_line;
+
+static Uint8 format;
+
+static void process_row_openmpt(MusPattern* pat, Uint16 s, Uint8 format, Uint16 channel)
 {
 	if(strcmp(values[0], "   ") == 0) //mark which columns are empty in the text (it means we must not paste data from them into destination pattern but rather we keep old pattern data)
 	{
@@ -112,39 +131,20 @@ static void process_row(MusPattern* pat, Uint16 s, Uint8 format, Uint16 channel)
 		if(strcmp(ref_note, values[0]) == 0)
 		{
 			step->note = i;
-			//debug("note %d", i);
+			goto next;
 		}
 	}
+	
+	next:;
 
-	if(format < PATTERN_TEXT_FORMAT_DEFLEMASK)
+	if(strcmp("^^^", values[0]) == 0)
 	{
-		if(strcmp("^^^", values[0]) == 0)
-		{
-			step->note = MUS_NOTE_CUT;
-		}
-
-		if(strcmp("===", values[0]) == 0)
-		{
-			step->note = MUS_NOTE_RELEASE;
-		}
+		step->note = MUS_NOTE_CUT;
 	}
 
-	if(format == PATTERN_TEXT_FORMAT_FURNACE)
+	if(strcmp("===", values[0]) == 0)
 	{
-		if(strcmp("OFF", values[0]) == 0)
-		{
-			step->note = MUS_NOTE_CUT;
-		}
-
-		if(strcmp("REL", values[0]) == 0)
-		{
-			step->note = MUS_NOTE_MACRO_RELEASE;
-		}
-
-		if(strcmp("===", values[0]) == 0)
-		{
-			step->note = MUS_NOTE_RELEASE;
-		}
+		step->note = MUS_NOTE_RELEASE;
 	}
 
 	if(strcmp(values[1], "..") != 0)
@@ -219,7 +219,7 @@ static void process_row(MusPattern* pat, Uint16 s, Uint8 format, Uint16 channel)
 		{
 			command_param = strtol(&values[3][1], NULL, 16);
 
-			debug("command param %d", command_param);
+			//debug("command param %d", command_param);
 		}
 
 		Uint16 command = 0;
@@ -231,7 +231,7 @@ static void process_row(MusPattern* pat, Uint16 s, Uint8 format, Uint16 channel)
 			aaa[1] = '\0';
 			Uint16 command_num = (atoi(aaa) << 8);
 
-			debug("%d", command_num);
+			//debug("%d", command_num);
 
 			command = command_num | command_param;
 		}
@@ -240,7 +240,7 @@ static void process_row(MusPattern* pat, Uint16 s, Uint8 format, Uint16 channel)
 		{
 			Uint16 command_num = ((0xF - ('F' - command_digit)) << 8);
 
-			debug("1 %d", command_num);
+			//debug("1 %d", command_num);
 
 			command = command_num | command_param;
 		}
@@ -270,6 +270,90 @@ static void process_row(MusPattern* pat, Uint16 s, Uint8 format, Uint16 channel)
 	}
 }
 
+static void process_lines_openmpt()
+{
+	passes = 0;
+
+	current_line = 1;
+
+	char* lines_1_copy = (char*)calloc(1, sizeof(char*) * (strlen(lines[1]) + 1)); //making a copy of the first pattern line and restore its original state for actual parsing (strtok() puts null terminators right inside the string)
+	strcpy(lines_1_copy, lines[1]);
+
+	while(current_line != NULL) //process 1st line; count how many channels are in buffer (practically we count "|" characters)
+	{
+		current_line = strtok(passes > 0 ? NULL : lines[1], delimiters); //lines[0] is header
+		passes++;
+		
+		if(current_line)
+		{
+			num_patterns++;
+			pattern_rows = (char**)realloc(pattern_rows, sizeof(char*) * num_patterns);
+			pattern_rows[num_patterns - 1] = current_line;
+
+			//debug("pattern_rows[num_patterns - 1] \"%s\"", pattern_rows[num_patterns - 1]);
+		}
+	}
+
+	//debug("num_patterns %d, num_lines %d", num_patterns, num_lines - 1);
+
+	patterns = (MusPattern*)calloc(1, sizeof(MusPattern) * num_patterns);
+	memset(patterns, 0, sizeof(MusPattern) * num_patterns);
+
+	for(int i = 0; i < num_patterns; i++)
+	{
+		resize_pattern(&patterns[i], num_lines);
+	}
+
+	strcpy(lines[1], lines_1_copy);
+	free(lines_1_copy);
+
+	mask = (Uint8**)calloc(1, sizeof(Uint8*) * num_patterns);
+
+	for(int i = 0; i < num_patterns; i++)
+	{
+		mask[i] = (Uint8*)calloc(1, sizeof(Uint8) * (1 + 1 + 1 + 8 * 2)); //which columns we are to paste; 8 * 2 since Furnace has disctinction between 1st 2 and last 2 digits of effect
+
+		for(int j = 0; j < (1 + 1 + 1 + 8 * 2); j++)
+		{
+			mask[i][j] = 1; //by default we paste all columns, those we should not paste are marked in process_row_openmpt() and similar functions for other formats
+		}
+	}
+
+	for(int i = 1; i < num_lines; i++) //this should only be executed if we have more than 1 pattern row of data
+	{
+		current_line = 1;
+		current_line_index = 0;
+		passes = 0;
+
+		while(current_line != NULL)
+		{
+			current_line = strtok(passes > 0 ? NULL : lines[i], delimiters);
+			passes++;
+			
+			if(current_line)
+			{
+				pattern_rows[current_line_index] = current_line;
+				//debug("\"%s\"", pattern_rows[current_line_index]);
+				current_line_index++;
+
+				memset(values, 0, (1 + 1 + 1 + 8) * (5) * sizeof(char));
+				//values[0] = { 0 }; //note
+				memcpy(values[0], pattern_rows[current_line_index - 1], 3 * sizeof(char));
+				//values[1] = { 0 }; //instrument
+				memcpy(values[1], &pattern_rows[current_line_index - 1][3], 2 * sizeof(char));
+				//values[2] = { 0 }; //volume
+				memcpy(values[2], &pattern_rows[current_line_index - 1][3 + 2], 3 * sizeof(char));
+				//values[3] = { 0 }; //effect
+				memcpy(values[3], &pattern_rows[current_line_index - 1][3 + 2 + 3], 3 * sizeof(char));
+
+				//debug("note \"%s\", inst \"%s\", vol \"%s\", eff \"%s\", channel %d", values[0], values[1], values[2], values[3], current_line_index);
+
+				process_row_openmpt(&patterns[current_line_index - 1], i - 1, format, current_line_index - 1);
+			}
+		}
+	}
+}
+
 void paste_from_clipboard()
 {
 	if(mused.focus != EDITPATTERN)
@@ -278,20 +362,20 @@ void paste_from_clipboard()
 	}
 
 	char* plain_text_string = SDL_GetClipboardText();
-	char* plain_text_string_copy = NULL;
+	plain_text_string_copy = NULL;
 
-	Uint8 fur_version = 0;
-	Uint8 fur_startx = 0; //0 = note, 1 = inst, 2 = vol, 3 = 2 most significant digits of effect 1, 4 = 2 least significant digits of effect 1, ...
+	fur_version = 0;
+	fur_startx = 0; //0 = note, 1 = inst, 2 = vol, 3 = 2 most significant digits of effect 1, 4 = 2 least significant digits of effect 1, ...
 
-	Uint16 current_line_index = 0;
+	current_line_index = 0;
 
-	char** lines = NULL;
-	char** pattern_rows = NULL; //size = num_patterns
-	Uint16 num_lines = 0;
+	lines = NULL;
+	pattern_rows = NULL; //size = num_patterns
+	num_lines = 0;
 	memset(values, 0, (1 + 1 + 1 + 8) * (5) * sizeof(char));
 
-	MusPattern* patterns = NULL;
-	Uint8 num_patterns = 0;
+	patterns = NULL;
+	num_patterns = 0;
 
 	mask = NULL;
 
@@ -302,7 +386,7 @@ void paste_from_clipboard()
 		goto end;
 	}
 
-	Uint8 format = 0;
+	format = 0;
 
 	for(int i = 0; i < PATTERN_TEXT_FORMATS; i++)
 	{
@@ -324,106 +408,28 @@ void paste_from_clipboard()
 
 	plain_text_string_copy = (char*)calloc(1, strlen(plain_text_string) + 1);
 	strcpy(plain_text_string_copy, plain_text_string);
-	char* current_line;
+
+	current_line = 1;
+
+	passes = 0;
+
+	while(current_line != NULL) //divide into lines
+	{
+		current_line = strtok(passes > 0 ? NULL : plain_text_string_copy, delimiters_lines);
+		passes++;
+		
+		if(current_line)
+		{
+			debug("line \"%s\"", current_line);
+			num_lines++;
+			lines = (char**)realloc(lines, sizeof(char*) * num_lines);
+			lines[num_lines - 1] = current_line;
+		}
+	}
 
 	if(format < PATTERN_TEXT_FORMAT_DEFLEMASK)
 	{
-		Uint16 passes = 0;
-
-		while(current_line != NULL)
-		{
-			current_line = strtok(passes > 0 ? NULL : plain_text_string_copy, delimiters_lines);
-			passes++;
-			
-			if(current_line)
-			{
-				debug("line \"%s\"", current_line);
-				num_lines++;
-				lines = (char**)realloc(lines, sizeof(char*) * num_lines);
-				lines[num_lines - 1] = current_line;
-			}
-		}
-
-		passes = 0;
-
-		current_line = 1;
-
-		char* lines_1_copy = (char*)calloc(1, sizeof(char*) * (strlen(lines[1]) + 1)); //making a copy of the first pattern line and restore its original state for actual parsing (strtok() puts null terminators right inside the string)
-		strcpy(lines_1_copy, lines[1]);
-
-		while(current_line != NULL) //process 1st line; count how many channels are in buffer (practically we count "|" characters)
-		{
-			current_line = strtok(passes > 0 ? NULL : lines[1], delimiters); //lines[0] is header
-			passes++;
-			
-			if(current_line)
-			{
-				num_patterns++;
-				pattern_rows = (char**)realloc(pattern_rows, sizeof(char*) * num_patterns);
-				pattern_rows[num_patterns - 1] = current_line;
-
-				//debug("pattern_rows[num_patterns - 1] \"%s\"", pattern_rows[num_patterns - 1]);
-			}
-		}
-
-		//debug("num_patterns %d, num_lines %d", num_patterns, num_lines - 1);
-
-		patterns = (MusPattern*)calloc(1, sizeof(MusPattern) * num_patterns);
-		memset(patterns, 0, sizeof(MusPattern) * num_patterns);
-
-		for(int i = 0; i < num_patterns; i++)
-		{
-			resize_pattern(&patterns[i], num_lines);
-		}
-
-		strcpy(lines[1], lines_1_copy);
-		free(lines_1_copy);
-
-		mask = (Uint8**)calloc(1, sizeof(Uint8*) * num_patterns);
-
-		for(int i = 0; i < num_patterns; i++)
-		{
-			mask[i] = (Uint8*)calloc(1, sizeof(Uint8) * (1 + 1 + 1 + 8 * 2)); //which columns we are to paste; 8 * 2 since Furnace has disctinction between 1st 2 and last 2 digits of effect
-
-			for(int j = 0; j < (1 + 1 + 1 + 8 * 2); j++)
-			{
-				mask[i][j] = 1; //by default we paste all columns, those we should not paste are marked in process_row()
-			}
-		}
-
-		for(int i = 1; i < num_lines; i++) //this should only be executed if we have more than 1 pattern row of data
-		{
-			current_line = 1;
-			current_line_index = 0;
-			passes = 0;
-
-			while(current_line != NULL)
-			{
-				current_line = strtok(passes > 0 ? NULL : lines[i], delimiters);
-				passes++;
-				
-				if(current_line)
-				{
-					pattern_rows[current_line_index] = current_line;
-					//debug("\"%s\"", pattern_rows[current_line_index]);
-					current_line_index++;
-
-					memset(values, 0, (1 + 1 + 1 + 8) * (5) * sizeof(char));
-					//values[0] = { 0 }; //note
-					memcpy(values[0], pattern_rows[current_line_index - 1], 3 * sizeof(char));
-					//values[1] = { 0 }; //instrument
-					memcpy(values[1], &pattern_rows[current_line_index - 1][3], 2 * sizeof(char));
-					//values[2] = { 0 }; //volume
-					memcpy(values[2], &pattern_rows[current_line_index - 1][3 + 2], 3 * sizeof(char));
-					//values[3] = { 0 }; //effect
-					memcpy(values[3], &pattern_rows[current_line_index - 1][3 + 2 + 3], 3 * sizeof(char));
-
-					//debug("note \"%s\", inst \"%s\", vol \"%s\", eff \"%s\", channel %d", values[0], values[1], values[2], values[3], current_line_index);
-
-					process_row(&patterns[current_line_index - 1], i - 1, format, current_line_index - 1);
-				}
-			}
-		}
+		process_lines_openmpt();
 	}
 
 	for(int i = 0; i < num_patterns; i++) //paste stuff into patterns; "watch your step!" :)
@@ -487,7 +493,7 @@ void paste_from_clipboard()
 
 							case 3:
 							{
-								if(format != PATTERN_TEXT_FORMAT_FURNACE)
+								if(format < PATTERN_TEXT_FORMAT_DEFLEMASK)
 								{
 									dst_step->command[0] = src_step->command[0];
 								}
