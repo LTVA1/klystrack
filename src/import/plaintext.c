@@ -176,6 +176,18 @@ static void process_row_openmpt(MusPattern* pat, Uint16 s, Uint8 format, Uint16 
 				break;
 			}
 
+			case 'l': //slide panning left
+			{
+				step->volume = MUS_NOTE_VOLUME_PAN_LEFT | volume_param; //0-15
+				break;
+			}
+
+			case 'r': //slide panning right
+			{
+				step->volume = MUS_NOTE_VOLUME_PAN_RIGHT | volume_param; //0-15
+				break;
+			}
+
 			case 'c': //volume up
 			{
 				step->volume = MUS_NOTE_VOLUME_FADE_UP | ((volume_param * 15) / 9); //0-9 to 0-15

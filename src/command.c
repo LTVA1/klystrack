@@ -69,6 +69,7 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_EXT_NOTE_DELAY, 0xfff0, "Note delay", "Delay", -1, -1},
 	{MUS_FX_VIBRATO, 0xff00, "Vibrato", "Vib", -1, -1},
 	{MUS_FX_TREMOLO, 0xff00, "Tremolo", "Trem", -1, -1}, //wasn't there
+	{MUS_FX_PANBRELLO, 0xff00, "Panbrello", "Panbr", -1, -1}, //wasn't there
 	{MUS_FX_FM_VIBRATO, 0xff00, "FM modulator vibrato", "FM vib", -1, -1}, //wasn't there
 	{MUS_FX_FM_TREMOLO, 0xff00, "FM modulator tremolo", "FM trem", -1, -1}, //wasn't there
 	{MUS_FX_PWM, 0xff00, "Pulse width modification", "PWM", -1, -1}, //wasn't there
