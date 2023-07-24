@@ -236,30 +236,38 @@ static void process_row_openmpt(MusPattern* pat, Uint16 s, Uint8 format, Uint16 
 
 		Uint16 command = 0;
 
-		if((command_digit >= '0' && command_digit <= '9'))
+		if(format == PATTERN_TEXT_FORMAT_OPENMPT_XM || format == PATTERN_TEXT_FORMAT_OPENMPT_XM_NEW || format == PATTERN_TEXT_FORMAT_OPENMPT_MOD)
 		{
-			char aaa[2];
-			aaa[0] = command_digit;
-			aaa[1] = '\0';
-			Uint16 command_num = (atoi(aaa) << 8);
+			if((command_digit >= '0' && command_digit <= '9'))
+			{
+				char aaa[2];
+				aaa[0] = command_digit;
+				aaa[1] = '\0';
+				Uint16 command_num = (atoi(aaa) << 8);
 
-			//debug("%d", command_num);
+				//debug("%d", command_num);
 
-			command = command_num | command_param;
+				command = command_num | command_param;
+			}
+
+			else if(command_digit >= 'A' && command_digit <= 'F')
+			{
+				Uint16 command_num = ((0xF - ('F' - command_digit)) << 8);
+
+				//debug("1 %d", command_num);
+
+				command = command_num | command_param;
+			}
+
+			else
+			{
+				command = ((Uint16)command_digit << 8) | command_param;
+			}
 		}
 
-		else if(command_digit >= 'A' && command_digit <= 'F')
+		if(format == PATTERN_TEXT_FORMAT_OPENMPT_S3M || format == PATTERN_TEXT_FORMAT_OPENMPT_IT || format == PATTERN_TEXT_FORMAT_OPENMPT_IT_NEW)
 		{
-			Uint16 command_num = ((0xF - ('F' - command_digit)) << 8);
-
-			//debug("1 %d", command_num);
-
-			command = command_num | command_param;
-		}
-
-		else
-		{
-			command = ((Uint16)command_digit << 8) | command_param;
+			command = ((Uint16)(command_digit - 'A' + 1) << 8) | command_param; //Axx = 0x1XX so +1
 		}
 
 		switch(format)
@@ -274,6 +282,12 @@ static void process_row_openmpt(MusPattern* pat, Uint16 s, Uint8 format, Uint16 
 			case PATTERN_TEXT_FORMAT_OPENMPT_XM_NEW:
 			{
 				find_command_xm(command, step);
+				break;
+			}
+
+			case PATTERN_TEXT_FORMAT_OPENMPT_S3M:
+			{
+				find_command_s3m(command, step);
 				break;
 			}
 
@@ -508,6 +522,24 @@ void paste_from_clipboard()
 								if(format < PATTERN_TEXT_FORMAT_DEFLEMASK)
 								{
 									dst_step->command[0] = src_step->command[0];
+								}
+								break;
+							}
+
+							case 4:
+							{
+								if(format < PATTERN_TEXT_FORMAT_DEFLEMASK)
+								{
+									dst_step->command[1] = src_step->command[1];
+								}
+								break;
+							}
+
+							case 5:
+							{
+								if(format < PATTERN_TEXT_FORMAT_DEFLEMASK)
+								{
+									dst_step->command[2] = src_step->command[2];
 								}
 								break;
 							}

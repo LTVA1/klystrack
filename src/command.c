@@ -171,6 +171,10 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_SET_PANNING, 0xff00, "Set panning", "SetPan", -1, -1},
 	{MUS_FX_PAN_LEFT, 0xff00, "Pan left", "PanLeft", -1, -1},
 	{MUS_FX_PAN_RIGHT, 0xff00, "Pan right", "PanRight", -1, -1},
+
+	{MUS_FX_PAN_LEFT_FINE, 0xfff0, "Pan left (fine)", "PanLeftFine", -1, -1}, //wasn't there
+	{MUS_FX_PAN_RIGHT_FINE, 0xfff0, "Pan right (fine)", "PanRightFine", -1, -1}, //wasn't there
+
 	{MUS_FX_BUZZ_UP, 0xff00, "Tune buzz up", "BuzzUp", -1, -1},
 	{MUS_FX_BUZZ_DN, 0xff00, "Tune buzz down", "BuzzDn", -1, -1},
 	{MUS_FX_BUZZ_SHAPE, 0xff00, "Set buzz shape", "BuzzShape", 0, 3},

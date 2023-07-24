@@ -590,7 +590,7 @@ void convert_fzt_instrument(MusInstrument* inst, fzt_instrument* fzt_inst)
 	
 	inst->vibrato_shape = MUS_SHAPE_TRI_UP;
 	
-	inst->pwm_speed = fzt_inst->pwm_speed / 8;
+	inst->pwm_speed = fzt_inst->pwm_speed * 2;
 	inst->pwm_depth = fzt_inst->pwm_depth;
 	inst->pwm_delay = fzt_inst->pwm_delay;
 	

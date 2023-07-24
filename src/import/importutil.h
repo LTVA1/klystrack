@@ -43,6 +43,7 @@ int checkbox_simple(GfxDomain *dest, const SDL_Event *event, const SDL_Rect *are
 void generic_flags_simple(const SDL_Event *e, const SDL_Rect *_area, const char *label, Uint32 *_flags, Uint32 mask);
 Uint8 find_empty_command_column(MusStep* step);
 void find_command_xm(Uint16 command, MusStep* step);
+void find_command_s3m(Uint16 command, MusStep* step);
 Uint16 find_command_pt(Uint16 command, int sample_length);
 void convert_volume_and_command_xm(Uint16 command, Uint8 volume, MusStep* step);
 

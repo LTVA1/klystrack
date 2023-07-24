@@ -1075,7 +1075,7 @@ void write_instrument(FILE* f, MusInstrument* inst)
 	fzt_inst->vibrato_depth = inst->vibrato_depth;
 	fzt_inst->vibrato_delay = inst->vibrato_delay;
 
-	fzt_inst->pwm_speed = my_min(0xff, (Uint16)inst->pwm_speed * 8);
+	fzt_inst->pwm_speed = inst->pwm_speed / 2;
 	fzt_inst->pwm_depth = inst->pwm_depth;
 	fzt_inst->pwm_delay = inst->pwm_delay;
 

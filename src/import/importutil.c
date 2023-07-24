@@ -349,6 +349,12 @@ void find_command_xm(Uint16 command, MusStep* step)
 			return;
 		}
 	}
+
+	else if ((command >> 8) == 'Y')
+	{
+		step->command[0] = MUS_FX_PANBRELLO | (command & 0xff);
+		return;
+	}
 	
 	else
 	{
@@ -599,4 +605,354 @@ Uint16 find_command_pt(Uint16 command, int sample_length)
 	}
 	
 	return command;
+}
+
+void find_command_s3m(Uint16 command, MusStep* step)
+{
+	Uint8 param = command & 0xff;
+
+	switch(command >> 8)
+	{
+		case 1: //Axx
+		{
+			step->command[find_empty_command_column(step)] = MUS_FX_SET_SPEED1 | param;
+			step->command[find_empty_command_column(step)] = MUS_FX_SET_SPEED2 | param;
+
+			break;
+		}
+
+		case 2: //Bxx
+		{
+			step->command[find_empty_command_column(step)] = MUS_FX_JUMP_SEQUENCE_POSITION | param;
+			break;
+		}
+
+		case 3: //Cxx
+		{
+			Uint8 new_param = (param & 0xf) + (param >> 4) * 10; //hex to decimal, Scream Tracker 3 lol
+			step->command[find_empty_command_column(step)] = MUS_FX_SKIP_PATTERN | new_param;
+			break;
+		}
+
+		case 4: //Dxy
+		{
+			if((param & 0xf0) == 0xf0)
+			{
+				step->command[find_empty_command_column(step)] = MUS_FX_EXT_FADE_VOLUME_DN | my_min(0xf, (param & 0xf) * 2);
+			}
+
+			else if((param & 0xf) == 0xf)
+			{
+				step->command[find_empty_command_column(step)] = MUS_FX_EXT_FADE_VOLUME_UP | my_min(0xf, ((param & 0xf0) >> 4) * 2);
+			}
+
+			else
+			{
+				step->command[find_empty_command_column(step)] = MUS_FX_FADE_VOLUME | param;
+			}
+			
+			break;
+		}
+
+		case 5: //Exx
+		{
+			if(param < 0xe0)
+			{
+				step->command[find_empty_command_column(step)] = MUS_FX_PORTA_DN | param;
+			}
+
+			else if(param >= 0xe0 && param < 0xf0)
+			{
+				step->command[find_empty_command_column(step)] = MUS_FX_EXT_PORTA_DN | (param & 0xf);
+			}
+
+			else
+			{
+				step->command[find_empty_command_column(step)] = MUS_FX_EXT_FINE_PORTA_DN | (param & 0xf);
+			}
+
+			break;
+		}
+
+		case 6: //Fxx
+		{
+			if(param < 0xe0)
+			{
+				step->command[find_empty_command_column(step)] = MUS_FX_PORTA_UP | param;
+			}
+
+			else if(param >= 0xe0 && param < 0xf0)
+			{
+				step->command[find_empty_command_column(step)] = MUS_FX_EXT_PORTA_UP | (param & 0xf);
+			}
+
+			else
+			{
+				step->command[find_empty_command_column(step)] = MUS_FX_EXT_FINE_PORTA_UP | (param & 0xf);
+			}
+
+			break;
+		}
+
+		case 7: //Gxx
+		{
+			step->command[find_empty_command_column(step)] = MUS_FX_FAST_SLIDE | param;
+			break;
+		}
+
+		case 8: //Hxy
+		{
+			step->command[find_empty_command_column(step)] = MUS_FX_VIBRATO | param;
+			break;
+		}
+
+		case 9: //Ixy
+		{
+			break;
+		}
+
+		case 10: //Jxy
+		{
+			step->command[find_empty_command_column(step)] = MUS_FX_SET_EXT_ARP | param;
+			break;
+		}
+
+		case 11: //Kxy
+		{
+			if((param & 0xf0) == 0xf0)
+			{
+				step->command[find_empty_command_column(step)] = MUS_FX_EXT_FADE_VOLUME_DN | my_min(0xf, (param & 0xf) * 2);
+			}
+
+			else if((param & 0xf) == 0xf)
+			{
+				step->command[find_empty_command_column(step)] = MUS_FX_EXT_FADE_VOLUME_UP | my_min(0xf, ((param & 0xf0) >> 4) * 2);
+			}
+
+			else
+			{
+				step->command[find_empty_command_column(step)] = MUS_FX_FADE_VOLUME | param;
+			}
+
+			step->ctrl |= MUS_CTRL_VIB;
+
+			break;
+		}
+
+		case 12: //Lxy
+		{
+			if((param & 0xf0) == 0xf0)
+			{
+				step->command[find_empty_command_column(step)] = MUS_FX_EXT_FADE_VOLUME_DN | my_min(0xf, (param & 0xf) * 2);
+			}
+
+			else if((param & 0xf) == 0xf)
+			{
+				step->command[find_empty_command_column(step)] = MUS_FX_EXT_FADE_VOLUME_UP | my_min(0xf, ((param & 0xf0) >> 4) * 2);
+			}
+
+			else
+			{
+				step->command[find_empty_command_column(step)] = MUS_FX_FADE_VOLUME | param;
+			} //portamento will be filled in later
+			break;
+		}
+
+		case 13: //Mxx
+		{
+			step->command[find_empty_command_column(step)] = MUS_FX_SET_CHANNEL_VOLUME | (param * 2);
+			break;
+		}
+
+		case 14: //Nxy
+		{
+			//klystrack does not have this command yet
+			break;
+		}
+
+		case 15: //Oxx
+		{
+			step->command[find_empty_command_column(step)] = MUS_FX_WAVETABLE_OFFSET | param; //conversion will be finished later
+			break;
+		}
+
+		case 16: //Pxy
+		{
+			if((param & 0xf0) == 0)
+			{
+				step->command[find_empty_command_column(step)] = MUS_FX_PAN_RIGHT | my_max(1, (param & 0xf) / 2);
+			}
+
+			else if((param & 0xf) == 0)
+			{
+				step->command[find_empty_command_column(step)] = MUS_FX_PAN_LEFT | my_max(1, ((param & 0xf0) >> 4) / 2);
+			}
+
+			else if((param & 0xf0) == 0xf0)
+			{
+				step->command[find_empty_command_column(step)] = MUS_FX_PAN_RIGHT_FINE | my_max(1, (param & 0xf) / 2);
+			}
+
+			else if((param & 0xf) == 0xf)
+			{
+				step->command[find_empty_command_column(step)] = MUS_FX_PAN_LEFT_FINE | my_max(1, ((param & 0xf0) >> 4) / 2);
+			}
+
+			else
+			{
+				step->command[find_empty_command_column(step)] = MUS_FX_SET_PANNING | my_min(0xff, (param * 2));
+			}
+
+			break;
+		}
+
+		case 17: //Qxy
+		{
+			step->command[find_empty_command_column(step)] = MUS_FX_EXT_RETRIGGER | (param & 0xf); //fuck the volume thing it's too complex
+			break;
+		}
+
+		case 18: //Rxy
+		{
+			step->command[find_empty_command_column(step)] = MUS_FX_TREMOLO | param;
+			break;
+		}
+
+		case 19: //SXx
+		{
+			switch(param >> 4)
+			{
+				case 1: //S1x
+				{
+					step->command[find_empty_command_column(step)] = MUS_FX_GLISSANDO_CONTROL | (param & 0xf);
+					break;
+				}
+
+				case 2: //S2x
+				{
+					Uint8 finetune = 0;
+
+					if((param & 0xf) < 8)
+					{
+						finetune = 0x80 + ((command & 0xf) << 4);
+					}
+
+					else
+					{
+						finetune = 0x80 - ((0x10 - (command & 0xf)) << 4);
+					}
+
+					step->command[find_empty_command_column(step)] = MUS_FX_PITCH | finetune;
+
+					break;
+				}
+
+				case 3: //S3x
+				{
+					//klystrack does not have this command yet
+					break;
+				}
+
+				case 4: //S4x
+				{
+					//klystrack does not have this command yet
+					break;
+				}
+
+				case 5: //S5x
+				{
+					//klystrack does not have this command yet
+					break;
+				}
+
+				case 6: //S6x
+				{
+					//klystrack does not have this command yet
+					break;
+				}
+
+				case 8: //S8x
+				{
+					step->command[find_empty_command_column(step)] = MUS_FX_SET_PANNING | ((param & 0xf) << 4);
+					break;
+				}
+
+				case 9: //S9x
+				{
+					//klystrack does not have this command yet
+					break;
+				}
+
+				case 0xA: //SAx
+				{
+					//klystrack does not have this command yet
+					break;
+				}
+
+				case 0xB: //SBx
+				{
+					step->command[find_empty_command_column(step)] = MUS_FX_FT2_PATTERN_LOOP | (param & 0xf);
+					break;
+				}
+
+				case 0xC: //SBx
+				{
+					step->command[find_empty_command_column(step)] = MUS_FX_EXT_NOTE_CUT | (param & 0xf);
+					break;
+				}
+
+				case 0xD: //SBx
+				{
+					step->command[find_empty_command_column(step)] = MUS_FX_EXT_NOTE_DELAY | (param & 0xf);
+					break;
+				}
+
+				default: break;
+			}
+
+			break;
+		}
+
+		case 20: //Txx
+		{
+			if(param >= 0x20)
+			{
+				step->command[find_empty_command_column(step)] = MUS_FX_SET_RATE | ((Uint16)param * 50 / 125);
+			}
+			
+			break;
+		}
+
+		case 21: //Uxy
+		{
+			step->command[find_empty_command_column(step)] = MUS_FX_VIBRATO | my_max(1, ((param & 0xf0) >> 4 / 4 << 4)) | my_max(1, ((param & 0xf) / 4));
+			break;
+		}
+
+		case 22: //Vxx
+		{
+			step->command[find_empty_command_column(step)] = MUS_FX_SET_GLOBAL_VOLUME | (param * 2);
+			break;
+		}
+
+		case 23: //Wxy
+		{
+			//nope no command in klystrack yet cope
+			break;
+		}
+
+		case 24: //Xxx
+		{
+			step->command[find_empty_command_column(step)] = MUS_FX_SET_PANNING | my_min(0xff, (param * 2));
+			break;
+		}
+
+		case 25: //Yxx
+		{
+			step->command[find_empty_command_column(step)] = MUS_FX_PANBRELLO | param;
+			break;
+		}
+
+		default: break;
+	}
 }
