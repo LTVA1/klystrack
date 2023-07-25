@@ -956,3 +956,19 @@ void find_command_s3m(Uint16 command, MusStep* step)
 		default: break;
 	}
 }
+
+void find_command_it(Uint16 command, MusStep* step) //very similar to S3M effects-wise
+{
+	switch(command >> 8)
+	{
+		default: find_command_s3m(command, step); break;
+	}
+}
+
+void find_command_mptm(Uint16 command, MusStep* step) //MPTM commands set is based on IT
+{
+	switch(command >> 8)
+	{
+		default: find_command_it(command, step); break; //TODO: search what values are used for *xx, +xx, #xx etc. commands
+	}
+}

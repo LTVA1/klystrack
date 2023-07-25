@@ -582,38 +582,43 @@ void song_message_view(GfxDomain *domain, GfxSurface *gfx, const Font *largefont
 						{
 							if(msg_data.editing)
 							{
-								if(e.key.keysym.sym == SDLK_BACKSPACE)
-								{
-									if (msg_data.horiz_position > 0) --msg_data.horiz_position;
-
-									else
-									{
-										slider_move_position(&msg_data.selected_line, &msg_data.list_position, &msg_data.scrollbar, -1);
-										msg_data.horiz_position = msg_data.line_lengths[msg_data.selected_line] - 1;
-									}
-								}
-
-								if(e.key.keysym.sym == SDLK_DELETE)
-								{
-									if (msg_data.horiz_position > msg_data.line_lengths[msg_data.selected_line]) --msg_data.horiz_position;
-
-									if(msg_data.horiz_position < 0)
-									{
-										slider_move_position(&msg_data.selected_line, &msg_data.list_position, &msg_data.scrollbar, -1);
-										msg_data.horiz_position = msg_data.line_lengths[msg_data.selected_line] - 1;
-									}
-								}
-
 								mused.song.song_message_length = strlen(mused.song.song_message) + 1;
 
-								mused.song.song_message = realloc(mused.song.song_message, mused.song.song_message_length);
+								if(mused.song.song_message_length > 1) //so when emptied with deletion klystrack does not crash
+								{
+									if(e.key.keysym.sym == SDLK_BACKSPACE)
+									{
+										if (msg_data.horiz_position > 0) --msg_data.horiz_position;
 
-								memmove(&mused.song.song_message[get_current_message_string_position()], &mused.song.song_message[get_current_message_string_position() + 1], mused.song.song_message_length - get_current_message_string_position());
-								mused.song.song_message[mused.song.song_message_length - 2] = '\0';
+										else
+										{
+											slider_move_position(&msg_data.selected_line, &msg_data.list_position, &msg_data.scrollbar, -1);
+											msg_data.horiz_position = msg_data.line_lengths[msg_data.selected_line] - 1;
+										}
+									}
 
-								mused.song.song_message_length = strlen(mused.song.song_message) + 1;
+									if(e.key.keysym.sym == SDLK_DELETE)
+									{
+										if (msg_data.horiz_position > msg_data.line_lengths[msg_data.selected_line]) --msg_data.horiz_position;
 
-								init_lines();
+										if(msg_data.horiz_position < 0)
+										{
+											slider_move_position(&msg_data.selected_line, &msg_data.list_position, &msg_data.scrollbar, -1);
+											msg_data.horiz_position = msg_data.line_lengths[msg_data.selected_line] - 1;
+										}
+									}
+
+									mused.song.song_message_length = strlen(mused.song.song_message) + 1;
+
+									mused.song.song_message = realloc(mused.song.song_message, mused.song.song_message_length);
+
+									memmove(&mused.song.song_message[get_current_message_string_position()], &mused.song.song_message[get_current_message_string_position() + 1], mused.song.song_message_length - get_current_message_string_position());
+									mused.song.song_message[mused.song.song_message_length - 2] = '\0';
+
+									mused.song.song_message_length = strlen(mused.song.song_message) + 1;
+
+									init_lines();
+								}
 							}
 						}
 						break;
