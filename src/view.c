@@ -271,7 +271,7 @@ static const char* notename_array[] =
 
 static const char* notename_negative[] =
 {
-	"c_", "c+", "d_", "d+", "e_", "f_", "f+", "f_", "g+", "a_", "a+", "b_"
+	"c_", "c+", "d_", "d+", "e_", "f_", "f+", "g_", "g+", "a_", "a+", "b_"
 };
 
 char* notename_default(int note) //for importing OpenMPT/Furnace formatted text data
