@@ -204,8 +204,8 @@ static const Menu importmenu[] =
 	{ 0, filemenu, "Import .SID (Rob Hubbard)", NULL, import_module, MAKEPTR(IMPORT_HUBBARD) },
 	{ 0, filemenu, "Import .FZT", NULL, import_module, MAKEPTR(IMPORT_FZT) },
 	{ 0, filemenu, "Import FamiTracker", import_famitracker_menu },
+	{ 0, filemenu, "Import .FUR", NULL, import_module, MAKEPTR(IMPORT_FUR) },
 	//{ 0, filemenu, "Import .DMF", NULL, import_module, MAKEPTR(IMPORT_DMF) },
-	//{ 0, filemenu, "Import .FUR", NULL, import_module, MAKEPTR(IMPORT_FUR) },
 	//{ 0, filemenu, "Import .A2M (Adlib Tracker II)", NULL, import_module, MAKEPTR(IMPORT_A2M) },
 	//{ 0, filemenu, "Import .RMT (Raster Music Tracker)", NULL, import_module, MAKEPTR(IMPORT_RMT) },
 	{ 0, NULL, NULL }

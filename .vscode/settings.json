@@ -30,7 +30,10 @@
         "gfxsurf.h": "c",
         "sdl.h": "c",
         "sdl_rwops.h": "c",
-        "action.h": "c"
+        "action.h": "c",
+        "stdio.h": "c",
+        "mused.h": "c",
+        "sdl_endian.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

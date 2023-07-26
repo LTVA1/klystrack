@@ -26,6 +26,21 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 #pragma once
 
+
+#ifndef FUR_H
+#define FUR_H
+
+#include <stdio.h>
+#include "../edit.h"
+#include "../mused.h"
+#include "../action.h"
+#include "../event.h"
+#include "SDL_endian.h"
+#include "../../klystron/src/snd/freqs.h"
+#include "../view.h"
+
+#include "importutil.h"
+
 enum //general effects which are not chip-specific
 {
 	FUR_EFF_ARPEGGIO = 0x0000,
@@ -69,3 +84,9 @@ enum //general effects which are not chip-specific
 	FUR_EFF_FAST_VOLUME_SLIDE = 0xFA00,
 	FUR_EFF_STOP_SONG = 0xFF00,
 };
+
+#define FUR_HEADER_SIG "-Furnace module-"
+
+int import_fur(FILE *f);
+
+#endif

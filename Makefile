@@ -53,7 +53,7 @@ RESOURCES = $(subst themes,res,$(sort $(wildcard themes/*)))
 KEYS = $(sort $(wildcard key/*))
 
 EXTFLAGS := -DNOSDL_MIXER -DUSESDLMUTEXES -DENABLEAUDIODUMP -DSTEREOOUTPUT -DUSESDL_IMAGE -DMIDI -DUSESDL_RWOPS $(EXTFLAGS) $(CFLAGS)
-LDFLAGS :=  -L $(KLYSTRON)/bin.$(CFG) -lengine_gfx -lengine_util -lengine_snd -lengine_gui -lm $(SDLLIBS)
+LDFLAGS :=  -L $(KLYSTRON)/bin.$(CFG) -lengine_gfx -lengine_util -lengine_snd -lengine_gui -lm -lz $(SDLLIBS)
 INCLUDEFLAGS := -I src $(SDLFLAGS) -I $(KLYSTRON)/src -L$(KLYSTRON)/bin.$(CFG) -DRES_PATH="$(RES_PATH)" -DCONFIG_PATH="$(CONFIG_PATH)" $(EXTFLAGS) -DKLYSTRON=$(KLYSTRON)
 
 ifdef COMSPEC
@@ -63,6 +63,8 @@ else
 endif
 
 DIRS := $(notdir $(wildcard src/*))
+SUBDIRS := $(notdir $(wildcard src/import/*))
+
 THEMEDIRS := $(notdir $(wildcard themes/*))
 
 ifeq ($(CFG),debug)
@@ -102,6 +104,28 @@ objs.$(CFG)/$(2)%.o: src/$(1)%$(EXT) src/version.h src/version_number.h
 	$(Q)$(CC) $(INCLUDEFLAGS) -c $(CFLAGS) -o $$@ $$<
 
 deps/$(CFG)_$(2)%.d: src/$(1)%$(EXT) src/version.h src/version_number.h
+	$(Q)mkdir -p deps
+	$(MSG) "Generating dependencies for $$(notdir $$<)..."
+	$(Q)set -e; $(CDEP) $(INCLUDEFLAGS) $$< > $$@.$$$$$$$$; \
+	sed 's,\($$*\)\.o[ :]*,objs.$(CFG)\/$(2)\1.o $$@ : ,g' \
+		< $$@.$$$$$$$$ > $$@; \
+	rm -f $$@.$$$$$$$$
+endef
+
+define subdirectory_defs
+ SRC := $$(notdir $$(wildcard src/import/$(value 1)/*$(EXT)))
+ DEP := $$(patsubst %$(EXT),deps/$(CFG)_$(2)%.d,$$(SRC))
+ OBJ := $$(patsubst %$(EXT),objs.$(CFG)/$(2)%.o,$$(SRC))
+
+ OBJS := $(OBJS) $$(OBJ)
+ DEPS := $(DEPS) $$(DEP)
+
+objs.$(CFG)/$(2)%.o: src/import/$(1)%$(EXT) src/version.h src/version_number.h
+	$(MSG) "Compiling $$(notdir $$<)..."
+	$(Q)mkdir -p objs.$(CFG)
+	$(Q)$(CC) $(INCLUDEFLAGS) -c $(CFLAGS) -o $$@ $$<
+
+deps/$(CFG)_$(2)%.d: src/import/$(1)%$(EXT) src/version.h src/version_number.h
 	$(Q)mkdir -p deps
 	$(MSG) "Generating dependencies for $$(notdir $$<)..."
 	$(Q)set -e; $(CDEP) $(INCLUDEFLAGS) $$< > $$@.$$$$$$$$; \
@@ -165,6 +189,10 @@ src/version_number.h: src/version
 $(eval $(call directory_defs,,))
 # subdirs (src/*/*.c)
 $(foreach dir,$(DIRS),$(eval $(call directory_defs,$(dir)/,$(dir)_)))
+
+# subdirs (src/*/*.c)
+$(foreach dir,$(SUBDIRS),$(eval $(call subdirectory_defs,$(dir)/,$(dir)_)))
+
 # themes
 $(foreach dir,$(THEMEDIRS),$(eval $(call theme_defs,$(dir))))
 
