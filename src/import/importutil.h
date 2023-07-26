@@ -46,6 +46,7 @@ void find_command_xm(Uint16 command, MusStep* step);
 void find_command_s3m(Uint16 command, MusStep* step);
 void find_command_it(Uint16 command, MusStep* step);
 void find_command_mptm(Uint16 command, MusStep* step);
+void find_command_furnace(Uint16 command, MusStep* step, Uint8 command_index, Uint8 chip_index, Uint16 song_pos);
 Uint16 find_command_pt(Uint16 command, int sample_length);
 void convert_volume_and_command_xm(Uint16 command, Uint8 volume, MusStep* step);
 

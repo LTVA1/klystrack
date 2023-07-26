@@ -1446,7 +1446,7 @@ void ft_convert_command(Uint16 val, MusStep* step, Uint16 song_pos, Uint8 channe
 
 		case FT_EF_HALT:
 		{
-			debug("song_pos %d", song_pos);
+			//debug("song_pos %d", song_pos);
 			mused.song.song_length = song_pos; //song will hang there
 			mused.song.loop_point = song_pos;
 			break;

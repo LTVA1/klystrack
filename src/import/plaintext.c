@@ -103,6 +103,8 @@ static Uint8 format;
 
 static Uint8 furnace_start_column; //0 = note, 1 = inst, 2 = vol, 3 = 2 most significant digits of effect 1, 4 = 2 least significant digits of effect 1, ...
 
+static Uint8 chip_index;
+
 static void process_row_openmpt(MusPattern* pat, Uint16 s, Uint8 format, Uint16 channel)
 {
 	if(strcmp(values[0], "   ") == 0) //mark which columns are empty in the text (it means we must not paste data from them into destination pattern but rather we keep old pattern data)
@@ -408,25 +410,30 @@ static void process_row_furnace(MusPattern* pat, Uint16 s, Uint8 furnace_version
 	{
 		if(strlen(values[i]) == 2 && strcmp(values[i], "..") != 0) //only 1st two digits of a command
 		{
-			step->command[i - 3] = (strtol(values[i], NULL, 16) << 8);
+			Uint16 command = (strtol(values[i], NULL, 16) << 8);
+
+			find_command_furnace(command, step, i - 3, chip_index, mused.current_patternpos + s);
 		}
 
 		if(strlen(values[i]) == 4 && strcmp(values[i], "....") != 0) //all 4 digits
 		{
 			if(memcmp(values[i], "..", 2) == 0) //..55 case, so we need 0055 as a result
 			{
-				step->command[i - 3] = strtol(&values[i][2], NULL, 16); //TODO: add function for effects conversion, think about how to tell it which chip effect belongs to (in Furnace effects change their meaning depending on the chip they are applied to)
+				Uint16 command = strtol(&values[i][2], NULL, 16); //TODO: add function for effects conversion, think about how to tell it which chip effect belongs to (in Furnace effects change their meaning depending on the chip they are applied to)
+				find_command_furnace(command, step, i - 3, chip_index, mused.current_patternpos + s);
 			}
 
 			else if(memcmp(&values[i][2], "..", 2) == 0) //55.. case, we need 5500 as a result
 			{
 				values[i][2] = '\0'; //place null terminator so "55.." becomes "55"; values array will still be overwritten at next step so we can modify it
-				step->command[i - 3] = (strtol(values[i], NULL, 16) << 8);
+				Uint16 command = (strtol(values[i], NULL, 16) << 8);
+				find_command_furnace(command, step, i - 3, chip_index, mused.current_patternpos + s);
 			}
 
 			else //usual case, like 0120
 			{
-				step->command[i - 3] = strtol(values[i], NULL, 16);
+				Uint16 command = strtol(values[i], NULL, 16);
+				find_command_furnace(command, step, i - 3, chip_index, mused.current_patternpos + s);
 			}
 		}
 	}
@@ -729,6 +736,8 @@ void paste_from_clipboard()
 	num_patterns = 0;
 
 	mask = NULL;
+
+	chip_index = 0;
 
 	if(strcmp(plain_text_string, "") == 0)
 	{

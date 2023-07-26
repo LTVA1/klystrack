@@ -731,6 +731,8 @@ void dropfile_event(SDL_Event *e)
 					
 					msgbox(domain, mused.slider_bevel, &mused.largefont, "Not a song klystrack can open or import!", MB_OK);
 				}
+
+				mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
 			}
 			
 			else

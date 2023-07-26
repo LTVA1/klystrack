@@ -25,6 +25,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 
 #include "importutil.h"
+#include "fur.h"
 
 extern Mused mused;
 extern GfxDomain *domain;
@@ -970,5 +971,263 @@ void find_command_mptm(Uint16 command, MusStep* step) //MPTM commands set is bas
 	switch(command >> 8)
 	{
 		default: find_command_it(command, step); break; //TODO: search what values are used for *xx, +xx, #xx etc. commands
+	}
+}
+
+void find_command_furnace(Uint16 command, MusStep* step, Uint8 command_index, Uint8 chip_index, Uint16 song_pos) //Please bury my mental health at these coordinates: 55.906870, 37.594218
+{
+	Uint8 param_4bit = command & 0xf; //for 576x style effects (if any)
+	Uint8 param_8bit = command & 0xff; //for usual 01xx style effects
+	Uint16 param_12bit = command & 0xfff; //for 3xxx style effects
+
+	switch(command & 0xf000) //usual commands which are not chip-specific (mostly general params/effects like volume, speed, frequency, arpeggio, etc.)
+	{
+		case FUR_EFF_SAMPLE_OFFSET:
+		{
+			step->command[command_index] = MUS_FX_WAVETABLE_OFFSET | param_12bit;
+			break;
+		}
+
+		case FUR_EFF_SET_TICK_RATE:
+		{
+			Uint16 lower_byte = command & 0xff;
+			Uint16 higher_byte = ((command & 0x0f00) >> 8);
+
+			step->command[command_index] = MUS_FX_SET_RATE | lower_byte;
+
+			if(command_index + 1 < MUS_MAX_COMMANDS)
+			{
+				step->command[command_index + 1] = MUS_FX_SET_RATE_HIGHER_BYTE | higher_byte;
+			}
+			
+			break;
+		}
+
+		default: break;
+	}
+
+	switch(command & 0xff00)
+	{
+		case FUR_EFF_ARPEGGIO:
+		{
+			step->command[command_index] = MUS_FX_ARPEGGIO_ABS | param_8bit;
+			break;
+		}
+
+		case FUR_EFF_PORTA_UP:
+		{
+			step->command[command_index] = MUS_FX_PORTA_UP | my_min(0xff, param_8bit * 2);
+			break;
+		}
+
+		case FUR_EFF_PORTA_DN:
+		{
+			step->command[command_index] = MUS_FX_PORTA_DN | my_min(0xff, param_8bit * 2);
+			break;
+		}
+
+		case FUR_EFF_SLIDE:
+		{
+			step->command[command_index] = MUS_FX_FAST_SLIDE | my_max(1, param_8bit / 2);
+			break;
+		}
+
+		case FUR_EFF_VIBRATO:
+		{
+			step->command[command_index] = MUS_FX_VIBRATO | param_8bit;
+			break;
+		}
+
+		case FUR_EFF_TREMOLO:
+		{
+			step->command[command_index] = MUS_FX_TREMOLO | param_8bit;
+			break;
+		}
+
+		case FUR_EFF_PANNING:
+		{
+			step->command[command_index] = MUS_FX_SET_PANNING | param_8bit;
+			break;
+		}
+
+		case FUR_EFF_GROOVE_SPEED_1:
+		{
+			if(mused.song.flags & MUS_USE_GROOVE)
+			{
+				step->command[command_index] = MUS_FX_SET_GROOVE | param_8bit;
+			}
+
+			else
+			{
+				step->command[command_index] = MUS_FX_SET_SPEED1 | param_8bit;
+			}
+			
+			break;
+		}
+
+		case FUR_EFF_VOLUME_FADE:
+		{
+			step->command[command_index] = MUS_FX_FADE_VOLUME | param_8bit;
+			break;
+		}
+
+		case FUR_EFF_SEQUENCE_POSITION_JUMP:
+		{
+			step->command[command_index] = MUS_FX_JUMP_SEQUENCE_POSITION | param_8bit;
+			break;
+		}
+
+		case FUR_EFF_RETRIGGER:
+		{
+			step->command[command_index] = MUS_FX_EXT_RETRIGGER | param_4bit;
+			break;
+		}
+
+		case FUR_EFF_SKIP_PATTERN:
+		{
+			step->command[command_index] = MUS_FX_SKIP_PATTERN | param_8bit;
+			break;
+		}
+
+		case FUR_EFF_SPEED_2:
+		{
+			step->command[command_index] = MUS_FX_SET_SPEED2 | param_8bit;
+			break;
+		}
+
+		case FUR_EFF_SET_LINEAR_PANNING:
+		{
+			step->command[command_index] = MUS_FX_SET_PANNING | param_8bit;
+			break;
+		}
+
+		case FUR_EFF_ARP_SPEED:
+		{
+			//TODO: add smth to cope with it
+			break;
+		}
+
+		case FUR_EFF_SLIDE_UP_SEMITONES:
+		{
+			step->command[command_index] = MUS_FX_SLIDE_UP_SEMITONES | param_8bit;
+			break;
+		}
+
+		case FUR_EFF_SLIDE_DN_SEMITONES:
+		{
+			step->command[command_index] = MUS_FX_SLIDE_DN_SEMITONES | param_8bit;
+			break;
+		}
+
+		case FUR_EFF_SET_VIBRATO_DIRECTION:
+		{
+			//TODO: add smth to cope with it
+			break;
+		}
+
+		case FUR_EFF_SET_VIBRATO_DEPTH:
+		{
+			//TODO: add smth to cope with it
+			break;
+		}
+
+		case FUR_EFF_PITCH:
+		{
+			step->command[command_index] = MUS_FX_PITCH | param_8bit;
+			break;
+		}
+
+		case FUR_EFF_LEGATO:
+		{
+			step->ctrl |= MUS_CTRL_LEGATO;
+			break;
+		}
+
+		case FUR_EFF_SAMPLE_BANK:
+		{
+			//TODO: add smth to cope with it
+			break;
+		}
+
+		case FUR_EFF_NOTE_CUT:
+		{
+			step->command[command_index] = MUS_FX_EXT_NOTE_CUT | param_4bit;
+			break;
+		}
+
+		case FUR_EFF_NOTE_DELAY:
+		{
+			step->command[command_index] = MUS_FX_EXT_NOTE_DELAY | param_4bit;
+			break;
+		}
+
+		case FUR_EFF_SET_BPM:
+		{
+			step->command[command_index] = MUS_FX_SET_RATE | my_max(1, ((Uint16)param_8bit * 50 / 125));
+			break;
+		}
+
+		case FUR_EFF_PORTA_UP_FINE:
+		{
+			step->command[command_index] = MUS_FX_EXT_FINE_PORTA_UP | param_4bit;
+			break;
+		}
+
+		case FUR_EFF_PORTA_DN_FINE:
+		{
+			step->command[command_index] = MUS_FX_EXT_FINE_PORTA_DN | param_4bit;
+			break;
+		}
+
+		case FUR_EFF_VOLUME_UP_FINE:
+		{
+			step->command[command_index] = MUS_FX_EXT_FADE_VOLUME_UP | param_4bit;
+			break;
+		}
+
+		case FUR_EFF_VOLUME_DN_FINE:
+		{
+			step->command[command_index] = MUS_FX_EXT_FADE_VOLUME_DN | param_4bit;
+			break;
+		}
+
+		case FUR_EFF_DISABLE_MACRO:
+		{
+			//TODO: add smth to cope with it
+			break;
+		}
+
+		case FUR_EFF_ENABLE_MACRO:
+		{
+			//TODO: add smth to cope with it
+			break;
+		}
+
+		case FUR_EFF_VOLUME_UP_FINE_1_TICK: //TODO: do smth with it, at least cry about it
+		{
+			step->command[command_index] = MUS_FX_EXT_FADE_VOLUME_UP | param_4bit;
+			break;
+		}
+
+		case FUR_EFF_VOLUME_DN_FINE_1_TICK: //TODO: do smth with it, at least cry about it
+		{
+			step->command[command_index] = MUS_FX_EXT_FADE_VOLUME_DN | param_4bit;
+			break;
+		}
+
+		case FUR_EFF_FAST_VOLUME_SLIDE: //should be 4 times faster, ok chief
+		{
+			step->command[command_index] = MUS_FX_FADE_VOLUME | my_min(0xf, (param_8bit & 0xf) * 4) | (my_min(0xf, (((param_8bit & 0xf0) >> 4) * 4)) << 4);
+			break;
+		}
+
+		case FUR_EFF_STOP_SONG:
+		{
+			mused.song.song_length = song_pos; //song will hang there
+			mused.song.loop_point = song_pos;
+			break;
+		}
+
+		default: break;
 	}
 }
