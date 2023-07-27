@@ -190,7 +190,7 @@ $(eval $(call directory_defs,,))
 # subdirs (src/*/*.c)
 $(foreach dir,$(DIRS),$(eval $(call directory_defs,$(dir)/,$(dir)_)))
 
-# subdirs (src/*/*.c)
+# subsubdirs (src/*/*/*.c) (yes, hacky and hard-coded to src/import/*/*.c now)
 $(foreach dir,$(SUBDIRS),$(eval $(call subdirectory_defs,$(dir)/,$(dir)_)))
 
 # themes

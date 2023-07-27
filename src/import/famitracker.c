@@ -1516,7 +1516,7 @@ void ft_convert_command(Uint16 val, MusStep* step, Uint16 song_pos, Uint8 channe
 
 		case FT_EF_DELAY:
 		{
-			step->command[column] = MUS_FX_EXT_NOTE_DELAY | (param & 0xf);
+			step->command[column] = MUS_FX_NOTE_DELAY_EXTENDED | param;
 			break;
 		}
 
@@ -1651,13 +1651,13 @@ void ft_convert_command(Uint16 val, MusStep* step, Uint16 song_pos, Uint8 channe
 
 		case FT_EF_NOTE_CUT:
 		{
-			step->command[column] = MUS_FX_EXT_NOTE_CUT | (param & 0xf);
+			step->command[column] = MUS_FX_NOTE_CUT_EXTENDED | param;
 			break;
 		}
 
 		case FT_EF_RETRIGGER:
 		{
-			step->command[column] = MUS_FX_EXT_RETRIGGER | (param & 0xf);
+			step->command[column] = MUS_FX_RETRIGGER_EXTENDED | param;
 			break;
 		}
 

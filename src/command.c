@@ -56,7 +56,7 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_SET_FREQUENCY_LOWER_BYTE, 0xff00, "Set frequency higher byte (0xFF0000)", "FreqHighByte", -1, -1},*/
 	
 	{MUS_FX_SET_NOISE_CONSTANT_PITCH, 0xff00, "Set noise note in \"LOCK NOISE PITCH\" mode", "NoiPitNote", 0, FREQ_TAB_SIZE - 1}, //wasn't there
-	{MUS_FX_PITCH, 0xff00, "Finetune: 0x80=0, 0=-127, 0xff=+128; 256 steps=semitone", "FineTune", 0, 0xff},
+	{MUS_FX_PITCH, 0xff00, "Finetune: 0x80=0, 0=-127, 0xff=+128; 128 steps=semitone", "FineTune", 0, 0xff},
 	{MUS_FX_ARPEGGIO_ABS, 0xff00, "Set absolute arpeggio note", "AbsArp", 0, FREQ_TAB_SIZE - 1},
 	{MUS_FX_SET_EXT_ARP, 0xff00, "Set external arpeggio notes", "ExtArp", -1, -1},
 	{MUS_FX_PORTA_UP, 0xff00, "Portamento up", "PortUp", -1, -1},
@@ -73,6 +73,15 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_FM_VIBRATO, 0xff00, "FM modulator vibrato", "FM vib", -1, -1}, //wasn't there
 	{MUS_FX_FM_TREMOLO, 0xff00, "FM modulator tremolo", "FM trem", -1, -1}, //wasn't there
 	{MUS_FX_PWM, 0xff00, "Pulse width modification", "PWM", -1, -1}, //wasn't there
+
+	{MUS_FX_VIBRATO_SHAPE, 0xfff0, "Set vibrato shape", "VibShape", 0, 6}, //wasn't there
+	{MUS_FX_TREMOLO_SHAPE, 0xfff0, "Set tremolo shape", "TremShape", 0, 6}, //wasn't there
+	{MUS_FX_PWM_SHAPE, 0xfff0, "Set PWM shape", "PWMshape", 0, 6}, //wasn't there
+	{MUS_FX_PANBRELLO_SHAPE, 0xfff0, "Set panbrello shape", "PanbrShape", 0, 6}, //wasn't there
+
+	{MUS_FX_FM_VIBRATO_SHAPE, 0xfff0, "Set FM modulator vibrato shape", "FmVibShape", 0, 6}, //wasn't there
+	{MUS_FX_FM_TREMOLO_SHAPE, 0xfff0, "Set FM modulator tremolo shape", "FmTremShape", 0, 6}, //wasn't there
+
 	{MUS_FX_SLIDE, 0xff00, "Slide", "Slide", -1, -1},
 	{MUS_FX_FAST_SLIDE, 0xff00, "Fast slide (16x faster)", "FastSlide", -1, -1},
 	{MUS_FX_PORTA_UP_SEMI, 0xff00, "Portamento up (semitones)", "PortUpST", -1, -1},
@@ -137,7 +146,13 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_EXT_FINE_PORTA_DN, 0xfff0, "Extra fine portamento down", "PortDnExtraFine", 0, 0xf},
 	{MUS_FX_GLISSANDO_CONTROL, 0xfff0, "Glissando control (0=off, 1-F=on)", "Glissando", 0, 0xf},
 	{MUS_FX_EXT_NOTE_CUT, 0xfff0, "Note cut", "NoteCut", 0, 0xf},
+
+	{MUS_FX_NOTE_CUT_EXTENDED, 0xff00, "Note cut (extended: on tick XX)", "NoteCutExt", 0, 0xff},
+	{MUS_FX_NOTE_DELAY_EXTENDED, 0xff00, "Note delay (extended: on tick XX)", "NoteDelayExt", 0, 0xff},
+
 	{MUS_FX_EXT_RETRIGGER, 0xfff0, "Retrigger", "Retrig", 0, 0xf},
+
+	{MUS_FX_RETRIGGER_EXTENDED, 0xff00, "Retrigger (extended: each XX ticks)", "RetrigExt", 0, 0xff},
 	
 	{MUS_FX_PHASE_RESET, 0xfff0, "Oscillator phase reset on tick X", "OscPhRes", 0, 0xf},
 	{MUS_FX_NOISE_PHASE_RESET, 0xfff0, "Noise osc. ph. reset (in LOCK NOI PITCH mode)", "NoiPhRes", 0, 0xf},
@@ -150,7 +165,7 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_WAVETABLE_OFFSET_UP_FINE, 0xfff0, "Wavetable offset up (fine)", "WaveOffsUpFine", 0, 0xf}, //wasn't there
 	{MUS_FX_WAVETABLE_OFFSET_DOWN_FINE, 0xfff0, "Wavetable offset down (fine)", "WaveOffsDnFine", 0, 0xf}, //wasn't there
 	
-	{MUS_FX_WAVETABLE_END_POINT, 0xf000, "Wavetable end offset", "WaveEndOffs", 0, 0xfff}, //wasn't there
+	{MUS_FX_WAVETABLE_END_POINT, 0xff00, "Wavetable end offset", "WaveEndOffs", 0, 0xff}, //wasn't there
 	{MUS_FX_WAVETABLE_END_POINT_UP, 0xff00, "Wavetable end offset up", "WaveEndOffsUp", 0, 0xff}, //wasn't there
 	{MUS_FX_WAVETABLE_END_POINT_DOWN, 0xff00, "Wavetable end offset down", "WaveEndOffsDn", 0, 0xff}, //wasn't there
 	{MUS_FX_WAVETABLE_END_POINT_UP_FINE, 0xfff0, "Wavetable end offset up (fine)", "WaveEndOffsUpFine", 0, 0xf}, //wasn't there
@@ -436,6 +451,12 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst)
 	else if ((fi & 0xfff0) == MUS_FX_EXT_TOGGLE_FILTER)
 	{
 		snprintf(text, buffer_size, "%s (%s)", name, (inst & 0xf) ? "enable" : "disable");
+	}
+
+	else if ((fi & 0xfff0) == MUS_FX_VIBRATO_SHAPE || (fi & 0xfff0) == MUS_FX_TREMOLO_SHAPE || (fi & 0xfff0) == MUS_FX_PWM_SHAPE || 
+	(fi & 0xfff0) == MUS_FX_PANBRELLO_SHAPE || (fi & 0xfff0) == MUS_FX_FM_VIBRATO_SHAPE || (fi & 0xfff0) == MUS_FX_FM_TREMOLO_SHAPE)
+	{
+		snprintf(text, buffer_size, "%s (%c)", name, (inst & 0xf) < 5 ? MAKEPTR((inst & 0xf) + 0xf4) : MAKEPTR((inst & 0xf) + 0xed));
 	}
 	
 	else if ((fi & 0xff00) == MUS_FX_SET_PANNING)

@@ -157,9 +157,27 @@ int import_fur(FILE *f)
 		if(inflate_furnace_module(f, uncompressed_module) == Z_OK)
 		{
 			debug("successfully unpacked module");
-			fseek(uncompressed_module, 0, SEEK_SET);
-			import_furnace_module(uncompressed_module);
+
 			fclose(uncompressed_module);
+			uncompressed_module = fopen(file_path, "rb");
+
+			fread(header, 1, strlen(FUR_HEADER_SIG), uncompressed_module);
+	
+			if(strcmp(header, FUR_HEADER_SIG) != 0) //maybe module is compressed with zlib?
+			{
+				debug("uncompressed module is corrupt?");
+				fclose(uncompressed_module);
+				//remove(file_path);
+
+				return 0;
+			}
+
+			else
+			{
+				import_furnace_module(uncompressed_module);
+				fclose(uncompressed_module);
+			}
+			
 			//remove(file_path);
 		}
 
@@ -176,7 +194,6 @@ int import_fur(FILE *f)
 	else //module isn't compressed!
 	{
 		debug("Module is uncompressed, proceeding...");
-		fseek(f, 0, SEEK_SET);
 		import_furnace_module(f);
 	}
 

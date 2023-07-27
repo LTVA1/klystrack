@@ -896,13 +896,13 @@ void find_command_s3m(Uint16 command, MusStep* step)
 					break;
 				}
 
-				case 0xC: //SBx
+				case 0xC: //SCx
 				{
 					step->command[find_empty_command_column(step)] = MUS_FX_EXT_NOTE_CUT | (param & 0xf);
 					break;
 				}
 
-				case 0xD: //SBx
+				case 0xD: //SDx
 				{
 					step->command[find_empty_command_column(step)] = MUS_FX_EXT_NOTE_DELAY | (param & 0xf);
 					break;
@@ -1079,7 +1079,7 @@ void find_command_furnace(Uint16 command, MusStep* step, Uint8 command_index, Ui
 
 		case FUR_EFF_RETRIGGER:
 		{
-			step->command[command_index] = MUS_FX_EXT_RETRIGGER | param_4bit;
+			step->command[command_index] = MUS_FX_RETRIGGER_EXTENDED | param_8bit;
 			break;
 		}
 
@@ -1151,13 +1151,13 @@ void find_command_furnace(Uint16 command, MusStep* step, Uint8 command_index, Ui
 
 		case FUR_EFF_NOTE_CUT:
 		{
-			step->command[command_index] = MUS_FX_EXT_NOTE_CUT | param_4bit;
+			step->command[command_index] = MUS_FX_NOTE_CUT_EXTENDED | param_8bit;
 			break;
 		}
 
 		case FUR_EFF_NOTE_DELAY:
 		{
-			step->command[command_index] = MUS_FX_EXT_NOTE_DELAY | param_4bit;
+			step->command[command_index] = MUS_FX_NOTE_DELAY_EXTENDED | param_8bit;
 			break;
 		}
 
