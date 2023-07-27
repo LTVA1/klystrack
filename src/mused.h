@@ -376,6 +376,8 @@ typedef struct
 	Uint8 command_columns[MUS_MAX_CHANNELS];
 
 	bool open_song_message;
+
+	char app_dir[10000];
 } Mused;
 
 extern Mused mused;

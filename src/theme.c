@@ -203,7 +203,7 @@ static SDL_RWops *load_img_if_exists(Bundle *res, const char *base_name)
 }
 
 
-static char cwd[1000] = "";
+static char cwd[5000] = "";
 
 void init_resources_dir(void)
 {

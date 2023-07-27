@@ -274,6 +274,8 @@ void init(MusInstrument *instrument, MusPattern *pattern, MusSeqPattern **sequen
 {
 	memset(&mused, 0, sizeof(mused));
 
+	getcwd(mused.app_dir, sizeof(mused.app_dir));
+
 	set_info_message("Welcome to klystrack-plus!");
 
 	default_settings();

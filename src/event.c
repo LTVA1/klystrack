@@ -144,7 +144,7 @@ void do_autosave(Uint32* timeout)
 			
 			//debug("motherfucker");
 			
-			char filename[5000] = {0};
+			char filename[10000] = {0};
 			//char* song_name = (char*)&mused.song.title;
 			char* song_name = calloc(1, strlen((char*)&mused.song.title) + 2);
 			strcpy(song_name, (char*)&mused.song.title);
@@ -167,18 +167,21 @@ void do_autosave(Uint32* timeout)
 				goto error;
 			}
 
-			snprintf(filename, sizeof(filename) - 1, "autosaves/%s.%04d%02d%02d-%02d%02d%02d.kt.autosave", strcmp(song_name, "") == 0 ? "[untitled_song]" : song_name,
+			snprintf(filename, sizeof(filename) - 1, "%s/autosaves/%s.%04d%02d%02d-%02d%02d%02d.kt.autosave", mused.app_dir, strcmp(song_name, "") == 0 ? "[untitled_song]" : song_name,
 				now_tm->tm_year + 1900, now_tm->tm_mon + 1, now_tm->tm_mday, now_tm->tm_hour, now_tm->tm_min, now_tm->tm_sec);
 				
 			free(song_name);
 			
-			DIR* dir = opendir("autosaves");
+			char dir_name[10000] = {0};
+			snprintf(dir_name, sizeof(dir_name) - 1, "%s/autosaves", mused.app_dir);
+
+			DIR* dir = opendir(dir_name);
 			
 			if(ENOENT == errno)
 			{
 				debug("No autosaves directory found, attempt to create it...");
 				
-				int check = mkdir("autosaves");
+				int check = mkdir(dir_name);
 				
 				if(!check)
 				{

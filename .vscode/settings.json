@@ -33,7 +33,12 @@
         "action.h": "c",
         "stdio.h": "c",
         "mused.h": "c",
-        "sdl_endian.h": "c"
+        "sdl_endian.h": "c",
+        "cyddefs.h": "c",
+        "music.h": "c",
+        "cydtypes.h": "c",
+        "music_defs.h": "c",
+        "freqs.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }
