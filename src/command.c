@@ -78,9 +78,20 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_TREMOLO_SHAPE, 0xfff0, "Set tremolo shape", "TremShape", 0, 6}, //wasn't there
 	{MUS_FX_PWM_SHAPE, 0xfff0, "Set PWM shape", "PWMshape", 0, 6}, //wasn't there
 	{MUS_FX_PANBRELLO_SHAPE, 0xfff0, "Set panbrello shape", "PanbrShape", 0, 6}, //wasn't there
-
 	{MUS_FX_FM_VIBRATO_SHAPE, 0xfff0, "Set FM modulator vibrato shape", "FmVibShape", 0, 6}, //wasn't there
 	{MUS_FX_FM_TREMOLO_SHAPE, 0xfff0, "Set FM modulator tremolo shape", "FmTremShape", 0, 6}, //wasn't there
+	{MUS_FX_SET_VIBRATO_SPEED, 0xff00, "Set vibrato speed", "VibSpd", 0, 0xff}, //wasn't there
+	{MUS_FX_SET_TREMOLO_SPEED, 0xff00, "Set tremolo speed", "TremSpd", 0, 0xff}, //wasn't there
+	{MUS_FX_SET_PWM_SPEED, 0xff00, "Set PWM speed", "PWMspd", 0, 0xff}, //wasn't there
+	{MUS_FX_SET_PANBRELLO_SPEED, 0xff00, "Set panbrello speed", "PanbrSpd", 0, 0xff}, //wasn't there
+	{MUS_FX_SET_FM_VIBRATO_SPEED, 0xff00, "Set FM modulator vibrato speed", "FmVibSpd", 0, 0xff}, //wasn't there
+	{MUS_FX_SET_FM_TREMOLO_SPEED, 0xff00, "Set FM modulator tremolo speed", "FmTremSpd", 0, 0xff}, //wasn't there
+	{MUS_FX_SET_VIBRATO_DEPTH, 0xff00, "Set vibrato depth", "VibDepth", 0, 0xff}, //wasn't there
+	{MUS_FX_SET_TREMOLO_DEPTH, 0xff00, "Set tremolo depth", "TremDepth", 0, 0xff}, //wasn't there
+	{MUS_FX_SET_PWM_DEPTH, 0xff00, "Set PWM depth", "PWMdepth", 0, 0xff}, //wasn't there
+	{MUS_FX_SET_PANBRELLO_DEPTH, 0xff00, "Set panbrello depth", "PanbrDepth", 0, 0xff}, //wasn't there
+	{MUS_FX_SET_FM_VIBRATO_DEPTH, 0xff00, "Set FM modulator vibrato depth", "FmVibDepth", 0, 0xff}, //wasn't there
+	{MUS_FX_SET_FM_TREMOLO_DEPTH, 0xff00, "Set FM modulator tremolo depth", "FmTremDepth", 0, 0xff}, //wasn't there
 
 	{MUS_FX_SLIDE, 0xff00, "Slide", "Slide", -1, -1},
 	{MUS_FX_FAST_SLIDE, 0xff00, "Fast slide (16x faster)", "FastSlide", -1, -1},
