@@ -30,62 +30,69 @@ OTHER DEALINGS IN THE SOFTWARE.
 extern Mused mused;
 extern GfxDomain *domain;
 
+static const Uint8 convert_lfo_shapes_mod_xm[8] = { MUS_SHAPE_SINE | 0x8, MUS_SHAPE_RAMP_UP | 0x8, MUS_SHAPE_SQUARE | 0x8, MUS_SHAPE_RANDOM | 0x8, 
+MUS_SHAPE_SINE, MUS_SHAPE_RAMP_UP, MUS_SHAPE_SQUARE, MUS_SHAPE_RANDOM }; // "| 0x8" = shape + retrigger
+
+static const Uint8 convert_lfo_shapes_s3m_it_mptm[4] = { MUS_SHAPE_SINE | 0x8, MUS_SHAPE_RAMP_UP | 0x8, MUS_SHAPE_SQUARE | 0x8, MUS_SHAPE_RANDOM | 0x8 };
+
 //next two functions taken from https://www.geeksforgeeks.org/implement-itoa/
 // A utility function to reverse a string
 static void reverse(char str[], int length)
 {
-    int start = 0;
-    int end = length - 1;
+	int start = 0;
+	int end = length - 1;
 
-    while (start < end)
+	while (start < end)
 	{
-        char temp = str[start];
-        str[start] = str[end];
-        str[end] = temp;
-        end--;
-        start++;
-    }
+		char temp = str[start];
+		str[start] = str[end];
+		str[end] = temp;
+		end--;
+		start++;
+	}
 }
 
 // Implementation of citoa()
 char* citoa(int num, char* str, int base)
 {
-    int i = 0;
-    bool isNegative = false;
- 
-    /* Handle 0 explicitly, otherwise empty string is
-     * printed for 0 */
-    if (num == 0) {
-        str[i++] = '0';
-        str[i] = '\0';
-        return str;
-    }
- 
-    // In standard itoa(), negative numbers are handled
-    // only with base 10. Otherwise numbers are
-    // considered unsigned.
-    if (num < 0 && base == 10) {
-        isNegative = true;
-        num = -num;
-    }
- 
-    // Process individual digits
-    while (num != 0) {
-        int rem = num % base;
-        str[i++] = (rem > 9) ? (rem - 10) + 'a' : rem + '0';
-        num = num / base;
-    }
- 
-    // If number is negative, append '-'
-    if (isNegative)
-        str[i++] = '-';
- 
-    str[i] = '\0'; // Append string terminator
- 
-    // Reverse the string
-    reverse(str, i);
- 
-    return str;
+	int i = 0;
+	bool isNegative = false;
+
+	/* Handle 0 explicitly, otherwise empty string is
+	* printed for 0 */
+	if (num == 0)
+	{
+		str[i++] = '0';
+		str[i] = '\0';
+		return str;
+	}
+
+	// In standard itoa(), negative numbers are handled
+	// only with base 10. Otherwise numbers are
+	// considered unsigned.
+	if (num < 0 && base == 10)
+	{
+		isNegative = true;
+		num = -num;
+	}
+
+	// Process individual digits
+	while (num != 0) {
+		int rem = num % base;
+		str[i++] = (rem > 9) ? (rem - 10) + 'a' : rem + '0';
+		num = num / base;
+	}
+
+	// If number is negative, append '-'
+	if (isNegative)
+		str[i++] = '-';
+
+	str[i] = '\0'; // Append string terminator
+
+	// Reverse the string
+	reverse(str, i);
+
+	return str;
 }
 
 void read_uint32(FILE *f, Uint32* number) //little-endian
@@ -251,10 +258,22 @@ void find_command_xm(Uint16 command, MusStep* step)
 		step->command[0] = MUS_FX_GLISSANDO_CONTROL | (command & 0xf);
 		return;
 	}
+
+	else if ((command & 0xfff0) == 0x0e40)
+	{
+		step->command[0] = MUS_FX_VIBRATO_SHAPE | convert_lfo_shapes_mod_xm[(command & 0xf)];
+		return;
+	}
 	
 	else if ((command & 0xfff0) == 0x0e60)
 	{
 		step->command[0] = MUS_FX_FT2_PATTERN_LOOP | (command & 0xf);
+		return;
+	}
+
+	else if ((command & 0xfff0) == 0x0e70)
+	{
+		step->command[0] = MUS_FX_TREMOLO_SHAPE | convert_lfo_shapes_mod_xm[(command & 0xf)];
 		return;
 	}
 	
@@ -347,6 +366,12 @@ void find_command_xm(Uint16 command, MusStep* step)
 		if(((command & 0xf0) >> 4) == 2)
 		{
 			step->command[0] = MUS_FX_EXT_FINE_PORTA_DN | (command & 0xf);
+			return;
+		}
+
+		if(((command & 0xf0) >> 4) == 5)
+		{
+			step->command[0] = MUS_FX_PANBRELLO_SHAPE | convert_lfo_shapes_mod_xm[(command & 0xf)]	;
 			return;
 		}
 	}
@@ -597,6 +622,16 @@ Uint16 find_command_pt(Uint16 command, int sample_length)
 	else if ((command & 0xfff0) == 0x0e30)
 	{
 		command = MUS_FX_GLISSANDO_CONTROL | (command & 0xf);
+		return command;
+	}
+	else if ((command & 0xfff0) == 0x0e40)
+	{
+		command = MUS_FX_VIBRATO_SHAPE | convert_lfo_shapes_mod_xm[(command & 0xf)];
+		return command;
+	}
+	else if ((command & 0xfff0) == 0x0e70)
+	{
+		command = MUS_FX_TREMOLO_SHAPE | convert_lfo_shapes_mod_xm[(command & 0xf)];
 		return command;
 	}
 	else if ((command & 0xfff0) == 0x0ea0 || (command & 0xfff0) == 0x0eb0)
@@ -850,19 +885,19 @@ void find_command_s3m(Uint16 command, MusStep* step)
 
 				case 3: //S3x
 				{
-					//klystrack does not have this command yet
+					step->command[find_empty_command_column(step)] = MUS_FX_VIBRATO_SHAPE | convert_lfo_shapes_s3m_it_mptm[param & 0xf];
 					break;
 				}
 
 				case 4: //S4x
 				{
-					//klystrack does not have this command yet
+					step->command[find_empty_command_column(step)] = MUS_FX_TREMOLO_SHAPE | convert_lfo_shapes_s3m_it_mptm[param & 0xf];
 					break;
 				}
 
 				case 5: //S5x
 				{
-					//klystrack does not have this command yet
+					step->command[find_empty_command_column(step)] = MUS_FX_PANBRELLO_SHAPE | convert_lfo_shapes_s3m_it_mptm[param & 0xf];
 					break;
 				}
 
@@ -1127,7 +1162,7 @@ void find_command_furnace(Uint16 command, MusStep* step, Uint8 command_index, Ui
 
 		case FUR_EFF_SET_VIBRATO_DEPTH:
 		{
-			//TODO: add smth to cope with it
+			step->command[command_index] = MUS_FX_SET_VIBRATO_DEPTH | my_min(0xff, (Uint16)param_8bit * 8);
 			break;
 		}
 

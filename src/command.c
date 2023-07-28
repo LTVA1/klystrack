@@ -74,12 +74,12 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_FM_TREMOLO, 0xff00, "FM modulator tremolo", "FM trem", -1, -1}, //wasn't there
 	{MUS_FX_PWM, 0xff00, "Pulse width modification", "PWM", -1, -1}, //wasn't there
 
-	{MUS_FX_VIBRATO_SHAPE, 0xfff0, "Set vibrato shape", "VibShape", 0, 6}, //wasn't there
-	{MUS_FX_TREMOLO_SHAPE, 0xfff0, "Set tremolo shape", "TremShape", 0, 6}, //wasn't there
-	{MUS_FX_PWM_SHAPE, 0xfff0, "Set PWM shape", "PWMshape", 0, 6}, //wasn't there
-	{MUS_FX_PANBRELLO_SHAPE, 0xfff0, "Set panbrello shape", "PanbrShape", 0, 6}, //wasn't there
-	{MUS_FX_FM_VIBRATO_SHAPE, 0xfff0, "Set FM modulator vibrato shape", "FmVibShape", 0, 6}, //wasn't there
-	{MUS_FX_FM_TREMOLO_SHAPE, 0xfff0, "Set FM modulator tremolo shape", "FmTremShape", 0, 6}, //wasn't there
+	{MUS_FX_VIBRATO_SHAPE, 0xfff0, "Set vibrato shape", "VibShape", 0, 0xf}, //wasn't there
+	{MUS_FX_TREMOLO_SHAPE, 0xfff0, "Set tremolo shape", "TremShape", 0, 0xf}, //wasn't there
+	{MUS_FX_PWM_SHAPE, 0xfff0, "Set PWM shape", "PWMshape", 0, 0xf}, //wasn't there
+	{MUS_FX_PANBRELLO_SHAPE, 0xfff0, "Set panbrello shape", "PanbrShape", 0, 0xf}, //wasn't there
+	{MUS_FX_FM_VIBRATO_SHAPE, 0xfff0, "Set FM modulator vibrato shape", "FmVibShape", 0, 0xf}, //wasn't there
+	{MUS_FX_FM_TREMOLO_SHAPE, 0xfff0, "Set FM modulator tremolo shape", "FmTremShape", 0, 0xf}, //wasn't there
 	{MUS_FX_SET_VIBRATO_SPEED, 0xff00, "Set vibrato speed", "VibSpd", 0, 0xff}, //wasn't there
 	{MUS_FX_SET_TREMOLO_SPEED, 0xff00, "Set tremolo speed", "TremSpd", 0, 0xff}, //wasn't there
 	{MUS_FX_SET_PWM_SPEED, 0xff00, "Set PWM speed", "PWMspd", 0, 0xff}, //wasn't there
@@ -467,7 +467,7 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst)
 	else if ((fi & 0xfff0) == MUS_FX_VIBRATO_SHAPE || (fi & 0xfff0) == MUS_FX_TREMOLO_SHAPE || (fi & 0xfff0) == MUS_FX_PWM_SHAPE || 
 	(fi & 0xfff0) == MUS_FX_PANBRELLO_SHAPE || (fi & 0xfff0) == MUS_FX_FM_VIBRATO_SHAPE || (fi & 0xfff0) == MUS_FX_FM_TREMOLO_SHAPE)
 	{
-		snprintf(text, buffer_size, "%s (%c)", name, (inst & 0xf) < 5 ? MAKEPTR((inst & 0xf) + 0xf4) : MAKEPTR((inst & 0xf) + 0xed));
+		snprintf(text, buffer_size, "%s (%c%s)", name, (inst & 0x7) < 5 ? MAKEPTR((inst & 0x7) + 0xf4) : MAKEPTR((inst & 0x7) + 0xed), (inst & 0x8) ? ", retrigger" : ", continue");
 	}
 	
 	else if ((fi & 0xff00) == MUS_FX_SET_PANNING)
