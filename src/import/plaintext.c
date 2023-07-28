@@ -39,6 +39,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "../../klystron/src/gui/dialog.h"
 #include "../../klystron/src/gui/mouse.h"
 
+#include "../export/plaintext.h"
+
 extern Mused mused;
 extern GfxDomain* domain;
 
@@ -85,7 +87,7 @@ static const char delimiters[] = "|";
 
 static char* plain_text_string_copy;
 
-static Uint8 fur_version;
+static int fur_version;
 
 static Uint16 current_line_index = 0;
 

@@ -24,8 +24,19 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#ifndef PLAINTEXT_H
+#define PLAINTEXT_H
+
 #pragma once
 
-#include "../mused.h"
+#define KLYSTRACK_PLAINTEXT_SIG "klystrack-plus"
+#define KLYSTRACK_PATTERN_SEGMENT_SIG "pattern_segment"
+
+#define KLYSTRACK_PLAINTEXT_NOTE_CUT "OFF"
+#define KLYSTRACK_PLAINTEXT_NOTE_RELEASE "==="
+#define KLYSTRACK_PLAINTEXT_NOTE_MACRO_RELEASE "M=="
+#define KLYSTRACK_PLAINTEXT_NOTE_NOTE_RELEASE "N=="
 
 void create_plain_text();
+
+#endif

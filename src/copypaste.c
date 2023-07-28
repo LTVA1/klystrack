@@ -40,8 +40,6 @@ extern Uint32 colors[];
 
 void copy()
 {
-	create_plain_text();
-
 	cp_clear(&mused.cp);
 
 	switch (mused.focus)
@@ -66,6 +64,8 @@ void copy()
 				
 				mused.cp.pattern_length = mused.selection.end - mused.selection.start;
 			}
+
+			create_plain_text();
 		}
 		break;
 		
