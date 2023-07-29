@@ -155,7 +155,7 @@ static void create_pattern_line(MusStep* s, char* line)
 					break;
 			}
 
-			snprintf(vol, 3, "%c%01X", c, s->volume);
+			snprintf(vol, 3, "%c%01X", c, (s->volume & 0xf));
 			memcpy(&line[line_pos], vol, 2);
 		}
 
