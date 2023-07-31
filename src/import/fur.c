@@ -163,7 +163,7 @@ int import_fur(FILE *f)
 
 			fread(header, 1, strlen(FUR_HEADER_SIG), uncompressed_module);
 	
-			if(strcmp(header, FUR_HEADER_SIG) != 0) //maybe module is compressed with zlib?
+			if(strcmp(header, FUR_HEADER_SIG) != 0) //maybe zlib compressed file is corrupt or isn't Furnace module?
 			{
 				debug("uncompressed module is corrupt?");
 				fclose(uncompressed_module);
