@@ -44,6 +44,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "import/hubbard.h"
 #include "import/fzt.h"
 #include "import/famitracker.h"
+#include "import/fur.h"
 
 #include <dirent.h>
 #include <errno.h>

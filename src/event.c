@@ -732,6 +732,46 @@ void dropfile_event(SDL_Event *e)
 						goto end;
 					}
 					
+					if((strcmp(".fur", mod_extension)) == 0)
+					{
+						debug("Dropped a .FUR file");
+					
+						if(mused.modified)
+						{
+							if(confirm(domain, mused.slider_bevel, &mused.largefont, "Overwrite current song?"))
+							{
+								stop(0, 0, 0);
+								
+								new_song();
+								import_fur(f);
+								fclose(f);
+								
+								set_channels(mused.song.num_channels);
+								
+								mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
+								play(0, 0, 0);
+								stop(0, 0, 0);
+							}
+						}
+						
+						else
+						{
+							stop(0, 0, 0);
+							
+							new_song();
+							import_fur(f);
+							fclose(f);
+							
+							set_channels(mused.song.num_channels);
+							
+							mused.current_patternx = mused.current_sequencepos = mused.current_patternpos = mused.pattern_position = mused.pattern_horiz_position = mused.sequence_horiz_position = 0;
+							play(0, 0, 0);
+							stop(0, 0, 0);
+						}
+						
+						goto end;
+					}
+
 					msgbox(domain, mused.slider_bevel, &mused.largefont, "Not a song klystrack can open or import!", MB_OK);
 				}
 
