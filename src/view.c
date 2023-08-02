@@ -38,6 +38,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "view/visu.h"
 #include "view/sequence.h"
 #include "view/grooveview.h"
+#include "view/songmessage.h"
 #include <stdbool.h>
 #include "edit.h"
 #include "mymsg.h"

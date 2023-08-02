@@ -200,7 +200,7 @@ void import_wavetable_string(MusInstrument* inst)
 		Uint16 wavetables = 0;
 		Uint16 wavetable_length = 0;
 		
-		char* current_line = 1;
+		char* current_line = (char*)1;
 		
 		char** lines = (char**)calloc(1, sizeof(char*));
 		
@@ -266,7 +266,7 @@ void import_wavetable_string(MusInstrument* inst)
 		
 		for(int i = 0; i < wavetables; i++)
 		{
-			char* current_number = 1;
+			char* current_number = (char*)1;
 			
 			Uint16 number_processed = 0;
 			

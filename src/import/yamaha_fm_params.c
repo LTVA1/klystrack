@@ -479,6 +479,6 @@ Sint8 reinterpret_yamaha_params(Sint8 param, Uint8 type, Uint16 song_rate, /* <-
 			break;
 		}*/
 		
-		default: break;
+		default: return 0; 	break;
 	}
 }

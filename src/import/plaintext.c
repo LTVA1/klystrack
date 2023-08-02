@@ -583,7 +583,7 @@ static void process_lines_openmpt()
 {
 	passes = 0;
 
-	current_line = 1;
+	current_line = (char*)1;
 
 	char* lines_1_copy = (char*)calloc(1, sizeof(char*) * (strlen(lines[1]) + 1)); //making a copy of the first pattern line and restore its original state for actual parsing (strtok() puts null terminators right inside the string)
 	strcpy(lines_1_copy, lines[1]);
@@ -626,7 +626,7 @@ static void process_lines_openmpt()
 
 	for(int i = 1; i < num_lines; i++) //this should only be executed if we have more than 1 pattern row of data
 	{
-		current_line = 1;
+		current_line = (char*)1;
 		current_line_index = 0;
 		passes = 0;
 
@@ -1143,7 +1143,7 @@ void paste_from_clipboard()
 	plain_text_string_copy = (char*)calloc(1, strlen(plain_text_string) + 1);
 	strcpy(plain_text_string_copy, plain_text_string);
 
-	current_line = 1;
+	current_line = (char*)1;
 
 	passes = 0;
 

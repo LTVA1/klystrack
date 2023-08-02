@@ -858,12 +858,12 @@ bool ft_process_params_block(FILE* f, ftm_block* block)
 	
 	if(block->version >= 9)
 	{
-		bool sweep_reset = false;
+		//bool sweep_reset = false;
 		
 		Uint32 temp = 0;
 		read_uint32(f, &temp);
 		
-		sweep_reset = temp != 0 ? true : false; //unused in klystrack
+		//sweep_reset = temp != 0 ? true : false; //unused in klystrack
 	}
 	
 	if(block->version > 3 && block->version <= 6)
@@ -3716,7 +3716,6 @@ void convert_instruments()
 	for(int i = 0; i < num_instruments; i++)
 	{
 		Uint8 current_program = 0;
-		Uint8 ft_inst_index = 0;
 
 		MusInstrument* inst = &mused.song.instrument[i];
 
@@ -3727,7 +3726,6 @@ void convert_instruments()
 			if(ft_instruments[j].klystrack_instrument == i)
 			{
 				ft_instrum = &ft_instruments[j];
-				ft_inst_index = j;
 				goto next;
 			}
 		}
@@ -5075,7 +5073,7 @@ void finish_convert_effects() //this does not account for instrument macros chan
 		{
 			if((step->command[j] & 0xff00) == MUS_FX_SET_GROOVE)
 			{
-				Uint8 groove = step->command[j] & 0xff;
+				groove = step->command[j] & 0xff;
 			}
 
 			Uint16 sum = 0;
@@ -5476,9 +5474,6 @@ void do_fds_transpose()
 
 	for(int i = 0; i < num_instruments; i++)
 	{
-		Uint8 current_program = 0;
-		Uint8 ft_inst_index = 0;
-
 		MusInstrument* inst = &mused.song.instrument[i];
 
 		ft_inst* ft_instrum = &ft_instruments[0];
@@ -5488,7 +5483,6 @@ void do_fds_transpose()
 			if(ft_instruments[j].klystrack_instrument == i)
 			{
 				ft_instrum = &ft_instruments[j];
-				ft_inst_index = j;
 				goto next;
 			}
 		}
