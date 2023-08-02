@@ -89,27 +89,27 @@ static char* plain_text_string_copy;
 static int fur_version;
 static int klystrack_version;
 
-static Uint16 current_line_index;
+static int current_line_index;
 
 static char** lines;
 static char** pattern_rows; //size = num_patterns
-static Uint16 num_lines;
+static int num_lines;
 
 static MusPattern* patterns;
-static Uint8 num_patterns;
+static int num_patterns;
 
-static Uint16 passes;
+static int passes;
 static char* current_line;
 
-static Uint8 format;
+static int format;
 
-static Uint8 furnace_start_column; //0 = note, 1 = inst, 2 = vol, 3 = 2 most significant digits of effect 1, 4 = 2 least significant digits of effect 1, ...
+static int furnace_start_column; //0 = note, 1 = inst, 2 = vol, 3 = 2 most significant digits of effect 1, 4 = 2 least significant digits of effect 1, ...
 
-static Uint8 klystrack_start_column, klystrack_end_column;
+static int klystrack_start_column, klystrack_end_column;
 
-static Uint8 chip_index;
+static int chip_index;
 
-static void process_row_openmpt(MusPattern* pat, Uint16 s, Uint8 format, Uint16 channel)
+static void process_row_openmpt(MusPattern* pat, int s, const int format, int channel)
 {
 	if(strcmp(values[0], "   ") == 0) //mark which columns are empty in the text (it means we must not paste data from them into destination pattern but rather we keep old pattern data)
 	{
@@ -318,7 +318,7 @@ static void process_row_openmpt(MusPattern* pat, Uint16 s, Uint8 format, Uint16 
 	}
 }
 
-static void process_row_furnace(MusPattern* pat, Uint16 s, Uint8 furnace_version, Uint16 channel)
+static void process_row_furnace(MusPattern* pat, int s, int furnace_version, int channel)
 {
 	//debug("%s %s %s %s %s %s %s %s %s %s %s", values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10]);
 
@@ -437,7 +437,7 @@ static void process_row_furnace(MusPattern* pat, Uint16 s, Uint8 furnace_version
 	}
 }
 
-static void process_row_klystrack(MusPattern* pat, Uint16 s, Uint8 klystrack_version, Uint16 channel)
+static void process_row_klystrack(MusPattern* pat, int s, int klystrack_version, int channel)
 {
 	//debug("%s %s %s %s %s %s %s %s %s %s %s", values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10]);
 
@@ -563,6 +563,10 @@ static void process_row_klystrack(MusPattern* pat, Uint16 s, Uint8 klystrack_ver
 		{
 			step->ctrl |= MUS_CTRL_TREM;
 		}
+
+		//char buffer[10];
+		//snprintf(buffer, sizeof(buffer), "%d", step->ctrl);
+		//msgbox(domain, mused.slider_bevel, &mused.largefont, buffer, MB_OK);
 	}
 
 	for(int i = 4; i < 12; i++)
@@ -636,7 +640,7 @@ static void process_lines_openmpt()
 				pattern_rows[current_line_index] = current_line;
 				current_line_index++;
 
-				memset(values, 0, (1 + 1 + 1 + 8) * (5) * sizeof(char));
+				memset(values, 0, (1 + 1 + 1 + 1 + 8) * (5) * sizeof(char));
 				memcpy(values[0], pattern_rows[current_line_index - 1], 3 * sizeof(char));
 				memcpy(values[1], &pattern_rows[current_line_index - 1][3], 2 * sizeof(char));
 				memcpy(values[2], &pattern_rows[current_line_index - 1][3 + 2], 3 * sizeof(char));
@@ -704,7 +708,7 @@ static void process_lines_furnace()
 			{
 				if(current_channel == 0)
 				{
-					memset(values, 0, (1 + 1 + 1 + 8) * (5) * sizeof(char));
+					memset(values, 0, (1 + 1 + 1 + 1 + 8) * (5) * sizeof(char));
 
 					if(furnace_start_column == 0)
 					{
@@ -772,7 +776,7 @@ static void process_lines_furnace()
 
 				else
 				{
-					memset(values, 0, (1 + 1 + 1 + 8) * (5) * sizeof(char));
+					memset(values, 0, (1 + 1 + 1 + 1 + 8) * (5) * sizeof(char));
 
 					memcpy(values[0], &lines[i][string_pos], 3 * sizeof(char));
 					string_pos += 3;
@@ -1074,6 +1078,8 @@ static void paste_pattern_data_klystrack(MusStep* src_step, MusStep* dst_step, i
 			}
 		}
 	}
+
+	//memcpy(dst_step, src_step, sizeof(MusStep));
 }
 
 void paste_from_clipboard()
@@ -1087,13 +1093,14 @@ void paste_from_clipboard()
 	plain_text_string_copy = NULL;
 
 	fur_version = 0;
+	format = 0;
 
 	current_line_index = 0;
 
 	lines = NULL;
 	pattern_rows = NULL; //size = num_patterns
 	num_lines = 0;
-	memset(values, 0, (1 + 1 + 1 + 8) * (5) * sizeof(char));
+	memset(values, 0, (1 + 1 + 1 + 1 + 8) * (5) * sizeof(char));
 
 	patterns = NULL;
 	num_patterns = 0;
@@ -1109,10 +1116,10 @@ void paste_from_clipboard()
 		goto end;
 	}
 
-	format = 0;
-
 	for(int i = 0; i < PATTERN_TEXT_FORMATS; i++)
 	{
+		//msgbox(domain, mused.slider_bevel, &mused.largefont, "Text format", MB_OK);
+
 		if(memcmp(plain_text_string, text_format_headers[i], strlen(text_format_headers[i])) == 0)
 		{
 			format = i;
@@ -1128,6 +1135,10 @@ void paste_from_clipboard()
 	goto end;
 
 	process:;
+
+	//char buffer[40];
+	//snprintf(buffer, 40, "Text format %d", format);
+	//msgbox(domain, mused.slider_bevel, &mused.largefont, buffer, MB_OK);
 
 	plain_text_string_copy = (char*)calloc(1, strlen(plain_text_string) + 1);
 	strcpy(plain_text_string_copy, plain_text_string);
@@ -1150,6 +1161,8 @@ void paste_from_clipboard()
 		}
 	}
 
+	//Uint8 temp = format;
+
 	if(format < PATTERN_TEXT_FORMAT_DEFLEMASK)
 	{
 		process_lines_openmpt();
@@ -1164,6 +1177,11 @@ void paste_from_clipboard()
 	{
 		process_lines_klystrack();
 	}
+
+	//format = temp;
+
+	//snprintf(buffer, 40, "Text format 1179 %d", format);
+	//msgbox(domain, mused.slider_bevel, &mused.largefont, buffer, MB_OK);
 
 	for(int i = 0; i < num_patterns; i++) //paste stuff into patterns; "watch your step!" :)
 	{
@@ -1200,9 +1218,14 @@ void paste_from_clipboard()
 				MusStep* src_step = &patterns[i].step[j];
 				MusStep* dst_step = &pat->step[current_patternstep_for_channel(mused.current_sequencetrack + i) + j];
 
+				//char buffer[10];
+				//snprintf(buffer, 10, "%d", format);
+				//msgbox(domain, mused.slider_bevel, &mused.largefont, buffer, MB_OK);
+
 				if(format == PATTERN_TEXT_FORMAT_KLYSTRACK)
 				{
 					paste_pattern_data_klystrack(src_step, dst_step, i);
+					//msgbox(domain, mused.slider_bevel, &mused.largefont, "gggsdfdsf", MB_OK);
 				}
 				
 				else
