@@ -256,19 +256,33 @@ void create_plain_text() //create a specially formatted string to allow plain-te
 	Uint16 steps_to_copy = 0;
 	Uint16 first_step = 0;
 
-	if (mused.selection.start == mused.selection.end && get_current_pattern())
+	if (mused.selection.start == mused.selection.end && get_current_pattern()) //copy whole pattern
 	{
 		pattern = get_current_pattern();
 		steps_to_copy = get_current_pattern()->num_steps;
 		first_step = 0;
 	}
 	
-	else if(get_pattern(mused.selection.start, mused.current_sequencetrack) != -1)
+	else if(get_pattern(mused.selection.start, mused.current_sequencetrack) != -1) //copy part of the pattern; here mused.selection.start is in absolute song coordinates so we need to figure out offset relative to pattern start
 	{
 		pattern = &mused.song.pattern[get_pattern(mused.selection.start, mused.current_sequencetrack)];
 
 		steps_to_copy = mused.selection.end - mused.selection.start;
-		first_step = mused.selection.start;
+
+		int pattern_offset = 0;
+
+		for(int i = 0; i < NUM_SEQUENCES; ++i)
+		{
+			const MusSeqPattern *sp = &mused.song.sequence[mused.current_sequencetrack][i];
+			
+			if(sp->position + mused.song.pattern[sp->pattern].num_steps >= mused.current_patternpos && sp->position <= mused.current_patternpos)
+			{
+				pattern_offset = sp->position;
+				break;
+			}
+		}
+
+		first_step = mused.selection.start - pattern_offset;
 	}
 
 	if(pattern && steps_to_copy != 0) //we have smth to copy

@@ -4097,18 +4097,18 @@ void pattern_event(SDL_Event *e)
 							if(mused.current_sequencetrack > 0)
 							{
 								mused.current_patternx = PED_COMMAND4 + mused.command_columns[mused.current_sequencetrack - 1] * 4;
-								debug("current pattern %d, current sequence track %d, current seq pos %d", mused.song.sequence[mused.current_sequencetrack - 1][mused.current_sequencepos].pattern, mused.current_sequencetrack, mused.current_sequencepos);
+								//debug("current pattern %d, current sequence track %d, current seq pos %d", mused.song.sequence[mused.current_sequencetrack - 1][mused.current_sequencepos].pattern, mused.current_sequencetrack, mused.current_sequencepos);
 								
 								for(int i = 0; i < NUM_SEQUENCES; ++i)
 								{
 									const MusSeqPattern *sp = &mused.song.sequence[mused.current_sequencetrack - 1][i];
 									
-									if(sp->position + mused.song.pattern[sp->pattern].num_steps >= mused.current_patternpos && sp->position <= mused.current_patternpos)
+									if(sp->position + mused.song.pattern[sp->pattern].num_steps - 1 >= mused.current_patternpos && sp->position <= mused.current_patternpos)
 									{
 										{
 											mused.current_patternx = PED_COMMAND4 + mused.command_columns[mused.current_sequencetrack - 1] * 4;
 											
-											debug("track %d pattern %d pos %d", mused.current_sequencetrack, sp->pattern, mused.current_patternx);
+											//debug("track %d pattern %d pos %d", mused.current_sequencetrack, sp->pattern, mused.current_patternx);
 											
 											break;
 										}
@@ -4142,7 +4142,7 @@ void pattern_event(SDL_Event *e)
 								{
 									const MusSeqPattern *sp = &mused.song.sequence[mused.song.num_channels - 1][i];
 									
-									if(sp->position + mused.song.pattern[sp->pattern].num_steps >= mused.current_patternpos && sp->position <= mused.current_patternpos)
+									if(sp->position + mused.song.pattern[sp->pattern].num_steps - 1 >= mused.current_patternpos && sp->position <= mused.current_patternpos)
 									{
 										mused.current_patternx = PED_COMMAND4 + mused.command_columns[mused.song.num_channels - 1] * 4;
 										

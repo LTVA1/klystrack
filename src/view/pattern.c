@@ -575,7 +575,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 				}
 			}
 				
-			else if(current_pattern_for_channel(i) != -1)
+			else
 			{
 				if((param - PED_COMMAND21) < mused.command_columns[i] * 4)
 				{
@@ -621,7 +621,7 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 			
 		else
 		{
-			if((param - PED_COMMAND21) < mused.command_columns[0] * 4)
+			if((param - PED_COMMAND21) < mused.command_columns[mused.current_sequencetrack] * 4)
 			{
 				if (param == PED_NOTE || viscol(param))
 					w += pattern_params[param].w * char_width;
