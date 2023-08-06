@@ -328,10 +328,44 @@ static void process_row_furnace(MusPattern* pat, int s, int furnace_version, int
 		{
 			mask[channel][i] = 0;
 		}
+
+		for(int i = furnace_start_column; i < 1 + 1 + 1 + 8; i++)
+		{
+			if(strcmp(values[i], "") == 0)
+			{
+				if(i < 3)
+				{
+					mask[channel][i] = 0;
+				}
+
+				else
+				{
+					mask[channel][3 + (i - 3) * 2] = 0;
+					mask[channel][3 + (i - 3) * 2 + 1] = 0;
+				}
+			}
+		}
 	}
 
 	else
 	{
+		for(int i = 0; i < 1 + 1 + 1 + 8; i++)
+		{
+			if(strcmp(values[i], "") == 0)
+			{
+				if(i < 3)
+				{
+					mask[channel][i] = 0;
+				}
+
+				else
+				{
+					mask[channel][3 + (i - 3) * 2] = 0;
+					mask[channel][3 + (i - 3) * 2 + 1] = 0;
+				}
+			}
+		}
+
 		if(strcmp(values[0], "") == 0) //note
 		{
 			mask[channel][0] = 0;
@@ -1437,6 +1471,8 @@ void paste_from_clipboard()
 			}
 		}
 	}
+
+	mused.modified = true;
 
 	end:;
 

@@ -1045,7 +1045,7 @@ void find_command_furnace(Uint16 command, MusStep* step, Uint8 command_index, Ui
 	{
 		case FUR_EFF_ARPEGGIO:
 		{
-			step->command[command_index] = MUS_FX_ARPEGGIO_ABS | param_8bit;
+			step->command[command_index] = MUS_FX_SET_EXT_ARP | param_8bit;
 			break;
 		}
 
