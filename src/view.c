@@ -998,7 +998,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"Enable FM modulator exponential attack", //wasn't there
 					"Enable FM modulator exponential decay", //wasn't there
 					"Enable FM modulator exponential release", //wasn't there
-					"FM env start",
+					"FM env start (0=beginning, 1F=end of attack phase)",
 					"FM use wavetable",
 					"FM wavetable entry",
 					"FM modulator vibrato speed", //wasn't there
@@ -1161,6 +1161,7 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"don't restart program on keydown",
 					"save vibrato, PWM and tremolo settings", //wasn't there
 					"trigger delay (in ticks)",
+					"envelope offset (0=beginning, FF=end of attack phase)",
 					"enable CSM timer (phase reset, envelope reset to release)",
 					"CSM timer note",
 					"CSM timer finetune",
@@ -3389,6 +3390,8 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			
 			four_op_text(event, &r, FOUROP_TRIG_DELAY, "TRIG.DEL.", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].trigger_delay), 2);
 			update_rect(&view2, &r);
+
+			four_op_text(event, &r, FOUROP_ENV_OFFSET, "E.START", "%02X", MAKEPTR(inst->ops[mused.selected_operator - 1].env_offset), 2);
 			
 			r.w = 80;
 			

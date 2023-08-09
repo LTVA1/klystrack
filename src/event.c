@@ -2648,6 +2648,12 @@ void four_op_add_param(int a)
 		clamp(i->ops[mused.selected_operator - 1].trigger_delay, a, 0, 0xFF);
 
 		break;
+
+		case FOUROP_ENV_OFFSET:
+
+		clamp(i->ops[mused.selected_operator - 1].env_offset, a, 0, 0xFF);
+
+		break;
 		
 		case FOUROP_ENABLE_CSM_TIMER:
 
