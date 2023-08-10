@@ -5644,7 +5644,7 @@ bool import_ft_new(FILE* f, int type, ftm_block* blocks, bool is_dn_ft_sig)
 	
 	debug("finished processing blocks");
 
-	mused.song.flags |= MUS_USE_OLD_SAMPLE_LOOP_BEHAVIOUR;
+	mused.song.flags |= MUS_USE_OLD_SAMPLE_LOOP_BEHAVIOUR | MUS_USE_OLD_EFFECTS_BEHAVIOUR;
 
 	return success;
 }

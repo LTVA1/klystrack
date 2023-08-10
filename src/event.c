@@ -2809,7 +2809,7 @@ static void play_the_jams(int sym, int chn, int state)
 				{
 					if (chn == -1 && !(mused.flags & MULTICHANNEL_PREVIEW))
 						chn = 0;
-					
+
 					int c = mus_trigger_instrument(&mused.mus, chn, &mused.song.instrument[mused.current_instrument], note << 8, CYD_PAN_CENTER);
 					
 					for(int s = 0; s < CYD_SUB_OSCS; s++)
