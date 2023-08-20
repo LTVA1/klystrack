@@ -352,7 +352,7 @@ void wavetable_sample_view(GfxDomain *dest_surface, const SDL_Rect *dest, const 
 	{
 		if(mused.mus.channel[i].instrument != NULL)
 		{
-			if((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_WAVE) && (mused.cyd.channel[i].flags & CYD_CHN_WAVE_OVERRIDE_ENV))
+			if(mused.cyd.channel[i].flags & CYD_CHN_ENABLE_WAVE)
 			{
 				if(mused.cyd.channel[i].wave_entry)
 				{

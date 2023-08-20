@@ -751,7 +751,23 @@ void local_sample_sample_view(GfxDomain *dest_surface, const SDL_Rect *dest, con
 	loop_end.h = area.h;
 
 	MusInstrument* inst = &mused.song.instrument[mused.current_instrument];
-	CydWavetableEntry* entry = inst->local_samples[mused.selected_local_sample];
+
+	CydWavetableEntry* entry = NULL;
+
+	if(mused.show_local_samples_list)
+	{
+		entry = inst->local_samples[mused.selected_local_sample];
+	}
+
+	else
+	{
+		entry = &mused.cyd.wavetable_entries[mused.selected_local_sample];
+	}
+
+	if(entry == NULL)
+	{
+		return;
+	}
 
 	if(entry->flags & CYD_WAVE_LOOP) //draw below current position line
 	{
@@ -768,7 +784,7 @@ void local_sample_sample_view(GfxDomain *dest_surface, const SDL_Rect *dest, con
 	{
 		if(mused.mus.channel[i].instrument != NULL)
 		{
-			if((mused.cyd.channel[i].flags & CYD_CHN_ENABLE_WAVE) && (mused.cyd.channel[i].flags & CYD_CHN_WAVE_OVERRIDE_ENV) && (mused.mus.channel[i].instrument->flags & MUS_INST_USE_LOCAL_SAMPLES))
+			if(mused.cyd.channel[i].flags & CYD_CHN_ENABLE_WAVE)
 			{
 				if(mused.cyd.channel[i].wave_entry)
 				{
