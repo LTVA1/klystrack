@@ -916,6 +916,8 @@ int import_fzt(FILE *f)
 			}
 		}
 	}
+
+	mused.song.flags |= MUS_USE_OLD_SAMPLE_LOOP_BEHAVIOUR | MUS_USE_OLD_EFFECTS_BEHAVIOUR;
 	
 	abort:;
 	
