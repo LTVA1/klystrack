@@ -52,6 +52,9 @@ const KeyShortcut shortcuts[] =
 	{ 0, SDLK_F5, play, 0, 0, 0, "Play" },
 	{ 0, SDLK_F6, play, (void*)1, 0, 0, "Play from cursor" },
 	{ KMOD_SHIFT, SDLK_F6, play_position, 0, 0, 0, "Loop current pattern" },
+
+	{ 0, SDLK_F7, play_one_row, 0, 0, 0, "Play current row" }, //wasn't there
+
 	{ 0, SDLK_F8, stop, 0, 0, 0, "Stop" },
 	{ 0, SDLK_F9, change_octave, (void*)-1, 0, 0, "Select lower octave" },
 	{ KMOD_SHIFT, SDLK_F9, change_song_rate, (void*)-1, 0, 0, "Decrease play rate" },

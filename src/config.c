@@ -97,6 +97,7 @@ static const struct { int type; const char *name; void *param; Uint64 mask; } co
 	{ C_BOOL, "enable_autosaves", &mused.flags2, ENABLE_AUTOSAVE },
 	{ C_BOOL, "show_autosave_message", &mused.flags2, SHOW_AUTOSAVE_MESSAGE },
 	{ C_INT, "time_between_autosaves_(in_ms)", &mused.time_between_autosaves },
+	{ C_BOOL, "playing_from_cursor_from_pattern_start", &mused.flags2, SNAP_PLAY_FROM_CURSOR_TO_NEAREST_PATTERN_START },
 	{ C_END }
 };
 

@@ -218,7 +218,7 @@ void change_time_signature(void *beat, void *unused1, void *unused2)
 
 void play(void *from_cursor, void *unused1, void *unused2)
 {
-	int pos = from_cursor ? mused.current_sequencepos : 0;
+	int pos = from_cursor ? ((mused.flags2 & SNAP_PLAY_FROM_CURSOR_TO_NEAREST_PATTERN_START) ? mused.current_sequencepos : mused.current_patternpos) : 0;
 	mused.play_start_at = get_playtime_at(pos);
 	enable_callback(true);
 	mus_set_song(&mused.mus, &mused.song, pos);
@@ -254,14 +254,46 @@ void play_position(void *unused1, void *unused2, void *unused3)
 	}
 }
 
+void play_one_row(void *unused1, void *unused2, void *unused3)
+{
+	if (!(mused.flags & LOOP_POSITION))
+	{
+		mused.flags |= LOOP_POSITION;
+		mused.loop_store_length = mused.song.song_length;
+		mused.loop_store_loop = mused.song.loop_point;
+
+		mused.song.song_length = mused.current_patternpos + 1;
+		mused.song.loop_point = mused.current_patternpos;
+
+		mused.flags2 |= ((mused.song.flags & MUS_NO_REPEAT) ? NO_REPEAT_COPY : 0);
+		mused.song.flags |= MUS_NO_REPEAT;
+
+		debug("Playing one row");
+
+		play(MAKEPTR(1), 0, 0);
+	}
+}
+
 
 void stop(void *unused1, void *unused2, void *unused3)
 {
 	mus_set_song(&mused.mus, NULL, 0);
+
 	if (mused.flags & LOOP_POSITION)
 	{
 		mused.song.song_length = mused.loop_store_length;
 		mused.song.loop_point = mused.loop_store_loop;
+	}
+
+	if(mused.flags2 & NO_REPEAT_COPY)
+	{
+		mused.song.flags |= MUS_NO_REPEAT;
+		mused.flags2 &= ~NO_REPEAT_COPY;
+	}
+
+	else
+	{
+		mused.song.flags &= ~MUS_NO_REPEAT;
 	}
 
 	mused.flags &= ~(SONG_PLAYING | LOOP_POSITION);

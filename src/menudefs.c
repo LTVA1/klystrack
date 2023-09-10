@@ -175,6 +175,7 @@ const Menu prefsmenu[] =
 	{ 0, mainmenu, "Load default song on startup", NULL, MENU_CHECK, &mused.flags, (void*)START_WITH_TEMPLATE, 0 },
 	{ 0, mainmenu, "Use system mouse cursor", NULL, MENU_CHECK_NOSET, &mused.flags, (void*)USE_SYSTEM_CURSOR, toggle_mouse_cursor },
 	{ 0, mainmenu, "Smooth pattern scroll", NULL, MENU_CHECK, &mused.flags2, (void*)SMOOTH_SCROLL, 0 },
+	{ 0, mainmenu, "Play from cursor at pat. start", NULL, MENU_CHECK, &mused.flags2, (void*)SNAP_PLAY_FROM_CURSOR_TO_NEAREST_PATTERN_START, 0 },
 	{ 0, mainmenu, "", NULL, NULL },
 	{ 0, mainmenu, "Mouse drag selection", drag_selection_menu },
 	{ 0, NULL, NULL }

@@ -42,6 +42,7 @@ void change_song_rate(void *delta, void *, void *);
 void change_time_signature(void *beat, void *, void *);
 void play(void *from_cursor, void*, void*);
 void play_position(void *, void*, void*);
+void play_one_row(void *, void*, void*);
 void stop(void*,void*,void*);
 void change_song_speed(void *speed, void *delta, void *);
 void new_song_action(void *, void *, void *);

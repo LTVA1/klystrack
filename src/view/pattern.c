@@ -683,6 +683,11 @@ void pattern_view_inner(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL
 			
 			pixel_offset = (Uint32)mused.mus.song_counter * (Uint32)8 / speed_thing - ((Uint32)mused.draw_passes_since_song_start == (Uint32)0 ? (Uint32)0 : ((Uint32)mused.draw_passes_since_song_start < (Uint32)4 ? (Uint32)mused.draw_passes_since_song_start : (Uint32)4));
 		}
+
+		if((mused.song.flags & MUS_NO_REPEAT) && mused.mus.song_counter == 0xfff)
+		{
+			pixel_offset = 0;
+		}
 		
 		if(mused.draw_passes_since_song_start < 5) mused.draw_passes_since_song_start++;
 	}
@@ -1646,6 +1651,11 @@ static void pattern_view_stepcounter(GfxDomain *dest_surface, const SDL_Rect *de
 			}
 			
 			pixel_offset = (Uint32)mused.mus.song_counter * (Uint32)8 / speed_thing - ((Uint32)mused.draw_passes_since_song_start == (Uint32)0 ? (Uint32)0 : ((Uint32)mused.draw_passes_since_song_start < (Uint32)4 ? (Uint32)mused.draw_passes_since_song_start : (Uint32)4));
+		}
+
+		if((mused.song.flags & MUS_NO_REPEAT) && mused.mus.song_counter == 0xfff)
+		{
+			pixel_offset = 0;
 		}
 	}
 	

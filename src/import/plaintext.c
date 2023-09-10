@@ -211,7 +211,7 @@ static void process_row_openmpt(MusPattern* pat, int s, const int format, int ch
 
 			case 'a': //volume up fine
 			{
-				if(volume_param > 0) //because klystrack range lol, volume_param = 0 would be 0x80 which is valid volume velue
+				if(volume_param > 0) //because klystrack range lol, volume_param = 0 would be 0x80 which is valid volume value
 				{
 					step->volume = MUS_NOTE_VOLUME_FADE_UP_FINE | ((volume_param * 15) / 9); //0-9 to 0-15
 				}
