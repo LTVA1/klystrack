@@ -114,13 +114,13 @@ bool export_wav(MusSong *song, CydWavetableEntry * entry, FILE *f, int channel)
 		
 		if (song->song_length != 0)
 		{
-			int percentage = (mus->song_position + (channel == -1 ? 0 : (channel * song->song_length))) * 100 / (song->song_length * (channel == -1 ? 1 : song->num_channels));
+			SDL_Rect area = {domain->screen_w / 2 - 140, domain->screen_h / 2 - 24, 280, 48};
+			int percentage = (mus->song_position + (channel == -1 ? 0 : (channel * song->song_length))) * (area.w - (8 + 2) * 2) / (song->song_length * (channel == -1 ? 1 : song->num_channels));
 			
 			if (percentage > last_percentage)
 			{
 				last_percentage = percentage;
 				
-				SDL_Rect area = {domain->screen_w / 2 - 140, domain->screen_h / 2 - 24, 280, 48};
 				bevel(domain, &area, mused.slider_bevel, BEV_MENU);
 				
 				adjust_rect(&area, 8);
@@ -131,7 +131,7 @@ bool export_wav(MusSong *song, CydWavetableEntry * entry, FILE *f, int channel)
 				adjust_rect(&area, 2);
 				
 				int t = area.w;
-				area.w = area.w * percentage / 100;
+				area.w = area.w * percentage / area.w;
 				
 				gfx_rect(domain, &area, colors[COLOR_PROGRESS_BAR]);
 				
@@ -257,13 +257,13 @@ bool export_wav_hires(MusSong *song, CydWavetableEntry * entry, FILE *f, int cha
 		
 		if (song->song_length != 0)
 		{
-			int percentage = (mus->song_position + (channel == -1 ? 0 : (channel * song->song_length))) * 100 / (song->song_length * (channel == -1 ? 1 : song->num_channels));
+			SDL_Rect area = {domain->screen_w / 2 - 140, domain->screen_h / 2 - 24, 280, 48};
+			int percentage = (mus->song_position + (channel == -1 ? 0 : (channel * song->song_length))) * (area.w - (8 + 2) * 2) / (song->song_length * (channel == -1 ? 1 : song->num_channels));
 			
 			if (percentage > last_percentage)
 			{
 				last_percentage = percentage;
 				
-				SDL_Rect area = {domain->screen_w / 2 - 140, domain->screen_h / 2 - 24, 280, 48};
 				bevel(domain, &area, mused.slider_bevel, BEV_MENU);
 				
 				adjust_rect(&area, 8);
@@ -274,7 +274,7 @@ bool export_wav_hires(MusSong *song, CydWavetableEntry * entry, FILE *f, int cha
 				adjust_rect(&area, 2);
 				
 				int t = area.w;
-				area.w = area.w * percentage / 100;
+				area.w = area.w * percentage / area.w;
 				
 				gfx_rect(domain, &area, colors[COLOR_PROGRESS_BAR]);
 				

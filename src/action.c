@@ -268,6 +268,8 @@ void play_one_row(void *unused1, void *unused2, void *unused3)
 		mused.flags2 |= ((mused.song.flags & MUS_NO_REPEAT) ? NO_REPEAT_COPY : 0);
 		mused.song.flags |= MUS_NO_REPEAT;
 
+		mused.mus.flags |= MUS_ENGINE_PLAY_ONE_STEP;
+
 		debug("Playing one row");
 
 		play(MAKEPTR(1), 0, 0);
@@ -297,6 +299,7 @@ void stop(void *unused1, void *unused2, void *unused3)
 	}
 
 	mused.flags &= ~(SONG_PLAYING | LOOP_POSITION);
+	mused.mus.flags &= ~MUS_ENGINE_PLAY_ONE_STEP;
 }
 
 
@@ -831,6 +834,7 @@ void export_wav_action(void *a, void *b, void *c)
 	char def[1000];
 	
 	mused.song.flags |= MUS_NO_REPEAT; //wasn't there
+	mused.mus.flags &= ~MUS_ENGINE_PLAY_ONE_STEP;
 
 	if (strlen(mused.previous_song_filename) == 0)
 	{
@@ -896,6 +900,7 @@ void export_hires_wav_action(void *a, void*b, void*c)
 	char def[1000];
 	
 	mused.song.flags |= MUS_NO_REPEAT; //wasn't there
+	mused.mus.flags &= ~MUS_ENGINE_PLAY_ONE_STEP;
 
 	if (strlen(mused.previous_song_filename) == 0)
 	{
