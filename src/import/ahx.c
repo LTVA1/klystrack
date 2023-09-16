@@ -579,5 +579,7 @@ int import_ahx(FILE *f)
 	mused.song.default_panning[2] = 96;
 	mused.song.default_panning[3] = -96;
 
+	mused.song.flags |= MUS_USE_OLD_EFFECTS_BEHAVIOUR;
+
 	return 1;
 }

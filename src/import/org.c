@@ -287,6 +287,8 @@ int import_org(FILE *f)
 	
 	if (orgsamp_loaded)
 		unload_orgsamp(&orgsamp);
+
+	mused.song.flags |= MUS_USE_OLD_EFFECTS_BEHAVIOUR;
 		
 	return 1;
 }
