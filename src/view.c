@@ -447,6 +447,34 @@ int generic_field(const SDL_Event *e, const SDL_Rect *area, int focus, int param
 	return r * (SDL_GetModState() & KMOD_SHIFT ? 16 : 1);
 }
 
+int generic_field_simple(const SDL_Event *e, const SDL_Rect *area, const char *_label, const char *format, void *value, int width)
+{
+	label(_label, area);
+
+	SDL_Rect field, spinner_area;
+	copy_rect(&field, area);
+
+	field.w = width * mused.console->font.w + 2;
+	field.x = area->x + area->w - field.w;
+
+	copy_rect(&spinner_area, &field);
+
+	spinner_area.x += field.w;
+	spinner_area.w = 16;
+	field.x -= spinner_area.w;
+	spinner_area.x -= spinner_area.w;
+
+	bevelex(domain, &field, mused.slider_bevel, BEV_FIELD, BEV_F_STRETCH_ALL);
+
+	adjust_rect(&field, 1);
+
+	font_write_args(&mused.largefont, domain, &field, format, value);
+
+	int r = spinner(domain, e, &spinner_area, mused.slider_bevel, (Uint32)area->x << 16 | area->y);
+
+	return r * (SDL_GetModState() & KMOD_SHIFT ? 16 : 1);
+}
+
 
 void generic_flags(const SDL_Event *e, const SDL_Rect *_area, int focus, int p, const char *label, Uint32 *_flags, Uint32 mask)
 {

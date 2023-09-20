@@ -584,6 +584,8 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 					SDL_RWwrite(f, &inst->note_to_sample_array[i].note, sizeof(inst->note_to_sample_array[i].note), 1);
 					SDL_RWwrite(f, &inst->note_to_sample_array[i].flags, sizeof(inst->note_to_sample_array[i].flags), 1);
 					SDL_RWwrite(f, &inst->note_to_sample_array[i].sample, sizeof(inst->note_to_sample_array[i].sample), 1);
+
+					SDL_RWwrite(f, &inst->note_to_sample_array[i].actual_note, sizeof(inst->note_to_sample_array[i].actual_note), 1);
 				}
 			}
 		}

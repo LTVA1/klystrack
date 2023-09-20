@@ -231,10 +231,15 @@ void local_sample_notes_view(GfxDomain *dest_surface, const SDL_Rect *dest, cons
 	int start = mused.local_sample_note_list_position;
 	
 	MusInstrument* inst = &mused.song.instrument[mused.current_instrument];
+
+	SDL_Rect r;
+
+	char shorter_sample_name[21];
+	shorter_sample_name[20] = '\0';
 	
-	for (int i = start; i <= FREQ_TAB_SIZE && y < area.h + area.y; ++i, y += mused.console->font.h)
+	for (int i = start; i <= FREQ_TAB_SIZE && y < area.h + area.y; ++i, y += mused.console->font.h + 2)
 	{
-		SDL_Rect row = { area.x - 1, y - 1, area.w + 2, mused.console->font.h + 1};
+		SDL_Rect row = { area.x - 1, y - 1, area.w + 2, mused.console->font.h + 3};
 		
 		if (i == mused.selected_local_sample_note)
 		{
@@ -263,12 +268,54 @@ void local_sample_notes_view(GfxDomain *dest_surface, const SDL_Rect *dest, cons
 				sample_name = mused.song.instrument[mused.current_instrument].local_sample_names[inst->note_to_sample_array[i].sample];
 			}
 		}
+
+		int d = 0;
+
+		copy_rect(&r, &row);
+		r.x += 7 * 8 + 1;
+		r.w = 30;
+
+		if(i < FREQ_TAB_SIZE)
+		{
+			if ((d = generic_field_simple(event, &r, "", "%s", notename(mused.song.instrument[mused.current_instrument].note_to_sample_array[i].actual_note), 3)) != 0)
+			{
+				int got_event = 0;
+				if (event->type != SDL_MOUSEMOTION || (event->motion.state)) ++got_event;
+				if (got_event || gfx_domain_is_next_frame(domain))
+				{
+					if (d < 0) d = -1; else if (d > 0) d = 1;
+
+					if (SDL_GetModState() & KMOD_SHIFT)
+					{
+						d *= 12; //one octave jump
+					}
+
+					clamp(mused.song.instrument[mused.current_instrument].note_to_sample_array[i].actual_note, d, 0, (FREQ_TAB_SIZE - 1));
+
+					SDL_Delay(150);
+				}
+			}
+		}
+
+		if(sample_name)
+		{
+			memcpy(shorter_sample_name, sample_name, 20 * sizeof(char));
+		}
+
+		else
+		{
+			shorter_sample_name[0] = '\0';
+		}
 		
-		snprintf(sample_info, sizeof(sample_info), "[%c] %s", ((inst->note_to_sample_array[i].sample == MUS_NOTE_TO_SAMPLE_NONE) ? ' ' : ((inst->note_to_sample_array[i].flags & MUS_NOTE_TO_SAMPLE_GLOBAL) ? 'G' : 'L')), ((sample_name != NULL) ? sample_name : ""));
+		snprintf(sample_info, sizeof(sample_info), "[%c] %s", ((inst->note_to_sample_array[i].sample == MUS_NOTE_TO_SAMPLE_NONE) ? ' ' : ((inst->note_to_sample_array[i].flags & MUS_NOTE_TO_SAMPLE_GLOBAL) ? 'G' : 'L')), shorter_sample_name);
 		
 		if(i < FREQ_TAB_SIZE)
 		{
-			console_write_args(mused.console, "%s - %s\n", notename(i), sample_info);
+			row.x += 2;
+			row.y += 1;
+			mused.console->cursor = 0;
+			console_set_clip(mused.console, &row);
+			console_write_args(mused.console, "%s -      %s", notename(i), sample_info);
 		}
 		
 		check_event(event, &row, select_local_sample_note, MAKEPTR(i), 0, 0);

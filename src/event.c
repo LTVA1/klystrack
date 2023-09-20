@@ -1082,13 +1082,6 @@ void edit_env_editor_event(SDL_Event *e)
 
 		switch (e->key.keysym.sym)
 		{
-			case SDLK_RETURN:
-			{
-				//if (mused.selected_param == P_NAME)
-					//set_edit_buffer(mused.song.instrument[mused.current_instrument].name, sizeof(mused.song.instrument[mused.current_instrument].name));
-			}
-			break;
-
 			case SDLK_DOWN:
 			{
 				++mused.env_selected_param;
@@ -1119,7 +1112,6 @@ void edit_env_editor_event(SDL_Event *e)
 				env_editor_add_param(+1);
 			}
 			break;
-
 
 			case SDLK_LEFT:
 			{
@@ -5363,8 +5355,7 @@ void local_sample_add_param(int d)
 	{
 		switch (mused.local_sample_param)
 		{
-			case LS_BASE: d *= 12; break;
-			case LS_BASEFINE: d *= 16; break;
+			case LS_BASE: case LS_ACTUAL_NOTE: d *= 12; break;
 			default: d *= 16; break;
 		}
 	}
@@ -5387,6 +5378,12 @@ void local_sample_add_param(int d)
 
 	switch (mused.local_sample_param)
 	{
+		case LS_ACTUAL_NOTE:
+		{
+			flipbit(inst->flags, MUS_INST_USE_LOCAL_SAMPLES);
+		}
+		break;
+
 		case LS_ENABLE:
 		{
 			flipbit(inst->flags, MUS_INST_USE_LOCAL_SAMPLES);

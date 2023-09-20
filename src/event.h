@@ -484,7 +484,9 @@ enum
 	LS_LOOPEND,
 	LS_BINDTONOTES,
 	/* ----- */
-	LS_N_PARAMS
+	LS_N_PARAMS,
+
+	LS_ACTUAL_NOTE,
 };
 
 enum
