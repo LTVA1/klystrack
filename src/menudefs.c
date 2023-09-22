@@ -319,6 +319,14 @@ static const Menu optimizemenu[] =
 	{ 0, NULL, NULL }
 };
 
+static const Menu song_compatibility_flags_menu[] =
+{
+	{ 0, editmenu, "Old wavetable offset behaviour", NULL, MENU_CHECK, &mused.song.flags, (void*)MUS_USE_OLD_SAMPLE_LOOP_BEHAVIOUR, 0 },
+	{ 0, editmenu, "Old effects behaviour", NULL, MENU_CHECK, &mused.song.flags, (void*)MUS_USE_OLD_EFFECTS_BEHAVIOUR, 0 },
+	{ 0, editmenu, "Old filter (flag not saved in file)", NULL, MENU_CHECK, &mused.cyd.flags, (void*)CYD_USE_OLD_FILTER, 0 },
+	{ 0, NULL, NULL }
+};
+
 
 static const Menu editmenu[] =
 {
@@ -327,6 +335,7 @@ static const Menu editmenu[] =
 	{ 0, mainmenu, "", NULL, NULL },
 	{ 0, mainmenu, "Zap", zapmenu, NULL },
 	{ 0, mainmenu, "Optimize", optimizemenu, NULL },
+	{ 0, mainmenu, "Compatibility", song_compatibility_flags_menu, NULL },
 	{ 0, mainmenu, "", NULL, NULL },
 	{ 0, mainmenu, "Copy", NULL, generic_action, copy, 0, 0 },
 	{ 0, mainmenu, "Paste", NULL, generic_action, paste, 0, 0 },

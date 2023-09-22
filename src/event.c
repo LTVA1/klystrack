@@ -5355,7 +5355,7 @@ void local_sample_add_param(int d)
 	{
 		switch (mused.local_sample_param)
 		{
-			case LS_BASE: case LS_ACTUAL_NOTE: d *= 12; break;
+			case LS_BASE: d *= 12; break;
 			default: d *= 16; break;
 		}
 	}
@@ -5378,12 +5378,6 @@ void local_sample_add_param(int d)
 
 	switch (mused.local_sample_param)
 	{
-		case LS_ACTUAL_NOTE:
-		{
-			flipbit(inst->flags, MUS_INST_USE_LOCAL_SAMPLES);
-		}
-		break;
-
 		case LS_ENABLE:
 		{
 			flipbit(inst->flags, MUS_INST_USE_LOCAL_SAMPLES);

@@ -311,7 +311,7 @@ void local_sample_notes_view(GfxDomain *dest_surface, const SDL_Rect *dest, cons
 		
 		if(i < FREQ_TAB_SIZE)
 		{
-			row.x += 2;
+			row.x += 1;
 			row.y += 1;
 			mused.console->cursor = 0;
 			console_set_clip(mused.console, &row);
