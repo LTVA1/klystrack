@@ -50,6 +50,11 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_SET_CSM_TIMER_FINETUNE, 0xff00, "Set CSM timer finetune", "CSMfine", -1, -1},
 	{MUS_FX_CSM_TIMER_PORTA_UP, 0xff00, "CSM timer portamento up", "CSMportUp", -1, -1},
 	{MUS_FX_CSM_TIMER_PORTA_DN, 0xff00, "CSM timer portamento down", "CSMportDn", -1, -1},
+
+	{MUS_FX_SET_PHASE_RESET_TIMER_NOTE, 0xff00, "Set phase reset timer note", "PhTimnote", -1, -1},
+	{MUS_FX_SET_PHASE_RESET_TIMER_FINETUNE, 0xff00, "Set phase reset timer finetune", "PhTimFine", -1, -1},
+	{MUS_FX_PHASE_RESET_TIMER_PORTA_UP, 0xff00, "Phase reset timer portamento up", "PhTimPortUp", -1, -1},
+	{MUS_FX_PHASE_RESET_TIMER_PORTA_DN, 0xff00, "Phase reset timer portamento down", "PhTimPortDn", -1, -1},
 	
 	/*{MUS_FX_SET_FREQUENCY_LOWER_BYTE, 0xff00, "Set frequency lower  byte (0x0000FF)", "FreqLowByte", -1, -1},
 	{MUS_FX_SET_FREQUENCY_LOWER_BYTE, 0xff00, "Set frequency middle byte (0x00FF00)", "FreqMidByte", -1, -1},

@@ -1312,8 +1312,8 @@ void instrument_add_param(int a)
 			case P_BASENOTE: a *= 12; break;
 			case P_FIXED_NOISE_BASE_NOTE: a *= 12; break;
 			case P_BUZZ_SEMI: a *= 12; break;
-			
 			case P_FM_BASENOTE: a *= 12; break; //wasn't there
+			case P_PHASE_RESET_TIMER_NOTE: a *= 12; break; //wasn't there
 			
 			default: a *= 16; break;
 		}
@@ -2041,6 +2041,30 @@ void instrument_add_param(int a)
 
 		break;
 
+		case P_ENABLE_PHASE_RESET_TIMER:
+
+		flipbit(i->cydflags, CYD_CHN_ENABLE_PHASE_RESET_TIMER);
+
+		break;
+		
+		case P_PHASE_RESET_TIMER_NOTE:
+		
+		clamp(i->phase_reset_timer_note, a, 0, FREQ_TAB_SIZE - 1);
+
+		break;
+		
+		case P_PHASE_RESET_TIMER_FINETUNE:
+		
+		clamp(i->phase_reset_timer_finetune, a, -128, 127);
+
+		break;
+		
+		case P_LINK_PHASE_RESET_TIMER_NOTE:
+		
+		flipbit(i->flags, MUS_INST_LINK_PHASE_RESET_TIMER_NOTE);
+
+		break;
+
 		case P_FM_ENABLE:
 
 		flipbit(i->cydflags, CYD_CHN_ENABLE_FM);
@@ -2093,7 +2117,8 @@ void four_op_add_param(int a)
 		switch (mused.fourop_selected_param)
 		{
 			case FOUROP_BASENOTE: 
-			case FOUROP_FIXED_NOISE_BASE_NOTE: 
+			case FOUROP_FIXED_NOISE_BASE_NOTE:
+			case FOUROP_PHASE_RESET_TIMER_NOTE:
 			case FOUROP_CSM_TIMER_NOTE: a *= 12; break;
 			
 			default: a *= 16; break;
@@ -2668,6 +2693,30 @@ void four_op_add_param(int a)
 		case FOUROP_LINK_CSM_TIMER_NOTE:
 		
 		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_FM_OP_LINK_CSM_TIMER_NOTE);
+
+		break;
+
+		case FOUROP_ENABLE_PHASE_RESET_TIMER:
+
+		flipbit(i->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_PHASE_RESET_TIMER);
+
+		break;
+		
+		case FOUROP_PHASE_RESET_TIMER_NOTE:
+		
+		clamp(i->ops[mused.selected_operator - 1].phase_reset_timer_note, a, 0, FREQ_TAB_SIZE - 1);
+
+		break;
+		
+		case FOUROP_PHASE_RESET_TIMER_FINETUNE:
+		
+		clamp(i->ops[mused.selected_operator - 1].phase_reset_timer_finetune, a, -128, 127);
+
+		break;
+		
+		case FOUROP_LINK_PHASE_RESET_TIMER_NOTE:
+		
+		flipbit(i->ops[mused.selected_operator - 1].flags, MUS_FM_OP_LINK_PHASE_RESET_TIMER_NOTE);
 
 		break;
 

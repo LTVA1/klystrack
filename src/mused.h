@@ -361,7 +361,9 @@ typedef struct
 	bool show_point_envelope_editor;
 	bool show_4op_point_envelope_editor;
 	
-	bool show_fm_settings; //false => show FX bus and LFO settingsz, true => show FM settings
+	bool show_fm_settings; //true => show FM settings
+	bool show_fx_lfo_settings; //true => show FX bus and software LFO settings
+	bool show_timer_lfo_settings; //true => show hardware phase reset timer and LFO settings
 	
 	bool open_groove_settings;
 	

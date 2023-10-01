@@ -1040,6 +1040,11 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"FM enable additive synth mode", //wasn't there
 					"Save FM modulator vibrato and tremolo settings", //wasn't there
 					"FM enable 4-operator mode (independent from these FM settings)", //wasn't there
+
+					"Enable phase reset timer", //wasn't there
+					"Phase reset timer note", //wasn't there
+					"Phase reset timer finetune", //wasn't there
+					"Make phase reset timer note dependent on instrument note", //wasn't there
 				};
 				
 				static const char * mixmodes[] =
@@ -1194,6 +1199,11 @@ void info_line(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *e
 					"CSM timer note",
 					"CSM timer finetune",
 					"make CSM timer note dependent on FM op note",
+
+					"enable phase reset timer", //wasn't there
+					"phase reset timer note", //wasn't there
+					"phase reset timer finetune", //wasn't there
+					"make phase reset timer note dependent on instrument note", //wasn't there
 				};
 				
 				static const char * mixmodes[] =
@@ -1613,7 +1623,7 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 		SDL_Rect area, clip;
 		copy_rect(&area, dest);
 		
-		if(!(mused.show_fm_settings))
+		if(mused.show_fx_lfo_settings)
 		{
 			area.y -= 60;
 			area.h += 60;
@@ -3440,13 +3450,42 @@ void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_
 			note.w += 8;
 			four_op_text(event, &note, FOUROP_CSM_TIMER_FINETUNE, "", "%+4d", MAKEPTR(inst->ops[mused.selected_operator - 1].CSM_timer_finetune), 4);
 			
-			r.w = 122;
-			r.x -= 84;
-			r.y += 10;
+			//r.w = 122;
+			//r.x -= 84;
+			//r.y += 10;
+			update_rect(&view2, &r);
+
+			r.x += 8;
+			r.w += 40;
 			
 			four_op_flags(event, &r, FOUROP_LINK_CSM_TIMER_NOTE, "LINK TO OP NOTE", (Uint32*)&inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_LINK_CSM_TIMER_NOTE);
 			//update_rect(&view2, &r);
+
+			r.y += 10;
+			r.x = view2.x;
+
+			r.w -= 18 + 22;
 			
+			four_op_flags(event, &r, FOUROP_ENABLE_PHASE_RESET_TIMER, "PH. RESET", &inst->ops[mused.selected_operator - 1].cydflags, CYD_FM_OP_ENABLE_PHASE_RESET_TIMER);
+			update_rect(&view2, &r);
+			
+			copy_rect(&note, &r);
+
+			note.w = 40;
+			note.h = 10;
+
+			four_op_text(event, &note, FOUROP_PHASE_RESET_TIMER_NOTE, "", "%s", notename(inst->ops[mused.selected_operator - 1].phase_reset_timer_note), 3);
+			note.x += note.w + 2;
+			note.w += 8;
+			four_op_text(event, &note, FOUROP_PHASE_RESET_TIMER_FINETUNE, "", "%+4d", MAKEPTR(inst->ops[mused.selected_operator - 1].phase_reset_timer_finetune), 4);
+			
+			//r.w = 122;
+			r.x += 92;
+			//r.y += 10;
+			r.w += 18 + 22;
+			
+			four_op_flags(event, &r, FOUROP_LINK_PHASE_RESET_TIMER_NOTE, "LINK TO OP NOTE", (Uint32*)&inst->ops[mused.selected_operator - 1].flags, MUS_FM_OP_LINK_PHASE_RESET_TIMER_NOTE);
+
 			r.w = view2.w / 2 - 2;
 			r.h = 19;
 			r.y += 10;
@@ -3849,6 +3888,8 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 void open_fx_lfo(void *unused1, void *unused2, void *unused3)
 {
 	mused.show_fm_settings = false;
+	mused.show_fx_lfo_settings = true;
+	mused.show_timer_lfo_settings = false;
 	
 	if(mused.selected_param >= P_FM_ENABLE && mused.selected_param <= P_FM_ENABLE_4OP)
 	{
@@ -3859,10 +3900,24 @@ void open_fx_lfo(void *unused1, void *unused2, void *unused3)
 void open_fm_set(void *unused1, void *unused2, void *unused3)
 {
 	mused.show_fm_settings = true;
+	mused.show_fx_lfo_settings = false;
+	mused.show_timer_lfo_settings = false;
 	
 	if(mused.selected_param >= P_FX && mused.selected_param <= P_SAVE_LFO_SETTINGS)
 	{
 		mused.selected_param = P_FM_ENABLE;
+	}
+}
+
+void open_timer(void *unused1, void *unused2, void *unused3)
+{
+	mused.show_fm_settings = false;
+	mused.show_fx_lfo_settings = false;
+	mused.show_timer_lfo_settings = true;
+	
+	if(mused.selected_param >= P_FM_ENABLE_4OP && mused.selected_param <= P_LINK_PHASE_RESET_TIMER_NOTE)
+	{
+		mused.selected_param = P_ENABLE_PHASE_RESET_TIMER;
 	}
 }
 
@@ -3875,7 +3930,7 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 		SDL_Rect r, frame;
 		copy_rect(&frame, dest);
 		
-		if(!(mused.show_fm_settings))
+		if(mused.show_fx_lfo_settings)
 		{
 			frame.h -= 60;
 		}
@@ -3886,20 +3941,24 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 		
 		int init_width = r.w;
 		
-		r.w = r.w / 2 - 2;
+		r.w = r.w / 3 - 2;
 		r.h = 10;
 		
-		button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, !(mused.show_fm_settings) ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "FX AND LFO", open_fx_lfo, NULL, NULL, NULL);
+		button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, mused.show_fx_lfo_settings ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "FX AND LFO", open_fx_lfo, NULL, NULL, NULL);
 		update_rect(&frame, &r);
 		button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, mused.show_fm_settings ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "FM", open_fm_set, NULL, NULL, NULL);
 		update_rect(&frame, &r);
+		button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, mused.show_timer_lfo_settings ? BEV_BUTTON_ACTIVE : BEV_BUTTON, BEV_BUTTON_ACTIVE, "TIMER", open_timer, NULL, NULL, NULL);
+		update_rect(&frame, &r);
 		
+		r.w = init_width / 2 - 2;
+
 		int temp666;
 		int temp2;
 		int tmp;
 		int temp;
 		
-		if(!(mused.show_fm_settings))
+		if(mused.show_fx_lfo_settings)
 		{
 			inst_flags(event, &r, P_FX, "FX", &inst->cydflags, CYD_CHN_ENABLE_FX);
 			update_rect(&frame, &r);
@@ -4099,6 +4158,35 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 			
 			button_text_event(domain, event, &r, mused.slider_bevel, &mused.buttonfont, BEV_BUTTON, BEV_BUTTON_ACTIVE, "OPEN MENU", open_4op, NULL, NULL, NULL);
 			update_rect(&frame, &r);
+		}
+
+		if(mused.show_timer_lfo_settings)
+		{
+			r.w = 90;
+
+			inst_flags(event, &r, P_ENABLE_PHASE_RESET_TIMER, "PHASE RESET", &inst->cydflags, CYD_CHN_ENABLE_PHASE_RESET_TIMER);
+			update_rect(&frame, &r);
+			
+			SDL_Rect note;
+			copy_rect(&note, &r);
+
+			note.w = 40;
+			note.h = 10;
+
+			inst_text(event, &note, P_PHASE_RESET_TIMER_NOTE, "", "%s", notename(inst->phase_reset_timer_note), 3);
+			note.x += note.w + 2;
+			note.w += 8;
+			inst_text(event, &note, P_PHASE_RESET_TIMER_FINETUNE, "", "%+4d", MAKEPTR(inst->phase_reset_timer_finetune), 4);
+			
+			//r.w = 122;
+			r.x += 92;
+			//r.y += 10;
+			r.w += 18 + 1;
+			
+			inst_flags(event, &r, P_LINK_PHASE_RESET_TIMER_NOTE, "LINK TO NOTE", (Uint32*)&inst->flags, MUS_INST_LINK_PHASE_RESET_TIMER_NOTE);
+
+			r.y += 10;
+			r.x = frame.x;
 		}
 		
 		r.w = init_width / 3 - 2;

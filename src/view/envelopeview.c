@@ -591,7 +591,7 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 	SDL_Rect area;
 	copy_rect(&area, dest);
 	
-	if(!(mused.show_fm_settings))
+	if(mused.show_fx_lfo_settings)
 	{
 		area.y -= 60;
 		area.h += 60;

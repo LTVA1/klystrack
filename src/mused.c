@@ -389,6 +389,8 @@ void init(MusInstrument *instrument, MusPattern *pattern, MusSeqPattern **sequen
 	mused.prev_wavetable_x = -1;
 	mused.prev_wavetable_y = -1;
 
+	mused.show_fx_lfo_settings = true;
+
 	init_recent_files_list();
 }
 
