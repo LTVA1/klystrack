@@ -590,6 +590,12 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 			}
 		}
 	}
+
+	if(inst->cydflags & CYD_CHN_ENABLE_PHASE_RESET_TIMER)
+	{
+		SDL_RWwrite(f, &inst->phase_reset_timer_note, sizeof(inst->phase_reset_timer_note), 1);
+		SDL_RWwrite(f, &inst->phase_reset_timer_finetune, sizeof(inst->phase_reset_timer_finetune), 1);
+	}
 	
 	if(inst->cydflags & CYD_CHN_ENABLE_FM)
 	{
@@ -863,6 +869,12 @@ static void save_instrument_inner(SDL_RWops *f, MusInstrument *inst, const CydWa
 				{
 					SDL_RWwrite(f, &inst->ops[i].CSM_timer_note, sizeof(inst->ops[i].CSM_timer_note), 1);
 					SDL_RWwrite(f, &inst->ops[i].CSM_timer_finetune, sizeof(inst->ops[i].CSM_timer_finetune), 1);
+				}
+
+				if(inst->ops[i].cydflags & CYD_FM_OP_ENABLE_PHASE_RESET_TIMER)
+				{
+					SDL_RWwrite(f, &inst->ops[i].phase_reset_timer_note, sizeof(inst->ops[i].phase_reset_timer_note), 1);
+					SDL_RWwrite(f, &inst->ops[i].phase_reset_timer_finetune, sizeof(inst->ops[i].phase_reset_timer_finetune), 1);
 				}
 				
 				if(inst->ops[i].cydflags & CYD_FM_OP_ENABLE_FILTER)
