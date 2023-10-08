@@ -3,6 +3,8 @@
     "files.autoGuessEncoding": false,
     "C_Cpp.errorSquiggles": "disabled",
     "files.associations": {
-        "sdl.h": "c"
+        "sdl.h": "c",
+        "math.h": "c",
+        "music.h": "c"
     }
 }

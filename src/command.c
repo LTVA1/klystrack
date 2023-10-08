@@ -103,6 +103,10 @@ static const InstructionDesc instruction_desc[] =
 	{MUS_FX_PORTA_UP_SEMI, 0xff00, "Portamento up (semitones)", "PortUpST", -1, -1},
 	{MUS_FX_PORTA_DN_SEMI, 0xff00, "Portamento down (semitones)", "PortDnST", -1, -1},
 	{MUS_FX_EXT_TOGGLE_FILTER, 0xfff0, "Toggle filter", "ToggleFilt", -1, -1},
+	{MUS_FX_EXT_TOGGLE_PHASE_RESET_TIMER, 0xfff0, "Toggle phase reset timer", "TogglePhTim", -1, -1},
+	{MUS_FX_EXT_TOGGLE_RING_MOD, 0xfff0, "Toggle ring modulation", "ToggleRingMod", -1, -1},
+	{MUS_FX_EXT_TOGGLE_SYNC, 0xfff0, "Toggle oscillator hard sync", "ToggleHardSync", -1, -1},
+	{MUS_FX_EXT_TOGGLE_FX_BUS, 0xfff0, "Toggle FX bus", "ToggleFX", -1, -1},
 	{MUS_FX_CUTOFF_UP, 0xff00, "Filter cutoff up", "CutoffUp", -1, -1},
 	{MUS_FX_CUTOFF_DN, 0xff00, "Filter cutoff down", "CutoffDn", -1, -1},
 	{MUS_FX_CUTOFF_SET, 0xff00, "Set filter cutoff", "Cutoff", 0, 0xff},
@@ -464,7 +468,7 @@ void get_command_desc(char *text, size_t buffer_size, Uint16 inst)
 		snprintf(text, buffer_size, "%s (+%d)", name, (inst & 0xff));
 	}
 	
-	else if ((fi & 0xfff0) == MUS_FX_EXT_TOGGLE_FILTER)
+	else if ((fi & 0xfff0) == MUS_FX_EXT_TOGGLE_FILTER || (fi & 0xfff0) == MUS_FX_EXT_TOGGLE_PHASE_RESET_TIMER || (fi & 0xfff0) == MUS_FX_EXT_TOGGLE_RING_MOD || (fi & 0xfff0) == MUS_FX_EXT_TOGGLE_SYNC || (fi & 0xfff0) == MUS_FX_EXT_TOGGLE_FX_BUS)
 	{
 		snprintf(text, buffer_size, "%s (%s)", name, (inst & 0xf) ? "enable" : "disable");
 	}
