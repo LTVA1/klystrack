@@ -3583,7 +3583,10 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 
 			for (int c = 0; c < CYD_MAX_CHANNELS; ++c)
 			{
-				if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].adsr.envelope > 0 || (mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].flags & CYD_FM_OP_ENABLE_GATE) /* so arrow does not blink when CSM timer is used */) && (mused.channel[c].ops[mused.selected_operator - 1].program_flags & (1 << (mused.current_fourop_program[mused.selected_operator - 1]))) && mused.channel[c].ops[mused.selected_operator - 1].program_tick[mused.current_fourop_program[mused.selected_operator - 1]] == i))
+				if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].adsr.envelope > 0 || 
+				(mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].flags & CYD_FM_OP_ENABLE_GATE) /* so arrow does not blink when CSM timer is used */) && 
+				(mused.channel[c].ops[mused.selected_operator - 1].program_flags & (1 << (mused.current_fourop_program[mused.selected_operator - 1]))) && 
+				mused.channel[c].ops[mused.selected_operator - 1].program_tick[mused.current_fourop_program[mused.selected_operator - 1]] == i) && !(mused.channel[c].instrument->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG))
 				//if (mused.channel[c].instrument == inst && ((mused.cyd.channel[c].fm.ops[mused.selected_operator - 1].flags & CYD_FM_OP_ENABLE_GATE) && (mused.channel[c].ops[mused.selected_operator - 1].flags & MUS_FM_OP_PROGRAM_RUNNING) && mused.channel[c].ops[mused.selected_operator - 1].program_tick == i) && !(inst->fm_flags & CYD_FM_FOUROP_USE_MAIN_INST_PROG))
 				{
 					cur = '½'; //where arrow pointing at current instrument (operator) program step is drawn
@@ -3604,7 +3607,9 @@ void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 			Uint32 temp_color = mused.console->current_color;
 			Uint32 highlight_color;
 			
-			if((inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step] & 0xff00) == MUS_FX_JUMP && inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step] != MUS_FX_NOP && (mused.flags2 & HIGHLIGHT_COMMANDS) && (inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step] & 0xff) == i && mused.focus == EDITPROG4OP)
+			if((inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step] & 0xff00) == MUS_FX_JUMP && 
+			inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step] != MUS_FX_NOP && (mused.flags2 & HIGHLIGHT_COMMANDS) && 
+			(inst->ops[mused.selected_operator - 1].program[mused.current_fourop_program[mused.selected_operator - 1]][mused.current_program_step] & 0xff) == i && mused.focus == EDITPROG4OP)
 			{
 				highlight_color = 0x00ee00;
 				console_set_color(mused.console, highlight_color);
