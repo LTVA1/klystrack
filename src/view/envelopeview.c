@@ -596,6 +596,12 @@ void point_envelope_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SD
 		area.y -= 60;
 		area.h += 60;
 	}
+
+	if(mused.show_timer_lfo_settings)
+	{
+		area.y -= 130;
+		area.h += 130;
+	}
 	
 	console_set_clip(mused.console, &area);
 	console_clear(mused.console);

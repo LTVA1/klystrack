@@ -1628,6 +1628,12 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 			area.y -= 60;
 			area.h += 60;
 		}
+
+		if(mused.show_timer_lfo_settings)
+		{
+			area.y -= 130;
+			area.h += 130;
+		}
 		
 		console_set_clip(mused.console, &area);
 		console_clear(mused.console);
@@ -1994,9 +2000,14 @@ void oscilloscope_view(GfxDomain *dest_surface, SDL_Rect *dest, const SDL_Event 
 		dest->x -= 10;
 	}
 	
-	if(!(mused.show_four_op_menu) && !(mused.show_fm_settings))
+	if(!(mused.show_four_op_menu) && (mused.show_fx_lfo_settings))
 	{
 		dest->y -= 60;
+	}
+
+	if(!(mused.show_four_op_menu) && (mused.show_timer_lfo_settings))
+	{
+		dest->y -= 130;
 	}
 	
 	if(mused.flags & SHOW_OSCILLOSCOPE_INST_EDITOR)
@@ -3938,6 +3949,11 @@ void instrument_view2(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_E
 		if(mused.show_fx_lfo_settings)
 		{
 			frame.h -= 60;
+		}
+
+		if(mused.show_timer_lfo_settings)
+		{
+			frame.h -= 130;
 		}
 		
 		bevelex(domain,&frame, mused.slider_bevel, BEV_BACKGROUND, BEV_F_STRETCH_ALL);
