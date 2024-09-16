@@ -83,7 +83,7 @@ void instrument_name_view(GfxDomain *dest_surface, const SDL_Rect *dest, const S
 void instrument_disk_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
 void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
 
-void oscilloscope_view(GfxDomain *dest_surface, SDL_Rect *dest, const SDL_Event *event, void *param); //wasn't there
+void oscilloscope_view(GfxDomain *dest_surface, const SDL_Rect *dest1, const SDL_Event *event, void *param); //wasn't there
 void four_op_menu_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
 void four_op_program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event *event, void *param);
 

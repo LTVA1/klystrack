@@ -1992,8 +1992,10 @@ void program_view(GfxDomain *dest_surface, const SDL_Rect *dest, const SDL_Event
 	}
 }
 
-void oscilloscope_view(GfxDomain *dest_surface, SDL_Rect *dest, const SDL_Event *event, void *param) //wasn't there
+void oscilloscope_view(GfxDomain *dest_surface, const SDL_Rect *dest1, const SDL_Event *event, void *param) //wasn't there
 {
+	SDL_Rect *dest = (SDL_Rect *)dest1;
+	
 	if(mused.show_four_op_menu)
 	{
 		dest->y -= 69; //nice
