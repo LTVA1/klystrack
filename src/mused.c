@@ -39,6 +39,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "diskop.h"
 #include <stdarg.h>
 #include <string.h>
+#include <unistd.h>
 
 extern Mused mused;
 extern Menu editormenu[];
