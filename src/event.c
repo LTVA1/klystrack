@@ -31,6 +31,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "edit.h"
 #include "util/rnd.h"
 #include <string.h>
+#include <sys/stat.h>
 #include "snd/cydwave.h"
 #include "snd/freqs.h"
 #include "mymsg.h"
@@ -181,7 +182,7 @@ void do_autosave(Uint32* timeout)
 			{
 				debug("No autosaves directory found, attempt to create it...");
 				
-				int check = mkdir(dir_name);
+				int check = mkdir(dir_name, S_IRWXU);
 				
 				if(!check)
 				{
