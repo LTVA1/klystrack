@@ -39,6 +39,7 @@ void midi_event(SDL_Event *e);
 void midi_init();
 void midi_deinit();
 void midi_set_channel(void *chn, void *unused1, void *unused2);
+void midi_set_octave(void *octave, void *unused1, void *unused2);
 
 #endif
 

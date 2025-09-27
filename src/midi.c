@@ -6,6 +6,7 @@
 #include "mymsg.h"
 
 #define MAX_MIDI_DEVICES 32
+#define NUM_MIDI_OCTAVES_ALLOWED 3
 
 extern Menu prefsmenu[];
 Menu midi_menu[];
@@ -32,11 +33,23 @@ Menu midi_channel_menu[] =
 	{ 0, NULL, NULL }
 };
 
+Menu midi_octave_menu[] =
+{
+	{ 0, midi_menu, "-3", NULL, midi_set_octave, MAKEPTR(-3), 0, 0},
+	{ 0, midi_menu, "-2", NULL, midi_set_octave, MAKEPTR(-2), 0, 0},
+	{ 0, midi_menu, "-1", NULL, midi_set_octave, MAKEPTR(-1), 0, 0},
+	{ 0, midi_menu, "0", NULL, midi_set_octave, 0, 0, 0},
+	{ 0, midi_menu, "+1", NULL, midi_set_octave, MAKEPTR(1), 0, 0},
+	{ 0, midi_menu, "+2", NULL, midi_set_octave, MAKEPTR(2), 0, 0},
+	{ 0, midi_menu, "+3", NULL, midi_set_octave, MAKEPTR(3), 0, 0},
+};
+
 Menu midi_menu[] =
 {
 	{ 0, prefsmenu, "MIDI sync", NULL, MENU_CHECK, &mused.flags, (void*)MIDI_SYNC, 0 },
 	{ 0, prefsmenu, "Device", midi_device_menu, NULL, 0, 0, 0 },
 	{ 0, prefsmenu, "Channel", midi_channel_menu, NULL, 0, 0, 0 },
+	{ 0, prefsmenu, "Octave", midi_octave_menu, NULL, 0, 0, 0 },
 	{ 0, NULL, NULL }
 };
 
@@ -184,9 +197,11 @@ static void CALLBACK MidiInProc(HMIDIIN hMidiIn, UINT wMsg, DWORD_PTR dwInstance
 					case 0x90:
 					{
 						SDL_Event e;
-						e.type = MSG_NOTEON;
+						Uint8 velocity = (dwParam1 >> 16) & 0xff;
+						// A 0x90 midi message with velocity 0 is considered a "note off"
+						e.type = (velocity == 0x0 ? MSG_NOTEOFF : MSG_NOTEON);
 						e.user.code = (dwParam1 >> 8) & 0xff;
-						e.user.data1 = MAKEPTR((dwParam1 >> 16) & 0xff);
+						e.user.data1 = MAKEPTR(velocity);
 						SDL_PushEvent(&e);
 					}
 					break;
@@ -292,6 +307,17 @@ void midi_set_channel(void *chn, void *unused1, void *unused2)
 			midi_channel_menu[i].flags &= ~MENU_BULLET;
 }
 
+void midi_set_octave(void *octave, void *unused1, void *unused2)
+{
+	mused.midi_octave = my_max(my_min(CASTPTR(int, octave), NUM_MIDI_OCTAVES_ALLOWED), -NUM_MIDI_OCTAVES_ALLOWED);
+
+	for (int i = 0; i < (NUM_MIDI_OCTAVES_ALLOWED * 2 + 1); i++)
+		if (i - NUM_MIDI_OCTAVES_ALLOWED == mused.midi_octave)
+			midi_octave_menu[i].flags |= MENU_BULLET;
+		else
+			midi_octave_menu[i].flags &= ~MENU_BULLET;
+}
+
 
 void midi_init() 
 {
@@ -300,6 +326,7 @@ void midi_init()
 	memset(midi_device_menu, 0, sizeof(midi_device_menu));
 	
 	midi_set_channel(MAKEPTR(mused.midi_channel), 0, 0);
+	midi_set_octave(MAKEPTR(mused.midi_octave), 0, 0);
 	
 	if (midiInGetNumDevs() == 0) 
 	{
