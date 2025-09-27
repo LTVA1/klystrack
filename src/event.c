@@ -182,7 +182,11 @@ void do_autosave(Uint32* timeout)
 			{
 				debug("No autosaves directory found, attempt to create it...");
 				
-				int check = mkdir(dir_name, S_IRWXU);
+				#ifdef WIN32
+					int check = mkdir(dir_name);
+				#else
+					int check = mkdir(dir_name, S_IRWXU);
+				#endif
 				
 				if(!check)
 				{
