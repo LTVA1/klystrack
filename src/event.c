@@ -182,7 +182,11 @@ void do_autosave(Uint32* timeout)
 			{
 				debug("No autosaves directory found, attempt to create it...");
 				
-				int check = mkdir(dir_name, S_IRWXU);
+				#ifdef WIN32
+					int check = mkdir(dir_name);
+				#else
+					int check = mkdir(dir_name, S_IRWXU);
+				#endif
 				
 				if(!check)
 				{
@@ -5811,7 +5815,7 @@ void note_event(SDL_Event *e)
 	{
 		case MSG_NOTEON:
 		{
-			Uint32 note = e->user.code + 12 * 5; //to account for negative octaves
+			Uint32 note = e->user.code + 12 * (mused.midi_octave + 5); //to account for negative octaves
 			
 			play_note(note);
 			
@@ -5824,7 +5828,7 @@ void note_event(SDL_Event *e)
 
 		case MSG_NOTEOFF:
 		{
-			Uint32 note = e->user.code + 12 * 5; //to account for negative octaves
+			Uint32 note = e->user.code + 12 * (mused.midi_octave + 5); //to account for negative octaves
 			
 			stop_note(note);
 		}

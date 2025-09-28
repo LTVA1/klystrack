@@ -69,6 +69,7 @@ static const struct { int type; const char *name; void *param; Uint64 mask; } co
 #ifdef MIDI
 	{ C_INT, "midi_device", &mused.midi_device },
 	{ C_INT, "midi_channel", &mused.midi_channel },
+	{ C_INT, "midi_octave", &mused.midi_octave },
 #endif
 	{ C_BOOL, "lock_pattern_length", &mused.flags, LOCK_SEQUENCE_STEP_AND_PATTERN_LENGTH },
 	{ C_BOOL, "edit_sequence_digits", &mused.flags, EDIT_SEQUENCE_DIGITS },

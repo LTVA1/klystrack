@@ -303,6 +303,7 @@ typedef struct
 	Uint16 midi_rate;
 	Uint32 midi_last_clock;
 	Uint8 tick_ctr;
+	int midi_octave;
 #endif
 
 	WgSettings wgset;
