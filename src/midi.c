@@ -161,6 +161,28 @@ void midi_event(SDL_Event *e)
 	}
 }
 
+void midi_set_channel(void *chn, void *unused1, void *unused2)
+{
+	mused.midi_channel = my_min(CASTPTR(int, chn), 15);
+
+	for (int i = 0; i < 16; ++i)
+		if (i == mused.midi_channel)
+			midi_channel_menu[i].flags |= MENU_BULLET;
+		else
+			midi_channel_menu[i].flags &= ~MENU_BULLET;
+}
+
+void midi_set_octave(void *octave, void *unused1, void *unused2)
+{
+	mused.midi_octave = my_max(my_min(CASTPTR(int, octave), NUM_MIDI_OCTAVES_ALLOWED), -NUM_MIDI_OCTAVES_ALLOWED);
+
+	for (int i = 0; i < (NUM_MIDI_OCTAVES_ALLOWED * 2 + 1); i++)
+		if (i - NUM_MIDI_OCTAVES_ALLOWED == mused.midi_octave)
+			midi_octave_menu[i].flags |= MENU_BULLET;
+		else
+			midi_octave_menu[i].flags &= ~MENU_BULLET;
+}
+
 
 #ifdef WIN32
 
@@ -294,30 +316,6 @@ void midi_set_device(void *dev, void *unused1, void *unused2)
 		}
 	}	
 }
-
-
-void midi_set_channel(void *chn, void *unused1, void *unused2)
-{
-	mused.midi_channel = my_min(CASTPTR(int, chn), 15);
-	
-	for (int i = 0; i < 16; ++i)
-		if (i == mused.midi_channel) 
-			midi_channel_menu[i].flags |= MENU_BULLET;
-		else
-			midi_channel_menu[i].flags &= ~MENU_BULLET;
-}
-
-void midi_set_octave(void *octave, void *unused1, void *unused2)
-{
-	mused.midi_octave = my_max(my_min(CASTPTR(int, octave), NUM_MIDI_OCTAVES_ALLOWED), -NUM_MIDI_OCTAVES_ALLOWED);
-
-	for (int i = 0; i < (NUM_MIDI_OCTAVES_ALLOWED * 2 + 1); i++)
-		if (i - NUM_MIDI_OCTAVES_ALLOWED == mused.midi_octave)
-			midi_octave_menu[i].flags |= MENU_BULLET;
-		else
-			midi_octave_menu[i].flags &= ~MENU_BULLET;
-}
-
 
 void midi_init() 
 {
@@ -493,17 +491,6 @@ void midi_set_device(void *dev, void *client, void *port)
 	}
 }
 
-void midi_set_channel(void *chn, void *unused1, void *unused2)
-{
-	mused.midi_channel = my_min(CASTPTR(int, chn), 15);
-
-	for (int i = 0; i < 16; ++i)
-		if (i == mused.midi_channel)
-			midi_channel_menu[i].flags |= MENU_BULLET;
-		else
-			midi_channel_menu[i].flags &= ~MENU_BULLET;
-}
-
 void midi_init(Uint32 uDeviceID)
 {
 	debug("MIDI initializing");
@@ -593,7 +580,6 @@ void midi_deinit()
 
 #else
 
-void midi_set_channel(void *chn, void *unused1, void *unused2) {}
 void midi_init(Uint32 uDeviceID) {}
 void midi_deinit() {}
 
